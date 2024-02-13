@@ -7,6 +7,8 @@ import no.nav.amt.deltaker.application.isReadyKey
 import no.nav.amt.deltaker.application.plugins.configureMonitoring
 import no.nav.amt.deltaker.application.plugins.configureRouting
 import no.nav.amt.deltaker.application.plugins.configureSerialization
+import no.nav.amt.deltaker.arrangor.ArrangorConsumer
+import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.db.Database
 
 fun main() {
@@ -27,6 +29,13 @@ fun Application.module() {
     val environment = Environment()
 
     Database.init(environment)
+
+    val arrangorRepository = ArrangorRepository()
+
+    val consumers = listOf(
+        ArrangorConsumer(arrangorRepository),
+    )
+    consumers.forEach { it.run() }
 
     configureRouting()
     configureMonitoring()
