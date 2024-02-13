@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.utils.data
 import kotliquery.queryOf
 import no.nav.amt.deltaker.arrangor.Arrangor
 import no.nav.amt.deltaker.db.Database
+import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import org.slf4j.LoggerFactory
 
 object TestRepository {
@@ -43,6 +44,38 @@ object TestRepository {
                 ),
             )
             it.update(query)
+        }
+    }
+
+    fun insert(deltakerliste: Deltakerliste) {
+        try {
+            insert(deltakerliste.arrangor)
+        } catch (e: Exception) {
+            log.warn("Arrangor med id ${deltakerliste.arrangor.id} er allerede opprettet")
+        }
+
+        Database.query {
+            val sql = """
+                INSERT INTO deltakerliste( id, navn, status, arrangor_id, tiltaksnavn, tiltakstype, start_dato, slutt_dato, oppstart)
+                VALUES (:id, :navn, :status, :arrangor_id, :tiltaksnavn, :tiltakstype, :start_dato, :slutt_dato, :oppstart) 
+            """.trimIndent()
+
+            it.update(
+                queryOf(
+                    sql,
+                    mapOf(
+                        "id" to deltakerliste.id,
+                        "navn" to deltakerliste.navn,
+                        "status" to deltakerliste.status.name,
+                        "arrangor_id" to deltakerliste.arrangor.id,
+                        "tiltaksnavn" to deltakerliste.tiltak.navn,
+                        "tiltakstype" to deltakerliste.tiltak.type.name,
+                        "start_dato" to deltakerliste.startDato,
+                        "slutt_dato" to deltakerliste.sluttDato,
+                        "oppstart" to deltakerliste.oppstart?.name,
+                    ),
+                ),
+            )
         }
     }
 }

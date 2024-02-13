@@ -39,11 +39,20 @@ spec:
     application:
       enabled: true
       allowAllUsers: true
+  accessPolicy:
+    outbound:
+      rules:
+        - application: amt-arrangor
   secureLogs:
     enabled: true
   leaderElection: true
   kafka:
     pool: nav-dev
+  env:
+    - name: AMT_ARRANGOR_SCOPE
+      value: api://dev-gcp.amt.amt-arrangor/.default
+    - name: AMT_ARRANGOR_URL
+      value: http://amt-arrangor
 
   gcp:
     sqlInstances:
