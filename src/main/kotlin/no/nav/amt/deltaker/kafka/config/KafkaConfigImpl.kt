@@ -10,7 +10,7 @@ import org.apache.kafka.common.serialization.Deserializer
 import org.apache.kafka.common.serialization.StringSerializer
 
 class KafkaConfigImpl(
-    private val autoOffsetReset: String = "latest",
+    private val autoOffsetReset: String = "earliest",
 ) : KafkaConfig {
     private val javaKey = "JKS"
     private val pkcs12 = "PKCS12"
