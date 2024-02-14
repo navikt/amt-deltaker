@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.utils.data
 import no.nav.amt.deltaker.arrangor.Arrangor
 import no.nav.amt.deltaker.navansatt.NavAnsatt
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhet
+import no.nav.amt.deltaker.navbruker.NavBruker
 import java.util.UUID
 
 object TestData {
@@ -32,4 +33,12 @@ object TestData {
         enhetsnummer: String = randomEnhetsnummer(),
         navn: String = "NAV Testheim",
     ) = NavEnhet(id, enhetsnummer, navn)
+
+    fun lagNavBruker(
+        personId: UUID = UUID.randomUUID(),
+        personident: String = randomIdent(),
+        fornavn: String = "Fornavn",
+        mellomnavn: String? = "Mellomnavn",
+        etternavn: String = "Etternavn",
+    ) = NavBruker(personId, personident, fornavn, mellomnavn, etternavn)
 }

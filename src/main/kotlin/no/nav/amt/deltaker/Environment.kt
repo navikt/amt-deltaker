@@ -26,6 +26,7 @@ data class Environment(
 
         const val AMT_ARRANGOR_TOPIC = "amt.arrangor-v1"
         const val AMT_NAV_ANSATT_TOPIC = "amt.nav-ansatt-personalia-v1"
+        const val AMT_NAV_BRUKER_TOPIC = "amt.nav-bruker-personalia-v1"
 
         const val AMT_PERSONSERVICE_URL_KEY = "AMT_PERSONSERVICE_URL"
         const val AMT_PERSONSERVICE_SCOPE_KEY = "AMT_PERSONSERVICE_SCOPE"

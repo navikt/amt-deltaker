@@ -23,6 +23,9 @@ import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
+import no.nav.amt.deltaker.navbruker.NavBrukerConsumer
+import no.nav.amt.deltaker.navbruker.NavBrukerRepository
+import no.nav.amt.deltaker.navbruker.NavBrukerService
 
 fun main() {
     val server = embeddedServer(Netty, port = 8080, module = Application::module)
@@ -71,13 +74,19 @@ fun Application.module() {
     val arrangorRepository = ArrangorRepository()
     val navAnsattRepository = NavAnsattRepository()
     val navEnhetRepository = NavEnhetRepository()
+    val navBrukerRepository = NavBrukerRepository()
 
     val navAnsattService = NavAnsattService(navAnsattRepository, amtPersonServiceClient)
     val navEnhetService = NavEnhetService(navEnhetRepository, amtPersonServiceClient)
+    val navBrukerService = NavBrukerService(
+        navBrukerRepository,
+        amtPersonServiceClient,
+    )
 
     val consumers = listOf(
         ArrangorConsumer(arrangorRepository),
         NavAnsattConsumer(navAnsattService),
+        NavBrukerConsumer(navBrukerRepository),
     )
     consumers.forEach { it.run() }
 
