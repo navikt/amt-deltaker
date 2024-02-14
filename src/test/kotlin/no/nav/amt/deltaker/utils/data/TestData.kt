@@ -1,6 +1,9 @@
 package no.nav.amt.deltaker.utils.data
 
 import no.nav.amt.deltaker.arrangor.Arrangor
+import no.nav.amt.deltaker.deltakerliste.tiltakstype.DeltakerRegistreringInnhold
+import no.nav.amt.deltaker.deltakerliste.tiltakstype.Innholdselement
+import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.deltaker.navansatt.NavAnsatt
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhet
 import no.nav.amt.deltaker.navbruker.NavBruker
@@ -41,4 +44,16 @@ object TestData {
         mellomnavn: String? = "Mellomnavn",
         etternavn: String = "Etternavn",
     ) = NavBruker(personId, personident, fornavn, mellomnavn, etternavn)
+
+    fun lagTiltakstype(
+        id: UUID = UUID.randomUUID(),
+        type: Tiltakstype.Type = Tiltakstype.Type.entries.random(),
+        navn: String = "Test tiltak $type",
+        innhold: DeltakerRegistreringInnhold = lagDeltakerRegistreringInnhold(),
+    ) = Tiltakstype(id, navn, type, innhold)
+
+    fun lagDeltakerRegistreringInnhold(
+        innholdselementer: List<Innholdselement> = listOf(Innholdselement("Tekst", "kode")),
+        ledetekst: String = "Beskrivelse av tilaket",
+    ) = DeltakerRegistreringInnhold(innholdselementer, ledetekst)
 }

@@ -17,6 +17,8 @@ import no.nav.amt.deltaker.arrangor.ArrangorConsumer
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.auth.AzureAdTokenClient
 import no.nav.amt.deltaker.db.Database
+import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
+import no.nav.amt.deltaker.deltakerliste.tiltakstype.kafka.TiltakstypeConsumer
 import no.nav.amt.deltaker.navansatt.AmtPersonServiceClient
 import no.nav.amt.deltaker.navansatt.NavAnsattConsumer
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
@@ -75,6 +77,7 @@ fun Application.module() {
     val navAnsattRepository = NavAnsattRepository()
     val navEnhetRepository = NavEnhetRepository()
     val navBrukerRepository = NavBrukerRepository()
+    val tiltakstypeRepository = TiltakstypeRepository()
 
     val navAnsattService = NavAnsattService(navAnsattRepository, amtPersonServiceClient)
     val navEnhetService = NavEnhetService(navEnhetRepository, amtPersonServiceClient)
@@ -87,6 +90,7 @@ fun Application.module() {
         ArrangorConsumer(arrangorRepository),
         NavAnsattConsumer(navAnsattService),
         NavBrukerConsumer(navBrukerRepository),
+        TiltakstypeConsumer(tiltakstypeRepository),
     )
     consumers.forEach { it.run() }
 
