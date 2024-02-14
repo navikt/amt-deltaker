@@ -4,6 +4,12 @@ import no.nav.amt.deltaker.arrangor.Arrangor
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.Tiltak
 import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlisteDto
+import no.nav.amt.deltaker.deltakerliste.tiltakstype.DeltakerRegistreringInnhold
+import no.nav.amt.deltaker.deltakerliste.tiltakstype.Innholdselement
+import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype
+import no.nav.amt.deltaker.navansatt.NavAnsatt
+import no.nav.amt.deltaker.navansatt.navenhet.NavEnhet
+import no.nav.amt.deltaker.navbruker.NavBruker
 import java.time.LocalDate
 import java.util.UUID
 
@@ -22,6 +28,38 @@ object TestData {
         organisasjonsnummer: String = randomOrgnr(),
         overordnetArrangorId: UUID? = null,
     ) = Arrangor(id, navn, organisasjonsnummer, overordnetArrangorId)
+
+    fun lagNavAnsatt(
+        id: UUID = UUID.randomUUID(),
+        navIdent: String = randomNavIdent(),
+        navn: String = "Veileder Veiledersen",
+    ) = NavAnsatt(id, navIdent, navn)
+
+    fun lagNavEnhet(
+        id: UUID = UUID.randomUUID(),
+        enhetsnummer: String = randomEnhetsnummer(),
+        navn: String = "NAV Testheim",
+    ) = NavEnhet(id, enhetsnummer, navn)
+
+    fun lagNavBruker(
+        personId: UUID = UUID.randomUUID(),
+        personident: String = randomIdent(),
+        fornavn: String = "Fornavn",
+        mellomnavn: String? = "Mellomnavn",
+        etternavn: String = "Etternavn",
+    ) = NavBruker(personId, personident, fornavn, mellomnavn, etternavn)
+
+    fun lagTiltakstype(
+        id: UUID = UUID.randomUUID(),
+        type: Tiltakstype.Type = Tiltakstype.Type.entries.random(),
+        navn: String = "Test tiltak $type",
+        innhold: DeltakerRegistreringInnhold = lagDeltakerRegistreringInnhold(),
+    ) = Tiltakstype(id, navn, type, innhold)
+
+    fun lagDeltakerRegistreringInnhold(
+        innholdselementer: List<Innholdselement> = listOf(Innholdselement("Tekst", "kode")),
+        ledetekst: String = "Beskrivelse av tilaket",
+    ) = DeltakerRegistreringInnhold(innholdselementer, ledetekst)
 
     fun lagDeltakerliste(
         id: UUID = UUID.randomUUID(),

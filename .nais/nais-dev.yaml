@@ -42,6 +42,7 @@ spec:
   accessPolicy:
     outbound:
       rules:
+        - application: amt-person-service
         - application: amt-arrangor
   secureLogs:
     enabled: true
@@ -49,6 +50,10 @@ spec:
   kafka:
     pool: nav-dev
   env:
+    - name: AMT_PERSONSERVICE_SCOPE
+      value: api://dev-gcp.amt.amt-person-service/.default
+    - name: AMT_PERSONSERVICE_URL
+      value: http://amt-person-service
     - name: AMT_ARRANGOR_SCOPE
       value: api://dev-gcp.amt.amt-arrangor/.default
     - name: AMT_ARRANGOR_URL

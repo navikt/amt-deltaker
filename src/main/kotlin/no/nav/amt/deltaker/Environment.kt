@@ -11,6 +11,8 @@ data class Environment(
     val azureClientSecret: String = getEnvVar(AZURE_APP_CLIENT_SECRET_KEY),
     val jwkKeysUrl: String = getEnvVar(AZURE_OPENID_CONFIG_JWKS_URI_KEY),
     val jwtIssuer: String = getEnvVar(AZURE_OPENID_CONFIG_ISSUER_KEY),
+    val amtPersonServiceUrl: String = getEnvVar(AMT_PERSONSERVICE_URL_KEY),
+    val amtPersonServiceScope: String = getEnvVar(AMT_PERSONSERVICE_SCOPE_KEY),
     val amtArrangorUrl: String = getEnvVar(AMT_ARRANGOR_URL_KEY),
     val amtArrangorScope: String = getEnvVar(AMT_ARRANGOR_SCOPE_KEY),
 ) {
@@ -25,7 +27,12 @@ data class Environment(
         const val KAFKA_CONSUMER_GROUP_ID = "amt-deltaker-consumer"
         const val DELTAKERLISTE_TOPIC = "team-mulighetsrommet.siste-tiltaksgjennomforinger-v1"
         const val AMT_ARRANGOR_TOPIC = "amt.arrangor-v1"
+        const val AMT_NAV_ANSATT_TOPIC = "amt.nav-ansatt-personalia-v1"
+        const val AMT_NAV_BRUKER_TOPIC = "amt.nav-bruker-personalia-v1"
+        const val TILTAKSTYPE_TOPIC = "team-mulighetsrommet.siste-tiltakstyper-v1"
 
+        const val AMT_PERSONSERVICE_URL_KEY = "AMT_PERSONSERVICE_URL"
+        const val AMT_PERSONSERVICE_SCOPE_KEY = "AMT_PERSONSERVICE_SCOPE"
         const val AMT_ARRANGOR_URL_KEY = "AMT_ARRANGOR_URL"
         const val AMT_ARRANGOR_SCOPE_KEY = "AMT_ARRANGOR_SCOPE"
 
