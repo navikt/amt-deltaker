@@ -5,6 +5,9 @@ import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
+import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
+import no.nav.amt.deltaker.deltakerliste.tiltakstype.kafka.arenaKodeTilTiltakstype
+import no.nav.amt.deltaker.deltakerliste.tiltakstype.kafka.erStottet
 import no.nav.amt.deltaker.kafka.Consumer
 import no.nav.amt.deltaker.kafka.ManagedKafkaConsumer
 import no.nav.amt.deltaker.kafka.config.KafkaConfig
@@ -16,6 +19,7 @@ import java.util.UUID
 
 class DeltakerlisteConsumer(
     private val repository: DeltakerlisteRepository,
+    private val tiltakstypeRepository: TiltakstypeRepository,
     private val arrangorService: ArrangorService,
     kafkaConfig: KafkaConfig = if (Environment.isLocal()) LocalKafkaConfig() else KafkaConfigImpl(),
 ) : Consumer<UUID, String?> {
@@ -40,9 +44,11 @@ class DeltakerlisteConsumer(
     }
 
     private suspend fun handterDeltakerliste(deltakerliste: DeltakerlisteDto) {
-        if (!deltakerliste.tiltakstype.erStottet()) return
+        if (!erStottet(deltakerliste.tiltakstype.arenaKode)) return
+
+        val tiltakstype = tiltakstypeRepository.get(arenaKodeTilTiltakstype(deltakerliste.tiltakstype.arenaKode)).getOrThrow()
 
         val arrangor = arrangorService.hentArrangor(deltakerliste.virksomhetsnummer)
-        repository.upsert(deltakerliste.toModel(arrangor))
+        repository.upsert(deltakerliste.toModel(arrangor, tiltakstype))
     }
 }

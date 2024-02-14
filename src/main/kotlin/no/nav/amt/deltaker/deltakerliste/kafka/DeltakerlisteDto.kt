@@ -2,8 +2,6 @@ package no.nav.amt.deltaker.deltakerliste.kafka
 
 import no.nav.amt.deltaker.arrangor.Arrangor
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
-import no.nav.amt.deltaker.deltakerliste.Tiltak
-import no.nav.amt.deltaker.deltakerliste.arenaKodeTilTiltakstype
 import java.time.LocalDate
 import java.util.UUID
 
@@ -20,28 +18,11 @@ data class DeltakerlisteDto(
     data class Tiltakstype(
         val navn: String,
         val arenaKode: String,
-    ) {
-        fun toModel() = Tiltak(
-            this.navn,
-            arenaKodeTilTiltakstype(this.arenaKode),
-        )
+    )
 
-        fun erStottet() = this.arenaKode in setOf(
-            "INDOPPFAG",
-            "ARBFORB",
-            "AVKLARAG",
-            "VASV",
-            "ARBRRHDAG",
-            "DIGIOPPARB",
-            "JOBBK",
-            "GRUPPEAMO",
-            "GRUFAGYRKE",
-        )
-    }
-
-    fun toModel(arrangor: Arrangor) = Deltakerliste(
+    fun toModel(arrangor: Arrangor, tiltakstype: no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype) = Deltakerliste(
         id = this.id,
-        tiltak = this.tiltakstype.toModel(),
+        tiltakstype = tiltakstype,
         navn = this.navn,
         status = Deltakerliste.Status.fromString(this.status),
         startDato = this.startDato,

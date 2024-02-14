@@ -34,7 +34,7 @@ class TiltakstypeConsumer(
     }
 
     private fun handterTiltakstype(tiltakstype: TiltakstypeDto) {
-        if (!tiltakstype.erStottet() || tiltakstype.status != Tiltakstypestatus.Aktiv) return
+        if (!erStottet(tiltakstype.arenaKode) || tiltakstype.status != Tiltakstypestatus.Aktiv) return
 
         repository.upsert(tiltakstype.toModel())
     }

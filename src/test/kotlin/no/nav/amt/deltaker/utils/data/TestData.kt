@@ -2,7 +2,6 @@ package no.nav.amt.deltaker.utils.data
 
 import no.nav.amt.deltaker.arrangor.Arrangor
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
-import no.nav.amt.deltaker.deltakerliste.Tiltak
 import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlisteDto
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.DeltakerRegistreringInnhold
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.Innholdselement
@@ -64,18 +63,13 @@ object TestData {
     fun lagDeltakerliste(
         id: UUID = UUID.randomUUID(),
         arrangor: Arrangor = lagArrangor(),
-        tiltak: Tiltak = lagTiltak(),
-        navn: String = "Test Deltakerliste ${tiltak.type}",
+        tiltakstype: Tiltakstype = lagTiltakstype(),
+        navn: String = "Test Deltakerliste ${tiltakstype.type}",
         status: Deltakerliste.Status = Deltakerliste.Status.GJENNOMFORES,
         startDato: LocalDate = LocalDate.now().minusMonths(1),
         sluttDato: LocalDate? = LocalDate.now().plusYears(1),
-        oppstart: Deltakerliste.Oppstartstype? = finnOppstartstype(tiltak.type),
-    ) = Deltakerliste(id, tiltak, navn, status, startDato, sluttDato, oppstart, arrangor)
-
-    fun lagTiltak(
-        type: Tiltak.Type = Tiltak.Type.entries.random(),
-        navn: String = "Test tiltak $type",
-    ) = Tiltak(navn, type)
+        oppstart: Deltakerliste.Oppstartstype? = finnOppstartstype(tiltakstype.type),
+    ) = Deltakerliste(id, tiltakstype, navn, status, startDato, sluttDato, oppstart, arrangor)
 
     fun lagDeltakerlisteDto(
         arrangor: Arrangor = lagArrangor(),
@@ -83,8 +77,8 @@ object TestData {
     ) = DeltakerlisteDto(
         id = deltakerliste.id,
         tiltakstype = DeltakerlisteDto.Tiltakstype(
-            deltakerliste.tiltak.navn,
-            deltakerliste.tiltak.type.name,
+            deltakerliste.tiltakstype.navn,
+            deltakerliste.tiltakstype.type.name,
         ),
         navn = deltakerliste.navn,
         startDato = deltakerliste.startDato,
@@ -94,10 +88,10 @@ object TestData {
         oppstart = deltakerliste.oppstart,
     )
 
-    private fun finnOppstartstype(type: Tiltak.Type) = when (type) {
-        Tiltak.Type.JOBBK,
-        Tiltak.Type.GRUPPEAMO,
-        Tiltak.Type.GRUFAGYRKE,
+    private fun finnOppstartstype(type: Tiltakstype.Type) = when (type) {
+        Tiltakstype.Type.JOBBK,
+        Tiltakstype.Type.GRUPPEAMO,
+        Tiltakstype.Type.GRUFAGYRKE,
         -> Deltakerliste.Oppstartstype.FELLES
 
         else -> Deltakerliste.Oppstartstype.LOPENDE

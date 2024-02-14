@@ -1,9 +1,12 @@
 package no.nav.amt.deltaker.deltakerliste
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import kotliquery.queryOf
+import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.arrangor.Arrangor
 import no.nav.amt.deltaker.db.Database
+import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
@@ -12,9 +15,11 @@ class DeltakerlisteRepository {
 
     private fun rowMapper(row: Row) = Deltakerliste(
         id = row.uuid("deltakerliste_id"),
-        tiltak = Tiltak(
-            navn = row.string("tiltaksnavn"),
-            type = Tiltak.Type.valueOf(row.string("tiltakstype")),
+        tiltakstype = Tiltakstype(
+            id = row.uuid("tiltakstype_id"),
+            navn = row.string("tiltakstype_navn"),
+            type = Tiltakstype.Type.valueOf(row.string("tiltakstype_type")),
+            innhold = row.stringOrNull("innhold")?.let { objectMapper.readValue(it) },
         ),
         navn = row.string("deltakerliste_navn"),
         status = Deltakerliste.Status.valueOf(row.string("status")),
@@ -35,9 +40,8 @@ class DeltakerlisteRepository {
             id, 
             navn, 
             status, 
-            arrangor_id, 
-            tiltaksnavn, 
-            tiltakstype, 
+            arrangor_id,  
+            tiltakstype_id, 
             start_dato, 
             slutt_dato, 
             oppstart)
@@ -45,8 +49,7 @@ class DeltakerlisteRepository {
         		:navn,
         		:status,
         		:arrangor_id,
-        		:tiltaksnavn,
-        		:tiltakstype,
+        		:tiltakstype_id,
         		:start_dato,
         		:slutt_dato,
                 :oppstart)
@@ -54,8 +57,7 @@ class DeltakerlisteRepository {
         		navn     				= :navn,
         		status					= :status,
         		arrangor_id 			= :arrangor_id,
-        		tiltaksnavn				= :tiltaksnavn,
-        		tiltakstype				= :tiltakstype,
+        		tiltakstype_id			= :tiltakstype_id,
         		start_dato				= :start_dato,
         		slutt_dato				= :slutt_dato,
                 oppstart                = :oppstart,
@@ -70,8 +72,7 @@ class DeltakerlisteRepository {
                     "navn" to deltakerliste.navn,
                     "status" to deltakerliste.status.name,
                     "arrangor_id" to deltakerliste.arrangor.id,
-                    "tiltaksnavn" to deltakerliste.tiltak.navn,
-                    "tiltakstype" to deltakerliste.tiltak.type.name,
+                    "tiltakstype_id" to deltakerliste.tiltakstype.id,
                     "start_dato" to deltakerliste.startDato,
                     "slutt_dato" to deltakerliste.sluttDato,
                     "oppstart" to deltakerliste.oppstart?.name,
@@ -97,8 +98,6 @@ class DeltakerlisteRepository {
             """
                 SELECT deltakerliste.id   AS deltakerliste_id,
                    arrangor_id,
-                   tiltaksnavn,
-                   tiltakstype,
                    deltakerliste.navn AS deltakerliste_navn,
                    status,
                    start_dato,
@@ -106,9 +105,14 @@ class DeltakerlisteRepository {
                    oppstart,
                    a.navn             AS arrangor_navn,
                    organisasjonsnummer,
-                   overordnet_arrangor_id
+                   overordnet_arrangor_id,
+                   tiltakstype_id,
+                   t.navn AS tiltakstype_navn,
+                   t.type AS tiltakstype_type,
+                   t.innhold AS innhold
                 FROM deltakerliste
                      INNER JOIN arrangor a ON a.id = deltakerliste.arrangor_id
+                     INNER JOIN tiltakstype t ON t.id = deltakerliste.tiltakstype_id
                 WHERE deltakerliste.id = :id
             """.trimIndent(),
             mapOf("id" to id),

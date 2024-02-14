@@ -5,6 +5,7 @@ import io.kotest.matchers.shouldNotBe
 import no.nav.amt.deltaker.utils.SingletonPostgresContainer
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
+import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test
 import java.time.LocalDate
@@ -21,11 +22,18 @@ class DeltakerlisteRepositoryTest {
         }
     }
 
+    @Before
+    fun cleanDatabase() {
+        TestRepository.cleanDatabase()
+    }
+
     @Test
     fun `upsert - ny deltakerliste - inserter`() {
         val arrangor = TestData.lagArrangor()
-        val deltakerliste = TestData.lagDeltakerliste(arrangor = arrangor)
+        val tiltakstype = TestData.lagTiltakstype()
+        val deltakerliste = TestData.lagDeltakerliste(arrangor = arrangor, tiltakstype = tiltakstype)
         TestRepository.insert(arrangor)
+        TestRepository.insert(tiltakstype)
 
         repository.upsert(deltakerliste)
 
@@ -35,8 +43,10 @@ class DeltakerlisteRepositoryTest {
     @Test
     fun `upsert - deltakerliste ny sluttdato - oppdaterer`() {
         val arrangor = TestData.lagArrangor()
-        val deltakerliste = TestData.lagDeltakerliste(arrangor = arrangor)
+        val tiltakstype = TestData.lagTiltakstype()
+        val deltakerliste = TestData.lagDeltakerliste(arrangor = arrangor, tiltakstype = tiltakstype)
         TestRepository.insert(arrangor)
+        TestRepository.insert(tiltakstype)
 
         repository.upsert(deltakerliste)
 
@@ -50,8 +60,10 @@ class DeltakerlisteRepositoryTest {
     @Test
     fun `delete - sletter deltakerliste`() {
         val arrangor = TestData.lagArrangor()
-        val deltakerliste = TestData.lagDeltakerliste(arrangor = arrangor)
+        val tiltakstype = TestData.lagTiltakstype()
+        val deltakerliste = TestData.lagDeltakerliste(arrangor = arrangor, tiltakstype = tiltakstype)
         TestRepository.insert(arrangor)
+        TestRepository.insert(tiltakstype)
 
         repository.upsert(deltakerliste)
 
@@ -63,8 +75,10 @@ class DeltakerlisteRepositoryTest {
     @Test
     fun `get - deltakerliste og arrangor finnes - henter deltakerliste`() {
         val arrangor = TestData.lagArrangor()
-        val deltakerliste = TestData.lagDeltakerliste(arrangor = arrangor)
+        val tiltakstype = TestData.lagTiltakstype()
+        val deltakerliste = TestData.lagDeltakerliste(arrangor = arrangor, tiltakstype = tiltakstype)
         TestRepository.insert(arrangor)
+        TestRepository.insert(tiltakstype)
         repository.upsert(deltakerliste)
 
         val deltakerlisteMedArrangor = repository.get(deltakerliste.id).getOrThrow()

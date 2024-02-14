@@ -19,6 +19,8 @@ import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.auth.AzureAdTokenClient
 import no.nav.amt.deltaker.db.Database
+import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
+import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlisteConsumer
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.kafka.TiltakstypeConsumer
 import no.nav.amt.deltaker.navansatt.AmtPersonServiceClient
@@ -30,8 +32,6 @@ import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
 import no.nav.amt.deltaker.navbruker.NavBrukerConsumer
 import no.nav.amt.deltaker.navbruker.NavBrukerRepository
 import no.nav.amt.deltaker.navbruker.NavBrukerService
-import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
-import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlisteConsumer
 
 fun main() {
     val server = embeddedServer(Netty, port = 8080, module = Application::module)
@@ -104,7 +104,7 @@ fun Application.module() {
         NavAnsattConsumer(navAnsattService),
         NavBrukerConsumer(navBrukerRepository),
         TiltakstypeConsumer(tiltakstypeRepository),
-        DeltakerlisteConsumer(deltakerlisteRepository, arrangorService),
+        DeltakerlisteConsumer(deltakerlisteRepository, tiltakstypeRepository, arrangorService),
     )
     consumers.forEach { it.run() }
 

@@ -1,12 +1,13 @@
 package no.nav.amt.deltaker.deltakerliste
 
 import no.nav.amt.deltaker.arrangor.Arrangor
+import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype
 import java.time.LocalDate
 import java.util.UUID
 
 data class Deltakerliste(
     val id: UUID,
-    val tiltak: Tiltak,
+    val tiltakstype: Tiltakstype,
     val navn: String,
     val status: Status,
     val startDato: LocalDate,
@@ -52,14 +53,14 @@ data class Deltakerliste(
         if (oppstart != null) {
             return oppstart == Oppstartstype.FELLES
         } else {
-            return kursTiltak.contains(tiltak.type)
+            return kursTiltak.contains(tiltakstype.type)
         }
     }
 
     private val kursTiltak = setOf(
-        Tiltak.Type.JOBBK,
-        Tiltak.Type.GRUPPEAMO,
-        Tiltak.Type.GRUFAGYRKE,
+        Tiltakstype.Type.JOBBK,
+        Tiltakstype.Type.GRUPPEAMO,
+        Tiltakstype.Type.GRUFAGYRKE,
     )
 }
 
