@@ -39,11 +39,20 @@ spec:
     application:
       enabled: true
       allowAllUsers: true
+  accessPolicy:
+    outbound:
+      rules:
+        - application: amt-person-service
   secureLogs:
     enabled: true
   leaderElection: true
   kafka:
     pool: nav-dev
+  env:
+    - name: AMT_PERSONSERVICE_SCOPE
+      value: api://dev-gcp.amt.amt-person-service/.default
+    - name: AMT_PERSONSERVICE_URL
+      value: http://amt-person-service
 
   gcp:
     sqlInstances:
