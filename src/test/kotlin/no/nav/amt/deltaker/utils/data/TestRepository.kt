@@ -3,6 +3,9 @@ package no.nav.amt.deltaker.utils.data
 import kotliquery.queryOf
 import no.nav.amt.deltaker.arrangor.Arrangor
 import no.nav.amt.deltaker.db.Database
+import no.nav.amt.deltaker.db.toPGObject
+import no.nav.amt.deltaker.deltakerliste.Deltakerliste
+import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.deltaker.navansatt.NavAnsatt
 import no.nav.amt.deltaker.navbruker.NavBruker
 import org.slf4j.LoggerFactory
@@ -18,6 +21,7 @@ object TestRepository {
             "nav_bruker",
             "deltakerliste",
             "arrangor",
+            "tiltakstype",
         )
         tables.forEach {
             val query = queryOf(
@@ -81,5 +85,58 @@ object TestRepository {
         )
 
         it.update(queryOf(sql, params))
+    }
+
+    fun insert(tiltakstype: Tiltakstype) = Database.query {
+        val sql = """
+            insert into tiltakstype(id, navn, type, innhold) 
+            values (:id, :navn, :type, :innhold)
+        """.trimIndent()
+
+        val params = mapOf(
+            "id" to tiltakstype.id,
+            "navn" to tiltakstype.navn,
+            "type" to tiltakstype.type.name,
+            "innhold" to toPGObject(tiltakstype.innhold),
+        )
+
+        it.update(queryOf(sql, params))
+    }
+
+    fun insert(deltakerliste: Deltakerliste) {
+        try {
+            insert(deltakerliste.arrangor)
+        } catch (e: Exception) {
+            log.warn("Arrangor med id ${deltakerliste.arrangor.id} er allerede opprettet")
+        }
+
+        try {
+            insert(deltakerliste.tiltakstype)
+        } catch (e: Exception) {
+            log.warn("Tiltakstype med id ${deltakerliste.tiltakstype.id} er allerede opprettet")
+        }
+
+        Database.query {
+            val sql = """
+                INSERT INTO deltakerliste( id, navn, status, arrangor_id, tiltakstype_id, start_dato, slutt_dato, oppstart)
+                VALUES (:id, :navn, :status, :arrangor_id, :tiltakstype_id, :start_dato, :slutt_dato, :oppstart) 
+            """.trimIndent()
+
+            it.update(
+                queryOf(
+                    sql,
+                    mapOf(
+                        "id" to deltakerliste.id,
+                        "navn" to deltakerliste.navn,
+                        "status" to deltakerliste.status.name,
+                        "arrangor_id" to deltakerliste.arrangor.id,
+                        "tiltakstype_id" to deltakerliste.tiltakstype.id,
+                        "start_dato" to deltakerliste.startDato,
+                        "slutt_dato" to deltakerliste.sluttDato,
+                        "oppstart" to deltakerliste.oppstart?.name,
+                    ),
+                ),
+            )
+        }
     }
 }

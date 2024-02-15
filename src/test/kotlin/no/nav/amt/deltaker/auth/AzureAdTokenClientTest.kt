@@ -53,7 +53,7 @@ class AzureAdTokenClientTest {
     }
 
     @Test
-    fun `getMachineToMachineToken - skal skal bruke cachet token etter første kall`(): Unit = runBlocking {
+    fun `getMachineToMachineToken - skal skal bruke cachet token etter forste kall`(): Unit = runBlocking {
         var antallGangerKallt = 0
         val mockEngine = MockEngine {
             antallGangerKallt++

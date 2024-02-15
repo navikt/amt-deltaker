@@ -12,6 +12,9 @@ import io.ktor.serialization.jackson.jackson
 import io.ktor.utils.io.ByteReadChannel
 import no.nav.amt.deltaker.application.plugins.applicationConfig
 import no.nav.amt.deltaker.application.plugins.objectMapper
+import no.nav.amt.deltaker.arrangor.AmtArrangorClient
+import no.nav.amt.deltaker.arrangor.Arrangor
+import no.nav.amt.deltaker.arrangor.ArrangorDto
 import no.nav.amt.deltaker.auth.AzureAdTokenClient
 import no.nav.amt.deltaker.navansatt.AmtPersonServiceClient
 import no.nav.amt.deltaker.navansatt.NavAnsatt
@@ -33,6 +36,20 @@ fun mockHttpClient(response: String): HttpClient {
             jackson { applicationConfig() }
         }
     }
+}
+
+fun mockAmtArrangorClient(arrangor: Arrangor = TestData.lagArrangor()): AmtArrangorClient {
+    val overordnetArrangor = arrangor.overordnetArrangorId?.let {
+        TestData.lagArrangor(id = arrangor.overordnetArrangorId!!)
+    }
+
+    val response = ArrangorDto(arrangor.id, arrangor.navn, arrangor.organisasjonsnummer, overordnetArrangor)
+    return AmtArrangorClient(
+        baseUrl = "https://amt-arrangor",
+        scope = "amt.arrangor.scope",
+        httpClient = mockHttpClient(objectMapper.writeValueAsString(response)),
+        azureAdTokenClient = mockAzureAdClient(),
+    )
 }
 
 fun mockAmtPersonServiceClientNavAnsatt(navAnsatt: NavAnsatt = TestData.lagNavAnsatt()): AmtPersonServiceClient {

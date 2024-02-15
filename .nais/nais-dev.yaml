@@ -43,6 +43,7 @@ spec:
     outbound:
       rules:
         - application: amt-person-service
+        - application: amt-arrangor
   secureLogs:
     enabled: true
   leaderElection: true
@@ -53,6 +54,10 @@ spec:
       value: api://dev-gcp.amt.amt-person-service/.default
     - name: AMT_PERSONSERVICE_URL
       value: http://amt-person-service
+    - name: AMT_ARRANGOR_SCOPE
+      value: api://dev-gcp.amt.amt-arrangor/.default
+    - name: AMT_ARRANGOR_URL
+      value: http://amt-arrangor
 
   gcp:
     sqlInstances:

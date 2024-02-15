@@ -1,14 +1,13 @@
-package no.nav.amt.deltaker.deltakerliste.kafka
+package no.nav.amt.deltaker.deltakerliste.tiltakstype.kafka
 
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
-import no.nav.amt.deltaker.deltakerliste.tiltakstype.kafka.TiltakstypeConsumer
-import no.nav.amt.deltaker.deltakerliste.tiltakstype.kafka.TiltakstypeDto
-import no.nav.amt.deltaker.deltakerliste.tiltakstype.kafka.Tiltakstypestatus
 import no.nav.amt.deltaker.utils.SingletonPostgresContainer
 import no.nav.amt.deltaker.utils.data.TestData
+import no.nav.amt.deltaker.utils.data.TestRepository
+import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test
 
@@ -22,6 +21,11 @@ class TiltakstypeConsumerTest {
             SingletonPostgresContainer.start()
             repository = TiltakstypeRepository()
         }
+    }
+
+    @Before
+    fun cleanDatabase() {
+        TestRepository.cleanDatabase()
     }
 
     @Test

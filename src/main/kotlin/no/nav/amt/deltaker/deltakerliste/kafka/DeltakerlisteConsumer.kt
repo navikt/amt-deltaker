@@ -1,9 +1,13 @@
-package no.nav.amt.deltaker.deltakerliste.tiltakstype.kafka
+package no.nav.amt.deltaker.deltakerliste.kafka
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.application.plugins.objectMapper
+import no.nav.amt.deltaker.arrangor.ArrangorService
+import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
+import no.nav.amt.deltaker.deltakerliste.tiltakstype.kafka.arenaKodeTilTiltakstype
+import no.nav.amt.deltaker.deltakerliste.tiltakstype.kafka.erStottet
 import no.nav.amt.deltaker.kafka.Consumer
 import no.nav.amt.deltaker.kafka.ManagedKafkaConsumer
 import no.nav.amt.deltaker.kafka.config.KafkaConfig
@@ -13,12 +17,14 @@ import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.UUIDDeserializer
 import java.util.UUID
 
-class TiltakstypeConsumer(
-    private val repository: TiltakstypeRepository,
+class DeltakerlisteConsumer(
+    private val repository: DeltakerlisteRepository,
+    private val tiltakstypeRepository: TiltakstypeRepository,
+    private val arrangorService: ArrangorService,
     kafkaConfig: KafkaConfig = if (Environment.isLocal()) LocalKafkaConfig() else KafkaConfigImpl(),
 ) : Consumer<UUID, String?> {
     private val consumer = ManagedKafkaConsumer(
-        topic = Environment.TILTAKSTYPE_TOPIC,
+        topic = Environment.DELTAKERLISTE_TOPIC,
         config = kafkaConfig.consumerConfig(
             keyDeserializer = UUIDDeserializer(),
             valueDeserializer = StringDeserializer(),
@@ -30,12 +36,19 @@ class TiltakstypeConsumer(
     override fun run() = consumer.run()
 
     override suspend fun consume(key: UUID, value: String?) {
-        value?.let { handterTiltakstype(objectMapper.readValue(it)) }
+        if (value == null) {
+            repository.delete(key)
+        } else {
+            handterDeltakerliste(objectMapper.readValue(value))
+        }
     }
 
-    private fun handterTiltakstype(tiltakstype: TiltakstypeDto) {
-        if (!erStottet(tiltakstype.arenaKode) || tiltakstype.status != Tiltakstypestatus.Aktiv) return
+    private suspend fun handterDeltakerliste(deltakerliste: DeltakerlisteDto) {
+        if (!erStottet(deltakerliste.tiltakstype.arenaKode)) return
 
-        repository.upsert(tiltakstype.toModel())
+        val tiltakstype = tiltakstypeRepository.get(arenaKodeTilTiltakstype(deltakerliste.tiltakstype.arenaKode)).getOrThrow()
+
+        val arrangor = arrangorService.hentArrangor(deltakerliste.virksomhetsnummer)
+        repository.upsert(deltakerliste.toModel(arrangor, tiltakstype))
     }
 }

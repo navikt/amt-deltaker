@@ -15,7 +15,7 @@ class TiltakstypeRepository {
         id = row.uuid("id"),
         navn = row.string("navn"),
         type = Tiltakstype.Type.valueOf(row.string("type")),
-        innhold = row.string("innhold").let { objectMapper.readValue(it) },
+        innhold = row.stringOrNull("innhold")?.let { objectMapper.readValue(it) },
     )
 
     fun upsert(tiltakstype: Tiltakstype) = Database.query {

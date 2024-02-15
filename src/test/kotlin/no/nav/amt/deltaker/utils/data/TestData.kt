@@ -1,12 +1,15 @@
 package no.nav.amt.deltaker.utils.data
 
 import no.nav.amt.deltaker.arrangor.Arrangor
+import no.nav.amt.deltaker.deltakerliste.Deltakerliste
+import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlisteDto
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.DeltakerRegistreringInnhold
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.Innholdselement
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.deltaker.navansatt.NavAnsatt
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhet
 import no.nav.amt.deltaker.navbruker.NavBruker
+import java.time.LocalDate
 import java.util.UUID
 
 object TestData {
@@ -56,4 +59,41 @@ object TestData {
         innholdselementer: List<Innholdselement> = listOf(Innholdselement("Tekst", "kode")),
         ledetekst: String = "Beskrivelse av tilaket",
     ) = DeltakerRegistreringInnhold(innholdselementer, ledetekst)
+
+    fun lagDeltakerliste(
+        id: UUID = UUID.randomUUID(),
+        arrangor: Arrangor = lagArrangor(),
+        tiltakstype: Tiltakstype = lagTiltakstype(),
+        navn: String = "Test Deltakerliste ${tiltakstype.type}",
+        status: Deltakerliste.Status = Deltakerliste.Status.GJENNOMFORES,
+        startDato: LocalDate = LocalDate.now().minusMonths(1),
+        sluttDato: LocalDate? = LocalDate.now().plusYears(1),
+        oppstart: Deltakerliste.Oppstartstype? = finnOppstartstype(tiltakstype.type),
+    ) = Deltakerliste(id, tiltakstype, navn, status, startDato, sluttDato, oppstart, arrangor)
+
+    fun lagDeltakerlisteDto(
+        arrangor: Arrangor = lagArrangor(),
+        deltakerliste: Deltakerliste = lagDeltakerliste(arrangor = arrangor),
+    ) = DeltakerlisteDto(
+        id = deltakerliste.id,
+        tiltakstype = DeltakerlisteDto.Tiltakstype(
+            deltakerliste.tiltakstype.navn,
+            deltakerliste.tiltakstype.type.name,
+        ),
+        navn = deltakerliste.navn,
+        startDato = deltakerliste.startDato,
+        sluttDato = deltakerliste.sluttDato,
+        status = deltakerliste.status.name,
+        virksomhetsnummer = arrangor.organisasjonsnummer,
+        oppstart = deltakerliste.oppstart,
+    )
+
+    private fun finnOppstartstype(type: Tiltakstype.Type) = when (type) {
+        Tiltakstype.Type.JOBBK,
+        Tiltakstype.Type.GRUPPEAMO,
+        Tiltakstype.Type.GRUFAGYRKE,
+        -> Deltakerliste.Oppstartstype.FELLES
+
+        else -> Deltakerliste.Oppstartstype.LOPENDE
+    }
 }

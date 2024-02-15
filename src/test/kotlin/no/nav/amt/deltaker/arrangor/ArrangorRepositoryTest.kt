@@ -3,6 +3,8 @@ package no.nav.amt.deltaker.arrangor
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.utils.SingletonPostgresContainer
 import no.nav.amt.deltaker.utils.data.TestData
+import no.nav.amt.deltaker.utils.data.TestRepository
+import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test
 
@@ -17,6 +19,11 @@ class ArrangorRepositoryTest {
             SingletonPostgresContainer.start()
             repository = ArrangorRepository()
         }
+    }
+
+    @Before
+    fun cleanDatabase() {
+        TestRepository.cleanDatabase()
     }
 
     @Test

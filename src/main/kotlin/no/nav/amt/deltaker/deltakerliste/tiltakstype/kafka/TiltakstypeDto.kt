@@ -19,19 +19,19 @@ data class TiltakstypeDto(
             innhold = deltakerRegistreringInnhold,
         )
     }
-
-    fun erStottet() = this.arenaKode in setOf(
-        "INDOPPFAG",
-        "ARBFORB",
-        "AVKLARAG",
-        "VASV",
-        "ARBRRHDAG",
-        "DIGIOPPARB",
-        "JOBBK",
-        "GRUPPEAMO",
-        "GRUFAGYRKE",
-    )
 }
+
+fun erStottet(arenaKode: String) = arenaKode in setOf(
+    "INDOPPFAG",
+    "ARBFORB",
+    "AVKLARAG",
+    "VASV",
+    "ARBRRHDAG",
+    "DIGIOPPARB",
+    "JOBBK",
+    "GRUPPEAMO",
+    "GRUFAGYRKE",
+)
 
 fun arenaKodeTilTiltakstype(type: String?) = when (type) {
     "ARBFORB" -> Tiltakstype.Type.ARBFORB

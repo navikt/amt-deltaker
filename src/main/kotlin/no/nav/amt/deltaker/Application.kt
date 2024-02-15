@@ -13,10 +13,14 @@ import no.nav.amt.deltaker.application.plugins.applicationConfig
 import no.nav.amt.deltaker.application.plugins.configureMonitoring
 import no.nav.amt.deltaker.application.plugins.configureRouting
 import no.nav.amt.deltaker.application.plugins.configureSerialization
+import no.nav.amt.deltaker.arrangor.AmtArrangorClient
 import no.nav.amt.deltaker.arrangor.ArrangorConsumer
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
+import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.auth.AzureAdTokenClient
 import no.nav.amt.deltaker.db.Database
+import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
+import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlisteConsumer
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.kafka.TiltakstypeConsumer
 import no.nav.amt.deltaker.navansatt.AmtPersonServiceClient
@@ -73,11 +77,19 @@ fun Application.module() {
         azureAdTokenClient = azureAdTokenClient,
     )
 
+    val amtArrangorClient = AmtArrangorClient(
+        baseUrl = environment.amtArrangorUrl,
+        scope = environment.amtArrangorScope,
+        httpClient = httpClient,
+        azureAdTokenClient = azureAdTokenClient,
+    )
+
     val arrangorRepository = ArrangorRepository()
     val navAnsattRepository = NavAnsattRepository()
     val navEnhetRepository = NavEnhetRepository()
     val navBrukerRepository = NavBrukerRepository()
     val tiltakstypeRepository = TiltakstypeRepository()
+    val deltakerlisteRepository = DeltakerlisteRepository()
 
     val navAnsattService = NavAnsattService(navAnsattRepository, amtPersonServiceClient)
     val navEnhetService = NavEnhetService(navEnhetRepository, amtPersonServiceClient)
@@ -85,12 +97,14 @@ fun Application.module() {
         navBrukerRepository,
         amtPersonServiceClient,
     )
+    val arrangorService = ArrangorService(arrangorRepository, amtArrangorClient)
 
     val consumers = listOf(
         ArrangorConsumer(arrangorRepository),
         NavAnsattConsumer(navAnsattService),
         NavBrukerConsumer(navBrukerRepository),
         TiltakstypeConsumer(tiltakstypeRepository),
+        DeltakerlisteConsumer(deltakerlisteRepository, tiltakstypeRepository, arrangorService),
     )
     consumers.forEach { it.run() }
 
