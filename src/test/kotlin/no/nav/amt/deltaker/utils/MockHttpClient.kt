@@ -10,15 +10,14 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import io.ktor.serialization.jackson.jackson
 import io.ktor.utils.io.ByteReadChannel
+import no.nav.amt.deltaker.amtperson.AmtPersonServiceClient
 import no.nav.amt.deltaker.application.plugins.applicationConfig
 import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.arrangor.AmtArrangorClient
 import no.nav.amt.deltaker.arrangor.Arrangor
 import no.nav.amt.deltaker.arrangor.ArrangorDto
 import no.nav.amt.deltaker.auth.AzureAdTokenClient
-import no.nav.amt.deltaker.navansatt.AmtPersonServiceClient
 import no.nav.amt.deltaker.navansatt.NavAnsatt
-import no.nav.amt.deltaker.navansatt.NavEnhetDto
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhet
 import no.nav.amt.deltaker.utils.data.TestData
 
@@ -65,7 +64,7 @@ fun mockAmtPersonServiceClientNavEnhet(navEnhet: NavEnhet = TestData.lagNavEnhet
     return AmtPersonServiceClient(
         baseUrl = "https://amt-person-service",
         scope = "amt.person-service.scope",
-        httpClient = mockHttpClient(objectMapper.writeValueAsString(NavEnhetDto(id = navEnhet.id, enhetId = navEnhet.enhetsnummer, navn = navEnhet.navn))),
+        httpClient = mockHttpClient(objectMapper.writeValueAsString(TestData.lagNavEnhetDto(navEnhet))),
         azureAdTokenClient = mockAzureAdClient(),
     )
 }

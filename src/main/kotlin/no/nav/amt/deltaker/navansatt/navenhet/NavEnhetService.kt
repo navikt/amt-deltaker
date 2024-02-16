@@ -1,6 +1,6 @@
 package no.nav.amt.deltaker.navansatt.navenhet
 
-import no.nav.amt.deltaker.navansatt.AmtPersonServiceClient
+import no.nav.amt.deltaker.amtperson.AmtPersonServiceClient
 import org.slf4j.LoggerFactory
 
 class NavEnhetService(

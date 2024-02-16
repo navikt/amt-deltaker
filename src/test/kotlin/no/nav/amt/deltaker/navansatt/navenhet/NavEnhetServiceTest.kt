@@ -3,9 +3,8 @@ package no.nav.amt.deltaker.navansatt.navenhet
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
+import no.nav.amt.deltaker.amtperson.AmtPersonServiceClient
 import no.nav.amt.deltaker.application.plugins.objectMapper
-import no.nav.amt.deltaker.navansatt.AmtPersonServiceClient
-import no.nav.amt.deltaker.navansatt.NavEnhetDto
 import no.nav.amt.deltaker.utils.SingletonPostgresContainer
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.mockAzureAdClient
@@ -40,7 +39,7 @@ class NavEnhetServiceTest {
     @Test
     fun `hentEllerOpprettNavEnhet - navenhet finnes ikke i db - henter fra personservice og lagrer`() {
         val navEnhetResponse = TestData.lagNavEnhet()
-        val httpClient = mockHttpClient(objectMapper.writeValueAsString(NavEnhetDto(navEnhetResponse.id, navEnhetResponse.enhetsnummer, navEnhetResponse.navn)))
+        val httpClient = mockHttpClient(objectMapper.writeValueAsString(TestData.lagNavEnhetDto(navEnhetResponse)))
         val amtPersonServiceClient = AmtPersonServiceClient(
             baseUrl = "http://amt-person-service",
             scope = "scope",

@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.navansatt
+package no.nav.amt.deltaker.amtperson
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -11,10 +11,13 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
+import no.nav.amt.deltaker.amtperson.dto.NavBrukerDto
+import no.nav.amt.deltaker.amtperson.dto.NavEnhetDto
 import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.auth.AzureAdTokenClient
+import no.nav.amt.deltaker.navansatt.NavAnsatt
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhet
-import no.nav.amt.deltaker.navbruker.NavBruker
+import no.nav.amt.deltaker.navbruker.model.NavBruker
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.UUID
@@ -87,7 +90,7 @@ class AmtPersonServiceClient(
         if (!response.status.isSuccess()) {
             error("Kunne ikke hente nav-bruker fra amt-person-service")
         }
-        return response.body()
+        return response.body<NavBrukerDto>().tilNavBruker()
     }
 }
 
@@ -102,17 +105,3 @@ data class NavAnsattRequest(
 data class NavEnhetRequest(
     val enhetId: String,
 )
-
-data class NavEnhetDto(
-    val id: UUID,
-    val enhetId: String,
-    val navn: String,
-) {
-    fun tilNavEnhet(): NavEnhet {
-        return NavEnhet(
-            id = id,
-            enhetsnummer = enhetId,
-            navn = navn,
-        )
-    }
-}

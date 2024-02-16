@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.navbruker
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.amt.deltaker.Environment
+import no.nav.amt.deltaker.amtperson.dto.NavBrukerDto
 import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.kafka.Consumer
 import no.nav.amt.deltaker.kafka.ManagedKafkaConsumer
@@ -35,7 +36,8 @@ class NavBrukerConsumer(
             log.warn("Mottok tombstone for nav-bruker: $key, skal ikke skje.")
             return
         }
-        repository.upsert(objectMapper.readValue(value))
+        val navBrukerDto = objectMapper.readValue<NavBrukerDto>(value)
+        repository.upsert(navBrukerDto.tilNavBruker())
     }
 
     override fun run() = consumer.run()

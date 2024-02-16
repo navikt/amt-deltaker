@@ -7,7 +7,10 @@ import no.nav.amt.deltaker.db.toPGObject
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.deltaker.navansatt.NavAnsatt
-import no.nav.amt.deltaker.navbruker.NavBruker
+import no.nav.amt.deltaker.navansatt.navenhet.NavEnhet
+import no.nav.amt.deltaker.navbruker.model.NavBruker
+import no.nav.amt.deltaker.utils.data.TestData.lagNavAnsatt
+import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 
@@ -55,8 +58,8 @@ object TestRepository {
 
     fun insert(navAnsatt: NavAnsatt) = Database.query {
         val sql = """
-            insert into nav_ansatt(id, nav_ident, navn, modified_at)
-            values (:id, :nav_ident, :navn, :modified_at) 
+            insert into nav_ansatt(id, nav_ident, navn, telefonnummer, epost, modified_at)
+            values (:id, :nav_ident, :navn, :telefonnummer, :epost, :modified_at) 
             on conflict (id) do nothing;
         """.trimIndent()
 
@@ -64,6 +67,25 @@ object TestRepository {
             "id" to navAnsatt.id,
             "nav_ident" to navAnsatt.navIdent,
             "navn" to navAnsatt.navn,
+            "telefonnummer" to navAnsatt.telefon,
+            "epost" to navAnsatt.epost,
+            "modified_at" to LocalDateTime.now(),
+        )
+
+        it.update(queryOf(sql, params))
+    }
+
+    fun insert(navEnhet: NavEnhet) = Database.query {
+        val sql = """
+            insert into nav_enhet(id, nav_enhet_nummer, navn, modified_at)
+            values (:id, :nav_enhet_nummer, :navn, :modified_at) 
+            on conflict (id) do nothing;
+        """.trimIndent()
+
+        val params = mapOf(
+            "id" to navEnhet.id,
+            "nav_enhet_nummer" to navEnhet.enhetsnummer,
+            "navn" to navEnhet.navn,
             "modified_at" to LocalDateTime.now(),
         )
 
@@ -71,9 +93,27 @@ object TestRepository {
     }
 
     fun insert(bruker: NavBruker) = Database.query {
+        bruker.navEnhetId?.let { enhetId ->
+            val navEnhet = lagNavEnhet(id = enhetId)
+            try {
+                insert(navEnhet)
+            } catch (e: Exception) {
+                log.warn("Nav-enhet med id ${bruker.navEnhetId} er allerede opprettet")
+            }
+        }
+
+        bruker.navVeilederId?.let { veilederId ->
+            val navAnsatt = lagNavAnsatt(id = veilederId)
+            try {
+                insert(navAnsatt)
+            } catch (e: Exception) {
+                log.warn("Nav-ansatt med id ${bruker.navVeilederId} er allerede opprettet")
+            }
+        }
+
         val sql = """
-            insert into nav_bruker(person_id, personident, fornavn, mellomnavn, etternavn) 
-            values (:person_id, :personident, :fornavn, :mellomnavn, :etternavn)
+            insert into nav_bruker(person_id, personident, fornavn, mellomnavn, etternavn, nav_veileder_id, nav_enhet_id, telefonnummer, epost, er_skjermet, adresse, adressebeskyttelse) 
+            values (:person_id, :personident, :fornavn, :mellomnavn, :etternavn, :nav_veileder_id, :nav_enhet_id, :telefonnummer, :epost, :er_skjermet, :adresse, :adressebeskyttelse)
         """.trimIndent()
 
         val params = mapOf(
@@ -82,6 +122,13 @@ object TestRepository {
             "fornavn" to bruker.fornavn,
             "mellomnavn" to bruker.mellomnavn,
             "etternavn" to bruker.etternavn,
+            "nav_veileder_id" to bruker.navVeilederId,
+            "nav_enhet_id" to bruker.navEnhetId,
+            "telefonnummer" to bruker.telefon,
+            "epost" to bruker.epost,
+            "er_skjermet" to bruker.erSkjermet,
+            "adresse" to toPGObject(bruker.adresse),
+            "adressebeskyttelse" to bruker.adressebeskyttelse?.name,
         )
 
         it.update(queryOf(sql, params))
