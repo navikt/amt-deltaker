@@ -47,6 +47,14 @@ data class NavAnsattDto(
     val id: UUID,
     val navident: String,
     val navn: String,
+    val epost: String?,
+    val telefon: String?,
 ) {
-    fun toModel() = NavAnsatt(id, navident, navn)
+    fun toModel() = NavAnsatt(
+        id = id,
+        navIdent = navident,
+        navn = navn,
+        epost = epost,
+        telefon = telefon,
+    )
 }

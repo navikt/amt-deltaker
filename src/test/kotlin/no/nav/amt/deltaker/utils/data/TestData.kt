@@ -1,5 +1,7 @@
 package no.nav.amt.deltaker.utils.data
 
+import no.nav.amt.deltaker.amtperson.dto.NavBrukerDto
+import no.nav.amt.deltaker.amtperson.dto.NavEnhetDto
 import no.nav.amt.deltaker.arrangor.Arrangor
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlisteDto
@@ -8,7 +10,13 @@ import no.nav.amt.deltaker.deltakerliste.tiltakstype.Innholdselement
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.deltaker.navansatt.NavAnsatt
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhet
-import no.nav.amt.deltaker.navbruker.NavBruker
+import no.nav.amt.deltaker.navbruker.model.Adresse
+import no.nav.amt.deltaker.navbruker.model.Adressebeskyttelse
+import no.nav.amt.deltaker.navbruker.model.Bostedsadresse
+import no.nav.amt.deltaker.navbruker.model.Kontaktadresse
+import no.nav.amt.deltaker.navbruker.model.Matrikkeladresse
+import no.nav.amt.deltaker.navbruker.model.NavBruker
+import no.nav.amt.deltaker.navbruker.model.Vegadresse
 import java.time.LocalDate
 import java.util.UUID
 
@@ -32,7 +40,9 @@ object TestData {
         id: UUID = UUID.randomUUID(),
         navIdent: String = randomNavIdent(),
         navn: String = "Veileder Veiledersen",
-    ) = NavAnsatt(id, navIdent, navn)
+        telefon: String = "99988777",
+        epost: String = "ansatt@nav.no",
+    ) = NavAnsatt(id, navIdent, navn, epost, telefon)
 
     fun lagNavEnhet(
         id: UUID = UUID.randomUUID(),
@@ -46,7 +56,27 @@ object TestData {
         fornavn: String = "Fornavn",
         mellomnavn: String? = "Mellomnavn",
         etternavn: String = "Etternavn",
-    ) = NavBruker(personId, personident, fornavn, mellomnavn, etternavn)
+        navVeilederId: UUID? = lagNavAnsatt().id,
+        navEnhetId: UUID? = lagNavEnhet().id,
+        telefon: String? = "77788999",
+        epost: String? = "nav_bruker@gmail.com",
+        erSkjermet: Boolean = false,
+        adresse: Adresse? = lagAdresse(),
+        adressebeskyttelse: Adressebeskyttelse? = null,
+    ) = NavBruker(
+        personId,
+        personident,
+        fornavn,
+        mellomnavn,
+        etternavn,
+        navVeilederId,
+        navEnhetId,
+        telefon,
+        epost,
+        erSkjermet,
+        adresse,
+        adressebeskyttelse,
+    )
 
     fun lagTiltakstype(
         id: UUID = UUID.randomUUID(),
@@ -87,6 +117,57 @@ object TestData {
         virksomhetsnummer = arrangor.organisasjonsnummer,
         oppstart = deltakerliste.oppstart,
     )
+
+    fun lagNavBrukerDto(
+        navBruker: NavBruker,
+    ) = NavBrukerDto(
+        personId = navBruker.personId,
+        personident = navBruker.personident,
+        fornavn = navBruker.fornavn,
+        mellomnavn = navBruker.mellomnavn,
+        etternavn = navBruker.etternavn,
+        navVeilederId = navBruker.navVeilederId,
+        navEnhet = navBruker.navEnhetId?.let { lagNavEnhetDto(lagNavEnhet(id = it)) },
+        telefon = navBruker.telefon,
+        epost = navBruker.epost,
+        erSkjermet = navBruker.erSkjermet,
+        adresse = navBruker.adresse,
+        adressebeskyttelse = navBruker.adressebeskyttelse,
+    )
+
+    fun lagNavEnhetDto(
+        navEnhet: NavEnhet,
+    ) = NavEnhetDto(
+        id = navEnhet.id,
+        enhetId = navEnhet.enhetsnummer,
+        navn = navEnhet.navn,
+    )
+
+    fun lagAdresse(): Adresse =
+        Adresse(
+            bostedsadresse = Bostedsadresse(
+                coAdressenavn = "C/O Gutterommet",
+                vegadresse = null,
+                matrikkeladresse = Matrikkeladresse(
+                    tilleggsnavn = "Gården",
+                    postnummer = "0484",
+                    poststed = "OSLO",
+                ),
+            ),
+            oppholdsadresse = null,
+            kontaktadresse = Kontaktadresse(
+                coAdressenavn = null,
+                vegadresse = Vegadresse(
+                    husnummer = "1",
+                    husbokstav = null,
+                    adressenavn = "Gate",
+                    tilleggsnavn = null,
+                    postnummer = "1234",
+                    poststed = "MOSS",
+                ),
+                postboksadresse = null,
+            ),
+        )
 
     private fun finnOppstartstype(type: Tiltakstype.Type) = when (type) {
         Tiltakstype.Type.JOBBK,

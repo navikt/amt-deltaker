@@ -1,8 +1,13 @@
 package no.nav.amt.deltaker.navbruker
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import kotliquery.queryOf
+import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.db.Database
+import no.nav.amt.deltaker.db.toPGObject
+import no.nav.amt.deltaker.navbruker.model.Adressebeskyttelse
+import no.nav.amt.deltaker.navbruker.model.NavBruker
 import java.util.UUID
 
 class NavBrukerRepository {
@@ -13,17 +18,31 @@ class NavBrukerRepository {
         fornavn = row.string("fornavn"),
         mellomnavn = row.stringOrNull("mellomnavn"),
         etternavn = row.string("etternavn"),
+        navVeilederId = row.uuidOrNull("nav_veileder_id"),
+        navEnhetId = row.uuidOrNull("nav_enhet_id"),
+        telefon = row.stringOrNull("telefonnummer"),
+        epost = row.stringOrNull("epost"),
+        erSkjermet = row.boolean("er_skjermet"),
+        adresse = row.stringOrNull("adresse")?.let { objectMapper.readValue(it) },
+        adressebeskyttelse = row.stringOrNull("adressebeskyttelse")?.let { Adressebeskyttelse.valueOf(it) },
     )
 
     fun upsert(bruker: NavBruker) = Database.query {
         val sql = """
-            insert into nav_bruker(person_id, personident, fornavn, mellomnavn, etternavn) 
-            values (:person_id, :personident, :fornavn, :mellomnavn, :etternavn)
+            insert into nav_bruker(person_id, personident, fornavn, mellomnavn, etternavn, nav_veileder_id, nav_enhet_id, telefonnummer, epost, er_skjermet, adresse, adressebeskyttelse) 
+            values (:person_id, :personident, :fornavn, :mellomnavn, :etternavn, :nav_veileder_id, :nav_enhet_id, :telefonnummer, :epost, :er_skjermet, :adresse, :adressebeskyttelse)
             on conflict (person_id) do update set
                 personident = :personident,
                 fornavn = :fornavn,
                 mellomnavn = :mellomnavn,
                 etternavn = :etternavn,
+                nav_veileder_id = :nav_veileder_id,
+                nav_enhet_id = :nav_enhet_id,
+                telefonnummer = :telefonnummer,
+                epost = :epost,
+                er_skjermet = :er_skjermet,
+                adresse = :adresse,
+                adressebeskyttelse = :adressebeskyttelse,
                 modified_at = current_timestamp
             returning *
         """.trimIndent()
@@ -34,6 +53,13 @@ class NavBrukerRepository {
             "fornavn" to bruker.fornavn,
             "mellomnavn" to bruker.mellomnavn,
             "etternavn" to bruker.etternavn,
+            "nav_veileder_id" to bruker.navVeilederId,
+            "nav_enhet_id" to bruker.navEnhetId,
+            "telefonnummer" to bruker.telefon,
+            "epost" to bruker.epost,
+            "er_skjermet" to bruker.erSkjermet,
+            "adresse" to toPGObject(bruker.adresse),
+            "adressebeskyttelse" to bruker.adressebeskyttelse?.name,
         )
 
         it.run(queryOf(sql, params).map(::rowMapper).asSingle)

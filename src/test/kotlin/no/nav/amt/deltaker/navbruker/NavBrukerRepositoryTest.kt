@@ -21,7 +21,12 @@ class NavBrukerRepositoryTest {
 
     @Test
     fun `upsert - ny bruker - inserter`() {
-        val bruker = TestData.lagNavBruker()
+        val navEnhet = TestData.lagNavEnhet()
+        TestRepository.insert(navEnhet)
+        val navAnsatt = TestData.lagNavAnsatt()
+        TestRepository.insert(navAnsatt)
+        val bruker = TestData.lagNavBruker(navEnhetId = navEnhet.id, navVeilederId = navAnsatt.id)
+
         repository.upsert(bruker).getOrNull() shouldBe bruker
     }
 

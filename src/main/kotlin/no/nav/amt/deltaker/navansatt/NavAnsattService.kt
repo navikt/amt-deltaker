@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.navansatt
 
+import no.nav.amt.deltaker.amtperson.AmtPersonServiceClient
 import org.slf4j.LoggerFactory
 import java.util.UUID
 

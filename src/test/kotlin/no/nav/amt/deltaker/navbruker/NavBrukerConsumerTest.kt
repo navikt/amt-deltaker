@@ -5,6 +5,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.utils.SingletonPostgresContainer
 import no.nav.amt.deltaker.utils.data.TestData
+import no.nav.amt.deltaker.utils.data.TestRepository
 import org.junit.BeforeClass
 import org.junit.Test
 
@@ -22,11 +23,15 @@ class NavBrukerConsumerTest {
 
     @Test
     fun `consumeNavBruker - ny navBruker - upserter`() {
-        val navBruker = TestData.lagNavBruker()
+        val navEnhet = TestData.lagNavEnhet()
+        TestRepository.insert(navEnhet)
+        val navAnsatt = TestData.lagNavAnsatt()
+        TestRepository.insert(navAnsatt)
+        val navBruker = TestData.lagNavBruker(navEnhetId = navEnhet.id, navVeilederId = navAnsatt.id)
         val navBrukerConsumer = NavBrukerConsumer(repository)
 
         runBlocking {
-            navBrukerConsumer.consume(navBruker.personId, objectMapper.writeValueAsString(navBruker))
+            navBrukerConsumer.consume(navBruker.personId, objectMapper.writeValueAsString(TestData.lagNavBrukerDto(navBruker)))
         }
 
         repository.get(navBruker.personId).getOrNull() shouldBe navBruker
@@ -34,7 +39,11 @@ class NavBrukerConsumerTest {
 
     @Test
     fun `consumeNavBruker - oppdatert navBruker - upserter`() {
-        val navBruker = TestData.lagNavBruker()
+        val navEnhet = TestData.lagNavEnhet()
+        TestRepository.insert(navEnhet)
+        val navAnsatt = TestData.lagNavAnsatt()
+        TestRepository.insert(navAnsatt)
+        val navBruker = TestData.lagNavBruker(navEnhetId = navEnhet.id, navVeilederId = navAnsatt.id)
         repository.upsert(navBruker)
 
         val oppdatertNavBruker = navBruker.copy(fornavn = "Oppdatert NavBruker")
@@ -42,7 +51,7 @@ class NavBrukerConsumerTest {
         val navBrukerConsumer = NavBrukerConsumer(repository)
 
         runBlocking {
-            navBrukerConsumer.consume(navBruker.personId, objectMapper.writeValueAsString(oppdatertNavBruker))
+            navBrukerConsumer.consume(navBruker.personId, objectMapper.writeValueAsString(TestData.lagNavBrukerDto(oppdatertNavBruker)))
         }
 
         repository.get(navBruker.personId).getOrNull() shouldBe oppdatertNavBruker
