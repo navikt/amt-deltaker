@@ -9,6 +9,7 @@ import no.nav.amt.deltaker.kafka.ManagedKafkaConsumer
 import no.nav.amt.deltaker.kafka.config.KafkaConfig
 import no.nav.amt.deltaker.kafka.config.KafkaConfigImpl
 import no.nav.amt.deltaker.kafka.config.LocalKafkaConfig
+import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.UUIDDeserializer
 import org.slf4j.LoggerFactory
@@ -16,6 +17,7 @@ import java.util.UUID
 
 class NavBrukerConsumer(
     private val repository: NavBrukerRepository,
+    private val navEnhetService: NavEnhetService,
     kafkaConfig: KafkaConfig = if (Environment.isLocal()) LocalKafkaConfig() else KafkaConfigImpl(),
 ) : Consumer<UUID, String?> {
 
@@ -37,6 +39,7 @@ class NavBrukerConsumer(
             return
         }
         val navBrukerDto = objectMapper.readValue<NavBrukerDto>(value)
+        navBrukerDto.navEnhet?.let { navEnhetService.hentEllerOpprettNavEnhet(it.enhetId) }
         repository.upsert(navBrukerDto.tilNavBruker())
     }
 

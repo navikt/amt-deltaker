@@ -19,9 +19,9 @@ object TestRepository {
 
     fun cleanDatabase() = Database.query { session ->
         val tables = listOf(
+            "nav_bruker",
             "nav_ansatt",
             "nav_enhet",
-            "nav_bruker",
             "deltakerliste",
             "arrangor",
             "tiltakstype",
