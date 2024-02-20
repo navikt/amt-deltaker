@@ -1,5 +1,9 @@
 package no.nav.amt.deltaker
 
+import com.fasterxml.jackson.module.kotlin.readValue
+import no.nav.amt.deltaker.application.plugins.objectMapper
+import no.nav.amt.deltaker.auth.PreAuthorizedApp
+
 data class Environment(
     val dbUsername: String = getEnvVar(DB_USERNAME_KEY),
     val dbPassword: String = getEnvVar(DB_PASSWORD_KEY),
@@ -15,6 +19,12 @@ data class Environment(
     val amtPersonServiceScope: String = getEnvVar(AMT_PERSONSERVICE_SCOPE_KEY),
     val amtArrangorUrl: String = getEnvVar(AMT_ARRANGOR_URL_KEY),
     val amtArrangorScope: String = getEnvVar(AMT_ARRANGOR_SCOPE_KEY),
+    val preAuthorizedApp: List<PreAuthorizedApp> = getEnvVar(
+        AZURE_APP_PRE_AUTHORIZED_APPS,
+        objectMapper.writeValueAsString(
+            emptyList<PreAuthorizedApp>(),
+        ),
+    ).let { objectMapper.readValue(it) },
 ) {
 
     companion object {
@@ -41,6 +51,7 @@ data class Environment(
         const val AZURE_APP_CLIENT_ID_KEY = "AZURE_APP_CLIENT_ID"
         const val AZURE_OPENID_CONFIG_JWKS_URI_KEY = "AZURE_OPENID_CONFIG_JWKS_URI"
         const val AZURE_OPENID_CONFIG_ISSUER_KEY = "AZURE_OPENID_CONFIG_ISSUER"
+        const val AZURE_APP_PRE_AUTHORIZED_APPS = "AZURE_APP_PRE_AUTHORIZED_APPS"
 
         const val HTTP_CLIENT_TIMEOUT_MS = 10_000
 

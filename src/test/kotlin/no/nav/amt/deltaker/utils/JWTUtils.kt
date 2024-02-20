@@ -20,7 +20,7 @@ const val keyId = "localhost-signer"
  */
 fun generateJWT(
     consumerClientId: String,
-    navAnsattAzureId: String,
+    navAnsattAzureId: String? = null,
     audience: String,
     navIdent: String = "Z123456",
     expiry: LocalDateTime? = LocalDateTime.now().plusHours(1),

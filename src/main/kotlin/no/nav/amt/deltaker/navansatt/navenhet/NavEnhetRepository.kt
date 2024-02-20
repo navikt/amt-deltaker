@@ -4,6 +4,7 @@ import kotliquery.Row
 import kotliquery.queryOf
 import no.nav.amt.deltaker.db.Database
 import java.time.LocalDateTime
+import java.util.UUID
 
 class NavEnhetRepository {
     private fun rowMapper(row: Row) = NavEnhet(
@@ -43,6 +44,17 @@ class NavEnhetRepository {
             val query = queryOf(
                 """select * from nav_enhet where nav_enhet_nummer = :nav_enhet_nummer""",
                 mapOf("nav_enhet_nummer" to enhetsnummer),
+            ).map(::rowMapper).asSingle
+
+            it.run(query)
+        }
+    }
+
+    fun get(id: UUID): NavEnhet? {
+        return Database.query {
+            val query = queryOf(
+                """select * from nav_enhet where id = :id""",
+                mapOf("id" to id),
             ).map(::rowMapper).asSingle
 
             it.run(query)

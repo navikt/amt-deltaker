@@ -4,6 +4,8 @@ import kotliquery.queryOf
 import no.nav.amt.deltaker.arrangor.Arrangor
 import no.nav.amt.deltaker.db.Database
 import no.nav.amt.deltaker.db.toPGObject
+import no.nav.amt.deltaker.deltaker.model.Deltaker
+import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.deltaker.navansatt.NavAnsatt
@@ -13,12 +15,15 @@ import no.nav.amt.deltaker.utils.data.TestData.lagNavAnsatt
 import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
+import java.util.UUID
 
 object TestRepository {
     private val log = LoggerFactory.getLogger(javaClass)
 
     fun cleanDatabase() = Database.query { session ->
         val tables = listOf(
+            "deltaker_status",
+            "deltaker",
             "nav_bruker",
             "nav_ansatt",
             "nav_enhet",
@@ -185,5 +190,80 @@ object TestRepository {
                 ),
             )
         }
+    }
+
+    fun insert(deltaker: Deltaker) = Database.query {
+        try {
+            insert(deltaker.navBruker)
+        } catch (e: Exception) {
+            log.warn("Nav-bruker med id ${deltaker.navBruker.personId} er allerede opprettet")
+        }
+
+        try {
+            insert(deltaker.deltakerliste)
+        } catch (e: Exception) {
+            log.warn("Deltakerliste med id ${deltaker.deltakerliste.id} er allerede opprettet")
+        }
+
+        try {
+            insert(deltaker.sistEndretAv)
+        } catch (e: Exception) {
+            log.warn("Ansatt med id ${deltaker.sistEndretAv.id} er allerede opprettet")
+        }
+
+        try {
+            insert(deltaker.sistEndretAvEnhet)
+        } catch (e: Exception) {
+            log.warn("Enhet med id ${deltaker.sistEndretAvEnhet.id} er allerede opprettet")
+        }
+
+        val sql = """
+            insert into deltaker(
+                id, person_id, deltakerliste_id, startdato, sluttdato, dager_per_uke, 
+                deltakelsesprosent, bakgrunnsinformasjon, innhold, sist_endret_av, sist_endret_av_enhet, modified_at
+            )
+            values (
+                :id, :person_id, :deltakerlisteId, :startdato, :sluttdato, :dagerPerUke, 
+                :deltakelsesprosent, :bakgrunnsinformasjon, :innhold, :sistEndretAv, :sistEndretAvEnhet, :sistEndret
+            )
+        """.trimIndent()
+
+        val params = mapOf(
+            "id" to deltaker.id,
+            "person_id" to deltaker.navBruker.personId,
+            "deltakerlisteId" to deltaker.deltakerliste.id,
+            "startdato" to deltaker.startdato,
+            "sluttdato" to deltaker.sluttdato,
+            "dagerPerUke" to deltaker.dagerPerUke,
+            "deltakelsesprosent" to deltaker.deltakelsesprosent,
+            "bakgrunnsinformasjon" to deltaker.bakgrunnsinformasjon,
+            "innhold" to toPGObject(deltaker.innhold),
+            "sistEndretAv" to deltaker.sistEndretAv.id,
+            "sistEndretAvEnhet" to deltaker.sistEndretAvEnhet.id,
+            "sistEndret" to deltaker.sistEndret,
+        )
+
+        it.update(queryOf(sql, params))
+        insert(deltaker.status, deltaker.id)
+    }
+
+    fun insert(status: DeltakerStatus, deltakerId: UUID) = Database.query {
+        val sql = """
+            insert into deltaker_status(id, deltaker_id, type, aarsak, gyldig_fra, gyldig_til, created_at) 
+            values (:id, :deltaker_id, :type, :aarsak, :gyldig_fra, :gyldig_til, :created_at) 
+            on conflict (id) do nothing;
+        """.trimIndent()
+
+        val params = mapOf(
+            "id" to status.id,
+            "deltaker_id" to deltakerId,
+            "type" to status.type.name,
+            "aarsak" to toPGObject(status.aarsak),
+            "gyldig_fra" to status.gyldigFra,
+            "gyldig_til" to status.gyldigTil,
+            "created_at" to status.opprettet,
+        )
+
+        it.update(queryOf(sql, params))
     }
 }

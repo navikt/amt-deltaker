@@ -11,6 +11,7 @@ import no.nav.amt.deltaker.Environment.Companion.HTTP_CLIENT_TIMEOUT_MS
 import no.nav.amt.deltaker.amtperson.AmtPersonServiceClient
 import no.nav.amt.deltaker.application.isReadyKey
 import no.nav.amt.deltaker.application.plugins.applicationConfig
+import no.nav.amt.deltaker.application.plugins.configureAuthentication
 import no.nav.amt.deltaker.application.plugins.configureMonitoring
 import no.nav.amt.deltaker.application.plugins.configureRouting
 import no.nav.amt.deltaker.application.plugins.configureSerialization
@@ -20,6 +21,9 @@ import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.auth.AzureAdTokenClient
 import no.nav.amt.deltaker.db.Database
+import no.nav.amt.deltaker.deltaker.DeltakerService
+import no.nav.amt.deltaker.deltaker.PameldingService
+import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlisteConsumer
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
@@ -90,14 +94,20 @@ fun Application.module() {
     val navBrukerRepository = NavBrukerRepository()
     val tiltakstypeRepository = TiltakstypeRepository()
     val deltakerlisteRepository = DeltakerlisteRepository()
+    val deltakerRepository = DeltakerRepository()
 
     val navAnsattService = NavAnsattService(navAnsattRepository, amtPersonServiceClient)
     val navEnhetService = NavEnhetService(navEnhetRepository, amtPersonServiceClient)
     val navBrukerService = NavBrukerService(
         navBrukerRepository,
         amtPersonServiceClient,
+        navEnhetService,
+        navAnsattService,
     )
     val arrangorService = ArrangorService(arrangorRepository, amtArrangorClient)
+    val deltakerService = DeltakerService(deltakerRepository)
+    val pameldingService =
+        PameldingService(deltakerService, deltakerlisteRepository, navBrukerService, navAnsattService, navEnhetService)
 
     val consumers = listOf(
         ArrangorConsumer(arrangorRepository),
@@ -108,7 +118,8 @@ fun Application.module() {
     )
     consumers.forEach { it.run() }
 
-    configureRouting()
+    configureAuthentication(environment)
+    configureRouting(pameldingService)
     configureMonitoring()
 
     attributes.put(isReadyKey, true)
