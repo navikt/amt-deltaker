@@ -3,6 +3,9 @@ package no.nav.amt.deltaker.utils.data
 import no.nav.amt.deltaker.amtperson.dto.NavBrukerDto
 import no.nav.amt.deltaker.amtperson.dto.NavEnhetDto
 import no.nav.amt.deltaker.arrangor.Arrangor
+import no.nav.amt.deltaker.deltaker.model.Deltaker
+import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
+import no.nav.amt.deltaker.deltaker.model.Innhold
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlisteDto
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.DeltakerRegistreringInnhold
@@ -18,6 +21,7 @@ import no.nav.amt.deltaker.navbruker.model.Matrikkeladresse
 import no.nav.amt.deltaker.navbruker.model.NavBruker
 import no.nav.amt.deltaker.navbruker.model.Vegadresse
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.UUID
 
 object TestData {
@@ -168,6 +172,55 @@ object TestData {
                 postboksadresse = null,
             ),
         )
+
+    fun lagDeltaker(
+        id: UUID = UUID.randomUUID(),
+        navBruker: NavBruker = lagNavBruker(),
+        deltakerliste: Deltakerliste = lagDeltakerliste(),
+        startdato: LocalDate? = LocalDate.now().minusMonths(3),
+        sluttdato: LocalDate? = LocalDate.now().minusDays(1),
+        dagerPerUke: Float? = 5F,
+        deltakelsesprosent: Float? = 100F,
+        bakgrunnsinformasjon: String? = "Søkes inn fordi...",
+        innhold: List<Innhold> = emptyList(),
+        status: DeltakerStatus = lagDeltakerStatus(type = DeltakerStatus.Type.HAR_SLUTTET),
+        sistEndretAv: NavAnsatt = lagNavAnsatt(),
+        sistEndretAvEnhet: NavEnhet = lagNavEnhet(),
+        sistEndret: LocalDateTime = LocalDateTime.now(),
+        opprettet: LocalDateTime = LocalDateTime.now(),
+    ) = Deltaker(
+        id,
+        navBruker,
+        deltakerliste,
+        startdato,
+        sluttdato,
+        dagerPerUke,
+        deltakelsesprosent,
+        bakgrunnsinformasjon,
+        innhold,
+        status,
+        sistEndretAv,
+        sistEndretAvEnhet,
+        sistEndret,
+        opprettet,
+    )
+
+    fun lagDeltakerStatus(
+        id: UUID = UUID.randomUUID(),
+        type: DeltakerStatus.Type = DeltakerStatus.Type.DELTAR,
+        aarsak: DeltakerStatus.Aarsak.Type? = null,
+        beskrivelse: String? = null,
+        gyldigFra: LocalDateTime = LocalDateTime.now(),
+        gyldigTil: LocalDateTime? = null,
+        opprettet: LocalDateTime = gyldigFra,
+    ) = DeltakerStatus(
+        id,
+        type,
+        aarsak?.let { DeltakerStatus.Aarsak(it, beskrivelse) },
+        gyldigFra,
+        gyldigTil,
+        opprettet,
+    )
 
     private fun finnOppstartstype(type: Tiltakstype.Type) = when (type) {
         Tiltakstype.Type.JOBBK,

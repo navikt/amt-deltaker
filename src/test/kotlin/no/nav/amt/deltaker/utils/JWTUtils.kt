@@ -20,7 +20,7 @@ const val keyId = "localhost-signer"
  */
 fun generateJWT(
     consumerClientId: String,
-    navAnsattAzureId: String,
+    oid: String = "subject",
     audience: String,
     navIdent: String = "Z123456",
     expiry: LocalDateTime? = LocalDateTime.now().plusHours(1),
@@ -42,7 +42,7 @@ fun generateJWT(
         .withClaim("auth_time", now)
         .withClaim("nbf", now)
         .withClaim("azp", consumerClientId)
-        .withClaim("oid", navAnsattAzureId)
+        .withClaim("oid", oid)
         .withClaim("NAVident", navIdent)
         .withClaim("iat", now)
         .withClaim("exp", Date.from(expiry?.atZone(ZoneId.systemDefault())?.toInstant()))

@@ -80,6 +80,22 @@ class AmtPersonServiceClient(
         return response.body<NavEnhetDto>().tilNavEnhet()
     }
 
+    suspend fun hentNavEnhet(id: UUID): NavEnhet {
+        val token = azureAdTokenClient.getMachineToMachineToken(scope)
+        val response = httpClient.get("$baseUrl/api/nav-enhet/$id") {
+            header(HttpHeaders.Authorization, token)
+            contentType(ContentType.Application.Json)
+        }
+        if (!response.status.isSuccess()) {
+            log.error(
+                "Kunne ikke hente nav-enhet med id $id fra amt-person-service. " +
+                    "Status=${response.status.value} error=${response.bodyAsText()}",
+            )
+            throw RuntimeException("Kunne ikke hente NAV-enhet fra amt-person-service")
+        }
+        return response.body<NavEnhetDto>().tilNavEnhet()
+    }
+
     suspend fun hentNavBruker(personident: String): NavBruker {
         val token = azureAdTokenClient.getMachineToMachineToken(scope)
         val response = httpClient.post("$baseUrl/api/nav-bruker") {

@@ -40,6 +40,9 @@ spec:
       enabled: true
       allowAllUsers: true
   accessPolicy:
+    inbound:
+      rules:
+        - application: amt-deltaker-bff
     outbound:
       rules:
         - application: amt-person-service
