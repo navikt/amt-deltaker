@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.application.plugins
 
+import io.kotest.matchers.shouldBe
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.statement.bodyAsText
@@ -14,7 +15,6 @@ import io.ktor.server.routing.routing
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import io.mockk.mockk
-import junit.framework.TestCase
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.deltaker.PameldingService
 import no.nav.amt.deltaker.utils.configureEnvForAuthentication
@@ -39,8 +39,21 @@ class AuthenticationTest {
                 "Bearer ${generateJWT(consumerClientId = "amt-deltaker-bff", audience = "amt-deltaker")}",
             )
         }.apply {
-            TestCase.assertEquals(HttpStatusCode.OK, status)
-            TestCase.assertEquals("System har tilgang!", bodyAsText())
+            status shouldBe HttpStatusCode.OK
+            bodyAsText() shouldBe "System har tilgang!"
+        }
+    }
+
+    @Test
+    fun `testAuthentication - gyldig token, ikke maskin-til-maskin - returnerer 401`() = testApplication {
+        setUpTestApplication()
+        client.get("/deltaker") {
+            header(
+                HttpHeaders.Authorization,
+                "Bearer ${generateJWT(consumerClientId = "amt-deltaker-bff", audience = "amt-deltaker", oid = "ikke-subject")}",
+            )
+        }.apply {
+            status shouldBe HttpStatusCode.Unauthorized
         }
     }
 
@@ -53,7 +66,7 @@ class AuthenticationTest {
                 "Bearer ${generateJWT(consumerClientId = "annen-consumer", audience = "amt-deltaker")}",
             )
         }.apply {
-            TestCase.assertEquals(HttpStatusCode.Unauthorized, status)
+            status shouldBe HttpStatusCode.Unauthorized
         }
     }
 
@@ -66,7 +79,7 @@ class AuthenticationTest {
                 "Bearer ${generateJWT(consumerClientId = "amt-deltaker-bff", audience = "feil-aud")}",
             )
         }.apply {
-            TestCase.assertEquals(HttpStatusCode.Unauthorized, status)
+            status shouldBe HttpStatusCode.Unauthorized
         }
     }
 
@@ -85,7 +98,7 @@ class AuthenticationTest {
                 }",
             )
         }.apply {
-            TestCase.assertEquals(HttpStatusCode.Unauthorized, status)
+            status shouldBe HttpStatusCode.Unauthorized
         }
     }
 

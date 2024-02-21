@@ -1,11 +1,11 @@
 package no.nav.amt.deltaker
 
+import io.kotest.matchers.shouldBe
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
 import io.mockk.mockk
-import junit.framework.TestCase.assertEquals
 import no.nav.amt.deltaker.application.plugins.configureAuthentication
 import no.nav.amt.deltaker.application.plugins.configureRouting
 import no.nav.amt.deltaker.application.plugins.configureSerialization
@@ -25,8 +25,8 @@ class ApplicationTest {
             configureRouting(pameldingService)
         }
         client.get("/internal/health/liveness").apply {
-            assertEquals(HttpStatusCode.OK, status)
-            assertEquals("I'm alive!", bodyAsText())
+            status shouldBe HttpStatusCode.OK
+            bodyAsText() shouldBe "I'm alive!"
         }
     }
 }

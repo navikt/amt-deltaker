@@ -5,6 +5,7 @@ import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.application.log
 import io.ktor.server.auth.Authentication
+import io.ktor.server.auth.jwt.JWTCredential
 import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.jwt.jwt
 import no.nav.amt.deltaker.Environment
@@ -23,6 +24,10 @@ fun Application.configureAuthentication(environment: Environment) {
             }
 
             validate { credentials ->
+                if (!erMaskinTilMaskin(credentials)) {
+                    application.log.warn("Token med sluttbrukerkontekst har ikke tilgang til api med systemkontekst")
+                    return@validate null
+                }
                 val appid: String = credentials.payload.getClaim("azp").asString()
                 val app = environment.preAuthorizedApp.firstOrNull { it.clientId == appid }
                 if (app?.appName != "amt-deltaker-bff") {
@@ -33,4 +38,10 @@ fun Application.configureAuthentication(environment: Environment) {
             }
         }
     }
+}
+
+fun erMaskinTilMaskin(credentials: JWTCredential): Boolean {
+    val sub: String = credentials.payload.getClaim("sub").asString()
+    val oid: String = credentials.payload.getClaim("oid").asString()
+    return sub == oid
 }

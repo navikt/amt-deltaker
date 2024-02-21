@@ -9,7 +9,6 @@ import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import io.mockk.coEvery
 import io.mockk.mockk
-import junit.framework.TestCase
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.application.plugins.configureAuthentication
 import no.nav.amt.deltaker.application.plugins.configureRouting
@@ -47,11 +46,8 @@ class PameldingApiTest {
         setUpTestApplication()
 
         client.post("/pamelding") { postRequest(opprettKladdRequest) }.apply {
-            TestCase.assertEquals(HttpStatusCode.OK, status)
-            TestCase.assertEquals(
-                objectMapper.writeValueAsString(deltaker),
-                bodyAsText(),
-            )
+            status shouldBe HttpStatusCode.OK
+            bodyAsText() shouldBe objectMapper.writeValueAsString(deltaker)
         }
     }
 
