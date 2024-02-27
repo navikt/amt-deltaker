@@ -12,8 +12,6 @@ import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype
-import no.nav.amt.deltaker.navansatt.NavAnsatt
-import no.nav.amt.deltaker.navansatt.navenhet.NavEnhet
 import no.nav.amt.deltaker.navbruker.model.Adressebeskyttelse
 import no.nav.amt.deltaker.navbruker.model.NavBruker
 import java.util.UUID
@@ -69,18 +67,19 @@ class DeltakerRepository {
             gyldigTil = row.localDateTimeOrNull("ds.gyldig_til"),
             opprettet = row.localDateTime("ds.created_at"),
         ),
-        sistEndretAv = NavAnsatt(
-            id = row.uuid("d.sist_endret_av"),
-            navIdent = row.string("na.nav_ident"),
-            navn = row.string("na.navn"),
-            epost = row.stringOrNull("na.epost"),
-            telefon = row.stringOrNull("na.telefonnummer"),
-        ),
-        sistEndretAvEnhet = NavEnhet(
-            id = row.uuid("d.sist_endret_av_enhet"),
-            enhetsnummer = row.string("ne.nav_enhet_nummer"),
-            navn = row.string("ne.navn"),
-        ),
+        vedtaksinformasjon = row.localDateTimeOrNull("v.opprettet")?.let { opprettet ->
+            Deltaker.Vedtaksinformasjon(
+                fattet = row.localDateTimeOrNull("v.fattet"),
+                fattetAvNav = row.stringOrNull("v.fattet_av_nav")?.let { g -> objectMapper.readValue(g) },
+                opprettet = opprettet,
+                opprettetAv = row.uuid("v.opprettet_av"),
+                sistEndret = row.localDateTime("v.sist_endret"),
+                sistEndretAv = row.uuid("v.sist_endret_av"),
+                sistEndretAvEnhet = row.uuid("v.sist_endret_av_enhet"),
+            )
+        },
+        sistEndretAv = row.uuid("d.sist_endret_av"),
+        sistEndretAvEnhet = row.uuid("d.sist_endret_av_enhet"),
         sistEndret = row.localDateTime("d.modified_at"),
         opprettet = row.localDateTime("d.created_at"),
     )
@@ -118,8 +117,8 @@ class DeltakerRepository {
             "deltakelsesprosent" to deltaker.deltakelsesprosent,
             "bakgrunnsinformasjon" to deltaker.bakgrunnsinformasjon,
             "innhold" to toPGObject(deltaker.innhold),
-            "sistEndretAv" to deltaker.sistEndretAv.id,
-            "sistEndretAvEnhet" to deltaker.sistEndretAvEnhet.id,
+            "sistEndretAv" to deltaker.sistEndretAv,
+            "sistEndretAvEnhet" to deltaker.sistEndretAvEnhet,
             "sistEndret" to deltaker.sistEndret,
         )
 
@@ -264,12 +263,6 @@ class DeltakerRepository {
                    nb.er_skjermet as "nb.er_skjermet",
                    nb.adresse as "nb.adresse",
                    nb.adressebeskyttelse as "nb.adressebeskyttelse",
-                   na.nav_ident as "na.nav_ident",
-                   na.navn as "na.navn",
-                   na.epost as "na.epost",
-                   na.telefonnummer as "na.telefonnummer",
-                   ne.nav_enhet_nummer as "ne.nav_enhet_nummer",
-                   ne.navn as "ne.navn",
                    ds.id as "ds.id",
                    ds.deltaker_id as "ds.deltaker_id",
                    ds.type as "ds.type",
@@ -291,15 +284,21 @@ class DeltakerRepository {
                    t.id as "t.id",
                    t.navn as "t.navn",
                    t.type as "t.type",
-                   t.innhold as "t.innhold"
+                   t.innhold as "t.innhold",
+                   v.fattet as "v.fattet",
+                   v.fattet_av_nav as "v.fattet_av_nav",
+                   v.created_at as "v.opprettet",
+                   v.opprettet_av as "v.opprettet_av",
+                   v.modified_at as "v.sist_endret",
+                   v.sist_endret_av as "v.sist_endret_av",
+                   v.sist_endret_av_enhet as "v.sist_endret_av_enhet"
             from deltaker d 
                 join nav_bruker nb on d.person_id = nb.person_id
-                join nav_ansatt na on d.sist_endret_av = na.id
-                join nav_enhet ne on d.sist_endret_av_enhet = ne.id
                 join deltaker_status ds on d.id = ds.deltaker_id
                 join deltakerliste dl on d.deltakerliste_id = dl.id
                 join arrangor a on a.id = dl.arrangor_id
                 join tiltakstype t on t.id = dl.tiltakstype_id
+                left join vedtak v on d.id = v.deltaker_id and v.gyldig_til is null
                 $where
       """
 }

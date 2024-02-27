@@ -126,19 +126,23 @@ class PameldingServiceTest {
 
     @Test
     fun `opprettKladd - deltaker finnes og deltar fortsatt - returnerer eksisterende deltaker`() {
+        val sistEndretAv = TestData.lagNavAnsatt()
+        val sistEndretAvEnhet = TestData.lagNavEnhet()
         val deltaker = TestData.lagDeltaker(
             sluttdato = null,
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+            sistEndretAv = sistEndretAv.id,
+            sistEndretAvEnhet = sistEndretAvEnhet.id,
         )
-        TestRepository.insert(deltaker)
+        TestRepository.insert(deltaker, sistEndretAv, sistEndretAvEnhet)
 
         runBlocking {
             val eksisterendeDeltaker =
                 pameldingService.opprettKladd(
                     deltaker.deltakerliste.id,
                     deltaker.navBruker.personident,
-                    deltaker.sistEndretAv.navIdent,
-                    deltaker.sistEndretAvEnhet.enhetsnummer,
+                    sistEndretAv.navIdent,
+                    sistEndretAvEnhet.enhetsnummer,
                 )
 
             eksisterendeDeltaker.id shouldBe deltaker.id
@@ -154,19 +158,23 @@ class PameldingServiceTest {
 
     @Test
     fun `opprettKladd - deltaker finnes men har sluttet - oppretter ny deltaker`() {
+        val sistEndretAv = TestData.lagNavAnsatt()
+        val sistEndretAvEnhet = TestData.lagNavEnhet()
         val deltaker = TestData.lagDeltaker(
             sluttdato = LocalDate.now().minusMonths(3),
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.HAR_SLUTTET),
+            sistEndretAv = sistEndretAv.id,
+            sistEndretAvEnhet = sistEndretAvEnhet.id,
         )
-        TestRepository.insert(deltaker)
+        TestRepository.insert(deltaker, sistEndretAv, sistEndretAvEnhet)
 
         runBlocking {
             val nyDeltaker =
                 pameldingService.opprettKladd(
                     deltaker.deltakerliste.id,
                     deltaker.navBruker.personident,
-                    deltaker.sistEndretAv.navIdent,
-                    deltaker.sistEndretAvEnhet.enhetsnummer,
+                    sistEndretAv.navIdent,
+                    sistEndretAvEnhet.enhetsnummer,
                 )
 
             nyDeltaker.id shouldNotBe deltaker.id

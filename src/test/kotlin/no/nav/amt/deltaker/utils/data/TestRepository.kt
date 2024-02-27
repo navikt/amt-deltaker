@@ -6,6 +6,7 @@ import no.nav.amt.deltaker.db.Database
 import no.nav.amt.deltaker.db.toPGObject
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
+import no.nav.amt.deltaker.deltaker.model.Vedtak
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.deltaker.navansatt.NavAnsatt
@@ -22,6 +23,8 @@ object TestRepository {
 
     fun cleanDatabase() = Database.query { session ->
         val tables = listOf(
+            "deltaker_endring",
+            "vedtak",
             "deltaker_status",
             "deltaker",
             "nav_bruker",
@@ -192,7 +195,7 @@ object TestRepository {
         }
     }
 
-    fun insert(deltaker: Deltaker) = Database.query {
+    fun insert(deltaker: Deltaker, sistEndretAv: NavAnsatt, sistEndretAvEnhet: NavEnhet) = Database.query {
         try {
             insert(deltaker.navBruker)
         } catch (e: Exception) {
@@ -206,15 +209,15 @@ object TestRepository {
         }
 
         try {
-            insert(deltaker.sistEndretAv)
+            insert(sistEndretAv)
         } catch (e: Exception) {
-            log.warn("Ansatt med id ${deltaker.sistEndretAv.id} er allerede opprettet")
+            log.warn("Ansatt med id ${sistEndretAv.id} er allerede opprettet")
         }
 
         try {
-            insert(deltaker.sistEndretAvEnhet)
+            insert(sistEndretAvEnhet)
         } catch (e: Exception) {
-            log.warn("Enhet med id ${deltaker.sistEndretAvEnhet.id} er allerede opprettet")
+            log.warn("Enhet med id ${sistEndretAvEnhet.id} er allerede opprettet")
         }
 
         val sql = """
@@ -238,8 +241,8 @@ object TestRepository {
             "deltakelsesprosent" to deltaker.deltakelsesprosent,
             "bakgrunnsinformasjon" to deltaker.bakgrunnsinformasjon,
             "innhold" to toPGObject(deltaker.innhold),
-            "sistEndretAv" to deltaker.sistEndretAv.id,
-            "sistEndretAvEnhet" to deltaker.sistEndretAvEnhet.id,
+            "sistEndretAv" to deltaker.sistEndretAv,
+            "sistEndretAvEnhet" to deltaker.sistEndretAvEnhet,
             "sistEndret" to deltaker.sistEndret,
         )
 
@@ -262,6 +265,31 @@ object TestRepository {
             "gyldig_fra" to status.gyldigFra,
             "gyldig_til" to status.gyldigTil,
             "created_at" to status.opprettet,
+        )
+
+        it.update(queryOf(sql, params))
+    }
+
+    fun insert(vedtak: Vedtak) = Database.query {
+        val sql = """
+            insert into vedtak(id, deltaker_id, fattet, gyldig_til, deltaker_ved_vedtak, fattet_av_nav, opprettet_av,
+              opprettet_av_enhet, sist_endret_av, sist_endret_av_enhet) 
+            values (:id, :deltaker_id, :fattet, :gyldig_til, :deltaker_ved_vedtak, :fattet_av_nav, :opprettet_av,
+              :opprettet_av_enhet, :sist_endret_av, :sist_endret_av_enhet) 
+            on conflict (id) do nothing;
+        """.trimIndent()
+
+        val params = mapOf(
+            "id" to vedtak.id,
+            "deltaker_id" to vedtak.deltakerId,
+            "fattet" to vedtak.fattet,
+            "gyldig_til" to vedtak.gyldigTil,
+            "deltaker_ved_vedtak" to toPGObject(vedtak.deltakerVedVedtak),
+            "fattet_av_nav" to vedtak.fattetAvNav?.let(::toPGObject),
+            "opprettet_av" to vedtak.opprettetAv,
+            "opprettet_av_enhet" to vedtak.opprettetAvEnhet,
+            "sist_endret_av" to vedtak.sistEndretAv,
+            "sist_endret_av_enhet" to vedtak.sistEndretAvEnhet,
         )
 
         it.update(queryOf(sql, params))

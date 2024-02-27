@@ -4,8 +4,12 @@ import no.nav.amt.deltaker.amtperson.dto.NavBrukerDto
 import no.nav.amt.deltaker.amtperson.dto.NavEnhetDto
 import no.nav.amt.deltaker.arrangor.Arrangor
 import no.nav.amt.deltaker.deltaker.model.Deltaker
+import no.nav.amt.deltaker.deltaker.model.DeltakerEndring
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
+import no.nav.amt.deltaker.deltaker.model.DeltakerVedVedtak
+import no.nav.amt.deltaker.deltaker.model.FattetAvNav
 import no.nav.amt.deltaker.deltaker.model.Innhold
+import no.nav.amt.deltaker.deltaker.model.Vedtak
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlisteDto
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.DeltakerRegistreringInnhold
@@ -184,8 +188,9 @@ object TestData {
         bakgrunnsinformasjon: String? = "Søkes inn fordi...",
         innhold: List<Innhold> = emptyList(),
         status: DeltakerStatus = lagDeltakerStatus(type = DeltakerStatus.Type.HAR_SLUTTET),
-        sistEndretAv: NavAnsatt = lagNavAnsatt(),
-        sistEndretAvEnhet: NavEnhet = lagNavEnhet(),
+        vedtaksinformasjon: Deltaker.Vedtaksinformasjon? = null,
+        sistEndretAv: UUID = lagNavAnsatt().id,
+        sistEndretAvEnhet: UUID = lagNavEnhet().id,
         sistEndret: LocalDateTime = LocalDateTime.now(),
         opprettet: LocalDateTime = LocalDateTime.now(),
     ) = Deltaker(
@@ -199,6 +204,7 @@ object TestData {
         bakgrunnsinformasjon,
         innhold,
         status,
+        vedtaksinformasjon,
         sistEndretAv,
         sistEndretAvEnhet,
         sistEndret,
@@ -222,6 +228,51 @@ object TestData {
         opprettet,
     )
 
+    fun lagDeltakerEndring(
+        id: UUID = UUID.randomUUID(),
+        deltakerId: UUID = UUID.randomUUID(),
+        endringstype: DeltakerEndring.Endringstype = DeltakerEndring.Endringstype.BAKGRUNNSINFORMASJON,
+        endring: DeltakerEndring.Endring = DeltakerEndring.Endring.EndreBakgrunnsinformasjon("Oppdatert bakgrunnsinformasjon"),
+        endretAv: UUID = lagNavAnsatt().id,
+        endretAvEnhet: UUID = lagNavEnhet().id,
+        endret: LocalDateTime = LocalDateTime.now(),
+    ) = DeltakerEndring(id, deltakerId, endringstype, endring, endretAv, endretAvEnhet, endret)
+
+    fun lagVedtak(
+        id: UUID = UUID.randomUUID(),
+        deltakerVedVedtak: Deltaker = lagDeltaker(
+            status = lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+        ),
+        deltakerId: UUID = deltakerVedVedtak.id,
+        fattet: LocalDateTime? = null,
+        gyldigTil: LocalDateTime? = null,
+        fattetAvNav: FattetAvNav? = null,
+        opprettet: LocalDateTime = LocalDateTime.now(),
+        opprettetAv: UUID = lagNavAnsatt().id,
+        opprettetAvEnhet: UUID = lagNavEnhet().id,
+        sistEndret: LocalDateTime = opprettet,
+        sistEndretAv: UUID = opprettetAv,
+        sistEndretAvEnhet: UUID = opprettetAvEnhet,
+    ) = Vedtak(
+        id,
+        deltakerId,
+        fattet,
+        gyldigTil,
+        deltakerVedVedtak.toDeltakerVedVedtak(),
+        fattetAvNav,
+        opprettet,
+        opprettetAv,
+        opprettetAvEnhet,
+        sistEndret,
+        sistEndretAv,
+        sistEndretAvEnhet,
+    )
+
+    fun lagFattetAvNav(
+        fattetAv: UUID = lagNavAnsatt().id,
+        fattetAvEnhet: UUID = lagNavEnhet().id,
+    ) = FattetAvNav(fattetAv, fattetAvEnhet)
+
     private fun finnOppstartstype(type: Tiltakstype.Type) = when (type) {
         Tiltakstype.Type.JOBBK,
         Tiltakstype.Type.GRUPPEAMO,
@@ -231,3 +282,17 @@ object TestData {
         else -> Deltakerliste.Oppstartstype.LOPENDE
     }
 }
+
+fun Deltaker.toDeltakerVedVedtak() = DeltakerVedVedtak(
+    id,
+    startdato,
+    sluttdato,
+    dagerPerUke,
+    deltakelsesprosent,
+    bakgrunnsinformasjon,
+    innhold,
+    status,
+    sistEndretAv,
+    sistEndretAvEnhet,
+    sistEndret,
+)

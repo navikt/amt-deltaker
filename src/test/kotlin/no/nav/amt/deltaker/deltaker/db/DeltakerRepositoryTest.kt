@@ -32,11 +32,16 @@ class DeltakerRepositoryTest {
 
     @Test
     fun `upsert - ny deltaker - insertes`() {
-        val deltaker = TestData.lagDeltaker()
+        val sistEndretAv = TestData.lagNavAnsatt()
+        val sistEndretAvEnhet = TestData.lagNavEnhet()
+        val deltaker = TestData.lagDeltaker(
+            sistEndretAv = sistEndretAv.id,
+            sistEndretAvEnhet = sistEndretAvEnhet.id,
+        )
         TestRepository.insert(deltaker.deltakerliste)
         TestRepository.insert(deltaker.navBruker)
-        TestRepository.insert(deltaker.sistEndretAv)
-        TestRepository.insert(deltaker.sistEndretAvEnhet)
+        TestRepository.insert(sistEndretAv)
+        TestRepository.insert(sistEndretAvEnhet)
 
         repository.upsert(deltaker)
         sammenlignDeltakere(repository.get(deltaker.id).getOrThrow(), deltaker)
@@ -44,8 +49,13 @@ class DeltakerRepositoryTest {
 
     @Test
     fun `upsert - oppdatert deltaker - oppdaterer`() {
-        val deltaker = TestData.lagDeltaker()
-        TestRepository.insert(deltaker)
+        val sistEndretAv = TestData.lagNavAnsatt()
+        val sistEndretAvEnhet = TestData.lagNavEnhet()
+        val deltaker = TestData.lagDeltaker(
+            sistEndretAv = sistEndretAv.id,
+            sistEndretAvEnhet = sistEndretAvEnhet.id,
+        )
+        TestRepository.insert(deltaker, sistEndretAv, sistEndretAvEnhet)
         val annenAnsatt = TestData.lagNavAnsatt()
         TestRepository.insert(annenAnsatt)
 
@@ -54,7 +64,7 @@ class DeltakerRepositoryTest {
             sluttdato = LocalDate.now().plusWeeks(5),
             dagerPerUke = 1F,
             deltakelsesprosent = 20F,
-            sistEndretAv = annenAnsatt,
+            sistEndretAv = annenAnsatt.id,
         )
 
         repository.upsert(oppdatertDeltaker)
@@ -63,10 +73,14 @@ class DeltakerRepositoryTest {
 
     @Test
     fun `upsert - ny status - inserter ny status og deaktiverer gammel`() {
+        val sistEndretAv = TestData.lagNavAnsatt()
+        val sistEndretAvEnhet = TestData.lagNavEnhet()
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+            sistEndretAv = sistEndretAv.id,
+            sistEndretAvEnhet = sistEndretAvEnhet.id,
         )
-        TestRepository.insert(deltaker)
+        TestRepository.insert(deltaker, sistEndretAv, sistEndretAvEnhet)
 
         val oppdatertDeltaker = deltaker.copy(
             status = TestData.lagDeltakerStatus(

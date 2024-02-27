@@ -1,8 +1,6 @@
 package no.nav.amt.deltaker.deltaker.model
 
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
-import no.nav.amt.deltaker.navansatt.NavAnsatt
-import no.nav.amt.deltaker.navansatt.navenhet.NavEnhet
 import no.nav.amt.deltaker.navbruker.model.NavBruker
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -19,8 +17,9 @@ data class Deltaker(
     val bakgrunnsinformasjon: String?,
     val innhold: List<Innhold>,
     val status: DeltakerStatus,
-    val sistEndretAv: NavAnsatt,
-    val sistEndretAvEnhet: NavEnhet,
+    val vedtaksinformasjon: Vedtaksinformasjon?,
+    val sistEndretAv: UUID,
+    val sistEndretAvEnhet: UUID,
     val sistEndret: LocalDateTime,
     val opprettet: LocalDateTime,
 ) {
@@ -31,6 +30,16 @@ data class Deltaker(
     fun deltarPaKurs(): Boolean {
         return deltakerliste.erKurs()
     }
+
+    data class Vedtaksinformasjon(
+        val fattet: LocalDateTime?,
+        val fattetAvNav: FattetAvNav?,
+        val opprettet: LocalDateTime,
+        val opprettetAv: UUID,
+        val sistEndret: LocalDateTime,
+        val sistEndretAv: UUID,
+        val sistEndretAvEnhet: UUID,
+    )
 }
 
 data class Innhold(

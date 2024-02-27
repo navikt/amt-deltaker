@@ -16,6 +16,7 @@ import no.nav.amt.deltaker.application.plugins.configureSerialization
 import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.deltaker.PameldingService
 import no.nav.amt.deltaker.deltaker.api.model.OpprettKladdRequest
+import no.nav.amt.deltaker.deltaker.api.model.toKladdResponse
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
 import no.nav.amt.deltaker.utils.configureEnvForAuthentication
 import no.nav.amt.deltaker.utils.data.TestData
@@ -39,7 +40,7 @@ class PameldingApiTest {
 
     @Test
     fun `post pamelding - har tilgang - returnerer deltaker`() = testApplication {
-        val deltaker = TestData.lagDeltaker()
+        val deltaker = TestData.lagDeltaker().toKladdResponse(TestData.lagNavAnsatt(), TestData.lagNavEnhet())
 
         coEvery { pameldingService.opprettKladd(any(), any(), any(), any()) } returns deltaker
 

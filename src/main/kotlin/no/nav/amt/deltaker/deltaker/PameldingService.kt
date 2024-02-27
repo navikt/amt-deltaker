@@ -1,5 +1,7 @@
 package no.nav.amt.deltaker.deltaker
 
+import no.nav.amt.deltaker.deltaker.api.model.KladdResponse
+import no.nav.amt.deltaker.deltaker.api.model.toKladdResponse
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
@@ -29,25 +31,28 @@ class PameldingService(
         personident: String,
         opprettetAv: String,
         opprettetAvEnhet: String,
-    ): Deltaker {
+    ): KladdResponse {
         val eksisterendeDeltaker = deltakerService
             .getDeltakelser(personident, deltakerlisteId)
             .firstOrNull { !it.harSluttet() }
 
         if (eksisterendeDeltaker != null) {
             log.warn("Deltakeren ${eksisterendeDeltaker.id} er allerede opprettet og deltar fortsatt")
-            return eksisterendeDeltaker
+            val sistEndretAv = navAnsattService.hentEllerOpprettNavAnsatt(eksisterendeDeltaker.sistEndretAv)
+            val sistEndretAvNavEnhet = navEnhetService.hentEllerOpprettNavEnhet(eksisterendeDeltaker.sistEndretAvEnhet)
+            return eksisterendeDeltaker.toKladdResponse(sistEndretAv, sistEndretAvNavEnhet)
         }
 
         val deltakerliste = deltakerlisteRepository.get(deltakerlisteId).getOrThrow()
         val navBruker = navBrukerService.get(personident).getOrThrow()
-        val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(opprettetAv)
-        val navEnhet = navEnhetService.hentEllerOpprettNavEnhet(opprettetAvEnhet)
-        val deltaker = nyDeltakerKladd(navBruker, deltakerliste, navAnsatt, navEnhet)
+        val sistEndretAv = navAnsattService.hentEllerOpprettNavAnsatt(opprettetAv)
+        val sistEndretAvNavEnhet = navEnhetService.hentEllerOpprettNavEnhet(opprettetAvEnhet)
+        val deltaker = nyDeltakerKladd(navBruker, deltakerliste, sistEndretAv, sistEndretAvNavEnhet)
 
         deltakerService.lagreKladd(deltaker)
 
         return deltakerService.get(deltaker.id).getOrThrow()
+            .toKladdResponse(sistEndretAv, sistEndretAvNavEnhet)
     }
 
     private fun nyDeltakerKladd(
@@ -66,9 +71,10 @@ class PameldingService(
         bakgrunnsinformasjon = null,
         innhold = emptyList(),
         status = nyDeltakerStatus(DeltakerStatus.Type.KLADD),
-        sistEndretAv = opprettetAv,
+        vedtaksinformasjon = null,
+        sistEndretAv = opprettetAv.id,
         sistEndret = LocalDateTime.now(),
-        sistEndretAvEnhet = opprettetAvEnhet,
+        sistEndretAvEnhet = opprettetAvEnhet.id,
         opprettet = LocalDateTime.now(),
     )
 }
