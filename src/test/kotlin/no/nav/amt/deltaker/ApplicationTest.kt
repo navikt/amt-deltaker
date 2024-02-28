@@ -10,12 +10,12 @@ import no.nav.amt.deltaker.application.plugins.configureAuthentication
 import no.nav.amt.deltaker.application.plugins.configureRouting
 import no.nav.amt.deltaker.application.plugins.configureSerialization
 import no.nav.amt.deltaker.deltaker.DeltakerService
-import no.nav.amt.deltaker.deltaker.PameldingService
+import no.nav.amt.deltaker.deltaker.KladdService
 import no.nav.amt.deltaker.utils.configureEnvForAuthentication
 import org.junit.Test
 
 class ApplicationTest {
-    private val pameldingService = mockk<PameldingService>()
+    private val kladdService = mockk<KladdService>()
     private val deltakerService = mockk<DeltakerService>()
 
     @Test
@@ -24,7 +24,7 @@ class ApplicationTest {
         application {
             configureSerialization()
             configureAuthentication(Environment())
-            configureRouting(pameldingService, deltakerService)
+            configureRouting(kladdService, deltakerService)
         }
         client.get("/internal/health/liveness").apply {
             status shouldBe HttpStatusCode.OK

@@ -14,13 +14,13 @@ import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import no.nav.amt.deltaker.application.registerHealthApi
 import no.nav.amt.deltaker.deltaker.DeltakerService
-import no.nav.amt.deltaker.deltaker.PameldingService
+import no.nav.amt.deltaker.deltaker.KladdService
 import no.nav.amt.deltaker.deltaker.api.registerDeltakerApi
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 fun Application.configureRouting(
-    pameldingService: PameldingService,
+    kladdService: KladdService,
     deltakerService: DeltakerService,
 ) {
     install(StatusPages) {
@@ -40,7 +40,7 @@ fun Application.configureRouting(
     routing {
         registerHealthApi()
 
-        registerDeltakerApi(pameldingService, deltakerService)
+        registerDeltakerApi(kladdService, deltakerService)
 
         val catchAllRoute = "{...}"
         route(catchAllRoute) {

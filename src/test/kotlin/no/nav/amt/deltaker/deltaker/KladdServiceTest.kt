@@ -32,7 +32,7 @@ import java.time.LocalDate
 import java.util.UUID
 import kotlin.test.assertFailsWith
 
-class PameldingServiceTest {
+class KladdServiceTest {
 
     companion object {
 
@@ -48,7 +48,7 @@ class PameldingServiceTest {
             deltakerProducer = mockk<DeltakerProducer>(relaxed = true),
         )
 
-        private var pameldingService = PameldingService(
+        private var kladdService = KladdService(
             deltakerService = deltakerService,
             deltakerlisteRepository = DeltakerlisteRepository(),
             navBrukerService = NavBrukerService(NavBrukerRepository(), mockAmtPersonServiceClientNavBruker(), navEnhetService, navAnsattService),
@@ -63,8 +63,8 @@ class PameldingServiceTest {
         }
     }
 
-    fun mockPameldingService(navBruker: NavBruker, navAnsatt: NavAnsatt, navEnhet: NavEnhet) {
-        pameldingService = PameldingService(
+    private fun mockKladdService(navBruker: NavBruker, navAnsatt: NavAnsatt, navEnhet: NavEnhet) {
+        kladdService = KladdService(
             deltakerService,
             deltakerlisteRepository = DeltakerlisteRepository(),
             navBrukerService = NavBrukerService(
@@ -91,10 +91,10 @@ class PameldingServiceTest {
         val opprettetAvEnhet = TestData.lagNavEnhet()
         val navBruker = TestData.lagNavBruker(navVeilederId = opprettetAv.id, navEnhetId = opprettetAvEnhet.id)
         TestRepository.insert(deltakerliste)
-        mockPameldingService(navBruker, opprettetAv, opprettetAvEnhet)
+        mockKladdService(navBruker, opprettetAv, opprettetAvEnhet)
 
         runBlocking {
-            val deltaker = pameldingService.opprettKladd(
+            val deltaker = kladdService.opprettKladd(
                 deltakerlisteId = deltakerliste.id,
                 personident = navBruker.personident,
                 opprettetAv = opprettetAv.navIdent,
@@ -125,10 +125,10 @@ class PameldingServiceTest {
         val navBruker = TestData.lagNavBruker()
         val opprettetAv = TestData.lagNavAnsatt()
         val opprettetAvEnhet = TestData.lagNavEnhet()
-        mockPameldingService(navBruker, opprettetAv, opprettetAvEnhet)
+        mockKladdService(navBruker, opprettetAv, opprettetAvEnhet)
         runBlocking {
             assertFailsWith<NoSuchElementException> {
-                pameldingService.opprettKladd(UUID.randomUUID(), personident, opprettetAv.navIdent, opprettetAvEnhet.enhetsnummer)
+                kladdService.opprettKladd(UUID.randomUUID(), personident, opprettetAv.navIdent, opprettetAvEnhet.enhetsnummer)
             }
         }
     }
@@ -147,7 +147,7 @@ class PameldingServiceTest {
 
         runBlocking {
             val eksisterendeDeltaker =
-                pameldingService.opprettKladd(
+                kladdService.opprettKladd(
                     deltaker.deltakerliste.id,
                     deltaker.navBruker.personident,
                     sistEndretAv.navIdent,
@@ -179,7 +179,7 @@ class PameldingServiceTest {
 
         runBlocking {
             val nyDeltaker =
-                pameldingService.opprettKladd(
+                kladdService.opprettKladd(
                     deltaker.deltakerliste.id,
                     deltaker.navBruker.personident,
                     sistEndretAv.navIdent,

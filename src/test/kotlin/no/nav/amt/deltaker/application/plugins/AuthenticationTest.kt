@@ -17,14 +17,14 @@ import io.ktor.server.testing.testApplication
 import io.mockk.mockk
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.deltaker.DeltakerService
-import no.nav.amt.deltaker.deltaker.PameldingService
+import no.nav.amt.deltaker.deltaker.KladdService
 import no.nav.amt.deltaker.utils.configureEnvForAuthentication
 import no.nav.amt.deltaker.utils.generateJWT
 import org.junit.Before
 import org.junit.Test
 
 class AuthenticationTest {
-    private val pameldingService = mockk<PameldingService>()
+    private val kladdService = mockk<KladdService>()
     private val deltakerService = mockk<DeltakerService>()
 
     @Before
@@ -109,7 +109,7 @@ class AuthenticationTest {
             configureSerialization()
             configureAuthentication(Environment())
             configureRouting(
-                pameldingService,
+                kladdService,
                 deltakerService,
             )
             setUpTestRoute()

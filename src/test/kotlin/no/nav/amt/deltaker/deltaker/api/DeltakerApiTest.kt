@@ -17,7 +17,7 @@ import no.nav.amt.deltaker.application.plugins.configureRouting
 import no.nav.amt.deltaker.application.plugins.configureSerialization
 import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.deltaker.DeltakerService
-import no.nav.amt.deltaker.deltaker.PameldingService
+import no.nav.amt.deltaker.deltaker.KladdService
 import no.nav.amt.deltaker.deltaker.api.model.OppdaterDeltakerRequest
 import no.nav.amt.deltaker.deltaker.api.model.OpprettKladdRequest
 import no.nav.amt.deltaker.deltaker.api.model.toKladdResponse
@@ -33,7 +33,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 class DeltakerApiTest {
-    private val pameldingService = mockk<PameldingService>()
+    private val kladdService = mockk<KladdService>()
     private val deltakerService = mockk<DeltakerService>()
 
     @Before
@@ -52,7 +52,7 @@ class DeltakerApiTest {
     fun `post pamelding - har tilgang - returnerer deltaker`() = testApplication {
         val deltaker = TestData.lagDeltaker().toKladdResponse(TestData.lagNavAnsatt(), TestData.lagNavEnhet())
 
-        coEvery { pameldingService.opprettKladd(any(), any(), any(), any()) } returns deltaker
+        coEvery { kladdService.opprettKladd(any(), any(), any(), any()) } returns deltaker
 
         setUpTestApplication()
 
@@ -65,7 +65,7 @@ class DeltakerApiTest {
     @Test
     fun `post pamelding - deltakerliste finnes ikke - reurnerer 404`() = testApplication {
         coEvery {
-            pameldingService.opprettKladd(
+            kladdService.opprettKladd(
                 any(),
                 any(),
                 any(),
@@ -105,7 +105,7 @@ class DeltakerApiTest {
             configureSerialization()
             configureAuthentication(Environment())
             configureRouting(
-                pameldingService,
+                kladdService,
                 deltakerService,
             )
         }

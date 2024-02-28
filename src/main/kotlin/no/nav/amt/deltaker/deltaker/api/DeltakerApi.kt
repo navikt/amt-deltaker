@@ -8,19 +8,19 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.post
 import no.nav.amt.deltaker.deltaker.DeltakerService
-import no.nav.amt.deltaker.deltaker.PameldingService
+import no.nav.amt.deltaker.deltaker.KladdService
 import no.nav.amt.deltaker.deltaker.api.model.OppdaterDeltakerRequest
 import no.nav.amt.deltaker.deltaker.api.model.OpprettKladdRequest
 
 fun Routing.registerDeltakerApi(
-    pameldingService: PameldingService,
+    kladdService: KladdService,
     deltakerService: DeltakerService,
 ) {
     authenticate("SYSTEM") {
         post("/pamelding") {
             val request = call.receive<OpprettKladdRequest>()
 
-            val deltaker = pameldingService.opprettKladd(
+            val deltaker = kladdService.opprettKladd(
                 deltakerlisteId = request.deltakerlisteId,
                 personident = request.personident,
                 opprettetAv = request.opprettetAv,
