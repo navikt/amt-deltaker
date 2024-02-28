@@ -195,7 +195,7 @@ object TestRepository {
         }
     }
 
-    fun insert(deltaker: Deltaker, sistEndretAv: NavAnsatt, sistEndretAvEnhet: NavEnhet) = Database.query {
+    fun insert(deltaker: Deltaker, sistEndretAv: NavAnsatt, sistEndretAvEnhet: NavEnhet, vedtak: Vedtak? = null) = Database.query {
         try {
             insert(deltaker.navBruker)
         } catch (e: Exception) {
@@ -248,6 +248,14 @@ object TestRepository {
 
         it.update(queryOf(sql, params))
         insert(deltaker.status, deltaker.id)
+
+        if (vedtak != null) {
+            try {
+                insert(vedtak)
+            } catch (e: Exception) {
+                log.warn("Vedtak med id ${vedtak.id} er allerede opprettet")
+            }
+        }
     }
 
     fun insert(status: DeltakerStatus, deltakerId: UUID) = Database.query {

@@ -7,7 +7,6 @@ import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.db.Database
 import no.nav.amt.deltaker.db.toPGObject
 import no.nav.amt.deltaker.deltaker.model.Vedtak
-import no.nav.amt.deltaker.deltaker.model.VedtakDbo
 import java.util.UUID
 
 class VedtakRepository {
@@ -26,7 +25,7 @@ class VedtakRepository {
         sistEndretAvEnhet = row.uuid("sist_endret_av_enhet"),
     )
 
-    fun upsert(vedtak: VedtakDbo) = Database.query {
+    fun upsert(vedtak: Vedtak) = Database.query {
         val sql = """
             insert into vedtak (id,
                                 deltaker_id,

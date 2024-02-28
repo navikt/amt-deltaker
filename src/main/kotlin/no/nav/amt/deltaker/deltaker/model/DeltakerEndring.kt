@@ -1,5 +1,7 @@
 package no.nav.amt.deltaker.deltaker.model
 
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -37,6 +39,18 @@ data class DeltakerEndring(
         )
     }
 
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, property = "endringstype")
+    @JsonSubTypes(
+        JsonSubTypes.Type(value = Endring.EndreStartdato::class, name = "STARTDATO"),
+        JsonSubTypes.Type(value = Endring.EndreSluttdato::class, name = "SLUTTDATO"),
+        JsonSubTypes.Type(value = Endring.EndreDeltakelsesmengde::class, name = "DELTAKELSESMENGDE"),
+        JsonSubTypes.Type(value = Endring.EndreBakgrunnsinformasjon::class, name = "BAKGRUNNSINFORMASJON"),
+        JsonSubTypes.Type(value = Endring.EndreInnhold::class, name = "INNHOLD"),
+        JsonSubTypes.Type(value = Endring.IkkeAktuell::class, name = "IKKE_AKTUELL"),
+        JsonSubTypes.Type(value = Endring.ForlengDeltakelse::class, name = "FORLENGELSE"),
+        JsonSubTypes.Type(value = Endring.AvsluttDeltakelse::class, name = "AVSLUTT_DELTAKELSE"),
+        JsonSubTypes.Type(value = Endring.EndreSluttarsak::class, name = "SLUTTARSAK"),
+    )
     sealed class Endring {
         data class EndreBakgrunnsinformasjon(
             val bakgrunnsinformasjon: String?,

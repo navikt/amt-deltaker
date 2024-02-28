@@ -23,7 +23,9 @@ import no.nav.amt.deltaker.auth.AzureAdTokenClient
 import no.nav.amt.deltaker.db.Database
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.PameldingService
+import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
+import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlisteConsumer
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
@@ -95,6 +97,8 @@ fun Application.module() {
     val tiltakstypeRepository = TiltakstypeRepository()
     val deltakerlisteRepository = DeltakerlisteRepository()
     val deltakerRepository = DeltakerRepository()
+    val deltakerEndringRepository = DeltakerEndringRepository()
+    val vedtakRepository = VedtakRepository()
 
     val navAnsattService = NavAnsattService(navAnsattRepository, amtPersonServiceClient)
     val navEnhetService = NavEnhetService(navEnhetRepository, amtPersonServiceClient)
@@ -105,7 +109,7 @@ fun Application.module() {
         navAnsattService,
     )
     val arrangorService = ArrangorService(arrangorRepository, amtArrangorClient)
-    val deltakerService = DeltakerService(deltakerRepository)
+    val deltakerService = DeltakerService(deltakerRepository, deltakerEndringRepository, vedtakRepository, navAnsattService, navEnhetService)
     val pameldingService =
         PameldingService(deltakerService, deltakerlisteRepository, navBrukerService, navAnsattService, navEnhetService)
 
@@ -119,7 +123,7 @@ fun Application.module() {
     consumers.forEach { it.run() }
 
     configureAuthentication(environment)
-    configureRouting(pameldingService)
+    configureRouting(pameldingService, deltakerService)
     configureMonitoring()
 
     attributes.put(isReadyKey, true)

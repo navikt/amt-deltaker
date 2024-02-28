@@ -3,7 +3,9 @@ package no.nav.amt.deltaker.deltaker
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.runBlocking
+import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
+import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.navansatt.NavAnsatt
@@ -32,12 +34,16 @@ class PameldingServiceTest {
 
     companion object {
 
-        private val deltakerService = DeltakerService(
-            deltakerRepository = DeltakerRepository(),
-        )
-
         private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonServiceClientNavAnsatt())
         private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonServiceClientNavEnhet())
+
+        private val deltakerService = DeltakerService(
+            deltakerRepository = DeltakerRepository(),
+            deltakerEndringRepository = DeltakerEndringRepository(),
+            vedtakRepository = VedtakRepository(),
+            navAnsattService = navAnsattService,
+            navEnhetService = navEnhetService,
+        )
 
         private var pameldingService = PameldingService(
             deltakerService = deltakerService,

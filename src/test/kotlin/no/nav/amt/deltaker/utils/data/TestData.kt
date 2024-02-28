@@ -248,24 +248,44 @@ object TestData {
         gyldigTil: LocalDateTime? = null,
         fattetAvNav: FattetAvNav? = null,
         opprettet: LocalDateTime = LocalDateTime.now(),
-        opprettetAv: UUID = lagNavAnsatt().id,
-        opprettetAvEnhet: UUID = lagNavEnhet().id,
+        opprettetAv: NavAnsatt = lagNavAnsatt(),
+        opprettetAvEnhet: NavEnhet = lagNavEnhet(),
         sistEndret: LocalDateTime = opprettet,
-        sistEndretAv: UUID = opprettetAv,
-        sistEndretAvEnhet: UUID = opprettetAvEnhet,
+        sistEndretAv: NavAnsatt = opprettetAv,
+        sistEndretAvEnhet: NavEnhet = opprettetAvEnhet,
     ) = Vedtak(
         id,
         deltakerId,
         fattet,
         gyldigTil,
-        deltakerVedVedtak.toDeltakerVedVedtak(),
+        deltakerVedVedtak.toDeltakerVedVedtak(sistEndretAv.navIdent, sistEndretAvEnhet.enhetsnummer),
         fattetAvNav,
         opprettet,
-        opprettetAv,
-        opprettetAvEnhet,
+        opprettetAv.id,
+        opprettetAvEnhet.id,
         sistEndret,
-        sistEndretAv,
-        sistEndretAvEnhet,
+        sistEndretAv.id,
+        sistEndretAvEnhet.id,
+    )
+
+    fun lagVedtaksinformasjon(
+        fattet: LocalDateTime? = null,
+        fattetAvNav: FattetAvNav? = null,
+        opprettet: LocalDateTime = LocalDateTime.now(),
+        opprettetAv: NavAnsatt = lagNavAnsatt(),
+        opprettetAvEnhet: NavEnhet = lagNavEnhet(),
+        sistEndret: LocalDateTime = opprettet,
+        sistEndretAv: NavAnsatt = opprettetAv,
+        sistEndretAvEnhet: NavEnhet = opprettetAvEnhet,
+    ) = Deltaker.Vedtaksinformasjon(
+        fattet,
+        fattetAvNav,
+        opprettet,
+        opprettetAv.id,
+        opprettetAvEnhet.id,
+        sistEndret,
+        sistEndretAv.id,
+        sistEndretAvEnhet.id,
     )
 
     fun lagFattetAvNav(
@@ -283,7 +303,7 @@ object TestData {
     }
 }
 
-fun Deltaker.toDeltakerVedVedtak() = DeltakerVedVedtak(
+fun Deltaker.toDeltakerVedVedtak(sistEndretAv: String, sistEndretAvEnhet: String) = DeltakerVedVedtak(
     id,
     startdato,
     sluttdato,

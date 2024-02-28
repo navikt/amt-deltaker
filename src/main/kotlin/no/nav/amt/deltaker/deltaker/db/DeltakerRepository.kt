@@ -73,6 +73,7 @@ class DeltakerRepository {
                 fattetAvNav = row.stringOrNull("v.fattet_av_nav")?.let { g -> objectMapper.readValue(g) },
                 opprettet = opprettet,
                 opprettetAv = row.uuid("v.opprettet_av"),
+                opprettetAvEnhet = row.uuid("v.opprettet_av_enhet"),
                 sistEndret = row.localDateTime("v.sist_endret"),
                 sistEndretAv = row.uuid("v.sist_endret_av"),
                 sistEndretAvEnhet = row.uuid("v.sist_endret_av_enhet"),
@@ -289,6 +290,7 @@ class DeltakerRepository {
                    v.fattet_av_nav as "v.fattet_av_nav",
                    v.created_at as "v.opprettet",
                    v.opprettet_av as "v.opprettet_av",
+                   v.opprettet_av_enhet as "v.opprettet_av_enhet",
                    v.modified_at as "v.sist_endret",
                    v.sist_endret_av as "v.sist_endret_av",
                    v.sist_endret_av_enhet as "v.sist_endret_av_enhet"

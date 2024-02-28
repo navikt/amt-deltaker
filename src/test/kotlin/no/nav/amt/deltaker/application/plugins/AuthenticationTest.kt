@@ -16,6 +16,7 @@ import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import io.mockk.mockk
 import no.nav.amt.deltaker.Environment
+import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.PameldingService
 import no.nav.amt.deltaker.utils.configureEnvForAuthentication
 import no.nav.amt.deltaker.utils.generateJWT
@@ -24,6 +25,7 @@ import org.junit.Test
 
 class AuthenticationTest {
     private val pameldingService = mockk<PameldingService>()
+    private val deltakerService = mockk<DeltakerService>()
 
     @Before
     fun setup() {
@@ -108,6 +110,7 @@ class AuthenticationTest {
             configureAuthentication(Environment())
             configureRouting(
                 pameldingService,
+                deltakerService,
             )
             setUpTestRoute()
         }

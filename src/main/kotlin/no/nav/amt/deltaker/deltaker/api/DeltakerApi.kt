@@ -1,16 +1,20 @@
 package no.nav.amt.deltaker.deltaker.api
 
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.auth.authenticate
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.post
+import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.PameldingService
+import no.nav.amt.deltaker.deltaker.api.model.OppdaterDeltakerRequest
 import no.nav.amt.deltaker.deltaker.api.model.OpprettKladdRequest
 
-fun Routing.registerPameldingApi(
+fun Routing.registerDeltakerApi(
     pameldingService: PameldingService,
+    deltakerService: DeltakerService,
 ) {
     authenticate("SYSTEM") {
         post("/pamelding") {
@@ -24,6 +28,13 @@ fun Routing.registerPameldingApi(
             )
 
             call.respond(deltaker)
+        }
+
+        post("/deltaker") {
+            val request = call.receive<OppdaterDeltakerRequest>()
+
+            deltakerService.oppdaterDeltaker(request)
+            call.respond(HttpStatusCode.OK)
         }
     }
 }

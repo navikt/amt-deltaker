@@ -1,10 +1,8 @@
 package no.nav.amt.deltaker.deltaker.db
 
 import io.kotest.matchers.shouldBe
-import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.DeltakerVedVedtak
 import no.nav.amt.deltaker.deltaker.model.Vedtak
-import no.nav.amt.deltaker.deltaker.model.VedtakDbo
 import no.nav.amt.deltaker.utils.SingletonPostgresContainer
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
@@ -43,12 +41,12 @@ class VedtakRepositoryTest {
         )
         val vedtak: Vedtak = TestData.lagVedtak(
             deltakerVedVedtak = deltaker,
-            opprettetAv = navAnsatt.id,
-            opprettetAvEnhet = navEnhet.id,
+            opprettetAv = navAnsatt,
+            opprettetAvEnhet = navEnhet,
         )
         TestRepository.insert(deltaker, navAnsatt, navEnhet)
 
-        repository.upsert(vedtak.toDbo(deltaker))
+        repository.upsert(vedtak)
 
         sammenlignVedtak(repository.get(vedtak.id)!!, vedtak)
     }
@@ -65,14 +63,14 @@ class VedtakRepositoryTest {
         )
         val vedtak: Vedtak = TestData.lagVedtak(
             deltakerVedVedtak = deltaker,
-            opprettetAv = navAnsatt.id,
-            opprettetAvEnhet = navEnhet.id,
+            opprettetAv = navAnsatt,
+            opprettetAvEnhet = navEnhet,
         )
         TestRepository.insert(deltaker, navAnsatt, navEnhet)
-        repository.upsert(vedtak.toDbo(deltaker))
+        repository.upsert(vedtak)
 
         val oppdatertVedtak = vedtak.copy(fattet = LocalDateTime.now())
-        repository.upsert(oppdatertVedtak.toDbo(deltaker))
+        repository.upsert(oppdatertVedtak)
 
         sammenlignVedtak(repository.get(vedtak.id)!!, oppdatertVedtak)
     }
@@ -89,14 +87,14 @@ class VedtakRepositoryTest {
         )
         val vedtak: Vedtak = TestData.lagVedtak(
             deltakerVedVedtak = deltaker,
-            opprettetAv = navAnsatt.id,
-            opprettetAvEnhet = navEnhet.id,
+            opprettetAv = navAnsatt,
+            opprettetAvEnhet = navEnhet,
             fattet = LocalDateTime.now(),
             fattetAvNav = TestData.lagFattetAvNav(fattetAv = navAnsatt.id, fattetAvEnhet = navEnhet.id),
         )
         TestRepository.insert(deltaker, navAnsatt, navEnhet)
 
-        repository.upsert(vedtak.toDbo(deltaker))
+        repository.upsert(vedtak)
 
         sammenlignVedtak(repository.get(vedtak.id)!!, vedtak)
     }
@@ -115,14 +113,14 @@ class VedtakRepositoryTest {
             deltakerId = deltaker.id,
             fattet = LocalDateTime.now().minusMonths(2),
             deltakerVedVedtak = deltaker,
-            opprettetAv = navAnsatt.id,
-            opprettetAvEnhet = navEnhet.id,
+            opprettetAv = navAnsatt,
+            opprettetAvEnhet = navEnhet,
         )
         val ikkeFattet: Vedtak = TestData.lagVedtak(
             deltakerId = deltaker.id,
             deltakerVedVedtak = deltaker,
-            opprettetAv = navAnsatt.id,
-            opprettetAvEnhet = navEnhet.id,
+            opprettetAv = navAnsatt,
+            opprettetAvEnhet = navEnhet,
         )
         TestRepository.insert(deltaker, navAnsatt, navEnhet)
 
@@ -146,8 +144,8 @@ class VedtakRepositoryTest {
             deltakerId = deltaker.id,
             fattet = LocalDateTime.now().minusMonths(2),
             deltakerVedVedtak = deltaker,
-            opprettetAv = navAnsatt.id,
-            opprettetAvEnhet = navEnhet.id,
+            opprettetAv = navAnsatt,
+            opprettetAvEnhet = navEnhet,
         )
         TestRepository.insert(deltaker, navAnsatt, navEnhet)
 
@@ -171,21 +169,6 @@ fun sammenlignVedtak(a: Vedtak, b: Vedtak) {
     a.sistEndretAv shouldBe b.sistEndretAv
     a.sistEndretAvEnhet shouldBe b.sistEndretAvEnhet
 }
-
-fun Vedtak.toDbo(deltaker: Deltaker) = VedtakDbo(
-    id,
-    deltakerId,
-    fattet,
-    gyldigTil,
-    deltaker,
-    fattetAvNav,
-    opprettet,
-    opprettetAv,
-    opprettetAvEnhet,
-    sistEndret,
-    sistEndretAv,
-    sistEndretAvEnhet,
-)
 
 fun sammenlignDeltakereVedVedtak(a: DeltakerVedVedtak, b: DeltakerVedVedtak) {
     a.id shouldBe b.id

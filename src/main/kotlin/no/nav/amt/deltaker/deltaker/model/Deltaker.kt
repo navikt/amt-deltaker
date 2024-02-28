@@ -36,6 +36,7 @@ data class Deltaker(
         val fattetAvNav: FattetAvNav?,
         val opprettet: LocalDateTime,
         val opprettetAv: UUID,
+        val opprettetAvEnhet: UUID,
         val sistEndret: LocalDateTime,
         val sistEndretAv: UUID,
         val sistEndretAvEnhet: UUID,
