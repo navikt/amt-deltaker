@@ -6,9 +6,13 @@ import no.nav.amt.deltaker.deltaker.api.model.OppdaterDeltakerRequest
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
+import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
+import no.nav.amt.deltaker.deltaker.kafka.DeltakerV2MapperService
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.DeltakerEndring
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
+import no.nav.amt.deltaker.kafka.config.LocalKafkaConfig
+import no.nav.amt.deltaker.kafka.utils.SingletonKafkaProvider
 import no.nav.amt.deltaker.navansatt.NavAnsatt
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
@@ -35,13 +39,17 @@ class DeltakerServiceTest {
         private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonServiceClientNavEnhet())
         private val deltakerRepository = DeltakerRepository()
         private val deltakerEndringRepository = DeltakerEndringRepository()
+        private val vedtakRepository = VedtakRepository()
+        private val deltakerHistorikkService = DeltakerHistorikkService(deltakerEndringRepository, vedtakRepository)
+        private val deltakerV2MapperService = DeltakerV2MapperService(navAnsattService, navEnhetService, deltakerHistorikkService)
 
         private val deltakerService = DeltakerService(
             deltakerRepository = deltakerRepository,
             deltakerEndringRepository = deltakerEndringRepository,
-            vedtakRepository = VedtakRepository(),
+            vedtakRepository = vedtakRepository,
             navAnsattService = navAnsattService,
             navEnhetService = navEnhetService,
+            deltakerProducer = DeltakerProducer(LocalKafkaConfig(SingletonKafkaProvider.getHost()), deltakerV2MapperService),
         )
 
         @JvmStatic

@@ -2,10 +2,12 @@ package no.nav.amt.deltaker.deltaker
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
+import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.navansatt.NavAnsatt
@@ -43,6 +45,7 @@ class PameldingServiceTest {
             vedtakRepository = VedtakRepository(),
             navAnsattService = navAnsattService,
             navEnhetService = navEnhetService,
+            deltakerProducer = mockk<DeltakerProducer>(relaxed = true),
         )
 
         private var pameldingService = PameldingService(

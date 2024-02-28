@@ -4,6 +4,7 @@ import no.nav.amt.deltaker.deltaker.api.model.OppdaterDeltakerRequest
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
+import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.DeltakerEndring
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
@@ -23,6 +24,7 @@ class DeltakerService(
     private val vedtakRepository: VedtakRepository,
     private val navAnsattService: NavAnsattService,
     private val navEnhetService: NavEnhetService,
+    private val deltakerProducer: DeltakerProducer,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -95,6 +97,7 @@ class DeltakerService(
                 ),
             )
         }
+        deltakerProducer.produce(get(oppdatertDeltaker.id).getOrThrow())
         log.info("Oppdatert deltaker med id ${oppdatertDeltaker.id}")
     }
 
