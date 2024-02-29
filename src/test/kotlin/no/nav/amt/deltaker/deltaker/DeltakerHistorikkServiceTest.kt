@@ -33,10 +33,7 @@ class DeltakerHistorikkServiceTest {
         TestRepository.insert(navAnsatt)
         val navEnhet = TestData.lagNavEnhet()
         TestRepository.insert(navEnhet)
-        val deltaker = TestData.lagDeltaker(
-            sistEndretAv = navAnsatt.id,
-            sistEndretAvEnhet = navEnhet.id,
-        )
+        val deltaker = TestData.lagDeltaker()
         val vedtak = TestData.lagVedtak(
             deltakerId = deltaker.id,
             fattet = LocalDateTime.now().minusMonths(1),
@@ -55,7 +52,7 @@ class DeltakerHistorikkServiceTest {
             endretAvEnhet = navEnhet.id,
             endret = LocalDateTime.now().minusDays(1),
         )
-        TestRepository.insert(deltaker, navAnsatt, navEnhet)
+        TestRepository.insert(deltaker)
         TestRepository.insert(vedtak)
         TestRepository.insert(gammelEndring)
         TestRepository.insert(nyEndring)
@@ -70,15 +67,8 @@ class DeltakerHistorikkServiceTest {
 
     @Test
     fun `getForDeltaker - ingen endringer - returner tom liste`() {
-        val navAnsatt = TestData.lagNavAnsatt()
-        TestRepository.insert(navAnsatt)
-        val navEnhet = TestData.lagNavEnhet()
-        TestRepository.insert(navEnhet)
-        val deltaker = TestData.lagDeltaker(
-            sistEndretAv = navAnsatt.id,
-            sistEndretAvEnhet = navEnhet.id,
-        )
-        TestRepository.insert(deltaker, navAnsatt, navEnhet)
+        val deltaker = TestData.lagDeltaker()
+        TestRepository.insert(deltaker)
 
         service.getForDeltaker(deltaker.id) shouldBe emptyList()
     }

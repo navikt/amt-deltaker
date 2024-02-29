@@ -13,10 +13,8 @@ import no.nav.amt.deltaker.deltaker.model.DeltakerEndring
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.kafka.config.LocalKafkaConfig
 import no.nav.amt.deltaker.kafka.utils.SingletonKafkaProvider
-import no.nav.amt.deltaker.navansatt.NavAnsatt
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
-import no.nav.amt.deltaker.navansatt.navenhet.NavEnhet
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
 import no.nav.amt.deltaker.utils.SingletonPostgresContainer
@@ -69,8 +67,6 @@ class DeltakerServiceTest {
         val sistEndretAv = TestData.lagNavAnsatt()
         val sistEndretAvEnhet = TestData.lagNavEnhet()
         val deltaker = TestData.lagDeltaker(
-            sistEndretAv = sistEndretAv.id,
-            sistEndretAvEnhet = sistEndretAvEnhet.id,
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
         )
         val vedtak = TestData.lagVedtak(
@@ -80,7 +76,7 @@ class DeltakerServiceTest {
             opprettetAvEnhet = sistEndretAvEnhet,
             fattet = null,
         )
-        TestRepository.insert(deltaker, sistEndretAv, sistEndretAvEnhet, vedtak)
+        TestRepository.insert(deltaker, vedtak)
 
         val vedtaksinformasjon = OppdaterDeltakerRequest.Vedtaksinformasjon(
             id = vedtak.id,
@@ -102,8 +98,6 @@ class DeltakerServiceTest {
         )
             .tilOppdaterDeltakerRequest(
                 vedtaksinformasjon = vedtaksinformasjon,
-                sistEndretAv = sistEndretAv,
-                sistEndretAvEnhet = sistEndretAvEnhet,
                 deltakerEndring = null,
             )
 
@@ -123,9 +117,9 @@ class DeltakerServiceTest {
     fun `oppdaterDeltaker - deltaker finnes, forlengelse - oppdaterer`() {
         val sistEndretAv = TestData.lagNavAnsatt()
         val sistEndretAvEnhet = TestData.lagNavEnhet()
+        TestRepository.insert(sistEndretAv)
+        TestRepository.insert(sistEndretAvEnhet)
         val deltaker = TestData.lagDeltaker(
-            sistEndretAv = sistEndretAv.id,
-            sistEndretAvEnhet = sistEndretAvEnhet.id,
             sluttdato = LocalDate.now().plusDays(1),
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
             vedtaksinformasjon = TestData.lagVedtaksinformasjon(
@@ -142,7 +136,7 @@ class DeltakerServiceTest {
             fattet = LocalDateTime.now().minusDays(3),
         )
 
-        TestRepository.insert(deltaker, sistEndretAv, sistEndretAvEnhet, vedtak)
+        TestRepository.insert(deltaker, vedtak)
 
         val nySluttdato = LocalDate.now().plusWeeks(3)
         val deltakerEndring = OppdaterDeltakerRequest.DeltakerEndring(
@@ -159,8 +153,6 @@ class DeltakerServiceTest {
         val oppdaterDeltakerRequest = deltaker.copy(sluttdato = nySluttdato)
             .tilOppdaterDeltakerRequest(
                 vedtaksinformasjon = null,
-                sistEndretAv = sistEndretAv,
-                sistEndretAvEnhet = sistEndretAvEnhet,
                 deltakerEndring = deltakerEndring,
             )
 
@@ -181,8 +173,6 @@ class DeltakerServiceTest {
 
     private fun Deltaker.tilOppdaterDeltakerRequest(
         vedtaksinformasjon: OppdaterDeltakerRequest.Vedtaksinformasjon?,
-        sistEndretAv: NavAnsatt,
-        sistEndretAvEnhet: NavEnhet,
         deltakerEndring: OppdaterDeltakerRequest.DeltakerEndring?,
     ): OppdaterDeltakerRequest {
         return OppdaterDeltakerRequest(
@@ -195,9 +185,6 @@ class DeltakerServiceTest {
             innhold = innhold,
             status = status,
             vedtaksinformasjon = vedtaksinformasjon,
-            sistEndretAv = sistEndretAv.navIdent,
-            sistEndretAvEnhet = sistEndretAvEnhet.enhetsnummer,
-            sistEndret = sistEndret,
             deltakerEndring = deltakerEndring,
         )
     }

@@ -23,8 +23,6 @@ fun Routing.registerDeltakerApi(
             val deltaker = kladdService.opprettKladd(
                 deltakerlisteId = request.deltakerlisteId,
                 personident = request.personident,
-                opprettetAv = request.opprettetAv,
-                opprettetAvEnhet = request.opprettetAvEnhet,
             )
 
             call.respond(deltaker)

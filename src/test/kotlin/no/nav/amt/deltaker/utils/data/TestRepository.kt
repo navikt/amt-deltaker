@@ -196,7 +196,7 @@ object TestRepository {
         }
     }
 
-    fun insert(deltaker: Deltaker, sistEndretAv: NavAnsatt, sistEndretAvEnhet: NavEnhet, vedtak: Vedtak? = null) = Database.query {
+    fun insert(deltaker: Deltaker, vedtak: Vedtak? = null) = Database.query {
         try {
             insert(deltaker.navBruker)
         } catch (e: Exception) {
@@ -209,26 +209,14 @@ object TestRepository {
             log.warn("Deltakerliste med id ${deltaker.deltakerliste.id} er allerede opprettet")
         }
 
-        try {
-            insert(sistEndretAv)
-        } catch (e: Exception) {
-            log.warn("Ansatt med id ${sistEndretAv.id} er allerede opprettet")
-        }
-
-        try {
-            insert(sistEndretAvEnhet)
-        } catch (e: Exception) {
-            log.warn("Enhet med id ${sistEndretAvEnhet.id} er allerede opprettet")
-        }
-
         val sql = """
             insert into deltaker(
                 id, person_id, deltakerliste_id, startdato, sluttdato, dager_per_uke, 
-                deltakelsesprosent, bakgrunnsinformasjon, innhold, sist_endret_av, sist_endret_av_enhet, modified_at
+                deltakelsesprosent, bakgrunnsinformasjon, innhold, modified_at
             )
             values (
                 :id, :person_id, :deltakerlisteId, :startdato, :sluttdato, :dagerPerUke, 
-                :deltakelsesprosent, :bakgrunnsinformasjon, :innhold, :sistEndretAv, :sistEndretAvEnhet, :sistEndret
+                :deltakelsesprosent, :bakgrunnsinformasjon, :innhold, :sistEndret
             )
         """.trimIndent()
 
@@ -242,8 +230,6 @@ object TestRepository {
             "deltakelsesprosent" to deltaker.deltakelsesprosent,
             "bakgrunnsinformasjon" to deltaker.bakgrunnsinformasjon,
             "innhold" to toPGObject(deltaker.innhold),
-            "sistEndretAv" to deltaker.sistEndretAv,
-            "sistEndretAvEnhet" to deltaker.sistEndretAvEnhet,
             "sistEndret" to deltaker.sistEndret,
         )
 

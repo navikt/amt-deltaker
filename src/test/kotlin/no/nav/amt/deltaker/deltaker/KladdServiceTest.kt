@@ -52,8 +52,6 @@ class KladdServiceTest {
             deltakerService = deltakerService,
             deltakerlisteRepository = DeltakerlisteRepository(),
             navBrukerService = NavBrukerService(NavBrukerRepository(), mockAmtPersonServiceClientNavBruker(), navEnhetService, navAnsattService),
-            navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonServiceClientNavAnsatt()),
-            navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonServiceClientNavEnhet()),
         )
 
         @JvmStatic
@@ -73,8 +71,6 @@ class KladdServiceTest {
                 NavEnhetService(NavEnhetRepository(), mockAmtPersonServiceClientNavEnhet(navEnhet)),
                 NavAnsattService(NavAnsattRepository(), mockAmtPersonServiceClientNavAnsatt(navAnsatt)),
             ),
-            navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonServiceClientNavAnsatt(navAnsatt)),
-            navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonServiceClientNavEnhet(navEnhet)),
         )
     }
 
@@ -97,8 +93,6 @@ class KladdServiceTest {
             val deltaker = kladdService.opprettKladd(
                 deltakerlisteId = deltakerliste.id,
                 personident = navBruker.personident,
-                opprettetAv = opprettetAv.navIdent,
-                opprettetAvEnhet = opprettetAvEnhet.enhetsnummer,
             )
 
             deltaker.id shouldBe deltakerService.getDeltakelser(navBruker.personident, deltakerliste.id).first().id
@@ -114,8 +108,6 @@ class KladdServiceTest {
             deltaker.deltakelsesprosent shouldBe null
             deltaker.bakgrunnsinformasjon shouldBe null
             deltaker.innhold shouldBe emptyList()
-            deltaker.sistEndretAv shouldBe opprettetAv
-            deltaker.sistEndretAvEnhet shouldBe opprettetAvEnhet
         }
     }
 
@@ -128,30 +120,24 @@ class KladdServiceTest {
         mockKladdService(navBruker, opprettetAv, opprettetAvEnhet)
         runBlocking {
             assertFailsWith<NoSuchElementException> {
-                kladdService.opprettKladd(UUID.randomUUID(), personident, opprettetAv.navIdent, opprettetAvEnhet.enhetsnummer)
+                kladdService.opprettKladd(UUID.randomUUID(), personident)
             }
         }
     }
 
     @Test
     fun `opprettKladd - deltaker finnes og deltar fortsatt - returnerer eksisterende deltaker`() {
-        val sistEndretAv = TestData.lagNavAnsatt()
-        val sistEndretAvEnhet = TestData.lagNavEnhet()
         val deltaker = TestData.lagDeltaker(
             sluttdato = null,
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
-            sistEndretAv = sistEndretAv.id,
-            sistEndretAvEnhet = sistEndretAvEnhet.id,
         )
-        TestRepository.insert(deltaker, sistEndretAv, sistEndretAvEnhet)
+        TestRepository.insert(deltaker)
 
         runBlocking {
             val eksisterendeDeltaker =
                 kladdService.opprettKladd(
                     deltaker.deltakerliste.id,
                     deltaker.navBruker.personident,
-                    sistEndretAv.navIdent,
-                    sistEndretAvEnhet.enhetsnummer,
                 )
 
             eksisterendeDeltaker.id shouldBe deltaker.id
@@ -167,23 +153,17 @@ class KladdServiceTest {
 
     @Test
     fun `opprettKladd - deltaker finnes men har sluttet - oppretter ny deltaker`() {
-        val sistEndretAv = TestData.lagNavAnsatt()
-        val sistEndretAvEnhet = TestData.lagNavEnhet()
         val deltaker = TestData.lagDeltaker(
             sluttdato = LocalDate.now().minusMonths(3),
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.HAR_SLUTTET),
-            sistEndretAv = sistEndretAv.id,
-            sistEndretAvEnhet = sistEndretAvEnhet.id,
         )
-        TestRepository.insert(deltaker, sistEndretAv, sistEndretAvEnhet)
+        TestRepository.insert(deltaker)
 
         runBlocking {
             val nyDeltaker =
                 kladdService.opprettKladd(
                     deltaker.deltakerliste.id,
                     deltaker.navBruker.personident,
-                    sistEndretAv.navIdent,
-                    sistEndretAvEnhet.enhetsnummer,
                 )
 
             nyDeltaker.id shouldNotBe deltaker.id

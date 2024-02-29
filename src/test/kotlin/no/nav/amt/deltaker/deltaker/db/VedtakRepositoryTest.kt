@@ -35,16 +35,13 @@ class VedtakRepositoryTest {
         TestRepository.insert(navAnsatt)
         val navEnhet = TestData.lagNavEnhet()
         TestRepository.insert(navEnhet)
-        val deltaker = TestData.lagDeltaker(
-            sistEndretAv = navAnsatt.id,
-            sistEndretAvEnhet = navEnhet.id,
-        )
+        val deltaker = TestData.lagDeltaker()
         val vedtak: Vedtak = TestData.lagVedtak(
             deltakerVedVedtak = deltaker,
             opprettetAv = navAnsatt,
             opprettetAvEnhet = navEnhet,
         )
-        TestRepository.insert(deltaker, navAnsatt, navEnhet)
+        TestRepository.insert(deltaker)
 
         repository.upsert(vedtak)
 
@@ -57,16 +54,13 @@ class VedtakRepositoryTest {
         TestRepository.insert(navAnsatt)
         val navEnhet = TestData.lagNavEnhet()
         TestRepository.insert(navEnhet)
-        val deltaker = TestData.lagDeltaker(
-            sistEndretAv = navAnsatt.id,
-            sistEndretAvEnhet = navEnhet.id,
-        )
+        val deltaker = TestData.lagDeltaker()
         val vedtak: Vedtak = TestData.lagVedtak(
             deltakerVedVedtak = deltaker,
             opprettetAv = navAnsatt,
             opprettetAvEnhet = navEnhet,
         )
-        TestRepository.insert(deltaker, navAnsatt, navEnhet)
+        TestRepository.insert(deltaker)
         repository.upsert(vedtak)
 
         val oppdatertVedtak = vedtak.copy(fattet = LocalDateTime.now())
@@ -81,10 +75,7 @@ class VedtakRepositoryTest {
         TestRepository.insert(navAnsatt)
         val navEnhet = TestData.lagNavEnhet()
         TestRepository.insert(navEnhet)
-        val deltaker = TestData.lagDeltaker(
-            sistEndretAv = navAnsatt.id,
-            sistEndretAvEnhet = navEnhet.id,
-        )
+        val deltaker = TestData.lagDeltaker()
         val vedtak: Vedtak = TestData.lagVedtak(
             deltakerVedVedtak = deltaker,
             opprettetAv = navAnsatt,
@@ -92,7 +83,7 @@ class VedtakRepositoryTest {
             fattet = LocalDateTime.now(),
             fattetAvNav = true,
         )
-        TestRepository.insert(deltaker, navAnsatt, navEnhet)
+        TestRepository.insert(deltaker)
 
         repository.upsert(vedtak)
 
@@ -105,10 +96,7 @@ class VedtakRepositoryTest {
         TestRepository.insert(navAnsatt)
         val navEnhet = TestData.lagNavEnhet()
         TestRepository.insert(navEnhet)
-        val deltaker = TestData.lagDeltaker(
-            sistEndretAv = navAnsatt.id,
-            sistEndretAvEnhet = navEnhet.id,
-        )
+        val deltaker = TestData.lagDeltaker()
         val fattet: Vedtak = TestData.lagVedtak(
             deltakerId = deltaker.id,
             fattet = LocalDateTime.now().minusMonths(2),
@@ -122,7 +110,7 @@ class VedtakRepositoryTest {
             opprettetAv = navAnsatt,
             opprettetAvEnhet = navEnhet,
         )
-        TestRepository.insert(deltaker, navAnsatt, navEnhet)
+        TestRepository.insert(deltaker)
 
         TestRepository.insert(fattet)
         TestRepository.insert(ikkeFattet)
@@ -136,10 +124,7 @@ class VedtakRepositoryTest {
         TestRepository.insert(navAnsatt)
         val navEnhet = TestData.lagNavEnhet()
         TestRepository.insert(navEnhet)
-        val deltaker = TestData.lagDeltaker(
-            sistEndretAv = navAnsatt.id,
-            sistEndretAvEnhet = navEnhet.id,
-        )
+        val deltaker = TestData.lagDeltaker()
         val fattet: Vedtak = TestData.lagVedtak(
             deltakerId = deltaker.id,
             fattet = LocalDateTime.now().minusMonths(2),
@@ -147,7 +132,7 @@ class VedtakRepositoryTest {
             opprettetAv = navAnsatt,
             opprettetAvEnhet = navEnhet,
         )
-        TestRepository.insert(deltaker, navAnsatt, navEnhet)
+        TestRepository.insert(deltaker)
 
         TestRepository.insert(fattet)
 

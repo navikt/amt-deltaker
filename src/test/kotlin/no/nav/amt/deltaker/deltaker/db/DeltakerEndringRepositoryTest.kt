@@ -32,10 +32,7 @@ class DeltakerEndringRepositoryTest {
         TestRepository.insert(navEnhet1)
         val navEnhet2 = TestData.lagNavEnhet()
         TestRepository.insert(navEnhet2)
-        val deltaker = TestData.lagDeltaker(
-            sistEndretAv = navAnsatt1.id,
-            sistEndretAvEnhet = navEnhet1.id,
-        )
+        val deltaker = TestData.lagDeltaker()
         val deltakerEndring = TestData.lagDeltakerEndring(
             deltakerId = deltaker.id,
             endretAv = navAnsatt1.id,
@@ -48,7 +45,7 @@ class DeltakerEndringRepositoryTest {
             endretAv = navAnsatt2.id,
             endretAvEnhet = navEnhet2.id,
         )
-        TestRepository.insert(deltaker, navAnsatt1, navEnhet1)
+        TestRepository.insert(deltaker)
 
         repository.upsert(deltakerEndring)
         repository.upsert(deltakerEndring2)

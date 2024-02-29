@@ -79,21 +79,18 @@ class DeltakerRepository {
                 sistEndretAvEnhet = row.uuid("v.sist_endret_av_enhet"),
             )
         },
-        sistEndretAv = row.uuid("d.sist_endret_av"),
-        sistEndretAvEnhet = row.uuid("d.sist_endret_av_enhet"),
         sistEndret = row.localDateTime("d.modified_at"),
-        opprettet = row.localDateTime("d.created_at"),
     )
 
     fun upsert(deltaker: Deltaker) = Database.query { session ->
         val sql = """
             insert into deltaker(
                 id, person_id, deltakerliste_id, startdato, sluttdato, dager_per_uke, 
-                deltakelsesprosent, bakgrunnsinformasjon, innhold, sist_endret_av, sist_endret_av_enhet, modified_at
+                deltakelsesprosent, bakgrunnsinformasjon, innhold
             )
             values (
                 :id, :person_id, :deltakerlisteId, :startdato, :sluttdato, :dagerPerUke, 
-                :deltakelsesprosent, :bakgrunnsinformasjon, :innhold, :sistEndretAv, :sistEndretAvEnhet, :sistEndret
+                :deltakelsesprosent, :bakgrunnsinformasjon, :innhold
             )
             on conflict (id) do update set 
                 person_id          = :person_id,
@@ -103,9 +100,7 @@ class DeltakerRepository {
                 deltakelsesprosent   = :deltakelsesprosent,
                 bakgrunnsinformasjon = :bakgrunnsinformasjon,
                 innhold              = :innhold,
-                sist_endret_av       = :sistEndretAv,
-                sist_endret_av_enhet = :sistEndretAvEnhet,
-                modified_at          = :sistEndret
+                modified_at          = current_timestamp
         """.trimIndent()
 
         val parameters = mapOf(
@@ -118,9 +113,6 @@ class DeltakerRepository {
             "deltakelsesprosent" to deltaker.deltakelsesprosent,
             "bakgrunnsinformasjon" to deltaker.bakgrunnsinformasjon,
             "innhold" to toPGObject(deltaker.innhold),
-            "sistEndretAv" to deltaker.sistEndretAv,
-            "sistEndretAvEnhet" to deltaker.sistEndretAvEnhet,
-            "sistEndret" to deltaker.sistEndret,
         )
 
         session.transaction { tx ->
@@ -249,9 +241,6 @@ class DeltakerRepository {
                    d.deltakelsesprosent as "d.deltakelsesprosent",
                    d.bakgrunnsinformasjon as "d.bakgrunnsinformasjon",
                    d.innhold as "d.innhold",
-                   d.sist_endret_av as "d.sist_endret_av",
-                   d.sist_endret_av_enhet as "d.sist_endret_av_enhet",
-                   d.created_at as "d.created_at",
                    d.modified_at as "d.modified_at",
                    nb.personident as "nb.personident",
                    nb.fornavn as "nb.fornavn",

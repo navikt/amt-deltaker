@@ -54,9 +54,6 @@ class DeltakerService(
                 bakgrunnsinformasjon = oppdatertDeltaker.bakgrunnsinformasjon,
                 innhold = oppdatertDeltaker.innhold,
                 status = oppdatertDeltaker.status,
-                sistEndretAv = hentOgMellomlagreNavAnsatt(ansattmap, oppdatertDeltaker.sistEndretAv).id,
-                sistEndretAvEnhet = hentOgMellomlagreNavEnhet(enhetmap, oppdatertDeltaker.sistEndretAvEnhet).id,
-                sistEndret = oppdatertDeltaker.sistEndret,
             ),
         )
 

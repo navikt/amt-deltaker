@@ -50,9 +50,9 @@ class DeltakerApiTest {
 
     @Test
     fun `post pamelding - har tilgang - returnerer deltaker`() = testApplication {
-        val deltaker = TestData.lagDeltaker().toKladdResponse(TestData.lagNavAnsatt(), TestData.lagNavEnhet())
+        val deltaker = TestData.lagDeltaker().toKladdResponse()
 
-        coEvery { kladdService.opprettKladd(any(), any(), any(), any()) } returns deltaker
+        coEvery { kladdService.opprettKladd(any(), any()) } returns deltaker
 
         setUpTestApplication()
 
@@ -66,8 +66,6 @@ class DeltakerApiTest {
     fun `post pamelding - deltakerliste finnes ikke - reurnerer 404`() = testApplication {
         coEvery {
             kladdService.opprettKladd(
-                any(),
-                any(),
                 any(),
                 any(),
             )
@@ -111,11 +109,11 @@ class DeltakerApiTest {
         }
     }
 
-    private val opprettKladdRequest = OpprettKladdRequest(UUID.randomUUID(), "1234", "Z123456", "0101")
+    private val opprettKladdRequest = OpprettKladdRequest(UUID.randomUUID(), "1234")
     private val oppdaterDeltakerRequest = OppdaterDeltakerRequest(
         UUID.randomUUID(), LocalDate.now().minusDays(2),
         null, 3F, 50F, "Tekst", emptyList(), TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
-        null, "Z123456", "0101", LocalDateTime.now(),
+        null,
         OppdaterDeltakerRequest.DeltakerEndring(
             UUID.randomUUID(),
             UUID.randomUUID(),

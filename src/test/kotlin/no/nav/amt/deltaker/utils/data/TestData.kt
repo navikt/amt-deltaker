@@ -188,10 +188,7 @@ object TestData {
         innhold: List<Innhold> = emptyList(),
         status: DeltakerStatus = lagDeltakerStatus(type = DeltakerStatus.Type.HAR_SLUTTET),
         vedtaksinformasjon: Deltaker.Vedtaksinformasjon? = null,
-        sistEndretAv: UUID = lagNavAnsatt().id,
-        sistEndretAvEnhet: UUID = lagNavEnhet().id,
         sistEndret: LocalDateTime = LocalDateTime.now(),
-        opprettet: LocalDateTime = LocalDateTime.now(),
     ) = Deltaker(
         id,
         navBruker,
@@ -204,10 +201,7 @@ object TestData {
         innhold,
         status,
         vedtaksinformasjon,
-        sistEndretAv,
-        sistEndretAvEnhet,
         sistEndret,
-        opprettet,
     )
 
     fun lagDeltakerStatus(

@@ -119,7 +119,7 @@ fun Application.module() {
 
     val deltakerService = DeltakerService(deltakerRepository, deltakerEndringRepository, vedtakRepository, navAnsattService, navEnhetService, deltakerProducer)
     val kladdService =
-        KladdService(deltakerService, deltakerlisteRepository, navBrukerService, navAnsattService, navEnhetService)
+        KladdService(deltakerService, deltakerlisteRepository, navBrukerService)
 
     val consumers = listOf(
         ArrangorConsumer(arrangorRepository),

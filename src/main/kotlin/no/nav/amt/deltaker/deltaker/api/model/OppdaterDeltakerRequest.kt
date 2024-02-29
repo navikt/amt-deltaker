@@ -19,9 +19,6 @@ data class OppdaterDeltakerRequest(
     val innhold: List<Innhold>,
     val status: DeltakerStatus,
     val vedtaksinformasjon: Vedtaksinformasjon?,
-    val sistEndretAv: String,
-    val sistEndretAvEnhet: String,
-    val sistEndret: LocalDateTime,
     val deltakerEndring: DeltakerEndring?,
 ) {
     data class Vedtaksinformasjon(
