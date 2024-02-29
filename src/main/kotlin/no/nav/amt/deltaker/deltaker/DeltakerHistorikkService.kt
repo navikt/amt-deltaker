@@ -12,7 +12,6 @@ class DeltakerHistorikkService(
     fun getForDeltaker(id: UUID): List<DeltakerHistorikk> {
         val deltakerHistorikk = deltakerEndringRepository.getForDeltaker(id).map { DeltakerHistorikk.Endring(it) }
         val vedtak = vedtakRepository.getForDeltaker(id)
-            .filter { it.fattet != null }
             .map { DeltakerHistorikk.Vedtak(it) }
 
         val historikk = deltakerHistorikk
