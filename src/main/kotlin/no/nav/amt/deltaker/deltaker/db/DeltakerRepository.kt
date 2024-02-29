@@ -70,7 +70,7 @@ class DeltakerRepository {
         vedtaksinformasjon = row.localDateTimeOrNull("v.opprettet")?.let { opprettet ->
             Deltaker.Vedtaksinformasjon(
                 fattet = row.localDateTimeOrNull("v.fattet"),
-                fattetAvNav = row.stringOrNull("v.fattet_av_nav")?.let { g -> objectMapper.readValue(g) },
+                fattetAvNav = row.boolean("v.fattet_av_nav"),
                 opprettet = opprettet,
                 opprettetAv = row.uuid("v.opprettet_av"),
                 opprettetAvEnhet = row.uuid("v.opprettet_av_enhet"),

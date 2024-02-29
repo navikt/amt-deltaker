@@ -88,8 +88,8 @@ class DeltakerServiceTest {
             gyldigTil = null,
             deltakerVedVedtak = deltaker.copy(
                 status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
-            ).toDeltakerVedVedtak(sistEndretAv.navIdent, sistEndretAvEnhet.enhetsnummer),
-            fattetAvNav = null,
+            ).toDeltakerVedVedtak(),
+            fattetAvNav = false,
             opprettet = vedtak.opprettet,
             opprettetAv = sistEndretAv.navIdent,
             opprettetAvEnhet = sistEndretAvEnhet.enhetsnummer,

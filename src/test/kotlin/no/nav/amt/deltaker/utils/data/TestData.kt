@@ -7,7 +7,6 @@ import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.DeltakerEndring
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.deltaker.model.DeltakerVedVedtak
-import no.nav.amt.deltaker.deltaker.model.FattetAvNav
 import no.nav.amt.deltaker.deltaker.model.Innhold
 import no.nav.amt.deltaker.deltaker.model.Vedtak
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
@@ -246,7 +245,7 @@ object TestData {
         deltakerId: UUID = deltakerVedVedtak.id,
         fattet: LocalDateTime? = null,
         gyldigTil: LocalDateTime? = null,
-        fattetAvNav: FattetAvNav? = null,
+        fattetAvNav: Boolean = false,
         opprettet: LocalDateTime = LocalDateTime.now(),
         opprettetAv: NavAnsatt = lagNavAnsatt(),
         opprettetAvEnhet: NavEnhet = lagNavEnhet(),
@@ -258,7 +257,7 @@ object TestData {
         deltakerId,
         fattet,
         gyldigTil,
-        deltakerVedVedtak.toDeltakerVedVedtak(sistEndretAv.navIdent, sistEndretAvEnhet.enhetsnummer),
+        deltakerVedVedtak.toDeltakerVedVedtak(),
         fattetAvNav,
         opprettet,
         opprettetAv.id,
@@ -270,7 +269,7 @@ object TestData {
 
     fun lagVedtaksinformasjon(
         fattet: LocalDateTime? = null,
-        fattetAvNav: FattetAvNav? = null,
+        fattetAvNav: Boolean = false,
         opprettet: LocalDateTime = LocalDateTime.now(),
         opprettetAv: NavAnsatt = lagNavAnsatt(),
         opprettetAvEnhet: NavEnhet = lagNavEnhet(),
@@ -288,11 +287,6 @@ object TestData {
         sistEndretAvEnhet.id,
     )
 
-    fun lagFattetAvNav(
-        fattetAv: UUID = lagNavAnsatt().id,
-        fattetAvEnhet: UUID = lagNavEnhet().id,
-    ) = FattetAvNav(fattetAv, fattetAvEnhet)
-
     private fun finnOppstartstype(type: Tiltakstype.Type) = when (type) {
         Tiltakstype.Type.JOBBK,
         Tiltakstype.Type.GRUPPEAMO,
@@ -303,7 +297,7 @@ object TestData {
     }
 }
 
-fun Deltaker.toDeltakerVedVedtak(sistEndretAv: String, sistEndretAvEnhet: String) = DeltakerVedVedtak(
+fun Deltaker.toDeltakerVedVedtak() = DeltakerVedVedtak(
     id,
     startdato,
     sluttdato,
@@ -312,7 +306,4 @@ fun Deltaker.toDeltakerVedVedtak(sistEndretAv: String, sistEndretAvEnhet: String
     bakgrunnsinformasjon,
     innhold,
     status,
-    sistEndretAv,
-    sistEndretAvEnhet,
-    sistEndret,
 )

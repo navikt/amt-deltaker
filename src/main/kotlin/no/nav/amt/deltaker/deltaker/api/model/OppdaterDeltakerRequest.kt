@@ -29,18 +29,13 @@ data class OppdaterDeltakerRequest(
         val fattet: LocalDateTime?,
         val gyldigTil: LocalDateTime?,
         val deltakerVedVedtak: DeltakerVedVedtak,
-        val fattetAvNav: FattetAvNav?,
+        val fattetAvNav: Boolean,
         val opprettet: LocalDateTime,
         val opprettetAv: String,
         val opprettetAvEnhet: String,
         val sistEndret: LocalDateTime,
         val sistEndretAv: String,
         val sistEndretAvEnhet: String,
-    )
-
-    data class FattetAvNav(
-        val fattetAv: String,
-        val fattetAvEnhet: String,
     )
 
     data class DeltakerEndring(

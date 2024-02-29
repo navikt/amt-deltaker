@@ -90,7 +90,7 @@ class VedtakRepositoryTest {
             opprettetAv = navAnsatt,
             opprettetAvEnhet = navEnhet,
             fattet = LocalDateTime.now(),
-            fattetAvNav = TestData.lagFattetAvNav(fattetAv = navAnsatt.id, fattetAvEnhet = navEnhet.id),
+            fattetAvNav = true,
         )
         TestRepository.insert(deltaker, navAnsatt, navEnhet)
 
@@ -184,7 +184,4 @@ fun sammenlignDeltakereVedVedtak(a: DeltakerVedVedtak, b: DeltakerVedVedtak) {
     a.status.gyldigFra shouldBeCloseTo b.status.gyldigFra
     a.status.gyldigTil shouldBeCloseTo b.status.gyldigTil
     a.status.opprettet shouldBeCloseTo b.status.opprettet
-    a.sistEndretAv shouldBe b.sistEndretAv
-    a.sistEndretAvEnhet shouldBe b.sistEndretAvEnhet
-    a.sistEndret shouldBeCloseTo b.sistEndret
 }

@@ -5,7 +5,7 @@ create table vedtak
     fattet               timestamp with time zone,
     gyldig_til           timestamp with time zone,
     deltaker_ved_vedtak  jsonb                                              not null,
-    fattet_av_nav        jsonb,
+    fattet_av_nav        boolean                                            not null,
     opprettet_av         uuid references nav_ansatt (id)                    not null,
     opprettet_av_enhet   uuid references nav_enhet (id)                     not null,
     sist_endret_av       uuid references nav_ansatt (id)                    not null,

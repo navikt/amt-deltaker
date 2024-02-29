@@ -8,7 +8,6 @@ import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.DeltakerEndring
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
-import no.nav.amt.deltaker.deltaker.model.FattetAvNav
 import no.nav.amt.deltaker.deltaker.model.Vedtak
 import no.nav.amt.deltaker.navansatt.NavAnsatt
 import no.nav.amt.deltaker.navansatt.NavAnsattService
@@ -82,12 +81,7 @@ class DeltakerService(
                     fattet = it.fattet,
                     gyldigTil = it.gyldigTil,
                     deltakerVedVedtak = it.deltakerVedVedtak,
-                    fattetAvNav = it.fattetAvNav?.let { f ->
-                        FattetAvNav(
-                            fattetAv = hentOgMellomlagreNavAnsatt(ansattmap, f.fattetAv).id,
-                            fattetAvEnhet = hentOgMellomlagreNavEnhet(enhetmap, f.fattetAvEnhet).id,
-                        )
-                    },
+                    fattetAvNav = it.fattetAvNav,
                     opprettet = it.opprettet,
                     opprettetAv = hentOgMellomlagreNavAnsatt(ansattmap, it.opprettetAv).id,
                     opprettetAvEnhet = hentOgMellomlagreNavEnhet(enhetmap, it.opprettetAvEnhet).id,
