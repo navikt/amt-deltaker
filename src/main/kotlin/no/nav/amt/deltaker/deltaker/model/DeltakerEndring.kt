@@ -9,16 +9,11 @@ import java.util.UUID
 data class DeltakerEndring(
     val id: UUID,
     val deltakerId: UUID,
-    val endringstype: Endringstype,
     val endring: Endring,
     val endretAv: UUID,
     val endretAvEnhet: UUID,
     val endret: LocalDateTime,
 ) {
-    enum class Endringstype {
-        STARTDATO, SLUTTDATO, DELTAKELSESMENGDE, BAKGRUNNSINFORMASJON, INNHOLD, IKKE_AKTUELL, FORLENGELSE, AVSLUTT_DELTAKELSE, SLUTTARSAK
-    }
-
     data class Aarsak(
         val type: Type,
         val beskrivelse: String? = null,
@@ -39,17 +34,17 @@ data class DeltakerEndring(
         )
     }
 
-    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, property = "endringstype")
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
     @JsonSubTypes(
-        JsonSubTypes.Type(value = Endring.EndreStartdato::class, name = "STARTDATO"),
-        JsonSubTypes.Type(value = Endring.EndreSluttdato::class, name = "SLUTTDATO"),
-        JsonSubTypes.Type(value = Endring.EndreDeltakelsesmengde::class, name = "DELTAKELSESMENGDE"),
-        JsonSubTypes.Type(value = Endring.EndreBakgrunnsinformasjon::class, name = "BAKGRUNNSINFORMASJON"),
-        JsonSubTypes.Type(value = Endring.EndreInnhold::class, name = "INNHOLD"),
-        JsonSubTypes.Type(value = Endring.IkkeAktuell::class, name = "IKKE_AKTUELL"),
-        JsonSubTypes.Type(value = Endring.ForlengDeltakelse::class, name = "FORLENGELSE"),
-        JsonSubTypes.Type(value = Endring.AvsluttDeltakelse::class, name = "AVSLUTT_DELTAKELSE"),
-        JsonSubTypes.Type(value = Endring.EndreSluttarsak::class, name = "SLUTTARSAK"),
+        JsonSubTypes.Type(value = Endring.EndreStartdato::class, name = "EndreStartdato"),
+        JsonSubTypes.Type(value = Endring.EndreSluttdato::class, name = "EndreSluttdato"),
+        JsonSubTypes.Type(value = Endring.EndreDeltakelsesmengde::class, name = "EndreDeltakelsesmengde"),
+        JsonSubTypes.Type(value = Endring.EndreBakgrunnsinformasjon::class, name = "EndreBakgrunnsinformasjon"),
+        JsonSubTypes.Type(value = Endring.EndreInnhold::class, name = "EndreInnhold"),
+        JsonSubTypes.Type(value = Endring.IkkeAktuell::class, name = "IkkeAktuell"),
+        JsonSubTypes.Type(value = Endring.ForlengDeltakelse::class, name = "ForlengDeltakelse"),
+        JsonSubTypes.Type(value = Endring.AvsluttDeltakelse::class, name = "AvsluttDeltakelse"),
+        JsonSubTypes.Type(value = Endring.EndreSluttarsak::class, name = "EndreSluttarsak"),
     )
     sealed class Endring {
         data class EndreBakgrunnsinformasjon(

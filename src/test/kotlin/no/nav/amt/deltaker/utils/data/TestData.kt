@@ -223,12 +223,11 @@ object TestData {
     fun lagDeltakerEndring(
         id: UUID = UUID.randomUUID(),
         deltakerId: UUID = UUID.randomUUID(),
-        endringstype: DeltakerEndring.Endringstype = DeltakerEndring.Endringstype.BAKGRUNNSINFORMASJON,
         endring: DeltakerEndring.Endring = DeltakerEndring.Endring.EndreBakgrunnsinformasjon("Oppdatert bakgrunnsinformasjon"),
         endretAv: UUID = lagNavAnsatt().id,
         endretAvEnhet: UUID = lagNavEnhet().id,
         endret: LocalDateTime = LocalDateTime.now(),
-    ) = DeltakerEndring(id, deltakerId, endringstype, endring, endretAv, endretAvEnhet, endret)
+    ) = DeltakerEndring(id, deltakerId, endring, endretAv, endretAvEnhet, endret)
 
     fun lagVedtak(
         id: UUID = UUID.randomUUID(),

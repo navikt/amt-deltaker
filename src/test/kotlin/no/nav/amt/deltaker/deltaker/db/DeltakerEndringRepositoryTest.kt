@@ -40,7 +40,6 @@ class DeltakerEndringRepositoryTest {
         )
         val deltakerEndring2 = TestData.lagDeltakerEndring(
             deltakerId = deltaker.id,
-            endringstype = DeltakerEndring.Endringstype.INNHOLD,
             endring = DeltakerEndring.Endring.EndreInnhold(listOf(Innhold("tekst", "type", true, null))),
             endretAv = navAnsatt2.id,
             endretAvEnhet = navEnhet2.id,
@@ -66,7 +65,6 @@ class DeltakerEndringRepositoryTest {
     private fun sammenlignDeltakerEndring(a: DeltakerEndring, b: DeltakerEndring) {
         a.id shouldBe b.id
         a.deltakerId shouldBe b.deltakerId
-        a.endringstype shouldBe b.endringstype
         a.endring shouldBe b.endring
         a.endretAv shouldBe b.endretAv
         a.endretAvEnhet shouldBe b.endretAvEnhet

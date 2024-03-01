@@ -2,7 +2,6 @@ create table deltaker_endring
 (
     id              uuid                                               not null primary key,
     deltaker_id     uuid references deltaker,
-    endringstype    varchar                                            not null,
     endring         jsonb                                              not null,
     endret_av       uuid references nav_ansatt (id)                    not null,
     endret_av_enhet uuid references nav_enhet (id)                     not null,

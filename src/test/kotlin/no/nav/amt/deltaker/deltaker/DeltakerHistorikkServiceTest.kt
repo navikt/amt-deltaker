@@ -89,7 +89,6 @@ fun sammenlignHistorikk(a: DeltakerHistorikk, b: DeltakerHistorikk) {
         is DeltakerHistorikk.Endring -> {
             b as DeltakerHistorikk.Endring
             a.endring.id shouldBe b.endring.id
-            a.endring.endringstype shouldBe b.endring.endringstype
             a.endring.endring shouldBe b.endring.endring
             a.endring.endretAv shouldBe b.endring.endretAv
             a.endring.endretAvEnhet shouldBe b.endring.endretAvEnhet
