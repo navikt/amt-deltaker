@@ -16,25 +16,21 @@ import no.nav.amt.deltaker.application.plugins.configureAuthentication
 import no.nav.amt.deltaker.application.plugins.configureRouting
 import no.nav.amt.deltaker.application.plugins.configureSerialization
 import no.nav.amt.deltaker.application.plugins.objectMapper
-import no.nav.amt.deltaker.deltaker.DeltakerService
-import no.nav.amt.deltaker.deltaker.KladdService
-import no.nav.amt.deltaker.deltaker.api.model.OppdaterDeltakerRequest
+import no.nav.amt.deltaker.deltaker.PameldingService
 import no.nav.amt.deltaker.deltaker.api.model.OpprettKladdRequest
+import no.nav.amt.deltaker.deltaker.api.model.UtkastRequest
 import no.nav.amt.deltaker.deltaker.api.model.toKladdResponse
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
-import no.nav.amt.deltaker.deltaker.model.DeltakerEndring
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
+import no.nav.amt.deltaker.deltaker.model.Innhold
 import no.nav.amt.deltaker.utils.configureEnvForAuthentication
 import no.nav.amt.deltaker.utils.data.TestData
 import org.junit.Before
 import org.junit.Test
-import java.time.LocalDate
-import java.time.LocalDateTime
 import java.util.UUID
 
-class DeltakerApiTest {
-    private val kladdService = mockk<KladdService>()
-    private val deltakerService = mockk<DeltakerService>()
+class PameldingApiTest {
+    private val pameldingService = mockk<PameldingService>()
 
     @Before
     fun setup() {
@@ -45,14 +41,14 @@ class DeltakerApiTest {
     fun `skal teste autentisering - mangler token - returnerer 401`() = testApplication {
         setUpTestApplication()
         client.post("/pamelding") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
-        client.post("/deltaker") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
+        client.post("/pamelding/${UUID.randomUUID()}") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
     }
 
     @Test
     fun `post pamelding - har tilgang - returnerer deltaker`() = testApplication {
         val deltaker = TestData.lagDeltaker().toKladdResponse()
 
-        coEvery { kladdService.opprettKladd(any(), any()) } returns deltaker
+        coEvery { pameldingService.opprettKladd(any(), any()) } returns deltaker
 
         setUpTestApplication()
 
@@ -65,7 +61,7 @@ class DeltakerApiTest {
     @Test
     fun `post pamelding - deltakerliste finnes ikke - reurnerer 404`() = testApplication {
         coEvery {
-            kladdService.opprettKladd(
+            pameldingService.opprettKladd(
                 any(),
                 any(),
             )
@@ -77,23 +73,25 @@ class DeltakerApiTest {
     }
 
     @Test
-    fun `post deltaker - har tilgang - returnerer 200`() = testApplication {
-        coEvery { deltakerService.oppdaterDeltaker(any()) } just Runs
+    fun `post pamelding utkast - har tilgang - returnerer 200`() = testApplication {
+        val deltakerId = UUID.randomUUID()
+        coEvery { pameldingService.upsertUtkast(deltakerId, any()) } just Runs
 
         setUpTestApplication()
 
-        client.post("/deltaker") { postRequest(oppdaterDeltakerRequest) }.apply {
+        client.post("/pamelding/$deltakerId") { postRequest(utkastRequest) }.apply {
             status shouldBe HttpStatusCode.OK
         }
     }
 
     @Test
-    fun `post deltaker - deltaker finnes ikke - returnerer 404`() = testApplication {
-        coEvery { deltakerService.oppdaterDeltaker(any()) } throws NoSuchElementException("Fant ikke deltaker")
+    fun `post pamelding utkast - deltaker finnes ikke - returnerer 404`() = testApplication {
+        val deltakerId = UUID.randomUUID()
+        coEvery { pameldingService.upsertUtkast(deltakerId, any()) } throws NoSuchElementException("Fant ikke deltaker")
 
         setUpTestApplication()
 
-        client.post("/deltaker") { postRequest(oppdaterDeltakerRequest) }.apply {
+        client.post("/pamelding/$deltakerId") { postRequest(utkastRequest) }.apply {
             status shouldBe HttpStatusCode.NotFound
         }
     }
@@ -103,27 +101,20 @@ class DeltakerApiTest {
             configureSerialization()
             configureAuthentication(Environment())
             configureRouting(
-                kladdService,
-                deltakerService,
+                pameldingService,
             )
         }
     }
 
     private val opprettKladdRequest = OpprettKladdRequest(UUID.randomUUID(), "1234")
-    private val oppdaterDeltakerRequest = OppdaterDeltakerRequest(
-        UUID.randomUUID(), LocalDate.now().minusDays(2),
-        null, 3F, 50F, "Tekst", emptyList(), TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
-        null,
-        OppdaterDeltakerRequest.DeltakerEndring(
-            UUID.randomUUID(),
-            UUID.randomUUID(),
-            DeltakerEndring.Endringstype.STARTDATO,
-            DeltakerEndring.Endring.EndreStartdato(
-                LocalDate.now(),
-            ),
-            "Z123456",
-            "0101",
-            LocalDateTime.now(),
-        ),
+    private val utkastRequest = UtkastRequest(
+        listOf(Innhold("Tekst", "kode", true, null)),
+        "bakgrunn og sånn",
+        50F,
+        3F,
+        TestData.lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+        "Z123456",
+        "0101",
+        false,
     )
 }

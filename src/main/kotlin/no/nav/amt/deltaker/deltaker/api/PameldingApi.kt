@@ -7,20 +7,19 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.post
-import no.nav.amt.deltaker.deltaker.DeltakerService
-import no.nav.amt.deltaker.deltaker.KladdService
-import no.nav.amt.deltaker.deltaker.api.model.OppdaterDeltakerRequest
+import no.nav.amt.deltaker.deltaker.PameldingService
 import no.nav.amt.deltaker.deltaker.api.model.OpprettKladdRequest
+import no.nav.amt.deltaker.deltaker.api.model.UtkastRequest
+import java.util.UUID
 
-fun Routing.registerDeltakerApi(
-    kladdService: KladdService,
-    deltakerService: DeltakerService,
+fun Routing.registerPameldingApi(
+    pameldingService: PameldingService,
 ) {
     authenticate("SYSTEM") {
         post("/pamelding") {
             val request = call.receive<OpprettKladdRequest>()
 
-            val deltaker = kladdService.opprettKladd(
+            val deltaker = pameldingService.opprettKladd(
                 deltakerlisteId = request.deltakerlisteId,
                 personident = request.personident,
             )
@@ -28,10 +27,11 @@ fun Routing.registerDeltakerApi(
             call.respond(deltaker)
         }
 
-        post("/deltaker") {
-            val request = call.receive<OppdaterDeltakerRequest>()
+        post("/pamelding/{deltakerId}") {
+            val request = call.receive<UtkastRequest>()
+            val deltakerId = UUID.fromString(call.parameters["deltakerId"])
 
-            deltakerService.oppdaterDeltaker(request)
+            pameldingService.upsertUtkast(deltakerId, request)
             call.respond(HttpStatusCode.OK)
         }
     }

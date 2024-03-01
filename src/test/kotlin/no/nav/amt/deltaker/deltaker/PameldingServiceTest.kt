@@ -4,11 +4,12 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
-import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
+import no.nav.amt.deltaker.deltaker.api.model.UtkastRequest
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
+import no.nav.amt.deltaker.deltaker.model.Innhold
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.navansatt.NavAnsatt
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
@@ -32,7 +33,7 @@ import java.time.LocalDate
 import java.util.UUID
 import kotlin.test.assertFailsWith
 
-class KladdServiceTest {
+class PameldingServiceTest {
 
     companion object {
 
@@ -41,17 +42,18 @@ class KladdServiceTest {
 
         private val deltakerService = DeltakerService(
             deltakerRepository = DeltakerRepository(),
-            deltakerEndringRepository = DeltakerEndringRepository(),
-            vedtakRepository = VedtakRepository(),
-            navAnsattService = navAnsattService,
-            navEnhetService = navEnhetService,
             deltakerProducer = mockk<DeltakerProducer>(relaxed = true),
         )
 
-        private var kladdService = KladdService(
+        private val vedtakRepository = VedtakRepository()
+
+        private var pameldingService = PameldingService(
             deltakerService = deltakerService,
             deltakerlisteRepository = DeltakerlisteRepository(),
             navBrukerService = NavBrukerService(NavBrukerRepository(), mockAmtPersonServiceClientNavBruker(), navEnhetService, navAnsattService),
+            navAnsattService = navAnsattService,
+            navEnhetService = navEnhetService,
+            vedtakRepository = vedtakRepository,
         )
 
         @JvmStatic
@@ -61,8 +63,8 @@ class KladdServiceTest {
         }
     }
 
-    private fun mockKladdService(navBruker: NavBruker, navAnsatt: NavAnsatt, navEnhet: NavEnhet) {
-        kladdService = KladdService(
+    private fun mockPameldingService(navBruker: NavBruker, navAnsatt: NavAnsatt, navEnhet: NavEnhet) {
+        pameldingService = PameldingService(
             deltakerService,
             deltakerlisteRepository = DeltakerlisteRepository(),
             navBrukerService = NavBrukerService(
@@ -71,6 +73,9 @@ class KladdServiceTest {
                 NavEnhetService(NavEnhetRepository(), mockAmtPersonServiceClientNavEnhet(navEnhet)),
                 NavAnsattService(NavAnsattRepository(), mockAmtPersonServiceClientNavAnsatt(navAnsatt)),
             ),
+            navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonServiceClientNavAnsatt(navAnsatt)),
+            navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonServiceClientNavEnhet(navEnhet)),
+            vedtakRepository = vedtakRepository,
         )
     }
 
@@ -87,10 +92,10 @@ class KladdServiceTest {
         val opprettetAvEnhet = TestData.lagNavEnhet()
         val navBruker = TestData.lagNavBruker(navVeilederId = opprettetAv.id, navEnhetId = opprettetAvEnhet.id)
         TestRepository.insert(deltakerliste)
-        mockKladdService(navBruker, opprettetAv, opprettetAvEnhet)
+        mockPameldingService(navBruker, opprettetAv, opprettetAvEnhet)
 
         runBlocking {
-            val deltaker = kladdService.opprettKladd(
+            val deltaker = pameldingService.opprettKladd(
                 deltakerlisteId = deltakerliste.id,
                 personident = navBruker.personident,
             )
@@ -117,10 +122,10 @@ class KladdServiceTest {
         val navBruker = TestData.lagNavBruker()
         val opprettetAv = TestData.lagNavAnsatt()
         val opprettetAvEnhet = TestData.lagNavEnhet()
-        mockKladdService(navBruker, opprettetAv, opprettetAvEnhet)
+        mockPameldingService(navBruker, opprettetAv, opprettetAvEnhet)
         runBlocking {
             assertFailsWith<NoSuchElementException> {
-                kladdService.opprettKladd(UUID.randomUUID(), personident)
+                pameldingService.opprettKladd(UUID.randomUUID(), personident)
             }
         }
     }
@@ -135,7 +140,7 @@ class KladdServiceTest {
 
         runBlocking {
             val eksisterendeDeltaker =
-                kladdService.opprettKladd(
+                pameldingService.opprettKladd(
                     deltaker.deltakerliste.id,
                     deltaker.navBruker.personident,
                 )
@@ -161,13 +166,51 @@ class KladdServiceTest {
 
         runBlocking {
             val nyDeltaker =
-                kladdService.opprettKladd(
+                pameldingService.opprettKladd(
                     deltaker.deltakerliste.id,
                     deltaker.navBruker.personident,
                 )
 
             nyDeltaker.id shouldNotBe deltaker.id
             nyDeltaker.status.type shouldBe DeltakerStatus.Type.KLADD
+        }
+    }
+
+    @Test
+    fun `upsertUtkast - deltaker finnes - oppdaterer deltaker og oppretter vedtak`() {
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.KLADD),
+            vedtaksinformasjon = null,
+        )
+        TestRepository.insert(deltaker)
+        val sistEndretAv = TestData.lagNavAnsatt()
+        val sistEndretAvEnhet = TestData.lagNavEnhet()
+        TestRepository.insert(sistEndretAv)
+        TestRepository.insert(sistEndretAvEnhet)
+
+        val utkastRequest = UtkastRequest(
+            innhold = listOf(Innhold("Tekst", "kode", true, null)),
+            bakgrunnsinformasjon = "Bakgrunn",
+            deltakelsesprosent = 100F,
+            dagerPerUke = null,
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+            endretAv = sistEndretAv.navIdent,
+            endretAvEnhet = sistEndretAvEnhet.enhetsnummer,
+            godkjentAvNav = false,
+        )
+
+        runBlocking {
+            pameldingService.upsertUtkast(deltaker.id, utkastRequest)
+
+            val deltakerFraDb = deltakerService.get(deltaker.id).getOrThrow()
+            deltakerFraDb.status.type shouldBe DeltakerStatus.Type.UTKAST_TIL_PAMELDING
+            deltakerFraDb.vedtaksinformasjon shouldNotBe null
+
+            val vedtak = vedtakRepository.getForDeltaker(deltaker.id).first()
+            vedtak.fattet shouldBe null
+            vedtak.fattetAvNav shouldBe false
+            vedtak.sistEndretAv shouldBe sistEndretAv.id
+            vedtak.sistEndretAvEnhet shouldBe sistEndretAvEnhet.id
         }
     }
 }

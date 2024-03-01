@@ -20,6 +20,7 @@ data class DeltakerV2Dto(
     val oppstartsdato: LocalDate?,
     val sluttdato: LocalDate?,
     val innsoktDato: LocalDate,
+    val forsteVedtakFattet: LocalDate?,
     val bestillingTekst: String?,
     val navKontor: String?,
     val navVeileder: DeltakerNavVeilederDto?,

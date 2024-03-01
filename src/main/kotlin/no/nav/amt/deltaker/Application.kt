@@ -23,7 +23,7 @@ import no.nav.amt.deltaker.auth.AzureAdTokenClient
 import no.nav.amt.deltaker.db.Database
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerService
-import no.nav.amt.deltaker.deltaker.KladdService
+import no.nav.amt.deltaker.deltaker.PameldingService
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
@@ -117,9 +117,9 @@ fun Application.module() {
 
     val deltakerProducer = DeltakerProducer(deltakerV2MapperService = deltakerV2MapperService)
 
-    val deltakerService = DeltakerService(deltakerRepository, deltakerEndringRepository, vedtakRepository, navAnsattService, navEnhetService, deltakerProducer)
-    val kladdService =
-        KladdService(deltakerService, deltakerlisteRepository, navBrukerService)
+    val deltakerService = DeltakerService(deltakerRepository, deltakerProducer)
+    val pameldingService =
+        PameldingService(deltakerService, deltakerlisteRepository, navBrukerService, navAnsattService, navEnhetService, vedtakRepository)
 
     val consumers = listOf(
         ArrangorConsumer(arrangorRepository),
@@ -131,7 +131,7 @@ fun Application.module() {
     consumers.forEach { it.run() }
 
     configureAuthentication(environment)
-    configureRouting(kladdService, deltakerService)
+    configureRouting(pameldingService)
     configureMonitoring()
 
     attributes.put(isReadyKey, true)

@@ -48,6 +48,7 @@ class DeltakerV2MapperService(
             oppstartsdato = deltaker.startdato,
             sluttdato = deltaker.sluttdato,
             innsoktDato = getInnsoktDato(deltakerhistorikk),
+            forsteVedtakFattet = getForsteVedtakFattet(deltakerhistorikk),
             bestillingTekst = deltaker.bakgrunnsinformasjon,
             navKontor = deltaker.navBruker.navEnhetId?.let { navEnhetService.hentEllerOpprettNavEnhet(it) }?.enhetsnummer,
             navVeileder = deltaker.navBruker.navVeilederId?.let { navAnsattService.hentEllerOpprettNavAnsatt(it) }
@@ -64,12 +65,16 @@ class DeltakerV2MapperService(
 
     private fun getInnsoktDato(deltakerhistorikk: List<DeltakerHistorikk>): LocalDate {
         val vedtak = deltakerhistorikk.filterIsInstance<DeltakerHistorikk.Vedtak>().map { it.vedtak }
-        val opprinneligVedtak = vedtak.minByOrNull { it.opprettet }
+        return vedtak.minByOrNull { it.opprettet }?.opprettet?.toLocalDate()
+            ?: throw IllegalStateException("Skal ikke produsere deltaker som mangler vedtak til topic")
+    }
+
+    private fun getForsteVedtakFattet(deltakerhistorikk: List<DeltakerHistorikk>): LocalDate? {
+        val vedtak = deltakerhistorikk.filterIsInstance<DeltakerHistorikk.Vedtak>().map { it.vedtak }
+        val forsteVedtak = vedtak.minByOrNull { it.opprettet }
             ?: throw IllegalStateException("Skal ikke produsere deltaker som mangler vedtak til topic")
 
-        opprinneligVedtak.fattet?.let { return it.toLocalDate() }
-
-        return opprinneligVedtak.opprettet.toLocalDate()
+        return forsteVedtak.fattet?.toLocalDate()
     }
 
     private fun getSisteEndring(deltakerhistorikk: List<DeltakerHistorikk>): DeltakerHistorikk {

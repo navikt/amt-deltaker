@@ -6,7 +6,6 @@ import no.nav.amt.deltaker.arrangor.Arrangor
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.DeltakerEndring
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
-import no.nav.amt.deltaker.deltaker.model.DeltakerVedVedtak
 import no.nav.amt.deltaker.deltaker.model.Innhold
 import no.nav.amt.deltaker.deltaker.model.Vedtak
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
@@ -261,26 +260,6 @@ object TestData {
         sistEndretAvEnhet.id,
     )
 
-    fun lagVedtaksinformasjon(
-        fattet: LocalDateTime? = null,
-        fattetAvNav: Boolean = false,
-        opprettet: LocalDateTime = LocalDateTime.now(),
-        opprettetAv: NavAnsatt = lagNavAnsatt(),
-        opprettetAvEnhet: NavEnhet = lagNavEnhet(),
-        sistEndret: LocalDateTime = opprettet,
-        sistEndretAv: NavAnsatt = opprettetAv,
-        sistEndretAvEnhet: NavEnhet = opprettetAvEnhet,
-    ) = Deltaker.Vedtaksinformasjon(
-        fattet,
-        fattetAvNav,
-        opprettet,
-        opprettetAv.id,
-        opprettetAvEnhet.id,
-        sistEndret,
-        sistEndretAv.id,
-        sistEndretAvEnhet.id,
-    )
-
     private fun finnOppstartstype(type: Tiltakstype.Type) = when (type) {
         Tiltakstype.Type.JOBBK,
         Tiltakstype.Type.GRUPPEAMO,
@@ -290,14 +269,3 @@ object TestData {
         else -> Deltakerliste.Oppstartstype.LOPENDE
     }
 }
-
-fun Deltaker.toDeltakerVedVedtak() = DeltakerVedVedtak(
-    id,
-    startdato,
-    sluttdato,
-    dagerPerUke,
-    deltakelsesprosent,
-    bakgrunnsinformasjon,
-    innhold,
-    status,
-)
