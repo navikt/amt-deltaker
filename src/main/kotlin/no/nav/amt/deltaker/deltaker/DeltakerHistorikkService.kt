@@ -19,7 +19,7 @@ class DeltakerHistorikkService(
             .sortedByDescending {
                 when (it) {
                     is DeltakerHistorikk.Endring -> it.endring.endret
-                    is DeltakerHistorikk.Vedtak -> it.vedtak.fattet
+                    is DeltakerHistorikk.Vedtak -> it.vedtak.sistEndret
                 }
             }
 

@@ -2,7 +2,6 @@ package no.nav.amt.deltaker.deltaker.kafka
 
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.model.Deltaker
-import no.nav.amt.deltaker.deltaker.model.DeltakerEndring
 import no.nav.amt.deltaker.deltaker.model.DeltakerHistorikk
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
@@ -65,23 +64,17 @@ class DeltakerV2MapperService(
 
     private fun getInnsoktDato(deltakerhistorikk: List<DeltakerHistorikk>): LocalDate {
         val vedtak = deltakerhistorikk.filterIsInstance<DeltakerHistorikk.Vedtak>().map { it.vedtak }
-        return vedtak.minByOrNull { it.opprettet }?.opprettet?.toLocalDate()
+        val opprinneligVedtak = vedtak.minByOrNull { it.opprettet }
             ?: throw IllegalStateException("Skal ikke produsere deltaker som mangler vedtak til topic")
+
+        opprinneligVedtak.fattet?.let { return it.toLocalDate() }
+
+        return opprinneligVedtak.opprettet.toLocalDate()
     }
 
     private fun getSisteEndring(deltakerhistorikk: List<DeltakerHistorikk>): DeltakerHistorikk {
-        val vedtak = deltakerhistorikk.filterIsInstance<DeltakerHistorikk.Vedtak>().map { it.vedtak }
-        val nyesteVedtak = vedtak.minByOrNull { it.sistEndret }
-            ?: throw IllegalStateException("Skal ikke produsere deltaker som mangler vedtak til topic")
-
-        val endringer = deltakerhistorikk.filterIsInstance<DeltakerEndring>()
-        val nyesteEndring = endringer.minByOrNull { it.endret }
-
-        return if (nyesteEndring == null || nyesteVedtak.sistEndret.isAfter(nyesteEndring.endret)) {
-            DeltakerHistorikk.Vedtak(nyesteVedtak)
-        } else {
-            DeltakerHistorikk.Endring(nyesteEndring)
-        }
+        return deltakerhistorikk.lastOrNull()
+            ?: throw IllegalStateException("Deltaker må ha minst et vedtak for å produseres til topic")
     }
 
     private fun getSistEndretAv(deltakerhistorikk: DeltakerHistorikk): UUID {

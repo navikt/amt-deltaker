@@ -39,6 +39,14 @@ class DeltakerHistorikkServiceTest {
             fattet = LocalDateTime.now().minusMonths(1),
             opprettetAv = navAnsatt,
             opprettetAvEnhet = navEnhet,
+            sistEndret = LocalDateTime.now().minusMonths(1),
+        )
+        val ikkeFattetVedtak = TestData.lagVedtak(
+            deltakerId = deltaker.id,
+            fattet = null,
+            opprettetAv = navAnsatt,
+            opprettetAvEnhet = navEnhet,
+            sistEndret = LocalDateTime.now().minusDays(4),
         )
         val gammelEndring = TestData.lagDeltakerEndring(
             deltakerId = deltaker.id,
@@ -54,15 +62,17 @@ class DeltakerHistorikkServiceTest {
         )
         TestRepository.insert(deltaker)
         TestRepository.insert(vedtak)
+        TestRepository.insert(ikkeFattetVedtak)
         TestRepository.insert(gammelEndring)
         TestRepository.insert(nyEndring)
 
         val historikk = service.getForDeltaker(deltaker.id)
 
-        historikk.size shouldBe 3
+        historikk.size shouldBe 4
         sammenlignHistorikk(historikk[0], DeltakerHistorikk.Endring(nyEndring))
-        sammenlignHistorikk(historikk[1], DeltakerHistorikk.Endring(gammelEndring))
-        sammenlignHistorikk(historikk[2], DeltakerHistorikk.Vedtak(vedtak))
+        sammenlignHistorikk(historikk[1], DeltakerHistorikk.Vedtak(ikkeFattetVedtak))
+        sammenlignHistorikk(historikk[2], DeltakerHistorikk.Endring(gammelEndring))
+        sammenlignHistorikk(historikk[3], DeltakerHistorikk.Vedtak(vedtak))
     }
 
     @Test
