@@ -101,11 +101,7 @@ class PameldingServiceTest {
             )
 
             deltaker.id shouldBe deltakerService.getDeltakelser(navBruker.personident, deltakerliste.id).first().id
-            deltaker.deltakerliste.id shouldBe deltakerliste.id
-            deltaker.deltakerliste.navn shouldBe deltakerliste.navn
-            deltaker.deltakerliste.tiltakstype.type shouldBe deltakerliste.tiltakstype.type
-            deltaker.deltakerliste.arrangor.navn shouldBe arrangor.navn
-            deltaker.deltakerliste.getOppstartstype() shouldBe deltakerliste.getOppstartstype()
+            deltaker.deltakerlisteId shouldBe deltakerliste.id
             deltaker.status.type shouldBe DeltakerStatus.Type.KLADD
             deltaker.startdato shouldBe null
             deltaker.sluttdato shouldBe null

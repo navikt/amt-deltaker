@@ -3,7 +3,6 @@ package no.nav.amt.deltaker.deltaker.api.model
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.deltaker.model.Innhold
-import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.navbruker.model.NavBruker
 import java.time.LocalDate
 import java.util.UUID
@@ -11,7 +10,7 @@ import java.util.UUID
 data class KladdResponse(
     val id: UUID,
     val navBruker: NavBruker,
-    val deltakerliste: Deltakerliste,
+    val deltakerlisteId: UUID,
     val startdato: LocalDate?,
     val sluttdato: LocalDate?,
     val dagerPerUke: Float?,
@@ -25,7 +24,7 @@ fun Deltaker.toKladdResponse(): KladdResponse =
     KladdResponse(
         id = id,
         navBruker = navBruker,
-        deltakerliste = deltakerliste,
+        deltakerlisteId = deltakerliste.id,
         startdato = startdato,
         sluttdato = sluttdato,
         dagerPerUke = dagerPerUke,
