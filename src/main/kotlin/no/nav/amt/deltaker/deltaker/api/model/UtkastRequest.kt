@@ -1,6 +1,5 @@
 package no.nav.amt.deltaker.deltaker.api.model
 
-import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.deltaker.model.Innhold
 
 data class UtkastRequest(
@@ -8,7 +7,6 @@ data class UtkastRequest(
     val bakgrunnsinformasjon: String?,
     val deltakelsesprosent: Float?,
     val dagerPerUke: Float?,
-    val status: DeltakerStatus,
     val endretAv: String,
     val endretAvEnhet: String,
     val godkjentAvNav: Boolean,

@@ -193,7 +193,6 @@ class PameldingServiceTest {
             bakgrunnsinformasjon = "Bakgrunn",
             deltakelsesprosent = 100F,
             dagerPerUke = null,
-            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
             endretAv = sistEndretAv.navIdent,
             endretAvEnhet = sistEndretAvEnhet.enhetsnummer,
             godkjentAvNav = false,

@@ -58,12 +58,22 @@ class PameldingService(
     suspend fun upsertUtkast(deltakerId: UUID, utkast: UtkastRequest) {
         val opprinneligDeltaker = deltakerService.get(deltakerId).getOrThrow()
 
+        val status = when (opprinneligDeltaker.status.type) {
+            DeltakerStatus.Type.KLADD -> nyDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING)
+            DeltakerStatus.Type.UTKAST_TIL_PAMELDING -> opprinneligDeltaker.status
+            else -> throw IllegalArgumentException(
+                "Kan ikke upserte ukast for deltaker $deltakerId " +
+                    "med status ${opprinneligDeltaker.status.type}," +
+                    "status må være ${DeltakerStatus.Type.KLADD} eller ${DeltakerStatus.Type.UTKAST_TIL_PAMELDING}.",
+            )
+        }
+
         val oppdatertDeltaker = opprinneligDeltaker.copy(
             innhold = utkast.innhold,
             bakgrunnsinformasjon = utkast.bakgrunnsinformasjon,
             deltakelsesprosent = utkast.deltakelsesprosent,
             dagerPerUke = utkast.dagerPerUke,
-            status = utkast.status,
+            status = status,
             sistEndret = LocalDateTime.now(),
         )
 
