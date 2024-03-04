@@ -4,6 +4,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
+import no.nav.amt.deltaker.deltaker.api.model.AvbrytUtkastRequest
 import no.nav.amt.deltaker.deltaker.api.model.UtkastRequest
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
@@ -245,6 +246,47 @@ class PameldingServiceTest {
             vedtak.fattetAvNav shouldBe true
             vedtak.sistEndretAv shouldBe sistEndretAv.id
             vedtak.sistEndretAvEnhet shouldBe sistEndretAvEnhet.id
+        }
+    }
+
+    @Test
+    fun `avbrytUtkast - utkast finnes - oppdaterer deltaker og vedtak`() {
+        val sistEndretAv = TestData.lagNavAnsatt()
+        val sistEndretAvEnhet = TestData.lagNavEnhet()
+        TestRepository.insert(sistEndretAv)
+        TestRepository.insert(sistEndretAvEnhet)
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+            startdato = null,
+            sluttdato = null,
+        )
+        val vedtak = TestData.lagVedtak(
+            deltakerVedVedtak = deltaker,
+            opprettetAv = sistEndretAv,
+            opprettetAvEnhet = sistEndretAvEnhet,
+            fattet = null,
+            gyldigTil = null,
+        )
+        TestRepository.insert(deltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksinformasjon()), vedtak)
+
+        val avbrytUtkastRequest = AvbrytUtkastRequest(
+            avbruttAv = sistEndretAv.navIdent,
+            avbruttAvEnhet = sistEndretAvEnhet.enhetsnummer,
+        )
+
+        runBlocking {
+            pameldingService.avbrytUtkast(deltaker.id, avbrytUtkastRequest)
+
+            val deltakerFraDb = deltakerService.get(deltaker.id).getOrThrow()
+            deltakerFraDb.status.type shouldBe DeltakerStatus.Type.AVBRUTT_UTKAST
+            deltakerFraDb.vedtaksinformasjon shouldBe null
+
+            val vedtakFraDb = vedtakRepository.getForDeltaker(deltaker.id).first()
+            vedtakFraDb.fattet shouldBe null
+            vedtakFraDb.fattetAvNav shouldBe false
+            vedtakFraDb.gyldigTil shouldNotBe null
+            vedtakFraDb.sistEndretAv shouldBe sistEndretAv.id
+            vedtakFraDb.sistEndretAvEnhet shouldBe sistEndretAvEnhet.id
         }
     }
 }

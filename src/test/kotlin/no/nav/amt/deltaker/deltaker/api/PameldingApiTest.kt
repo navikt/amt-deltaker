@@ -17,6 +17,7 @@ import no.nav.amt.deltaker.application.plugins.configureRouting
 import no.nav.amt.deltaker.application.plugins.configureSerialization
 import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.deltaker.PameldingService
+import no.nav.amt.deltaker.deltaker.api.model.AvbrytUtkastRequest
 import no.nav.amt.deltaker.deltaker.api.model.OpprettKladdRequest
 import no.nav.amt.deltaker.deltaker.api.model.UtkastRequest
 import no.nav.amt.deltaker.deltaker.api.model.toKladdResponse
@@ -41,6 +42,7 @@ class PameldingApiTest {
         setUpTestApplication()
         client.post("/pamelding") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
         client.post("/pamelding/${UUID.randomUUID()}") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
+        client.post("/pamelding/${UUID.randomUUID()}/avbryt") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
     }
 
     @Test
@@ -95,6 +97,18 @@ class PameldingApiTest {
         }
     }
 
+    @Test
+    fun `post avbryt utkast - har tilgang - returnerer 200`() = testApplication {
+        val deltakerId = UUID.randomUUID()
+        coEvery { pameldingService.avbrytUtkast(deltakerId, any()) } just Runs
+
+        setUpTestApplication()
+
+        client.post("/pamelding/$deltakerId/avbryt") { postRequest(avbrytUtkastRequest) }.apply {
+            status shouldBe HttpStatusCode.OK
+        }
+    }
+
     private fun ApplicationTestBuilder.setUpTestApplication() {
         application {
             configureSerialization()
@@ -115,4 +129,5 @@ class PameldingApiTest {
         "0101",
         false,
     )
+    private val avbrytUtkastRequest = AvbrytUtkastRequest("Z123456", "0101")
 }

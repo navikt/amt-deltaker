@@ -8,6 +8,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.post
 import no.nav.amt.deltaker.deltaker.PameldingService
+import no.nav.amt.deltaker.deltaker.api.model.AvbrytUtkastRequest
 import no.nav.amt.deltaker.deltaker.api.model.OpprettKladdRequest
 import no.nav.amt.deltaker.deltaker.api.model.UtkastRequest
 import java.util.UUID
@@ -32,6 +33,14 @@ fun Routing.registerPameldingApi(
             val deltakerId = UUID.fromString(call.parameters["deltakerId"])
 
             pameldingService.upsertUtkast(deltakerId, request)
+            call.respond(HttpStatusCode.OK)
+        }
+
+        post("/pamelding/{deltakerId}/avbryt") {
+            val request = call.receive<AvbrytUtkastRequest>()
+            val deltakerId = UUID.fromString(call.parameters["deltakerId"])
+
+            pameldingService.avbrytUtkast(deltakerId, request)
             call.respond(HttpStatusCode.OK)
         }
     }
