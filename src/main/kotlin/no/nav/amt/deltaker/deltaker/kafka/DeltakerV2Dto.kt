@@ -26,7 +26,7 @@ data class DeltakerV2Dto(
     val navVeileder: DeltakerNavVeilederDto?,
     val deltarPaKurs: Boolean,
     val kilde: Kilde?,
-    val innhold: List<Innhold>?,
+    val innhold: DeltakelsesInnhold?,
     val historikk: List<DeltakerHistorikk>?,
     val sistEndretAv: UUID?,
     val sistEndretAvEnhet: UUID?,
@@ -54,6 +54,7 @@ data class DeltakerV2Dto(
     )
 
     data class DeltakerStatusDto(
+        val id: UUID?,
         val type: DeltakerStatus.Type,
         val aarsak: DeltakerStatus.Aarsak?,
         val gyldigFra: LocalDateTime,
@@ -70,6 +71,11 @@ data class DeltakerV2Dto(
         val navn: String,
         val epost: String?,
         val telefonnummer: String?,
+    )
+
+    data class DeltakelsesInnhold(
+        val ledetekst: String,
+        val innhold: List<Innhold>,
     )
 }
 
