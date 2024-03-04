@@ -16,6 +16,7 @@ import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
 import no.nav.amt.deltaker.navbruker.NavBrukerService
 import no.nav.amt.deltaker.navbruker.model.NavBruker
 import org.slf4j.LoggerFactory
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -58,15 +59,13 @@ class PameldingService(
     suspend fun upsertUtkast(deltakerId: UUID, utkast: UtkastRequest) {
         val opprinneligDeltaker = deltakerService.get(deltakerId).getOrThrow()
 
-        val status = when (opprinneligDeltaker.status.type) {
-            DeltakerStatus.Type.KLADD -> nyDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING)
-            DeltakerStatus.Type.UTKAST_TIL_PAMELDING -> opprinneligDeltaker.status
-            else -> throw IllegalArgumentException(
-                "Kan ikke upserte ukast for deltaker $deltakerId " +
-                    "med status ${opprinneligDeltaker.status.type}," +
-                    "status må være ${DeltakerStatus.Type.KLADD} eller ${DeltakerStatus.Type.UTKAST_TIL_PAMELDING}.",
-            )
+        require(kanUpserteUtkast(opprinneligDeltaker.status)) {
+            "Kan ikke upserte ukast for deltaker $deltakerId " +
+                "med status ${opprinneligDeltaker.status.type}," +
+                "status må være ${DeltakerStatus.Type.KLADD} eller ${DeltakerStatus.Type.UTKAST_TIL_PAMELDING}."
         }
+
+        val status = getOppdatertStatus(opprinneligDeltaker, utkast.godkjentAvNav)
 
         val oppdatertDeltaker = opprinneligDeltaker.copy(
             innhold = utkast.innhold,
@@ -88,12 +87,43 @@ class PameldingService(
             endretAv = endretAv,
             endretAvNavEnhet = endretAvNavEnhet,
             deltaker = oppdatertDeltaker,
+            fattet = if (utkast.godkjentAvNav) {
+                LocalDateTime.now()
+            } else {
+                null
+            },
         )
         vedtakRepository.upsert(oppdatertVedtak)
 
         deltakerService.upsertDeltaker(oppdatertDeltaker.copy(vedtaksinformasjon = oppdatertVedtak.tilVedtaksinformasjon()))
 
-        log.info("Opprettet utkast for deltaker med id $deltakerId")
+        log.info("Upsertet utkast for deltaker med id $deltakerId, meldt på direkte: ${utkast.godkjentAvNav}")
+    }
+
+    private fun kanUpserteUtkast(opprinneligDeltakerStatus: DeltakerStatus) =
+        opprinneligDeltakerStatus.type in listOf(
+            DeltakerStatus.Type.KLADD,
+            DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
+        )
+
+    private fun getOppdatertStatus(opprinneligDeltaker: Deltaker, godkjentAvNav: Boolean): DeltakerStatus {
+        return if (godkjentAvNav) {
+            if (opprinneligDeltaker.startdato != null && opprinneligDeltaker.startdato.isBefore(LocalDate.now())) {
+                nyDeltakerStatus(DeltakerStatus.Type.DELTAR)
+            } else {
+                nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART)
+            }
+        } else {
+            when (opprinneligDeltaker.status.type) {
+                DeltakerStatus.Type.KLADD -> nyDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING)
+                DeltakerStatus.Type.UTKAST_TIL_PAMELDING -> opprinneligDeltaker.status
+                else -> throw IllegalArgumentException(
+                    "Kan ikke upserte utkast for deltaker " +
+                        "med status ${opprinneligDeltaker.status.type}," +
+                        "status må være ${DeltakerStatus.Type.KLADD} eller ${DeltakerStatus.Type.UTKAST_TIL_PAMELDING}.",
+                )
+            }
+        }
     }
 
     private fun oppdatertVedtak(

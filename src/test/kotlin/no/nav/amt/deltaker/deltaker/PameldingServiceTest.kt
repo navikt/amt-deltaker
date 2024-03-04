@@ -208,4 +208,43 @@ class PameldingServiceTest {
             vedtak.sistEndretAvEnhet shouldBe sistEndretAvEnhet.id
         }
     }
+
+    @Test
+    fun `upsertUtkast - deltaker finnes, godkjent av NAV - oppdaterer deltaker og oppretter fattet vedtak`() {
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.KLADD),
+            vedtaksinformasjon = null,
+            startdato = null,
+            sluttdato = null,
+        )
+        TestRepository.insert(deltaker)
+        val sistEndretAv = TestData.lagNavAnsatt()
+        val sistEndretAvEnhet = TestData.lagNavEnhet()
+        TestRepository.insert(sistEndretAv)
+        TestRepository.insert(sistEndretAvEnhet)
+
+        val utkastRequest = UtkastRequest(
+            innhold = listOf(Innhold("Tekst", "kode", true, null)),
+            bakgrunnsinformasjon = "Bakgrunn",
+            deltakelsesprosent = 100F,
+            dagerPerUke = null,
+            endretAv = sistEndretAv.navIdent,
+            endretAvEnhet = sistEndretAvEnhet.enhetsnummer,
+            godkjentAvNav = true,
+        )
+
+        runBlocking {
+            pameldingService.upsertUtkast(deltaker.id, utkastRequest)
+
+            val deltakerFraDb = deltakerService.get(deltaker.id).getOrThrow()
+            deltakerFraDb.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
+            deltakerFraDb.vedtaksinformasjon shouldNotBe null
+
+            val vedtak = vedtakRepository.getForDeltaker(deltaker.id).first()
+            vedtak.fattet shouldNotBe null
+            vedtak.fattetAvNav shouldBe true
+            vedtak.sistEndretAv shouldBe sistEndretAv.id
+            vedtak.sistEndretAvEnhet shouldBe sistEndretAvEnhet.id
+        }
+    }
 }
