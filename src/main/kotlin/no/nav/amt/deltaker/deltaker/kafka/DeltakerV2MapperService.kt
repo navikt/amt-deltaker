@@ -38,6 +38,7 @@ class DeltakerV2MapperService(
                 adressebeskyttelse = deltaker.navBruker.adressebeskyttelse,
             ),
             status = DeltakerV2Dto.DeltakerStatusDto(
+                id = deltaker.status.id,
                 type = deltaker.status.type,
                 aarsak = deltaker.status.aarsak,
                 gyldigFra = deltaker.status.gyldigFra,
@@ -55,7 +56,9 @@ class DeltakerV2MapperService(
                 ?.toDeltakerNavVeilederDto(),
             deltarPaKurs = deltaker.deltarPaKurs(),
             kilde = DeltakerV2Dto.Kilde.KOMET,
-            innhold = deltaker.innhold,
+            innhold = deltaker.deltakerliste.tiltakstype.innhold?.let {
+                DeltakerV2Dto.DeltakelsesInnhold(it.ledetekst, deltaker.innhold)
+            },
             historikk = deltakerhistorikk,
             sistEndret = deltaker.sistEndret,
             sistEndretAv = getSistEndretAv(sisteEndring),
