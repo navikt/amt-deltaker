@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.deltaker
 
+import no.nav.amt.deltaker.deltaker.api.model.AvbrytUtkastRequest
 import no.nav.amt.deltaker.deltaker.api.model.KladdResponse
 import no.nav.amt.deltaker.deltaker.api.model.UtkastRequest
 import no.nav.amt.deltaker.deltaker.api.model.toKladdResponse
@@ -100,6 +101,41 @@ class PameldingService(
         log.info("Upsertet utkast for deltaker med id $deltakerId, meldt på direkte: ${utkast.godkjentAvNav}")
     }
 
+    suspend fun avbrytUtkast(deltakerId: UUID, avbrytUtkastRequest: AvbrytUtkastRequest) {
+        val opprinneligDeltaker = deltakerService.get(deltakerId).getOrThrow()
+
+        if (opprinneligDeltaker.status.type != DeltakerStatus.Type.UTKAST_TIL_PAMELDING) {
+            log.warn("Kan ikke avbryte utkast for deltaker med id ${opprinneligDeltaker.id} som har status ${opprinneligDeltaker.status.type}")
+            throw IllegalArgumentException("Kan ikke avbryte utkast for deltaker med id ${opprinneligDeltaker.id} som har status ${opprinneligDeltaker.status.type}")
+        }
+
+        val status = nyDeltakerStatus(DeltakerStatus.Type.AVBRUTT_UTKAST)
+
+        val oppdatertDeltaker = opprinneligDeltaker.copy(
+            status = status,
+            sistEndret = LocalDateTime.now(),
+        )
+
+        val endretAv = navAnsattService.hentEllerOpprettNavAnsatt(avbrytUtkastRequest.avbruttAv)
+        val endretAvNavEnhet = navEnhetService.hentEllerOpprettNavEnhet(avbrytUtkastRequest.avbruttAvEnhet)
+
+        val vedtak = vedtakRepository.getIkkeFattet(deltakerId)
+
+        val oppdatertVedtak = oppdatertVedtak(
+            original = vedtak,
+            godkjentAvNav = vedtak?.fattetAvNav ?: false,
+            endretAv = endretAv,
+            endretAvNavEnhet = endretAvNavEnhet,
+            deltaker = oppdatertDeltaker,
+            gyldigTil = LocalDateTime.now(),
+        )
+        vedtakRepository.upsert(oppdatertVedtak)
+
+        deltakerService.upsertDeltaker(oppdatertDeltaker.copy(vedtaksinformasjon = oppdatertVedtak.tilVedtaksinformasjon()))
+
+        log.info("Avbrutt utkast for deltaker med id $deltakerId")
+    }
+
     private fun kanUpserteUtkast(opprinneligDeltakerStatus: DeltakerStatus) =
         opprinneligDeltakerStatus.type in listOf(
             DeltakerStatus.Type.KLADD,
@@ -133,11 +169,12 @@ class PameldingService(
         endretAvNavEnhet: NavEnhet,
         deltaker: Deltaker,
         fattet: LocalDateTime? = null,
+        gyldigTil: LocalDateTime? = null,
     ) = Vedtak(
         id = original?.id ?: UUID.randomUUID(),
         deltakerId = deltaker.id,
         fattet = fattet,
-        gyldigTil = null,
+        gyldigTil = gyldigTil,
         deltakerVedVedtak = deltaker.toDeltakerVedVedtak(),
         fattetAvNav = godkjentAvNav,
         opprettetAv = original?.opprettetAv ?: endretAv.id,
