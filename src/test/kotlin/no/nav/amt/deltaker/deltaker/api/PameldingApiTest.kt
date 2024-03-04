@@ -7,7 +7,9 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
+import io.mockk.Runs
 import io.mockk.coEvery
+import io.mockk.just
 import io.mockk.mockk
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.application.plugins.configureAuthentication
@@ -16,7 +18,10 @@ import no.nav.amt.deltaker.application.plugins.configureSerialization
 import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.deltaker.PameldingService
 import no.nav.amt.deltaker.deltaker.api.model.OpprettKladdRequest
+import no.nav.amt.deltaker.deltaker.api.model.UtkastRequest
+import no.nav.amt.deltaker.deltaker.api.model.toKladdResponse
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
+import no.nav.amt.deltaker.deltaker.model.Innhold
 import no.nav.amt.deltaker.utils.configureEnvForAuthentication
 import no.nav.amt.deltaker.utils.data.TestData
 import org.junit.Before
@@ -35,13 +40,14 @@ class PameldingApiTest {
     fun `skal teste autentisering - mangler token - returnerer 401`() = testApplication {
         setUpTestApplication()
         client.post("/pamelding") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
+        client.post("/pamelding/${UUID.randomUUID()}") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
     }
 
     @Test
     fun `post pamelding - har tilgang - returnerer deltaker`() = testApplication {
-        val deltaker = TestData.lagDeltaker()
+        val deltaker = TestData.lagDeltaker().toKladdResponse()
 
-        coEvery { pameldingService.opprettKladd(any(), any(), any(), any()) } returns deltaker
+        coEvery { pameldingService.opprettKladd(any(), any()) } returns deltaker
 
         setUpTestApplication()
 
@@ -57,12 +63,34 @@ class PameldingApiTest {
             pameldingService.opprettKladd(
                 any(),
                 any(),
-                any(),
-                any(),
             )
         } throws NoSuchElementException("Fant ikke deltakerliste")
         setUpTestApplication()
         client.post("/pamelding") { postRequest(opprettKladdRequest) }.apply {
+            status shouldBe HttpStatusCode.NotFound
+        }
+    }
+
+    @Test
+    fun `post pamelding utkast - har tilgang - returnerer 200`() = testApplication {
+        val deltakerId = UUID.randomUUID()
+        coEvery { pameldingService.upsertUtkast(deltakerId, any()) } just Runs
+
+        setUpTestApplication()
+
+        client.post("/pamelding/$deltakerId") { postRequest(utkastRequest) }.apply {
+            status shouldBe HttpStatusCode.OK
+        }
+    }
+
+    @Test
+    fun `post pamelding utkast - deltaker finnes ikke - returnerer 404`() = testApplication {
+        val deltakerId = UUID.randomUUID()
+        coEvery { pameldingService.upsertUtkast(deltakerId, any()) } throws NoSuchElementException("Fant ikke deltaker")
+
+        setUpTestApplication()
+
+        client.post("/pamelding/$deltakerId") { postRequest(utkastRequest) }.apply {
             status shouldBe HttpStatusCode.NotFound
         }
     }
@@ -77,5 +105,14 @@ class PameldingApiTest {
         }
     }
 
-    private val opprettKladdRequest = OpprettKladdRequest(UUID.randomUUID(), "1234", "Z123456", "0101")
+    private val opprettKladdRequest = OpprettKladdRequest(UUID.randomUUID(), "1234")
+    private val utkastRequest = UtkastRequest(
+        listOf(Innhold("Tekst", "kode", true, null)),
+        "bakgrunn og sånn",
+        50F,
+        3F,
+        "Z123456",
+        "0101",
+        false,
+    )
 }

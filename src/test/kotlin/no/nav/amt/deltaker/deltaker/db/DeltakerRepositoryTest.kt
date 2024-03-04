@@ -35,8 +35,6 @@ class DeltakerRepositoryTest {
         val deltaker = TestData.lagDeltaker()
         TestRepository.insert(deltaker.deltakerliste)
         TestRepository.insert(deltaker.navBruker)
-        TestRepository.insert(deltaker.sistEndretAv)
-        TestRepository.insert(deltaker.sistEndretAvEnhet)
 
         repository.upsert(deltaker)
         sammenlignDeltakere(repository.get(deltaker.id).getOrThrow(), deltaker)
@@ -46,15 +44,12 @@ class DeltakerRepositoryTest {
     fun `upsert - oppdatert deltaker - oppdaterer`() {
         val deltaker = TestData.lagDeltaker()
         TestRepository.insert(deltaker)
-        val annenAnsatt = TestData.lagNavAnsatt()
-        TestRepository.insert(annenAnsatt)
 
         val oppdatertDeltaker = deltaker.copy(
             startdato = LocalDate.now().plusWeeks(1),
             sluttdato = LocalDate.now().plusWeeks(5),
             dagerPerUke = 1F,
             deltakelsesprosent = 20F,
-            sistEndretAv = annenAnsatt,
         )
 
         repository.upsert(oppdatertDeltaker)
@@ -99,8 +94,5 @@ fun sammenlignDeltakere(a: Deltaker, b: Deltaker) {
     a.status.gyldigFra shouldBeCloseTo b.status.gyldigFra
     a.status.gyldigTil shouldBeCloseTo b.status.gyldigTil
     a.status.opprettet shouldBeCloseTo b.status.opprettet
-    a.sistEndretAv shouldBe b.sistEndretAv
-    a.sistEndretAvEnhet shouldBe b.sistEndretAvEnhet
     a.sistEndret shouldBeCloseTo b.sistEndret
-    a.opprettet shouldBeCloseTo b.opprettet
 }

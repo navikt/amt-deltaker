@@ -12,8 +12,6 @@ import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype
-import no.nav.amt.deltaker.navansatt.NavAnsatt
-import no.nav.amt.deltaker.navansatt.navenhet.NavEnhet
 import no.nav.amt.deltaker.navbruker.model.Adressebeskyttelse
 import no.nav.amt.deltaker.navbruker.model.NavBruker
 import java.util.UUID
@@ -69,31 +67,30 @@ class DeltakerRepository {
             gyldigTil = row.localDateTimeOrNull("ds.gyldig_til"),
             opprettet = row.localDateTime("ds.created_at"),
         ),
-        sistEndretAv = NavAnsatt(
-            id = row.uuid("d.sist_endret_av"),
-            navIdent = row.string("na.nav_ident"),
-            navn = row.string("na.navn"),
-            epost = row.stringOrNull("na.epost"),
-            telefon = row.stringOrNull("na.telefonnummer"),
-        ),
-        sistEndretAvEnhet = NavEnhet(
-            id = row.uuid("d.sist_endret_av_enhet"),
-            enhetsnummer = row.string("ne.nav_enhet_nummer"),
-            navn = row.string("ne.navn"),
-        ),
+        vedtaksinformasjon = row.localDateTimeOrNull("v.opprettet")?.let { opprettet ->
+            Deltaker.Vedtaksinformasjon(
+                fattet = row.localDateTimeOrNull("v.fattet"),
+                fattetAvNav = row.boolean("v.fattet_av_nav"),
+                opprettet = opprettet,
+                opprettetAv = row.uuid("v.opprettet_av"),
+                opprettetAvEnhet = row.uuid("v.opprettet_av_enhet"),
+                sistEndret = row.localDateTime("v.sist_endret"),
+                sistEndretAv = row.uuid("v.sist_endret_av"),
+                sistEndretAvEnhet = row.uuid("v.sist_endret_av_enhet"),
+            )
+        },
         sistEndret = row.localDateTime("d.modified_at"),
-        opprettet = row.localDateTime("d.created_at"),
     )
 
     fun upsert(deltaker: Deltaker) = Database.query { session ->
         val sql = """
             insert into deltaker(
                 id, person_id, deltakerliste_id, startdato, sluttdato, dager_per_uke, 
-                deltakelsesprosent, bakgrunnsinformasjon, innhold, sist_endret_av, sist_endret_av_enhet, modified_at
+                deltakelsesprosent, bakgrunnsinformasjon, innhold
             )
             values (
                 :id, :person_id, :deltakerlisteId, :startdato, :sluttdato, :dagerPerUke, 
-                :deltakelsesprosent, :bakgrunnsinformasjon, :innhold, :sistEndretAv, :sistEndretAvEnhet, :sistEndret
+                :deltakelsesprosent, :bakgrunnsinformasjon, :innhold
             )
             on conflict (id) do update set 
                 person_id          = :person_id,
@@ -103,9 +100,7 @@ class DeltakerRepository {
                 deltakelsesprosent   = :deltakelsesprosent,
                 bakgrunnsinformasjon = :bakgrunnsinformasjon,
                 innhold              = :innhold,
-                sist_endret_av       = :sistEndretAv,
-                sist_endret_av_enhet = :sistEndretAvEnhet,
-                modified_at          = :sistEndret
+                modified_at          = current_timestamp
         """.trimIndent()
 
         val parameters = mapOf(
@@ -118,9 +113,6 @@ class DeltakerRepository {
             "deltakelsesprosent" to deltaker.deltakelsesprosent,
             "bakgrunnsinformasjon" to deltaker.bakgrunnsinformasjon,
             "innhold" to toPGObject(deltaker.innhold),
-            "sistEndretAv" to deltaker.sistEndretAv.id,
-            "sistEndretAvEnhet" to deltaker.sistEndretAvEnhet.id,
-            "sistEndret" to deltaker.sistEndret,
         )
 
         session.transaction { tx ->
@@ -249,9 +241,6 @@ class DeltakerRepository {
                    d.deltakelsesprosent as "d.deltakelsesprosent",
                    d.bakgrunnsinformasjon as "d.bakgrunnsinformasjon",
                    d.innhold as "d.innhold",
-                   d.sist_endret_av as "d.sist_endret_av",
-                   d.sist_endret_av_enhet as "d.sist_endret_av_enhet",
-                   d.created_at as "d.created_at",
                    d.modified_at as "d.modified_at",
                    nb.personident as "nb.personident",
                    nb.fornavn as "nb.fornavn",
@@ -264,12 +253,6 @@ class DeltakerRepository {
                    nb.er_skjermet as "nb.er_skjermet",
                    nb.adresse as "nb.adresse",
                    nb.adressebeskyttelse as "nb.adressebeskyttelse",
-                   na.nav_ident as "na.nav_ident",
-                   na.navn as "na.navn",
-                   na.epost as "na.epost",
-                   na.telefonnummer as "na.telefonnummer",
-                   ne.nav_enhet_nummer as "ne.nav_enhet_nummer",
-                   ne.navn as "ne.navn",
                    ds.id as "ds.id",
                    ds.deltaker_id as "ds.deltaker_id",
                    ds.type as "ds.type",
@@ -291,15 +274,22 @@ class DeltakerRepository {
                    t.id as "t.id",
                    t.navn as "t.navn",
                    t.type as "t.type",
-                   t.innhold as "t.innhold"
+                   t.innhold as "t.innhold",
+                   v.fattet as "v.fattet",
+                   v.fattet_av_nav as "v.fattet_av_nav",
+                   v.created_at as "v.opprettet",
+                   v.opprettet_av as "v.opprettet_av",
+                   v.opprettet_av_enhet as "v.opprettet_av_enhet",
+                   v.modified_at as "v.sist_endret",
+                   v.sist_endret_av as "v.sist_endret_av",
+                   v.sist_endret_av_enhet as "v.sist_endret_av_enhet"
             from deltaker d 
                 join nav_bruker nb on d.person_id = nb.person_id
-                join nav_ansatt na on d.sist_endret_av = na.id
-                join nav_enhet ne on d.sist_endret_av_enhet = ne.id
                 join deltaker_status ds on d.id = ds.deltaker_id
                 join deltakerliste dl on d.deltakerliste_id = dl.id
                 join arrangor a on a.id = dl.arrangor_id
                 join tiltakstype t on t.id = dl.tiltakstype_id
+                left join vedtak v on d.id = v.deltaker_id and v.gyldig_til is null
                 $where
       """
 }

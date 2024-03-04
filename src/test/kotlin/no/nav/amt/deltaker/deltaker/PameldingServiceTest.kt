@@ -2,9 +2,14 @@ package no.nav.amt.deltaker.deltaker
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
+import no.nav.amt.deltaker.deltaker.api.model.UtkastRequest
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
+import no.nav.amt.deltaker.deltaker.db.VedtakRepository
+import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
+import no.nav.amt.deltaker.deltaker.model.Innhold
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.navansatt.NavAnsatt
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
@@ -32,19 +37,23 @@ class PameldingServiceTest {
 
     companion object {
 
-        private val deltakerService = DeltakerService(
-            deltakerRepository = DeltakerRepository(),
-        )
-
         private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonServiceClientNavAnsatt())
         private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonServiceClientNavEnhet())
+
+        private val deltakerService = DeltakerService(
+            deltakerRepository = DeltakerRepository(),
+            deltakerProducer = mockk<DeltakerProducer>(relaxed = true),
+        )
+
+        private val vedtakRepository = VedtakRepository()
 
         private var pameldingService = PameldingService(
             deltakerService = deltakerService,
             deltakerlisteRepository = DeltakerlisteRepository(),
             navBrukerService = NavBrukerService(NavBrukerRepository(), mockAmtPersonServiceClientNavBruker(), navEnhetService, navAnsattService),
-            navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonServiceClientNavAnsatt()),
-            navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonServiceClientNavEnhet()),
+            navAnsattService = navAnsattService,
+            navEnhetService = navEnhetService,
+            vedtakRepository = vedtakRepository,
         )
 
         @JvmStatic
@@ -54,7 +63,7 @@ class PameldingServiceTest {
         }
     }
 
-    fun mockPameldingService(navBruker: NavBruker, navAnsatt: NavAnsatt, navEnhet: NavEnhet) {
+    private fun mockPameldingService(navBruker: NavBruker, navAnsatt: NavAnsatt, navEnhet: NavEnhet) {
         pameldingService = PameldingService(
             deltakerService,
             deltakerlisteRepository = DeltakerlisteRepository(),
@@ -66,6 +75,7 @@ class PameldingServiceTest {
             ),
             navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonServiceClientNavAnsatt(navAnsatt)),
             navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonServiceClientNavEnhet(navEnhet)),
+            vedtakRepository = vedtakRepository,
         )
     }
 
@@ -88,16 +98,10 @@ class PameldingServiceTest {
             val deltaker = pameldingService.opprettKladd(
                 deltakerlisteId = deltakerliste.id,
                 personident = navBruker.personident,
-                opprettetAv = opprettetAv.navIdent,
-                opprettetAvEnhet = opprettetAvEnhet.enhetsnummer,
             )
 
             deltaker.id shouldBe deltakerService.getDeltakelser(navBruker.personident, deltakerliste.id).first().id
-            deltaker.deltakerliste.id shouldBe deltakerliste.id
-            deltaker.deltakerliste.navn shouldBe deltakerliste.navn
-            deltaker.deltakerliste.tiltakstype.type shouldBe deltakerliste.tiltakstype.type
-            deltaker.deltakerliste.arrangor.navn shouldBe arrangor.navn
-            deltaker.deltakerliste.getOppstartstype() shouldBe deltakerliste.getOppstartstype()
+            deltaker.deltakerlisteId shouldBe deltakerliste.id
             deltaker.status.type shouldBe DeltakerStatus.Type.KLADD
             deltaker.startdato shouldBe null
             deltaker.sluttdato shouldBe null
@@ -105,8 +109,6 @@ class PameldingServiceTest {
             deltaker.deltakelsesprosent shouldBe null
             deltaker.bakgrunnsinformasjon shouldBe null
             deltaker.innhold shouldBe emptyList()
-            deltaker.sistEndretAv shouldBe opprettetAv
-            deltaker.sistEndretAvEnhet shouldBe opprettetAvEnhet
         }
     }
 
@@ -119,7 +121,7 @@ class PameldingServiceTest {
         mockPameldingService(navBruker, opprettetAv, opprettetAvEnhet)
         runBlocking {
             assertFailsWith<NoSuchElementException> {
-                pameldingService.opprettKladd(UUID.randomUUID(), personident, opprettetAv.navIdent, opprettetAvEnhet.enhetsnummer)
+                pameldingService.opprettKladd(UUID.randomUUID(), personident)
             }
         }
     }
@@ -137,8 +139,6 @@ class PameldingServiceTest {
                 pameldingService.opprettKladd(
                     deltaker.deltakerliste.id,
                     deltaker.navBruker.personident,
-                    deltaker.sistEndretAv.navIdent,
-                    deltaker.sistEndretAvEnhet.enhetsnummer,
                 )
 
             eksisterendeDeltaker.id shouldBe deltaker.id
@@ -165,12 +165,47 @@ class PameldingServiceTest {
                 pameldingService.opprettKladd(
                     deltaker.deltakerliste.id,
                     deltaker.navBruker.personident,
-                    deltaker.sistEndretAv.navIdent,
-                    deltaker.sistEndretAvEnhet.enhetsnummer,
                 )
 
             nyDeltaker.id shouldNotBe deltaker.id
             nyDeltaker.status.type shouldBe DeltakerStatus.Type.KLADD
+        }
+    }
+
+    @Test
+    fun `upsertUtkast - deltaker finnes - oppdaterer deltaker og oppretter vedtak`() {
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.KLADD),
+            vedtaksinformasjon = null,
+        )
+        TestRepository.insert(deltaker)
+        val sistEndretAv = TestData.lagNavAnsatt()
+        val sistEndretAvEnhet = TestData.lagNavEnhet()
+        TestRepository.insert(sistEndretAv)
+        TestRepository.insert(sistEndretAvEnhet)
+
+        val utkastRequest = UtkastRequest(
+            innhold = listOf(Innhold("Tekst", "kode", true, null)),
+            bakgrunnsinformasjon = "Bakgrunn",
+            deltakelsesprosent = 100F,
+            dagerPerUke = null,
+            endretAv = sistEndretAv.navIdent,
+            endretAvEnhet = sistEndretAvEnhet.enhetsnummer,
+            godkjentAvNav = false,
+        )
+
+        runBlocking {
+            pameldingService.upsertUtkast(deltaker.id, utkastRequest)
+
+            val deltakerFraDb = deltakerService.get(deltaker.id).getOrThrow()
+            deltakerFraDb.status.type shouldBe DeltakerStatus.Type.UTKAST_TIL_PAMELDING
+            deltakerFraDb.vedtaksinformasjon shouldNotBe null
+
+            val vedtak = vedtakRepository.getForDeltaker(deltaker.id).first()
+            vedtak.fattet shouldBe null
+            vedtak.fattetAvNav shouldBe false
+            vedtak.sistEndretAv shouldBe sistEndretAv.id
+            vedtak.sistEndretAvEnhet shouldBe sistEndretAvEnhet.id
         }
     }
 }

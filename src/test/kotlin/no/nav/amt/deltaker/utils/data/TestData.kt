@@ -4,8 +4,10 @@ import no.nav.amt.deltaker.amtperson.dto.NavBrukerDto
 import no.nav.amt.deltaker.amtperson.dto.NavEnhetDto
 import no.nav.amt.deltaker.arrangor.Arrangor
 import no.nav.amt.deltaker.deltaker.model.Deltaker
+import no.nav.amt.deltaker.deltaker.model.DeltakerEndring
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.deltaker.model.Innhold
+import no.nav.amt.deltaker.deltaker.model.Vedtak
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlisteDto
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.DeltakerRegistreringInnhold
@@ -184,10 +186,8 @@ object TestData {
         bakgrunnsinformasjon: String? = "Søkes inn fordi...",
         innhold: List<Innhold> = emptyList(),
         status: DeltakerStatus = lagDeltakerStatus(type = DeltakerStatus.Type.HAR_SLUTTET),
-        sistEndretAv: NavAnsatt = lagNavAnsatt(),
-        sistEndretAvEnhet: NavEnhet = lagNavEnhet(),
+        vedtaksinformasjon: Deltaker.Vedtaksinformasjon? = null,
         sistEndret: LocalDateTime = LocalDateTime.now(),
-        opprettet: LocalDateTime = LocalDateTime.now(),
     ) = Deltaker(
         id,
         navBruker,
@@ -199,10 +199,8 @@ object TestData {
         bakgrunnsinformasjon,
         innhold,
         status,
-        sistEndretAv,
-        sistEndretAvEnhet,
+        vedtaksinformasjon,
         sistEndret,
-        opprettet,
     )
 
     fun lagDeltakerStatus(
@@ -220,6 +218,45 @@ object TestData {
         gyldigFra,
         gyldigTil,
         opprettet,
+    )
+
+    fun lagDeltakerEndring(
+        id: UUID = UUID.randomUUID(),
+        deltakerId: UUID = UUID.randomUUID(),
+        endring: DeltakerEndring.Endring = DeltakerEndring.Endring.EndreBakgrunnsinformasjon("Oppdatert bakgrunnsinformasjon"),
+        endretAv: UUID = lagNavAnsatt().id,
+        endretAvEnhet: UUID = lagNavEnhet().id,
+        endret: LocalDateTime = LocalDateTime.now(),
+    ) = DeltakerEndring(id, deltakerId, endring, endretAv, endretAvEnhet, endret)
+
+    fun lagVedtak(
+        id: UUID = UUID.randomUUID(),
+        deltakerVedVedtak: Deltaker = lagDeltaker(
+            status = lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+        ),
+        deltakerId: UUID = deltakerVedVedtak.id,
+        fattet: LocalDateTime? = null,
+        gyldigTil: LocalDateTime? = null,
+        fattetAvNav: Boolean = false,
+        opprettet: LocalDateTime = LocalDateTime.now(),
+        opprettetAv: NavAnsatt = lagNavAnsatt(),
+        opprettetAvEnhet: NavEnhet = lagNavEnhet(),
+        sistEndret: LocalDateTime = opprettet,
+        sistEndretAv: NavAnsatt = opprettetAv,
+        sistEndretAvEnhet: NavEnhet = opprettetAvEnhet,
+    ) = Vedtak(
+        id,
+        deltakerId,
+        fattet,
+        gyldigTil,
+        deltakerVedVedtak.toDeltakerVedVedtak(),
+        fattetAvNav,
+        opprettet,
+        opprettetAv.id,
+        opprettetAvEnhet.id,
+        sistEndret,
+        sistEndretAv.id,
+        sistEndretAvEnhet.id,
     )
 
     private fun finnOppstartstype(type: Tiltakstype.Type) = when (type) {

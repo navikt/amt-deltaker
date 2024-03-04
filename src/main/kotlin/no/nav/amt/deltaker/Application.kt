@@ -21,9 +21,14 @@ import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.auth.AzureAdTokenClient
 import no.nav.amt.deltaker.db.Database
+import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.PameldingService
+import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
+import no.nav.amt.deltaker.deltaker.db.VedtakRepository
+import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
+import no.nav.amt.deltaker.deltaker.kafka.DeltakerV2MapperService
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlisteConsumer
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
@@ -95,6 +100,8 @@ fun Application.module() {
     val tiltakstypeRepository = TiltakstypeRepository()
     val deltakerlisteRepository = DeltakerlisteRepository()
     val deltakerRepository = DeltakerRepository()
+    val deltakerEndringRepository = DeltakerEndringRepository()
+    val vedtakRepository = VedtakRepository()
 
     val navAnsattService = NavAnsattService(navAnsattRepository, amtPersonServiceClient)
     val navEnhetService = NavEnhetService(navEnhetRepository, amtPersonServiceClient)
@@ -105,9 +112,14 @@ fun Application.module() {
         navAnsattService,
     )
     val arrangorService = ArrangorService(arrangorRepository, amtArrangorClient)
-    val deltakerService = DeltakerService(deltakerRepository)
+    val deltakerHistorikkService = DeltakerHistorikkService(deltakerEndringRepository, vedtakRepository)
+    val deltakerV2MapperService = DeltakerV2MapperService(navAnsattService, navEnhetService, deltakerHistorikkService)
+
+    val deltakerProducer = DeltakerProducer(deltakerV2MapperService = deltakerV2MapperService)
+
+    val deltakerService = DeltakerService(deltakerRepository, deltakerProducer)
     val pameldingService =
-        PameldingService(deltakerService, deltakerlisteRepository, navBrukerService, navAnsattService, navEnhetService)
+        PameldingService(deltakerService, deltakerlisteRepository, navBrukerService, navAnsattService, navEnhetService, vedtakRepository)
 
     val consumers = listOf(
         ArrangorConsumer(arrangorRepository),

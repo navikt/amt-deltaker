@@ -18,7 +18,9 @@ import no.nav.amt.deltaker.deltaker.api.registerPameldingApi
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-fun Application.configureRouting(pameldingService: PameldingService) {
+fun Application.configureRouting(
+    pameldingService: PameldingService,
+) {
     install(StatusPages) {
         exception<IllegalArgumentException> { call, cause ->
             StatusPageLogger.log(HttpStatusCode.BadRequest, call, cause)
