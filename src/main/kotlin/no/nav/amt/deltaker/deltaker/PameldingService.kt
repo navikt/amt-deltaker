@@ -57,6 +57,15 @@ class PameldingService(
             .toKladdResponse()
     }
 
+    fun slettKladd(deltakerId: UUID) {
+        val opprinneligDeltaker = deltakerService.get(deltakerId).getOrThrow()
+        if (opprinneligDeltaker.status.type != DeltakerStatus.Type.KLADD) {
+            log.warn("Kan ikke slette deltaker med id $deltakerId som har status ${opprinneligDeltaker.status.type}")
+            throw IllegalArgumentException("Kan ikke slette deltaker med id ${opprinneligDeltaker.id} som har status ${opprinneligDeltaker.status.type}")
+        }
+        deltakerService.delete(deltakerId)
+    }
+
     suspend fun upsertUtkast(deltakerId: UUID, utkast: UtkastRequest) {
         val opprinneligDeltaker = deltakerService.get(deltakerId).getOrThrow()
 

@@ -6,6 +6,7 @@ import io.ktor.server.auth.authenticate
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
+import io.ktor.server.routing.delete
 import io.ktor.server.routing.post
 import no.nav.amt.deltaker.deltaker.PameldingService
 import no.nav.amt.deltaker.deltaker.api.model.AvbrytUtkastRequest
@@ -41,6 +42,12 @@ fun Routing.registerPameldingApi(
             val deltakerId = UUID.fromString(call.parameters["deltakerId"])
 
             pameldingService.avbrytUtkast(deltakerId, request)
+            call.respond(HttpStatusCode.OK)
+        }
+
+        delete("/pamelding/{deltakerId}") {
+            val deltakerId = UUID.fromString(call.parameters["deltakerId"])
+            pameldingService.slettKladd(deltakerId)
             call.respond(HttpStatusCode.OK)
         }
     }
