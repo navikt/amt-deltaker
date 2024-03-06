@@ -33,6 +33,9 @@ import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlisteConsumer
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.kafka.TiltakstypeConsumer
+import no.nav.amt.deltaker.job.DeltakerStatusOppdateringService
+import no.nav.amt.deltaker.job.StatusUpdateJob
+import no.nav.amt.deltaker.job.leaderelection.LeaderElection
 import no.nav.amt.deltaker.navansatt.NavAnsattConsumer
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
@@ -71,6 +74,8 @@ fun Application.module() {
             jackson { applicationConfig() }
         }
     }
+
+    val leaderElection = LeaderElection(httpClient, environment.electorPath)
 
     val azureAdTokenClient = AzureAdTokenClient(
         azureAdTokenUrl = environment.azureAdTokenUrl,
@@ -121,6 +126,8 @@ fun Application.module() {
     val pameldingService =
         PameldingService(deltakerService, deltakerlisteRepository, navBrukerService, navAnsattService, navEnhetService, vedtakRepository)
 
+    val deltakerStatusOppdateringService = DeltakerStatusOppdateringService(deltakerRepository, deltakerService)
+
     val consumers = listOf(
         ArrangorConsumer(arrangorRepository),
         NavAnsattConsumer(navAnsattService),
@@ -133,6 +140,9 @@ fun Application.module() {
     configureAuthentication(environment)
     configureRouting(pameldingService)
     configureMonitoring()
+
+    val statusUpdateJob = StatusUpdateJob(leaderElection, attributes, deltakerStatusOppdateringService)
+    statusUpdateJob.startJob()
 
     attributes.put(isReadyKey, true)
 }
