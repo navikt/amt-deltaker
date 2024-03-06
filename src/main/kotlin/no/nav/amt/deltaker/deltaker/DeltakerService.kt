@@ -26,6 +26,10 @@ class DeltakerService(
         }
         log.info("Oppdatert deltaker med id ${oppdatertDeltaker.id}")
     }
+
+    fun delete(deltakerId: UUID) {
+        deltakerRepository.deleteDeltakerOgStatus(deltakerId)
+    }
 }
 
 fun nyDeltakerStatus(type: DeltakerStatus.Type, aarsak: DeltakerStatus.Aarsak? = null) = DeltakerStatus(

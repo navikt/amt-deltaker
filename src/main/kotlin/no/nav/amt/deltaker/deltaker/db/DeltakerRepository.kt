@@ -168,7 +168,7 @@ class DeltakerRepository {
         session.run(query)
     }
 
-    fun delete(deltakerId: UUID) = Database.query { session ->
+    fun deleteDeltakerOgStatus(deltakerId: UUID) = Database.query { session ->
         session.transaction { tx ->
             tx.update(slettStatus(deltakerId))
             tx.update(slettDeltaker(deltakerId))

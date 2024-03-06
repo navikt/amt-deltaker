@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.deltaker.api
 
 import io.kotest.matchers.shouldBe
+import io.ktor.client.request.delete
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
@@ -21,6 +22,7 @@ import no.nav.amt.deltaker.deltaker.api.model.AvbrytUtkastRequest
 import no.nav.amt.deltaker.deltaker.api.model.OpprettKladdRequest
 import no.nav.amt.deltaker.deltaker.api.model.UtkastRequest
 import no.nav.amt.deltaker.deltaker.api.model.toKladdResponse
+import no.nav.amt.deltaker.deltaker.api.utils.noBodyRequest
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
 import no.nav.amt.deltaker.deltaker.model.Innhold
 import no.nav.amt.deltaker.utils.configureEnvForAuthentication
@@ -43,6 +45,7 @@ class PameldingApiTest {
         client.post("/pamelding") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
         client.post("/pamelding/${UUID.randomUUID()}") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
         client.post("/pamelding/${UUID.randomUUID()}/avbryt") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
+        client.delete("/pamelding/${UUID.randomUUID()}").status shouldBe HttpStatusCode.Unauthorized
     }
 
     @Test
@@ -105,6 +108,18 @@ class PameldingApiTest {
         setUpTestApplication()
 
         client.post("/pamelding/$deltakerId/avbryt") { postRequest(avbrytUtkastRequest) }.apply {
+            status shouldBe HttpStatusCode.OK
+        }
+    }
+
+    @Test
+    fun `delete kladd - har tilgang - returnerer 200`() = testApplication {
+        val deltakerId = UUID.randomUUID()
+        coEvery { pameldingService.slettKladd(deltakerId) } just Runs
+
+        setUpTestApplication()
+
+        client.delete("/pamelding/$deltakerId") { noBodyRequest() }.apply {
             status shouldBe HttpStatusCode.OK
         }
     }
