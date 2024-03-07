@@ -16,15 +16,12 @@ import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import io.mockk.mockk
 import no.nav.amt.deltaker.Environment
-import no.nav.amt.deltaker.deltaker.PameldingService
 import no.nav.amt.deltaker.utils.configureEnvForAuthentication
 import no.nav.amt.deltaker.utils.generateJWT
 import org.junit.Before
 import org.junit.Test
 
 class AuthenticationTest {
-    private val pameldingService = mockk<PameldingService>()
-
     @Before
     fun setup() {
         configureEnvForAuthentication()
@@ -107,7 +104,8 @@ class AuthenticationTest {
             configureSerialization()
             configureAuthentication(Environment())
             configureRouting(
-                pameldingService,
+                mockk(),
+                mockk(),
             )
             setUpTestRoute()
         }

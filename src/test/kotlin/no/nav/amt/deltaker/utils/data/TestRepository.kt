@@ -309,4 +309,21 @@ object TestRepository {
 
         it.update(queryOf(sql, params))
     }
+
+    fun <T> insertAll(vararg values: T) {
+        values.forEach {
+            when (it) {
+                is NavAnsatt -> insert(it)
+                is NavBruker -> insert(it)
+                is NavEnhet -> insert(it)
+                is Arrangor -> insert(it)
+                is Tiltakstype -> insert(it)
+                is Deltakerliste -> insert(it)
+                is Deltaker -> insert(it)
+                is Vedtak -> insert(it)
+                is DeltakerEndring -> insert(it)
+                else -> NotImplementedError("insertAll for type ${it!!::class} er ikke implementert")
+            }
+        }
+    }
 }
