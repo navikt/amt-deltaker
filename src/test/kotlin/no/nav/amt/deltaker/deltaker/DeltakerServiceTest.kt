@@ -18,25 +18,26 @@ import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
 import no.nav.amt.deltaker.utils.SingletonPostgresContainer
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
-import no.nav.amt.deltaker.utils.mockAmtPersonServiceClientNavAnsatt
-import no.nav.amt.deltaker.utils.mockAmtPersonServiceClientNavEnhet
+import no.nav.amt.deltaker.utils.mockAmtPersonClient
 import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test
 
 class DeltakerServiceTest {
     companion object {
-        private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonServiceClientNavAnsatt())
-        private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonServiceClientNavEnhet())
+        private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonClient())
+        private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonClient())
         private val deltakerRepository = DeltakerRepository()
         private val deltakerEndringRepository = DeltakerEndringRepository()
         private val vedtakRepository = VedtakRepository()
         private val deltakerHistorikkService = DeltakerHistorikkService(deltakerEndringRepository, vedtakRepository)
         private val deltakerV2MapperService = DeltakerV2MapperService(navAnsattService, navEnhetService, deltakerHistorikkService)
+        private val deltakerEndringService = DeltakerEndringService(deltakerEndringRepository, navAnsattService, navEnhetService)
 
         private val deltakerService = DeltakerService(
             deltakerRepository = deltakerRepository,
             deltakerProducer = DeltakerProducer(LocalKafkaConfig(SingletonKafkaProvider.getHost()), deltakerV2MapperService),
+            deltakerEndringService = deltakerEndringService,
         )
 
         @JvmStatic

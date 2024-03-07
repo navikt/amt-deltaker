@@ -126,6 +126,7 @@ object TestData {
 
     fun lagNavBrukerDto(
         navBruker: NavBruker,
+        navEnhet: NavEnhet,
     ) = NavBrukerDto(
         personId = navBruker.personId,
         personident = navBruker.personident,
@@ -133,7 +134,7 @@ object TestData {
         mellomnavn = navBruker.mellomnavn,
         etternavn = navBruker.etternavn,
         navVeilederId = navBruker.navVeilederId,
-        navEnhet = navBruker.navEnhetId?.let { lagNavEnhetDto(lagNavEnhet(id = it)) },
+        navEnhet = lagNavEnhetDto(navEnhet),
         telefon = navBruker.telefon,
         epost = navBruker.epost,
         erSkjermet = navBruker.erSkjermet,

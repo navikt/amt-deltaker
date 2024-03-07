@@ -6,27 +6,23 @@ import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.deltaker.api.model.AvbrytUtkastRequest
 import no.nav.amt.deltaker.deltaker.api.model.UtkastRequest
+import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
-import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.deltaker.model.Innhold
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
-import no.nav.amt.deltaker.navansatt.NavAnsatt
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
-import no.nav.amt.deltaker.navansatt.navenhet.NavEnhet
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
 import no.nav.amt.deltaker.navbruker.NavBrukerRepository
 import no.nav.amt.deltaker.navbruker.NavBrukerService
-import no.nav.amt.deltaker.navbruker.model.NavBruker
+import no.nav.amt.deltaker.utils.MockResponseHandler
 import no.nav.amt.deltaker.utils.SingletonPostgresContainer
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
-import no.nav.amt.deltaker.utils.mockAmtPersonServiceClientNavAnsatt
-import no.nav.amt.deltaker.utils.mockAmtPersonServiceClientNavBruker
-import no.nav.amt.deltaker.utils.mockAmtPersonServiceClientNavEnhet
+import no.nav.amt.deltaker.utils.mockAmtPersonClient
 import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test
@@ -38,12 +34,17 @@ class PameldingServiceTest {
 
     companion object {
 
-        private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonServiceClientNavAnsatt())
-        private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonServiceClientNavEnhet())
+        private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonClient())
+        private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonClient())
 
         private val deltakerService = DeltakerService(
             deltakerRepository = DeltakerRepository(),
-            deltakerProducer = mockk<DeltakerProducer>(relaxed = true),
+            deltakerProducer = mockk(relaxed = true),
+            deltakerEndringService = DeltakerEndringService(
+                DeltakerEndringRepository(),
+                navAnsattService,
+                navEnhetService,
+            ),
         )
 
         private val vedtakRepository = VedtakRepository()
@@ -51,7 +52,12 @@ class PameldingServiceTest {
         private var pameldingService = PameldingService(
             deltakerService = deltakerService,
             deltakerlisteRepository = DeltakerlisteRepository(),
-            navBrukerService = NavBrukerService(NavBrukerRepository(), mockAmtPersonServiceClientNavBruker(), navEnhetService, navAnsattService),
+            navBrukerService = NavBrukerService(
+                NavBrukerRepository(),
+                mockAmtPersonClient(),
+                navEnhetService,
+                navAnsattService,
+            ),
             navAnsattService = navAnsattService,
             navEnhetService = navEnhetService,
             vedtakRepository = vedtakRepository,
@@ -62,22 +68,6 @@ class PameldingServiceTest {
         fun setup() {
             SingletonPostgresContainer.start()
         }
-    }
-
-    private fun mockPameldingService(navBruker: NavBruker, navAnsatt: NavAnsatt, navEnhet: NavEnhet) {
-        pameldingService = PameldingService(
-            deltakerService,
-            deltakerlisteRepository = DeltakerlisteRepository(),
-            navBrukerService = NavBrukerService(
-                NavBrukerRepository(),
-                mockAmtPersonServiceClientNavBruker(navBruker),
-                NavEnhetService(NavEnhetRepository(), mockAmtPersonServiceClientNavEnhet(navEnhet)),
-                NavAnsattService(NavAnsattRepository(), mockAmtPersonServiceClientNavAnsatt(navAnsatt)),
-            ),
-            navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonServiceClientNavAnsatt(navAnsatt)),
-            navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonServiceClientNavEnhet(navEnhet)),
-            vedtakRepository = vedtakRepository,
-        )
     }
 
     @Before
@@ -92,8 +82,11 @@ class PameldingServiceTest {
         val opprettetAv = TestData.lagNavAnsatt()
         val opprettetAvEnhet = TestData.lagNavEnhet()
         val navBruker = TestData.lagNavBruker(navVeilederId = opprettetAv.id, navEnhetId = opprettetAvEnhet.id)
+
+        MockResponseHandler.addNavEnhetResponse(opprettetAvEnhet)
+        MockResponseHandler.addNavAnsattResponse(opprettetAv)
+        MockResponseHandler.addNavBrukerResponse(navBruker)
         TestRepository.insert(deltakerliste)
-        mockPameldingService(navBruker, opprettetAv, opprettetAvEnhet)
 
         runBlocking {
             val deltaker = pameldingService.opprettKladd(
@@ -116,10 +109,6 @@ class PameldingServiceTest {
     @Test
     fun `opprettKladd - deltakerliste finnes ikke - kaster NoSuchElementException`() {
         val personident = TestData.randomIdent()
-        val navBruker = TestData.lagNavBruker()
-        val opprettetAv = TestData.lagNavAnsatt()
-        val opprettetAvEnhet = TestData.lagNavEnhet()
-        mockPameldingService(navBruker, opprettetAv, opprettetAvEnhet)
         runBlocking {
             assertFailsWith<NoSuchElementException> {
                 pameldingService.opprettKladd(UUID.randomUUID(), personident)
