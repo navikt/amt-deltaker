@@ -5,10 +5,11 @@ import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
+import no.nav.amt.deltaker.utils.MockResponseHandler
 import no.nav.amt.deltaker.utils.SingletonPostgresContainer
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
-import no.nav.amt.deltaker.utils.mockAmtPersonServiceClientNavEnhet
+import no.nav.amt.deltaker.utils.mockAmtPersonClient
 import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test
@@ -41,11 +42,14 @@ class NavBrukerConsumerTest {
         val navBruker = TestData.lagNavBruker(navEnhetId = navEnhet.id, navVeilederId = navAnsatt.id)
         val navBrukerConsumer = NavBrukerConsumer(
             navBrukerRepository,
-            NavEnhetService(navEnhetRepository, mockAmtPersonServiceClientNavEnhet(navEnhet)),
+            NavEnhetService(navEnhetRepository, mockAmtPersonClient()),
         )
 
         runBlocking {
-            navBrukerConsumer.consume(navBruker.personId, objectMapper.writeValueAsString(TestData.lagNavBrukerDto(navBruker)))
+            navBrukerConsumer.consume(
+                navBruker.personId,
+                objectMapper.writeValueAsString(TestData.lagNavBrukerDto(navBruker, navEnhet)),
+            )
         }
 
         navBrukerRepository.get(navBruker.personId).getOrNull() shouldBe navBruker
@@ -55,6 +59,7 @@ class NavBrukerConsumerTest {
     fun `consumeNavBruker - oppdatert navBruker - upserter`() {
         val navEnhet = TestData.lagNavEnhet()
         TestRepository.insert(navEnhet)
+
         val navAnsatt = TestData.lagNavAnsatt()
         TestRepository.insert(navAnsatt)
         val navBruker = TestData.lagNavBruker(navEnhetId = navEnhet.id, navVeilederId = navAnsatt.id)
@@ -64,11 +69,14 @@ class NavBrukerConsumerTest {
 
         val navBrukerConsumer = NavBrukerConsumer(
             navBrukerRepository,
-            NavEnhetService(navEnhetRepository, mockAmtPersonServiceClientNavEnhet(navEnhet)),
+            NavEnhetService(navEnhetRepository, mockAmtPersonClient()),
         )
 
         runBlocking {
-            navBrukerConsumer.consume(navBruker.personId, objectMapper.writeValueAsString(TestData.lagNavBrukerDto(oppdatertNavBruker)))
+            navBrukerConsumer.consume(
+                navBruker.personId,
+                objectMapper.writeValueAsString(TestData.lagNavBrukerDto(oppdatertNavBruker, navEnhet)),
+            )
         }
 
         navBrukerRepository.get(navBruker.personId).getOrNull() shouldBe oppdatertNavBruker
@@ -77,16 +85,21 @@ class NavBrukerConsumerTest {
     @Test
     fun `consumeNavBruker - ny navBruker, enhet mangler - henter enhet og lagrer`() {
         val navEnhet = TestData.lagNavEnhet()
+        MockResponseHandler.addNavEnhetResponse(navEnhet)
+
         val navAnsatt = TestData.lagNavAnsatt()
         TestRepository.insert(navAnsatt)
         val navBruker = TestData.lagNavBruker(navEnhetId = navEnhet.id, navVeilederId = navAnsatt.id)
         val navBrukerConsumer = NavBrukerConsumer(
             navBrukerRepository,
-            NavEnhetService(navEnhetRepository, mockAmtPersonServiceClientNavEnhet(navEnhet)),
+            NavEnhetService(navEnhetRepository, mockAmtPersonClient()),
         )
 
         runBlocking {
-            navBrukerConsumer.consume(navBruker.personId, objectMapper.writeValueAsString(TestData.lagNavBrukerDto(navBruker)))
+            navBrukerConsumer.consume(
+                navBruker.personId,
+                objectMapper.writeValueAsString(TestData.lagNavBrukerDto(navBruker, navEnhet)),
+            )
         }
 
         navBrukerRepository.get(navBruker.personId).getOrNull() shouldBe navBruker
