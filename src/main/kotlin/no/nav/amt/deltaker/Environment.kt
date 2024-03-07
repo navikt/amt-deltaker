@@ -25,6 +25,7 @@ data class Environment(
             emptyList<PreAuthorizedApp>(),
         ),
     ).let { objectMapper.readValue(it) },
+    val electorPath: String = getEnvVar(ELECTOR_PATH),
 ) {
 
     companion object {
@@ -53,6 +54,8 @@ data class Environment(
         const val AZURE_OPENID_CONFIG_JWKS_URI_KEY = "AZURE_OPENID_CONFIG_JWKS_URI"
         const val AZURE_OPENID_CONFIG_ISSUER_KEY = "AZURE_OPENID_CONFIG_ISSUER"
         const val AZURE_APP_PRE_AUTHORIZED_APPS = "AZURE_APP_PRE_AUTHORIZED_APPS"
+
+        const val ELECTOR_PATH = "ELECTOR_PATH"
 
         const val HTTP_CLIENT_TIMEOUT_MS = 10_000
 
