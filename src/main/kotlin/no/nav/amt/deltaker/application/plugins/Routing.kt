@@ -13,13 +13,16 @@ import io.ktor.server.response.respondText
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import no.nav.amt.deltaker.application.registerHealthApi
+import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.PameldingService
+import no.nav.amt.deltaker.deltaker.api.registerDeltakerApi
 import no.nav.amt.deltaker.deltaker.api.registerPameldingApi
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 fun Application.configureRouting(
     pameldingService: PameldingService,
+    deltakerService: DeltakerService,
 ) {
     install(StatusPages) {
         exception<IllegalArgumentException> { call, cause ->
@@ -39,6 +42,7 @@ fun Application.configureRouting(
         registerHealthApi()
 
         registerPameldingApi(pameldingService)
+        registerDeltakerApi(deltakerService)
 
         val catchAllRoute = "{...}"
         route(catchAllRoute) {

@@ -9,20 +9,17 @@ import io.mockk.mockk
 import no.nav.amt.deltaker.application.plugins.configureAuthentication
 import no.nav.amt.deltaker.application.plugins.configureRouting
 import no.nav.amt.deltaker.application.plugins.configureSerialization
-import no.nav.amt.deltaker.deltaker.PameldingService
 import no.nav.amt.deltaker.utils.configureEnvForAuthentication
 import org.junit.Test
 
 class ApplicationTest {
-    private val pameldingService = mockk<PameldingService>()
-
     @Test
     fun testRoot() = testApplication {
         configureEnvForAuthentication()
         application {
             configureSerialization()
             configureAuthentication(Environment())
-            configureRouting(pameldingService)
+            configureRouting(mockk(), mockk())
         }
         client.get("/internal/health/liveness").apply {
             status shouldBe HttpStatusCode.OK

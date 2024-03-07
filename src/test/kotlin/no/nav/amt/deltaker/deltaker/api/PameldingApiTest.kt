@@ -130,6 +130,7 @@ class PameldingApiTest {
             configureAuthentication(Environment())
             configureRouting(
                 pameldingService,
+                deltakerService = mockk(),
             )
         }
     }

@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.deltaker
 
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
+import no.nav.amt.deltaker.deltaker.api.model.BakgrunnsinformasjonRequest
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
@@ -19,9 +20,11 @@ import no.nav.amt.deltaker.utils.SingletonPostgresContainer
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.utils.mockAmtPersonClient
+import no.nav.amt.deltaker.utils.shouldBeCloseTo
 import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test
+import java.time.LocalDateTime
 
 class DeltakerServiceTest {
     companion object {
@@ -31,12 +34,17 @@ class DeltakerServiceTest {
         private val deltakerEndringRepository = DeltakerEndringRepository()
         private val vedtakRepository = VedtakRepository()
         private val deltakerHistorikkService = DeltakerHistorikkService(deltakerEndringRepository, vedtakRepository)
-        private val deltakerV2MapperService = DeltakerV2MapperService(navAnsattService, navEnhetService, deltakerHistorikkService)
-        private val deltakerEndringService = DeltakerEndringService(deltakerEndringRepository, navAnsattService, navEnhetService)
+        private val deltakerV2MapperService =
+            DeltakerV2MapperService(navAnsattService, navEnhetService, deltakerHistorikkService)
+        private val deltakerEndringService =
+            DeltakerEndringService(deltakerEndringRepository, navAnsattService, navEnhetService)
 
         private val deltakerService = DeltakerService(
             deltakerRepository = deltakerRepository,
-            deltakerProducer = DeltakerProducer(LocalKafkaConfig(SingletonKafkaProvider.getHost()), deltakerV2MapperService),
+            deltakerProducer = DeltakerProducer(
+                LocalKafkaConfig(SingletonKafkaProvider.getHost()),
+                deltakerV2MapperService,
+            ),
             deltakerEndringService = deltakerEndringService,
         )
 
@@ -112,5 +120,24 @@ class DeltakerServiceTest {
             deltakerFraDb.status.type shouldBe DeltakerStatus.Type.KLADD
             deltakerFraDb.vedtaksinformasjon shouldBe null
         }
+    }
+
+    @Test
+    fun `upsertEndretDeltaker - ingen endring - upserter ikke`(): Unit = runBlocking {
+        val deltaker = TestData.lagDeltaker(sistEndret = LocalDateTime.now().minusDays(2))
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+
+        TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
+
+        val endringsrequest = BakgrunnsinformasjonRequest(
+            endretAv = endretAv.navIdent,
+            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            bakgrunnsinformasjon = deltaker.bakgrunnsinformasjon,
+        )
+
+        deltakerService.upsertEndretDeltaker(deltaker.id, endringsrequest)
+
+        deltakerService.get(deltaker.id).getOrThrow().sistEndret shouldBeCloseTo deltaker.sistEndret
     }
 }

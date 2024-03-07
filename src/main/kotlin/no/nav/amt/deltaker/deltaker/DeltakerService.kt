@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.deltaker
 
+import no.nav.amt.deltaker.deltaker.api.model.EndringRequest
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
 import no.nav.amt.deltaker.deltaker.model.Deltaker
@@ -10,6 +11,7 @@ import java.util.UUID
 
 class DeltakerService(
     private val deltakerRepository: DeltakerRepository,
+    private val deltakerEndringService: DeltakerEndringService,
     private val deltakerProducer: DeltakerProducer,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -29,6 +31,12 @@ class DeltakerService(
 
     fun delete(deltakerId: UUID) {
         deltakerRepository.deleteDeltakerOgStatus(deltakerId)
+    }
+
+    suspend fun upsertEndretDeltaker(deltakerId: UUID, request: EndringRequest) {
+        val deltaker = get(deltakerId).getOrThrow()
+
+        deltakerEndringService.upsertEndring(deltaker, request).onSuccess { upsertDeltaker(it) }
     }
 }
 
