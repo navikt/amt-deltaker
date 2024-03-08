@@ -18,15 +18,15 @@ repositories {
     maven { setUrl("https://github-package-registry-mirror.gc.nav.no/cached/maven-release") }
 }
 
-val kotlinVersion = "1.9.21"
+val kotlinVersion = "1.9.23"
 val ktorVersion = "2.3.9"
 val logbackVersion = "1.5.3"
 val prometeusVersion = "1.12.3"
 val ktlintVersion = "0.49.1"
 val jacksonVersion = "2.16.1"
 val logstashEncoderVersion = "7.4"
-val commonVersion = "3.2023.12.12_13.53-510909d4aa1a"
-val poaoTilgangVersion = "2023.11.13_07.58-92c894e940a5"
+val commonVersion = "3.2024.02.21_11.18-8f9b43befae1"
+val poaoTilgangVersion = "2024.03.04_10.19-63a652788672"
 val kafkaClientsVersion = "3.7.0"
 val testcontainersVersion = "1.19.7"
 val kotestVersion = "5.8.0"
