@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.deltaker
 
 import no.nav.amt.deltaker.deltaker.api.model.BakgrunnsinformasjonRequest
 import no.nav.amt.deltaker.deltaker.api.model.EndringRequest
+import no.nav.amt.deltaker.deltaker.api.model.InnholdRequest
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.DeltakerEndring
@@ -22,6 +23,11 @@ class DeltakerEndringService(
         val (endretDeltaker, endring) = when (request) {
             is BakgrunnsinformasjonRequest -> {
                 val endring = DeltakerEndring.Endring.EndreBakgrunnsinformasjon(request.bakgrunnsinformasjon)
+                Pair(endretDeltaker(deltaker, endring), endring)
+            }
+
+            is InnholdRequest -> {
+                val endring = DeltakerEndring.Endring.EndreInnhold(request.innhold)
                 Pair(endretDeltaker(deltaker, endring), endring)
             }
         }
@@ -61,7 +67,11 @@ class DeltakerEndringService(
             }
 
             is DeltakerEndring.Endring.EndreDeltakelsesmengde -> TODO()
-            is DeltakerEndring.Endring.EndreInnhold -> TODO()
+            is DeltakerEndring.Endring.EndreInnhold -> {
+                endreDeltaker(deltaker.innhold != endring.innhold) {
+                    deltaker.copy(innhold = endring.innhold)
+                }
+            }
             is DeltakerEndring.Endring.EndreSluttarsak -> TODO()
             is DeltakerEndring.Endring.EndreSluttdato -> TODO()
             is DeltakerEndring.Endring.EndreStartdato -> TODO()

@@ -13,7 +13,9 @@ import no.nav.amt.deltaker.application.plugins.configureRouting
 import no.nav.amt.deltaker.application.plugins.configureSerialization
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.api.model.BakgrunnsinformasjonRequest
+import no.nav.amt.deltaker.deltaker.api.model.InnholdRequest
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
+import no.nav.amt.deltaker.deltaker.model.Innhold
 import no.nav.amt.deltaker.utils.configureEnvForAuthentication
 import no.nav.amt.deltaker.utils.data.TestData
 import org.junit.Before
@@ -32,6 +34,7 @@ class DeltakerApiTest {
     fun `skal teste autentisering - mangler token - returnerer 401`() = testApplication {
         setUpTestApplication()
         client.post("/deltaker/${UUID.randomUUID()}/bakgrunnsinformasjon") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
+        client.post("/deltaker/${UUID.randomUUID()}/innhold") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
     }
 
     @Test
@@ -44,6 +47,23 @@ class DeltakerApiTest {
                     TestData.randomIdent(),
                     TestData.randomEnhetsnummer(),
                     "bakgrunnsinformasjon",
+                ),
+            )
+        }.apply {
+            status shouldBe HttpStatusCode.OK
+        }
+    }
+
+    @Test
+    fun `post innhold - har tilgang - returnerer 200`() = testApplication {
+        setUpTestApplication()
+
+        client.post("/deltaker/${UUID.randomUUID()}/innhold") {
+            postRequest(
+                InnholdRequest(
+                    TestData.randomIdent(),
+                    TestData.randomEnhetsnummer(),
+                    listOf(Innhold("Tekst", "kode", true, null)),
                 ),
             )
         }.apply {
