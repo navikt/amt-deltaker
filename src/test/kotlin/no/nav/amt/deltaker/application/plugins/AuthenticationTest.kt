@@ -106,6 +106,7 @@ class AuthenticationTest {
             configureRouting(
                 mockk(),
                 mockk(),
+                mockk(),
             )
             setUpTestRoute()
         }

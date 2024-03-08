@@ -131,6 +131,7 @@ class PameldingApiTest {
             configureRouting(
                 pameldingService,
                 deltakerService = mockk(),
+                mockk(),
             )
         }
     }

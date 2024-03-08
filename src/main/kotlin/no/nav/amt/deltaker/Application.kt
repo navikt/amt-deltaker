@@ -146,7 +146,7 @@ fun Application.module() {
     consumers.forEach { it.run() }
 
     configureAuthentication(environment)
-    configureRouting(pameldingService, deltakerService)
+    configureRouting(pameldingService, deltakerService, deltakerHistorikkService)
     configureMonitoring()
 
     val statusUpdateJob = StatusUpdateJob(leaderElection, attributes, deltakerStatusOppdateringService)
