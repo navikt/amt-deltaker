@@ -3,8 +3,10 @@ package no.nav.amt.deltaker.deltaker
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.deltaker.api.model.BakgrunnsinformasjonRequest
+import no.nav.amt.deltaker.deltaker.api.model.InnholdRequest
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.model.DeltakerEndring
+import no.nav.amt.deltaker.deltaker.model.Innhold
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetRepository
@@ -13,6 +15,7 @@ import no.nav.amt.deltaker.utils.SingletonPostgresContainer
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.utils.mockAmtPersonClient
+import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test
 
@@ -33,6 +36,11 @@ class DeltakerEndringServiceTest {
         fun setup() {
             SingletonPostgresContainer.start()
         }
+    }
+
+    @Before
+    fun cleanDatabase() {
+        TestRepository.cleanDatabase()
     }
 
     @Test
@@ -81,5 +89,32 @@ class DeltakerEndringServiceTest {
         resultat.isFailure shouldBe true
 
         deltakerEndringService.getForDeltaker(deltaker.id).isEmpty() shouldBe true
+    }
+
+    @Test
+    fun `upsertEndring - endret innhold - upserter endring og returnerer deltaker`(): Unit = runBlocking {
+        val deltaker = TestData.lagDeltaker()
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+
+        TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
+
+        val endringsrequest = InnholdRequest(
+            endretAv = endretAv.navIdent,
+            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            innhold = listOf(Innhold("Tekst", "kode", true, null)),
+        )
+
+        val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)
+
+        resultat.isSuccess shouldBe true
+        resultat.getOrThrow().innhold shouldBe endringsrequest.innhold
+
+        val endring = deltakerEndringService.getForDeltaker(deltaker.id).first()
+        endring.endretAv shouldBe endretAv.id
+        endring.endretAvEnhet shouldBe endretAvEnhet.id
+
+        (endring.endring as DeltakerEndring.Endring.EndreInnhold)
+            .innhold shouldBe endringsrequest.innhold
     }
 }
