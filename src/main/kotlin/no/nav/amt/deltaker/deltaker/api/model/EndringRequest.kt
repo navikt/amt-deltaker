@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.deltaker.api.model
 
 import no.nav.amt.deltaker.deltaker.model.Innhold
+import java.time.LocalDate
 
 sealed interface EndringRequest {
     val endretAv: String
@@ -24,4 +25,10 @@ data class DeltakelsesmengdeRequest(
     override val endretAvEnhet: String,
     val deltakelsesprosent: Int?,
     val dagerPerUke: Int?,
+) : EndringRequest
+
+data class StartdatoRequest(
+    override val endretAv: String,
+    override val endretAvEnhet: String,
+    val startdato: LocalDate?,
 ) : EndringRequest

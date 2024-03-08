@@ -5,6 +5,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.deltaker.api.model.BakgrunnsinformasjonRequest
 import no.nav.amt.deltaker.deltaker.api.model.DeltakelsesmengdeRequest
 import no.nav.amt.deltaker.deltaker.api.model.InnholdRequest
+import no.nav.amt.deltaker.deltaker.api.model.StartdatoRequest
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.model.DeltakerEndring
 import no.nav.amt.deltaker.deltaker.model.Innhold
@@ -19,6 +20,7 @@ import no.nav.amt.deltaker.utils.mockAmtPersonClient
 import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test
+import java.time.LocalDate
 
 class DeltakerEndringServiceTest {
     private val amtPersonClient = mockAmtPersonClient()
@@ -149,5 +151,32 @@ class DeltakerEndringServiceTest {
             .deltakelsesprosent shouldBe endringsrequest.deltakelsesprosent
         (endring.endring as DeltakerEndring.Endring.EndreDeltakelsesmengde)
             .dagerPerUke shouldBe endringsrequest.dagerPerUke
+    }
+
+    @Test
+    fun `upsertEndring - endret startdato - upserter endring og returnerer deltaker`(): Unit = runBlocking {
+        val deltaker = TestData.lagDeltaker()
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+
+        TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
+
+        val endringsrequest = StartdatoRequest(
+            endretAv = endretAv.navIdent,
+            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            startdato = LocalDate.now().minusWeeks(1),
+        )
+
+        val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)
+
+        resultat.isSuccess shouldBe true
+        resultat.getOrThrow().startdato shouldBe endringsrequest.startdato
+
+        val endring = deltakerEndringService.getForDeltaker(deltaker.id).first()
+        endring.endretAv shouldBe endretAv.id
+        endring.endretAvEnhet shouldBe endretAvEnhet.id
+
+        (endring.endring as DeltakerEndring.Endring.EndreStartdato)
+            .startdato shouldBe endringsrequest.startdato
     }
 }

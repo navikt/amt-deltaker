@@ -4,6 +4,7 @@ import no.nav.amt.deltaker.deltaker.api.model.BakgrunnsinformasjonRequest
 import no.nav.amt.deltaker.deltaker.api.model.DeltakelsesmengdeRequest
 import no.nav.amt.deltaker.deltaker.api.model.EndringRequest
 import no.nav.amt.deltaker.deltaker.api.model.InnholdRequest
+import no.nav.amt.deltaker.deltaker.api.model.StartdatoRequest
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.DeltakerEndring
@@ -37,6 +38,11 @@ class DeltakerEndringService(
                     deltakelsesprosent = request.deltakelsesprosent?.toFloat(),
                     dagerPerUke = request.dagerPerUke?.toFloat(),
                 )
+                Pair(endretDeltaker(deltaker, endring), endring)
+            }
+
+            is StartdatoRequest -> {
+                val endring = DeltakerEndring.Endring.EndreStartdato(request.startdato)
                 Pair(endretDeltaker(deltaker, endring), endring)
             }
         }
@@ -90,7 +96,11 @@ class DeltakerEndringService(
             }
             is DeltakerEndring.Endring.EndreSluttarsak -> TODO()
             is DeltakerEndring.Endring.EndreSluttdato -> TODO()
-            is DeltakerEndring.Endring.EndreStartdato -> TODO()
+            is DeltakerEndring.Endring.EndreStartdato -> {
+                endreDeltaker(deltaker.startdato != endring.startdato) {
+                    deltaker.copy(startdato = endring.startdato)
+                }
+            }
             is DeltakerEndring.Endring.ForlengDeltakelse -> TODO()
             is DeltakerEndring.Endring.IkkeAktuell -> TODO()
         }
