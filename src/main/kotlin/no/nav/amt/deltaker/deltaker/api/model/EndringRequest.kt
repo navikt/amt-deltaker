@@ -18,3 +18,10 @@ data class InnholdRequest(
     override val endretAvEnhet: String,
     val innhold: List<Innhold>,
 ) : EndringRequest
+
+data class DeltakelsesmengdeRequest(
+    override val endretAv: String,
+    override val endretAvEnhet: String,
+    val deltakelsesprosent: Int?,
+    val dagerPerUke: Int?,
+) : EndringRequest
