@@ -13,6 +13,7 @@ import no.nav.amt.deltaker.application.plugins.configureRouting
 import no.nav.amt.deltaker.application.plugins.configureSerialization
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.api.model.BakgrunnsinformasjonRequest
+import no.nav.amt.deltaker.deltaker.api.model.DeltakelsesmengdeRequest
 import no.nav.amt.deltaker.deltaker.api.model.InnholdRequest
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
 import no.nav.amt.deltaker.deltaker.model.Innhold
@@ -35,6 +36,7 @@ class DeltakerApiTest {
         setUpTestApplication()
         client.post("/deltaker/${UUID.randomUUID()}/bakgrunnsinformasjon") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
         client.post("/deltaker/${UUID.randomUUID()}/innhold") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
+        client.post("/deltaker/${UUID.randomUUID()}/deltakelsesmengde") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
     }
 
     @Test
@@ -64,6 +66,24 @@ class DeltakerApiTest {
                     TestData.randomIdent(),
                     TestData.randomEnhetsnummer(),
                     listOf(Innhold("Tekst", "kode", true, null)),
+                ),
+            )
+        }.apply {
+            status shouldBe HttpStatusCode.OK
+        }
+    }
+
+    @Test
+    fun `post deltakelsesmengde - har tilgang - returnerer 200`() = testApplication {
+        setUpTestApplication()
+
+        client.post("/deltaker/${UUID.randomUUID()}/deltakelsesmengde") {
+            postRequest(
+                DeltakelsesmengdeRequest(
+                    TestData.randomIdent(),
+                    TestData.randomEnhetsnummer(),
+                    50,
+                    2,
                 ),
             )
         }.apply {

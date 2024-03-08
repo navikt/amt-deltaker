@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.deltaker
 
 import no.nav.amt.deltaker.deltaker.api.model.BakgrunnsinformasjonRequest
+import no.nav.amt.deltaker.deltaker.api.model.DeltakelsesmengdeRequest
 import no.nav.amt.deltaker.deltaker.api.model.EndringRequest
 import no.nav.amt.deltaker.deltaker.api.model.InnholdRequest
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
@@ -28,6 +29,14 @@ class DeltakerEndringService(
 
             is InnholdRequest -> {
                 val endring = DeltakerEndring.Endring.EndreInnhold(request.innhold)
+                Pair(endretDeltaker(deltaker, endring), endring)
+            }
+
+            is DeltakelsesmengdeRequest -> {
+                val endring = DeltakerEndring.Endring.EndreDeltakelsesmengde(
+                    deltakelsesprosent = request.deltakelsesprosent?.toFloat(),
+                    dagerPerUke = request.dagerPerUke?.toFloat(),
+                )
                 Pair(endretDeltaker(deltaker, endring), endring)
             }
         }
@@ -66,7 +75,14 @@ class DeltakerEndringService(
                 }
             }
 
-            is DeltakerEndring.Endring.EndreDeltakelsesmengde -> TODO()
+            is DeltakerEndring.Endring.EndreDeltakelsesmengde -> {
+                endreDeltaker(deltaker.deltakelsesprosent != endring.deltakelsesprosent || deltaker.dagerPerUke != endring.dagerPerUke) {
+                    deltaker.copy(
+                        deltakelsesprosent = endring.deltakelsesprosent,
+                        dagerPerUke = endring.dagerPerUke,
+                    )
+                }
+            }
             is DeltakerEndring.Endring.EndreInnhold -> {
                 endreDeltaker(deltaker.innhold != endring.innhold) {
                     deltaker.copy(innhold = endring.innhold)

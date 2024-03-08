@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.deltaker
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.deltaker.api.model.BakgrunnsinformasjonRequest
+import no.nav.amt.deltaker.deltaker.api.model.DeltakelsesmengdeRequest
 import no.nav.amt.deltaker.deltaker.api.model.InnholdRequest
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.model.DeltakerEndring
@@ -116,5 +117,37 @@ class DeltakerEndringServiceTest {
 
         (endring.endring as DeltakerEndring.Endring.EndreInnhold)
             .innhold shouldBe endringsrequest.innhold
+    }
+
+    @Test
+    fun `upsertEndring - endret deltakelsesmengde - upserter endring og returnerer deltaker`(): Unit = runBlocking {
+        val deltaker = TestData.lagDeltaker()
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+
+        TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
+
+        val endringsrequest = DeltakelsesmengdeRequest(
+            endretAv = endretAv.navIdent,
+            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            deltakelsesprosent = 50,
+            dagerPerUke = null,
+        )
+
+        val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)
+
+        resultat.isSuccess shouldBe true
+        val oppdatertDeltaker = resultat.getOrThrow()
+        oppdatertDeltaker.deltakelsesprosent shouldBe endringsrequest.deltakelsesprosent?.toFloat()
+        oppdatertDeltaker.dagerPerUke shouldBe null
+
+        val endring = deltakerEndringService.getForDeltaker(deltaker.id).first()
+        endring.endretAv shouldBe endretAv.id
+        endring.endretAvEnhet shouldBe endretAvEnhet.id
+
+        (endring.endring as DeltakerEndring.Endring.EndreDeltakelsesmengde)
+            .deltakelsesprosent shouldBe endringsrequest.deltakelsesprosent
+        (endring.endring as DeltakerEndring.Endring.EndreDeltakelsesmengde)
+            .dagerPerUke shouldBe endringsrequest.dagerPerUke
     }
 }

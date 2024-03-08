@@ -9,6 +9,7 @@ import io.ktor.server.routing.Routing
 import io.ktor.server.routing.post
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.api.model.BakgrunnsinformasjonRequest
+import no.nav.amt.deltaker.deltaker.api.model.DeltakelsesmengdeRequest
 import no.nav.amt.deltaker.deltaker.api.model.InnholdRequest
 import java.util.UUID
 
@@ -26,6 +27,14 @@ fun Routing.registerDeltakerApi(
 
         post("/deltaker/{deltakerId}/innhold") {
             val request = call.receive<InnholdRequest>()
+            val deltakerId = UUID.fromString(call.parameters["deltakerId"])
+
+            deltakerService.upsertEndretDeltaker(deltakerId, request)
+            call.respond(HttpStatusCode.OK)
+        }
+
+        post("/deltaker/{deltakerId}/deltakelsesmengde") {
+            val request = call.receive<DeltakelsesmengdeRequest>()
             val deltakerId = UUID.fromString(call.parameters["deltakerId"])
 
             deltakerService.upsertEndretDeltaker(deltakerId, request)
