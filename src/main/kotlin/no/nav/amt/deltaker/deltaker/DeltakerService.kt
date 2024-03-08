@@ -36,7 +36,9 @@ class DeltakerService(
     suspend fun upsertEndretDeltaker(deltakerId: UUID, request: EndringRequest) {
         val deltaker = get(deltakerId).getOrThrow()
 
-        deltakerEndringService.upsertEndring(deltaker, request).onSuccess { upsertDeltaker(it) }
+        deltakerEndringService
+            .upsertEndring(deltaker, request)
+            .onSuccess { endretDeltaker -> upsertDeltaker(endretDeltaker) }
     }
 }
 
