@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.job
 
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
+import no.nav.amt.deltaker.deltaker.DeltakerEndringService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
@@ -20,8 +21,7 @@ import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
 import no.nav.amt.deltaker.utils.SingletonPostgresContainer
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
-import no.nav.amt.deltaker.utils.mockAmtPersonServiceClientNavAnsatt
-import no.nav.amt.deltaker.utils.mockAmtPersonServiceClientNavEnhet
+import no.nav.amt.deltaker.utils.mockAmtPersonClient
 import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test
@@ -34,12 +34,13 @@ class DeltakerStatusOppdateringServiceTest {
         lateinit var deltakerStatusOppdateringService: DeltakerStatusOppdateringService
         private lateinit var deltakerService: DeltakerService
 
-        private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonServiceClientNavAnsatt())
-        private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonServiceClientNavEnhet())
+        private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonClient())
+        private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonClient())
         private val deltakerEndringRepository = DeltakerEndringRepository()
         private val vedtakRepository = VedtakRepository()
         private val deltakerHistorikkService = DeltakerHistorikkService(deltakerEndringRepository, vedtakRepository)
         private val deltakerV2MapperService = DeltakerV2MapperService(navAnsattService, navEnhetService, deltakerHistorikkService)
+        private val deltakerEndringService = DeltakerEndringService(deltakerEndringRepository, navAnsattService, navEnhetService)
 
         @JvmStatic
         @BeforeClass
@@ -48,6 +49,7 @@ class DeltakerStatusOppdateringServiceTest {
             deltakerRepository = DeltakerRepository()
             deltakerService = DeltakerService(
                 deltakerRepository,
+                deltakerEndringService,
                 DeltakerProducer(LocalKafkaConfig(SingletonKafkaProvider.getHost()), deltakerV2MapperService),
             )
             deltakerStatusOppdateringService = DeltakerStatusOppdateringService(deltakerRepository, deltakerService)

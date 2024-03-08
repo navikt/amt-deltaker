@@ -21,6 +21,7 @@ import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.auth.AzureAdTokenClient
 import no.nav.amt.deltaker.db.Database
+import no.nav.amt.deltaker.deltaker.DeltakerEndringService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.PameldingService
@@ -119,12 +120,19 @@ fun Application.module() {
     val arrangorService = ArrangorService(arrangorRepository, amtArrangorClient)
     val deltakerHistorikkService = DeltakerHistorikkService(deltakerEndringRepository, vedtakRepository)
     val deltakerV2MapperService = DeltakerV2MapperService(navAnsattService, navEnhetService, deltakerHistorikkService)
+    val deltakerEndringService = DeltakerEndringService(deltakerEndringRepository, navAnsattService, navEnhetService)
 
     val deltakerProducer = DeltakerProducer(deltakerV2MapperService = deltakerV2MapperService)
 
-    val deltakerService = DeltakerService(deltakerRepository, deltakerProducer)
-    val pameldingService =
-        PameldingService(deltakerService, deltakerlisteRepository, navBrukerService, navAnsattService, navEnhetService, vedtakRepository)
+    val deltakerService = DeltakerService(deltakerRepository, deltakerEndringService, deltakerProducer)
+    val pameldingService = PameldingService(
+        deltakerService = deltakerService,
+        deltakerlisteRepository = deltakerlisteRepository,
+        navBrukerService = navBrukerService,
+        navAnsattService = navAnsattService,
+        navEnhetService = navEnhetService,
+        vedtakRepository = vedtakRepository,
+    )
 
     val deltakerStatusOppdateringService = DeltakerStatusOppdateringService(deltakerRepository, deltakerService)
 
@@ -138,7 +146,7 @@ fun Application.module() {
     consumers.forEach { it.run() }
 
     configureAuthentication(environment)
-    configureRouting(pameldingService)
+    configureRouting(pameldingService, deltakerService)
     configureMonitoring()
 
     val statusUpdateJob = StatusUpdateJob(leaderElection, attributes, deltakerStatusOppdateringService)
