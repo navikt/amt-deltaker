@@ -15,12 +15,14 @@ import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.api.model.BakgrunnsinformasjonRequest
 import no.nav.amt.deltaker.deltaker.api.model.DeltakelsesmengdeRequest
 import no.nav.amt.deltaker.deltaker.api.model.InnholdRequest
+import no.nav.amt.deltaker.deltaker.api.model.StartdatoRequest
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
 import no.nav.amt.deltaker.deltaker.model.Innhold
 import no.nav.amt.deltaker.utils.configureEnvForAuthentication
 import no.nav.amt.deltaker.utils.data.TestData
 import org.junit.Before
 import org.junit.Test
+import java.time.LocalDate
 import java.util.UUID
 
 class DeltakerApiTest {
@@ -37,6 +39,7 @@ class DeltakerApiTest {
         client.post("/deltaker/${UUID.randomUUID()}/bakgrunnsinformasjon") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
         client.post("/deltaker/${UUID.randomUUID()}/innhold") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
         client.post("/deltaker/${UUID.randomUUID()}/deltakelsesmengde") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
+        client.post("/deltaker/${UUID.randomUUID()}/startdato") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
     }
 
     @Test
@@ -84,6 +87,23 @@ class DeltakerApiTest {
                     TestData.randomEnhetsnummer(),
                     50,
                     2,
+                ),
+            )
+        }.apply {
+            status shouldBe HttpStatusCode.OK
+        }
+    }
+
+    @Test
+    fun `post startdato - har tilgang - returnerer 200`() = testApplication {
+        setUpTestApplication()
+
+        client.post("/deltaker/${UUID.randomUUID()}/startdato") {
+            postRequest(
+                StartdatoRequest(
+                    TestData.randomIdent(),
+                    TestData.randomEnhetsnummer(),
+                    LocalDate.now(),
                 ),
             )
         }.apply {
