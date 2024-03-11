@@ -40,7 +40,8 @@ class DeltakerV2MapperService(
             status = DeltakerV2Dto.DeltakerStatusDto(
                 id = deltaker.status.id,
                 type = deltaker.status.type,
-                aarsak = deltaker.status.aarsak,
+                aarsak = deltaker.status.aarsak?.type,
+                aarsaksbeskrivelse = deltaker.status.aarsak?.beskrivelse,
                 gyldigFra = deltaker.status.gyldigFra,
                 opprettetDato = deltaker.status.opprettet,
             ),
