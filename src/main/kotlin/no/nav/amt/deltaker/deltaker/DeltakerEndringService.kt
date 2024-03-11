@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.deltaker
 import no.nav.amt.deltaker.deltaker.api.model.BakgrunnsinformasjonRequest
 import no.nav.amt.deltaker.deltaker.api.model.DeltakelsesmengdeRequest
 import no.nav.amt.deltaker.deltaker.api.model.EndringRequest
+import no.nav.amt.deltaker.deltaker.api.model.ForlengDeltakelseRequest
 import no.nav.amt.deltaker.deltaker.api.model.InnholdRequest
 import no.nav.amt.deltaker.deltaker.api.model.SluttarsakRequest
 import no.nav.amt.deltaker.deltaker.api.model.SluttdatoRequest
@@ -56,6 +57,11 @@ class DeltakerEndringService(
 
             is SluttarsakRequest -> {
                 val endring = DeltakerEndring.Endring.EndreSluttarsak(request.aarsak)
+                Pair(endretDeltaker(deltaker, endring), endring)
+            }
+
+            is ForlengDeltakelseRequest -> {
+                val endring = DeltakerEndring.Endring.ForlengDeltakelse(request.sluttdato)
                 Pair(endretDeltaker(deltaker, endring), endring)
             }
         }
@@ -120,7 +126,11 @@ class DeltakerEndringService(
                     deltaker.copy(startdato = endring.startdato)
                 }
             }
-            is DeltakerEndring.Endring.ForlengDeltakelse -> TODO()
+            is DeltakerEndring.Endring.ForlengDeltakelse -> {
+                endreDeltaker(deltaker.sluttdato != endring.sluttdato) {
+                    deltaker.copy(sluttdato = endring.sluttdato)
+                }
+            }
             is DeltakerEndring.Endring.IkkeAktuell -> TODO()
         }
     }
