@@ -16,6 +16,7 @@ import no.nav.amt.deltaker.application.plugins.configureSerialization
 import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerService
+import no.nav.amt.deltaker.deltaker.api.model.AvsluttDeltakelseRequest
 import no.nav.amt.deltaker.deltaker.api.model.BakgrunnsinformasjonRequest
 import no.nav.amt.deltaker.deltaker.api.model.DeltakelsesmengdeRequest
 import no.nav.amt.deltaker.deltaker.api.model.ForlengDeltakelseRequest
@@ -57,6 +58,7 @@ class DeltakerApiTest {
         client.post("/deltaker/${UUID.randomUUID()}/sluttarsak") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
         client.post("/deltaker/${UUID.randomUUID()}/forleng") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
         client.post("/deltaker/${UUID.randomUUID()}/ikke-aktuell") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
+        client.post("/deltaker/${UUID.randomUUID()}/avslutt") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
     }
 
     @Test
@@ -263,6 +265,33 @@ class DeltakerApiTest {
                 IkkeAktuellRequest(
                     TestData.randomIdent(),
                     TestData.randomEnhetsnummer(),
+                    endring.aarsak,
+                ),
+            )
+        }.apply {
+            status shouldBe HttpStatusCode.OK
+            bodyAsText() shouldBe objectMapper.writeValueAsString(deltaker.toDeltakerEndringResponse(historikk))
+        }
+    }
+
+    @Test
+    fun `post avslutt deltakelse - har tilgang - returnerer 200`() = testApplication {
+        setUpTestApplication()
+
+        val endring = DeltakerEndring.Endring.AvsluttDeltakelse(DeltakerEndring.Aarsak(type = DeltakerEndring.Aarsak.Type.FATT_JOBB, null), LocalDate.now())
+
+        val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.HAR_SLUTTET, aarsak = DeltakerStatus.Aarsak.Type.valueOf(endring.aarsak.type.name)), sluttdato = endring.sluttdato)
+        val historikk = listOf(DeltakerHistorikk.Endring(TestData.lagDeltakerEndring(endring = endring)))
+
+        coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
+        coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
+
+        client.post("/deltaker/${UUID.randomUUID()}/avslutt") {
+            postRequest(
+                AvsluttDeltakelseRequest(
+                    TestData.randomIdent(),
+                    TestData.randomEnhetsnummer(),
+                    endring.sluttdato,
                     endring.aarsak,
                 ),
             )

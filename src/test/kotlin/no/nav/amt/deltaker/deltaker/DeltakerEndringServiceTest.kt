@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.deltaker
 
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
+import no.nav.amt.deltaker.deltaker.api.model.AvsluttDeltakelseRequest
 import no.nav.amt.deltaker.deltaker.api.model.BakgrunnsinformasjonRequest
 import no.nav.amt.deltaker.deltaker.api.model.DeltakelsesmengdeRequest
 import no.nav.amt.deltaker.deltaker.api.model.ForlengDeltakelseRequest
@@ -295,5 +296,38 @@ class DeltakerEndringServiceTest {
 
         (endring.endring as DeltakerEndring.Endring.IkkeAktuell)
             .aarsak shouldBe endringsrequest.aarsak
+    }
+
+    @Test
+    fun `upsertEndring - avslutt deltakelse - upserter endring og returnerer deltaker`(): Unit = runBlocking {
+        val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR), sluttdato = LocalDate.now().plusMonths(1))
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+
+        TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
+
+        val endringsrequest = AvsluttDeltakelseRequest(
+            endretAv = endretAv.navIdent,
+            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            sluttdato = LocalDate.now(),
+            aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
+        )
+
+        val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)
+
+        resultat.isSuccess shouldBe true
+        val deltakerFraDb = resultat.getOrThrow()
+        deltakerFraDb.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+        deltakerFraDb.status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
+        deltakerFraDb.sluttdato shouldBe endringsrequest.sluttdato
+
+        val endring = deltakerEndringService.getForDeltaker(deltaker.id).first()
+        endring.endretAv shouldBe endretAv.id
+        endring.endretAvEnhet shouldBe endretAvEnhet.id
+
+        (endring.endring as DeltakerEndring.Endring.AvsluttDeltakelse)
+            .aarsak shouldBe endringsrequest.aarsak
+        (endring.endring as DeltakerEndring.Endring.AvsluttDeltakelse)
+            .sluttdato shouldBe endringsrequest.sluttdato
     }
 }

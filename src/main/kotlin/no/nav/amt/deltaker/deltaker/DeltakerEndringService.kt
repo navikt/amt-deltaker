@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.deltaker
 
+import no.nav.amt.deltaker.deltaker.api.model.AvsluttDeltakelseRequest
 import no.nav.amt.deltaker.deltaker.api.model.BakgrunnsinformasjonRequest
 import no.nav.amt.deltaker.deltaker.api.model.DeltakelsesmengdeRequest
 import no.nav.amt.deltaker.deltaker.api.model.EndringRequest
@@ -70,6 +71,11 @@ class DeltakerEndringService(
                 val endring = DeltakerEndring.Endring.IkkeAktuell(request.aarsak)
                 Pair(endretDeltaker(deltaker, endring), endring)
             }
+
+            is AvsluttDeltakelseRequest -> {
+                val endring = DeltakerEndring.Endring.AvsluttDeltakelse(request.aarsak, request.sluttdato)
+                Pair(endretDeltaker(deltaker, endring), endring)
+            }
         }
 
         if (endretDeltaker.isSuccess) {
@@ -99,7 +105,14 @@ class DeltakerEndringService(
         }
 
         return when (endring) {
-            is DeltakerEndring.Endring.AvsluttDeltakelse -> TODO()
+            is DeltakerEndring.Endring.AvsluttDeltakelse -> {
+                endreDeltaker(endring.sluttdato != deltaker.sluttdato || deltaker.status.aarsak != endring.aarsak.toDeltakerStatusAarsak()) {
+                    deltaker.copy(
+                        sluttdato = endring.sluttdato,
+                        status = nyDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET, endring.aarsak.toDeltakerStatusAarsak()),
+                    )
+                }
+            }
             is DeltakerEndring.Endring.EndreBakgrunnsinformasjon -> {
                 endreDeltaker(deltaker.bakgrunnsinformasjon != endring.bakgrunnsinformasjon) {
                     deltaker.copy(bakgrunnsinformasjon = endring.bakgrunnsinformasjon)

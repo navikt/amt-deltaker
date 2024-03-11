@@ -57,3 +57,10 @@ data class IkkeAktuellRequest(
     override val endretAvEnhet: String,
     val aarsak: DeltakerEndring.Aarsak,
 ) : EndringRequest
+
+data class AvsluttDeltakelseRequest(
+    override val endretAv: String,
+    override val endretAvEnhet: String,
+    val sluttdato: LocalDate,
+    val aarsak: DeltakerEndring.Aarsak,
+) : EndringRequest
