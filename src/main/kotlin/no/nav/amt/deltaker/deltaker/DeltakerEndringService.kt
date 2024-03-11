@@ -106,7 +106,7 @@ class DeltakerEndringService(
 
         return when (endring) {
             is DeltakerEndring.Endring.AvsluttDeltakelse -> {
-                endreDeltaker(endring.sluttdato != deltaker.sluttdato || deltaker.status.aarsak != endring.aarsak.toDeltakerStatusAarsak()) {
+                endreDeltaker(deltaker.status.type != DeltakerStatus.Type.HAR_SLUTTET || endring.sluttdato != deltaker.sluttdato || deltaker.status.aarsak != endring.aarsak.toDeltakerStatusAarsak()) {
                     deltaker.copy(
                         sluttdato = endring.sluttdato,
                         status = nyDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET, endring.aarsak.toDeltakerStatusAarsak()),
