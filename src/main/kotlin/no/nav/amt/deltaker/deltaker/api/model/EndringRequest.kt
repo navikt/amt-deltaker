@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.deltaker.api.model
 
+import no.nav.amt.deltaker.deltaker.model.DeltakerEndring
 import no.nav.amt.deltaker.deltaker.model.Innhold
 import java.time.LocalDate
 
@@ -31,4 +32,22 @@ data class StartdatoRequest(
     override val endretAv: String,
     override val endretAvEnhet: String,
     val startdato: LocalDate?,
+) : EndringRequest
+
+data class SluttdatoRequest(
+    override val endretAv: String,
+    override val endretAvEnhet: String,
+    val sluttdato: LocalDate,
+) : EndringRequest
+
+data class SluttarsakRequest(
+    override val endretAv: String,
+    override val endretAvEnhet: String,
+    val aarsak: DeltakerEndring.Aarsak,
+) : EndringRequest
+
+data class ForlengDeltakelseRequest(
+    override val endretAv: String,
+    override val endretAvEnhet: String,
+    val sluttdato: LocalDate,
 ) : EndringRequest

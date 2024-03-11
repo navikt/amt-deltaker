@@ -18,12 +18,16 @@ import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.api.model.BakgrunnsinformasjonRequest
 import no.nav.amt.deltaker.deltaker.api.model.DeltakelsesmengdeRequest
+import no.nav.amt.deltaker.deltaker.api.model.ForlengDeltakelseRequest
 import no.nav.amt.deltaker.deltaker.api.model.InnholdRequest
+import no.nav.amt.deltaker.deltaker.api.model.SluttarsakRequest
+import no.nav.amt.deltaker.deltaker.api.model.SluttdatoRequest
 import no.nav.amt.deltaker.deltaker.api.model.StartdatoRequest
 import no.nav.amt.deltaker.deltaker.api.model.toDeltakerEndringResponse
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
 import no.nav.amt.deltaker.deltaker.model.DeltakerEndring
 import no.nav.amt.deltaker.deltaker.model.DeltakerHistorikk
+import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.deltaker.model.Innhold
 import no.nav.amt.deltaker.utils.configureEnvForAuthentication
 import no.nav.amt.deltaker.utils.data.TestData
@@ -48,6 +52,9 @@ class DeltakerApiTest {
         client.post("/deltaker/${UUID.randomUUID()}/innhold") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
         client.post("/deltaker/${UUID.randomUUID()}/deltakelsesmengde") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
         client.post("/deltaker/${UUID.randomUUID()}/startdato") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
+        client.post("/deltaker/${UUID.randomUUID()}/sluttdato") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
+        client.post("/deltaker/${UUID.randomUUID()}/sluttarsak") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
+        client.post("/deltaker/${UUID.randomUUID()}/forleng") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
     }
 
     @Test
@@ -151,6 +158,84 @@ class DeltakerApiTest {
                     TestData.randomIdent(),
                     TestData.randomEnhetsnummer(),
                     endring.startdato,
+                ),
+            )
+        }.apply {
+            status shouldBe HttpStatusCode.OK
+            bodyAsText() shouldBe objectMapper.writeValueAsString(deltaker.toDeltakerEndringResponse(historikk))
+        }
+    }
+
+    @Test
+    fun `post sluttdato - har tilgang - returnerer 200`() = testApplication {
+        setUpTestApplication()
+
+        val endring = DeltakerEndring.Endring.EndreSluttdato(LocalDate.now().minusDays(2))
+
+        val deltaker = TestData.lagDeltaker(sluttdato = endring.sluttdato)
+        val historikk = listOf(DeltakerHistorikk.Endring(TestData.lagDeltakerEndring(endring = endring)))
+
+        coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
+        coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
+
+        client.post("/deltaker/${UUID.randomUUID()}/sluttdato") {
+            postRequest(
+                SluttdatoRequest(
+                    TestData.randomIdent(),
+                    TestData.randomEnhetsnummer(),
+                    endring.sluttdato,
+                ),
+            )
+        }.apply {
+            status shouldBe HttpStatusCode.OK
+            bodyAsText() shouldBe objectMapper.writeValueAsString(deltaker.toDeltakerEndringResponse(historikk))
+        }
+    }
+
+    @Test
+    fun `post sluttarsak - har tilgang - returnerer 200`() = testApplication {
+        setUpTestApplication()
+
+        val endring = DeltakerEndring.Endring.EndreSluttarsak(DeltakerEndring.Aarsak(type = DeltakerEndring.Aarsak.Type.FATT_JOBB, null))
+
+        val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.HAR_SLUTTET, aarsak = DeltakerStatus.Aarsak.Type.valueOf(endring.aarsak.type.name)))
+        val historikk = listOf(DeltakerHistorikk.Endring(TestData.lagDeltakerEndring(endring = endring)))
+
+        coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
+        coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
+
+        client.post("/deltaker/${UUID.randomUUID()}/sluttarsak") {
+            postRequest(
+                SluttarsakRequest(
+                    TestData.randomIdent(),
+                    TestData.randomEnhetsnummer(),
+                    endring.aarsak,
+                ),
+            )
+        }.apply {
+            status shouldBe HttpStatusCode.OK
+            bodyAsText() shouldBe objectMapper.writeValueAsString(deltaker.toDeltakerEndringResponse(historikk))
+        }
+    }
+
+    @Test
+    fun `post forleng - har tilgang - returnerer 200`() = testApplication {
+        setUpTestApplication()
+
+        val endring = DeltakerEndring.Endring.ForlengDeltakelse(LocalDate.now().plusWeeks(2))
+
+        val deltaker = TestData.lagDeltaker(sluttdato = endring.sluttdato)
+        val historikk = listOf(DeltakerHistorikk.Endring(TestData.lagDeltakerEndring(endring = endring)))
+
+        coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
+        coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
+
+        client.post("/deltaker/${UUID.randomUUID()}/forleng") {
+            postRequest(
+                ForlengDeltakelseRequest(
+                    TestData.randomIdent(),
+                    TestData.randomEnhetsnummer(),
+                    endring.sluttdato,
                 ),
             )
         }.apply {

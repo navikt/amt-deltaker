@@ -3,11 +3,15 @@ package no.nav.amt.deltaker.deltaker
 import no.nav.amt.deltaker.deltaker.api.model.BakgrunnsinformasjonRequest
 import no.nav.amt.deltaker.deltaker.api.model.DeltakelsesmengdeRequest
 import no.nav.amt.deltaker.deltaker.api.model.EndringRequest
+import no.nav.amt.deltaker.deltaker.api.model.ForlengDeltakelseRequest
 import no.nav.amt.deltaker.deltaker.api.model.InnholdRequest
+import no.nav.amt.deltaker.deltaker.api.model.SluttarsakRequest
+import no.nav.amt.deltaker.deltaker.api.model.SluttdatoRequest
 import no.nav.amt.deltaker.deltaker.api.model.StartdatoRequest
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.DeltakerEndring
+import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
 import java.time.LocalDateTime
@@ -43,6 +47,21 @@ class DeltakerEndringService(
 
             is StartdatoRequest -> {
                 val endring = DeltakerEndring.Endring.EndreStartdato(request.startdato)
+                Pair(endretDeltaker(deltaker, endring), endring)
+            }
+
+            is SluttdatoRequest -> {
+                val endring = DeltakerEndring.Endring.EndreSluttdato(request.sluttdato)
+                Pair(endretDeltaker(deltaker, endring), endring)
+            }
+
+            is SluttarsakRequest -> {
+                val endring = DeltakerEndring.Endring.EndreSluttarsak(request.aarsak)
+                Pair(endretDeltaker(deltaker, endring), endring)
+            }
+
+            is ForlengDeltakelseRequest -> {
+                val endring = DeltakerEndring.Endring.ForlengDeltakelse(request.sluttdato)
                 Pair(endretDeltaker(deltaker, endring), endring)
             }
         }
@@ -94,14 +113,24 @@ class DeltakerEndringService(
                     deltaker.copy(innhold = endring.innhold)
                 }
             }
-            is DeltakerEndring.Endring.EndreSluttarsak -> TODO()
-            is DeltakerEndring.Endring.EndreSluttdato -> TODO()
+            is DeltakerEndring.Endring.EndreSluttdato -> endreDeltaker(endring.sluttdato != deltaker.sluttdato) {
+                deltaker.copy(sluttdato = endring.sluttdato)
+            }
+            is DeltakerEndring.Endring.EndreSluttarsak -> {
+                endreDeltaker(deltaker.status.aarsak != endring.aarsak.toDeltakerStatusAarsak()) {
+                    deltaker.copy(status = nyDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET, endring.aarsak.toDeltakerStatusAarsak()))
+                }
+            }
             is DeltakerEndring.Endring.EndreStartdato -> {
                 endreDeltaker(deltaker.startdato != endring.startdato) {
                     deltaker.copy(startdato = endring.startdato)
                 }
             }
-            is DeltakerEndring.Endring.ForlengDeltakelse -> TODO()
+            is DeltakerEndring.Endring.ForlengDeltakelse -> {
+                endreDeltaker(deltaker.sluttdato != endring.sluttdato) {
+                    deltaker.copy(sluttdato = endring.sluttdato)
+                }
+            }
             is DeltakerEndring.Endring.IkkeAktuell -> TODO()
         }
     }
