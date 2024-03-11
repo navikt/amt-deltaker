@@ -4,6 +4,7 @@ import no.nav.amt.deltaker.deltaker.api.model.BakgrunnsinformasjonRequest
 import no.nav.amt.deltaker.deltaker.api.model.DeltakelsesmengdeRequest
 import no.nav.amt.deltaker.deltaker.api.model.EndringRequest
 import no.nav.amt.deltaker.deltaker.api.model.ForlengDeltakelseRequest
+import no.nav.amt.deltaker.deltaker.api.model.IkkeAktuellRequest
 import no.nav.amt.deltaker.deltaker.api.model.InnholdRequest
 import no.nav.amt.deltaker.deltaker.api.model.SluttarsakRequest
 import no.nav.amt.deltaker.deltaker.api.model.SluttdatoRequest
@@ -62,6 +63,11 @@ class DeltakerEndringService(
 
             is ForlengDeltakelseRequest -> {
                 val endring = DeltakerEndring.Endring.ForlengDeltakelse(request.sluttdato)
+                Pair(endretDeltaker(deltaker, endring), endring)
+            }
+
+            is IkkeAktuellRequest -> {
+                val endring = DeltakerEndring.Endring.IkkeAktuell(request.aarsak)
                 Pair(endretDeltaker(deltaker, endring), endring)
             }
         }
@@ -131,7 +137,11 @@ class DeltakerEndringService(
                     deltaker.copy(sluttdato = endring.sluttdato)
                 }
             }
-            is DeltakerEndring.Endring.IkkeAktuell -> TODO()
+            is DeltakerEndring.Endring.IkkeAktuell -> {
+                endreDeltaker(deltaker.status.aarsak != endring.aarsak.toDeltakerStatusAarsak()) {
+                    deltaker.copy(status = nyDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL, endring.aarsak.toDeltakerStatusAarsak()))
+                }
+            }
         }
     }
 }

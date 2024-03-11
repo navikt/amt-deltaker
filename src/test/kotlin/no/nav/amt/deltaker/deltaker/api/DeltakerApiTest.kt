@@ -19,6 +19,7 @@ import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.api.model.BakgrunnsinformasjonRequest
 import no.nav.amt.deltaker.deltaker.api.model.DeltakelsesmengdeRequest
 import no.nav.amt.deltaker.deltaker.api.model.ForlengDeltakelseRequest
+import no.nav.amt.deltaker.deltaker.api.model.IkkeAktuellRequest
 import no.nav.amt.deltaker.deltaker.api.model.InnholdRequest
 import no.nav.amt.deltaker.deltaker.api.model.SluttarsakRequest
 import no.nav.amt.deltaker.deltaker.api.model.SluttdatoRequest
@@ -55,6 +56,7 @@ class DeltakerApiTest {
         client.post("/deltaker/${UUID.randomUUID()}/sluttdato") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
         client.post("/deltaker/${UUID.randomUUID()}/sluttarsak") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
         client.post("/deltaker/${UUID.randomUUID()}/forleng") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
+        client.post("/deltaker/${UUID.randomUUID()}/ikke-aktuell") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
     }
 
     @Test
@@ -236,6 +238,32 @@ class DeltakerApiTest {
                     TestData.randomIdent(),
                     TestData.randomEnhetsnummer(),
                     endring.sluttdato,
+                ),
+            )
+        }.apply {
+            status shouldBe HttpStatusCode.OK
+            bodyAsText() shouldBe objectMapper.writeValueAsString(deltaker.toDeltakerEndringResponse(historikk))
+        }
+    }
+
+    @Test
+    fun `post ikke aktuell - har tilgang - returnerer 200`() = testApplication {
+        setUpTestApplication()
+
+        val endring = DeltakerEndring.Endring.IkkeAktuell(DeltakerEndring.Aarsak(type = DeltakerEndring.Aarsak.Type.FATT_JOBB, null))
+
+        val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.IKKE_AKTUELL, aarsak = DeltakerStatus.Aarsak.Type.valueOf(endring.aarsak.type.name)))
+        val historikk = listOf(DeltakerHistorikk.Endring(TestData.lagDeltakerEndring(endring = endring)))
+
+        coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
+        coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
+
+        client.post("/deltaker/${UUID.randomUUID()}/ikke-aktuell") {
+            postRequest(
+                IkkeAktuellRequest(
+                    TestData.randomIdent(),
+                    TestData.randomEnhetsnummer(),
+                    endring.aarsak,
                 ),
             )
         }.apply {

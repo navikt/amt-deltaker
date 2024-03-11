@@ -14,6 +14,7 @@ import no.nav.amt.deltaker.deltaker.api.model.BakgrunnsinformasjonRequest
 import no.nav.amt.deltaker.deltaker.api.model.DeltakelsesmengdeRequest
 import no.nav.amt.deltaker.deltaker.api.model.EndringRequest
 import no.nav.amt.deltaker.deltaker.api.model.ForlengDeltakelseRequest
+import no.nav.amt.deltaker.deltaker.api.model.IkkeAktuellRequest
 import no.nav.amt.deltaker.deltaker.api.model.InnholdRequest
 import no.nav.amt.deltaker.deltaker.api.model.SluttarsakRequest
 import no.nav.amt.deltaker.deltaker.api.model.SluttdatoRequest
@@ -57,6 +58,11 @@ fun Routing.registerDeltakerApi(
 
         post("/deltaker/{deltakerId}/forleng") {
             val request = call.receive<ForlengDeltakelseRequest>()
+            handleDeltakerEndring(deltakerService, request, historikkService)
+        }
+
+        post("/deltaker/{deltakerId}/ikke-aktuell") {
+            val request = call.receive<IkkeAktuellRequest>()
             handleDeltakerEndring(deltakerService, request, historikkService)
         }
     }

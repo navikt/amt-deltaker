@@ -73,7 +73,7 @@ data class DeltakerEndring(
         ) : Endring()
 
         data class IkkeAktuell(
-            val aarsak: Aarsak?,
+            val aarsak: Aarsak,
         ) : Endring()
 
         data class AvsluttDeltakelse(
