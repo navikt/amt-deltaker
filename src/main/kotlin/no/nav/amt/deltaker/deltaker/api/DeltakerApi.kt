@@ -10,6 +10,7 @@ import io.ktor.server.routing.post
 import io.ktor.util.pipeline.PipelineContext
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerService
+import no.nav.amt.deltaker.deltaker.api.model.AvsluttDeltakelseRequest
 import no.nav.amt.deltaker.deltaker.api.model.BakgrunnsinformasjonRequest
 import no.nav.amt.deltaker.deltaker.api.model.DeltakelsesmengdeRequest
 import no.nav.amt.deltaker.deltaker.api.model.EndringRequest
@@ -63,6 +64,11 @@ fun Routing.registerDeltakerApi(
 
         post("/deltaker/{deltakerId}/ikke-aktuell") {
             val request = call.receive<IkkeAktuellRequest>()
+            handleDeltakerEndring(deltakerService, request, historikkService)
+        }
+
+        post("/deltaker/{deltakerId}/avslutt") {
+            val request = call.receive<AvsluttDeltakelseRequest>()
             handleDeltakerEndring(deltakerService, request, historikkService)
         }
     }
