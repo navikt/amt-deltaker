@@ -33,12 +33,18 @@ class DeltakerService(
         deltakerRepository.deleteDeltakerOgStatus(deltakerId)
     }
 
-    suspend fun upsertEndretDeltaker(deltakerId: UUID, request: EndringRequest) {
+    suspend fun upsertEndretDeltaker(deltakerId: UUID, request: EndringRequest): Deltaker {
         val deltaker = get(deltakerId).getOrThrow()
 
-        deltakerEndringService
-            .upsertEndring(deltaker, request)
-            .onSuccess { endretDeltaker -> upsertDeltaker(endretDeltaker) }
+        return deltakerEndringService.upsertEndring(deltaker, request).fold(
+            onSuccess = { endretDeltaker ->
+                upsertDeltaker(endretDeltaker)
+                return@fold endretDeltaker
+            },
+            onFailure = {
+                return@fold deltaker
+            },
+        )
     }
 }
 
