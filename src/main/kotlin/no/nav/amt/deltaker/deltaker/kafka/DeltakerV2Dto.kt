@@ -56,7 +56,8 @@ data class DeltakerV2Dto(
     data class DeltakerStatusDto(
         val id: UUID?,
         val type: DeltakerStatus.Type,
-        val aarsak: DeltakerStatus.Aarsak?,
+        val aarsak: DeltakerStatus.Aarsak.Type?,
+        val aarsaksbeskrivelse: String?,
         val gyldigFra: LocalDateTime,
         val opprettetDato: LocalDateTime,
     )
