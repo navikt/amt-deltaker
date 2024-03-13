@@ -7,6 +7,7 @@ import io.ktor.serialization.jackson.jackson
 import io.ktor.server.application.Application
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
+import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.Environment.Companion.HTTP_CLIENT_TIMEOUT_MS
 import no.nav.amt.deltaker.amtperson.AmtPersonServiceClient
 import no.nav.amt.deltaker.application.isReadyKey
@@ -20,11 +21,13 @@ import no.nav.amt.deltaker.arrangor.ArrangorConsumer
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.auth.AzureAdTokenClient
+import no.nav.amt.deltaker.auth.TilgangskontrollService
 import no.nav.amt.deltaker.db.Database
 import no.nav.amt.deltaker.deltaker.DeltakerEndringService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.PameldingService
+import no.nav.amt.deltaker.deltaker.api.model.DeltakelserResponseMapper
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
@@ -45,6 +48,8 @@ import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
 import no.nav.amt.deltaker.navbruker.NavBrukerConsumer
 import no.nav.amt.deltaker.navbruker.NavBrukerRepository
 import no.nav.amt.deltaker.navbruker.NavBrukerService
+import no.nav.poao_tilgang.client.PoaoTilgangCachedClient
+import no.nav.poao_tilgang.client.PoaoTilgangHttpClient
 
 fun main() {
     val server = embeddedServer(Netty, port = 8080, module = Application::module)
@@ -109,6 +114,14 @@ fun Application.module() {
     val deltakerEndringRepository = DeltakerEndringRepository()
     val vedtakRepository = VedtakRepository()
 
+    val poaoTilgangCachedClient = PoaoTilgangCachedClient.createDefaultCacheClient(
+        PoaoTilgangHttpClient(
+            baseUrl = environment.poaoTilgangUrl,
+            tokenProvider = { runBlocking { azureAdTokenClient.getMachineToMachineTokenWithoutType(environment.poaoTilgangScope) } },
+        ),
+    )
+    val tilgangskontrollService = TilgangskontrollService(poaoTilgangCachedClient)
+
     val navAnsattService = NavAnsattService(navAnsattRepository, amtPersonServiceClient)
     val navEnhetService = NavEnhetService(navEnhetRepository, amtPersonServiceClient)
     val navBrukerService = NavBrukerService(
@@ -121,6 +134,7 @@ fun Application.module() {
     val deltakerHistorikkService = DeltakerHistorikkService(deltakerEndringRepository, vedtakRepository)
     val deltakerV2MapperService = DeltakerV2MapperService(navAnsattService, navEnhetService, deltakerHistorikkService)
     val deltakerEndringService = DeltakerEndringService(deltakerEndringRepository, navAnsattService, navEnhetService)
+    val deltakelserResponseMapper = DeltakelserResponseMapper(deltakerHistorikkService, arrangorService)
 
     val deltakerProducer = DeltakerProducer(deltakerV2MapperService = deltakerV2MapperService)
 
@@ -146,7 +160,13 @@ fun Application.module() {
     consumers.forEach { it.run() }
 
     configureAuthentication(environment)
-    configureRouting(pameldingService, deltakerService, deltakerHistorikkService)
+    configureRouting(
+        pameldingService,
+        deltakerService,
+        deltakerHistorikkService,
+        tilgangskontrollService,
+        deltakelserResponseMapper,
+    )
     configureMonitoring()
 
     val statusUpdateJob = StatusUpdateJob(leaderElection, attributes, deltakerStatusOppdateringService)

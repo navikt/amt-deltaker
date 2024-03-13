@@ -12,6 +12,7 @@ import no.nav.amt.deltaker.utils.shouldBeCloseTo
 import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 class DeltakerHistorikkServiceTest {
@@ -87,6 +88,32 @@ class DeltakerHistorikkServiceTest {
         TestRepository.insert(deltaker)
 
         service.getForDeltaker(deltaker.id) shouldBe emptyList()
+    }
+
+    @Test
+    fun `getInnsoktDato - ingen vedtak - returnerer null`() {
+        val deltakerhistorikk = listOf<DeltakerHistorikk>(DeltakerHistorikk.Endring(TestData.lagDeltakerEndring()))
+
+        service.getInnsoktDato(deltakerhistorikk) shouldBe null
+    }
+
+    @Test
+    fun `getInnsoktDato - to vedtak - returnerer tidligste opprettetdato`() {
+        val deltakerhistorikk = listOf(
+            DeltakerHistorikk.Endring(TestData.lagDeltakerEndring()),
+            DeltakerHistorikk.Vedtak(
+                TestData.lagVedtak(
+                    opprettet = LocalDateTime.now().minusMonths(1),
+                ),
+            ),
+            DeltakerHistorikk.Vedtak(
+                TestData.lagVedtak(
+                    opprettet = LocalDateTime.now().minusDays(4),
+                ),
+            ),
+        )
+
+        service.getInnsoktDato(deltakerhistorikk) shouldBe LocalDate.now().minusMonths(1)
     }
 }
 

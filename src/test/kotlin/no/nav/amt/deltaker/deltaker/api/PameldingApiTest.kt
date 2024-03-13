@@ -132,6 +132,8 @@ class PameldingApiTest {
                 pameldingService,
                 deltakerService = mockk(),
                 mockk(),
+                mockk(),
+                mockk(),
             )
         }
     }

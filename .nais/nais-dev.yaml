@@ -43,10 +43,14 @@ spec:
     inbound:
       rules:
         - application: amt-deltaker-bff
+        - application: mulighetsrommet-api
+          namespace: team-mulighetsrommet
     outbound:
       rules:
         - application: amt-person-service
         - application: amt-arrangor
+        - application: poao-tilgang
+          namespace: poao
   secureLogs:
     enabled: true
   leaderElection: true
@@ -61,6 +65,10 @@ spec:
       value: api://dev-gcp.amt.amt-arrangor/.default
     - name: AMT_ARRANGOR_URL
       value: http://amt-arrangor
+    - name: POAO_TILGANG_SCOPE
+      value: api://dev-gcp.poao.poao-tilgang/.default
+    - name: POAO_TILGANG_URL
+      value: http://poao-tilgang.poao
 
   gcp:
     sqlInstances:

@@ -49,7 +49,8 @@ class DeltakerV2MapperService(
             prosentStilling = deltaker.deltakelsesprosent?.toDouble(),
             oppstartsdato = deltaker.startdato,
             sluttdato = deltaker.sluttdato,
-            innsoktDato = getInnsoktDato(deltakerhistorikk),
+            innsoktDato = deltakerHistorikkService.getInnsoktDato(deltakerhistorikk)
+                ?: throw IllegalStateException("Skal ikke produsere deltaker som mangler vedtak til topic"),
             forsteVedtakFattet = getForsteVedtakFattet(deltakerhistorikk),
             bestillingTekst = deltaker.bakgrunnsinformasjon,
             navKontor = deltaker.navBruker.navEnhetId?.let { navEnhetService.hentEllerOpprettNavEnhet(it) }?.enhetsnummer,
@@ -65,12 +66,6 @@ class DeltakerV2MapperService(
             sistEndretAv = getSistEndretAv(sisteEndring),
             sistEndretAvEnhet = getSistEndretAvEnhet(sisteEndring),
         )
-    }
-
-    private fun getInnsoktDato(deltakerhistorikk: List<DeltakerHistorikk>): LocalDate {
-        val vedtak = deltakerhistorikk.filterIsInstance<DeltakerHistorikk.Vedtak>().map { it.vedtak }
-        return vedtak.minByOrNull { it.opprettet }?.opprettet?.toLocalDate()
-            ?: throw IllegalStateException("Skal ikke produsere deltaker som mangler vedtak til topic")
     }
 
     private fun getForsteVedtakFattet(deltakerhistorikk: List<DeltakerHistorikk>): LocalDate? {

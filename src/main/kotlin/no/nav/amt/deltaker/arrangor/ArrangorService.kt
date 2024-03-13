@@ -1,5 +1,7 @@
 package no.nav.amt.deltaker.arrangor
 
+import java.util.UUID
+
 class ArrangorService(
     private val repository: ArrangorRepository,
     private val amtArrangorClient: AmtArrangorClient,
@@ -7,6 +9,10 @@ class ArrangorService(
 
     suspend fun hentArrangor(orgnr: String): Arrangor {
         return repository.get(orgnr) ?: return opprettArrangor(orgnr)
+    }
+
+    fun hentArrangor(id: UUID): Arrangor? {
+        return repository.get(id)
     }
 
     private suspend fun opprettArrangor(orgnr: String): Arrangor {
