@@ -13,10 +13,15 @@ import io.ktor.server.response.respondText
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import no.nav.amt.deltaker.application.registerHealthApi
+import no.nav.amt.deltaker.auth.AuthenticationException
+import no.nav.amt.deltaker.auth.AuthorizationException
+import no.nav.amt.deltaker.auth.TilgangskontrollService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.PameldingService
+import no.nav.amt.deltaker.deltaker.api.model.DeltakelserResponseMapper
 import no.nav.amt.deltaker.deltaker.api.registerDeltakerApi
+import no.nav.amt.deltaker.deltaker.api.registerHentDeltakelserApi
 import no.nav.amt.deltaker.deltaker.api.registerPameldingApi
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -25,11 +30,21 @@ fun Application.configureRouting(
     pameldingService: PameldingService,
     deltakerService: DeltakerService,
     deltakerHistorikkService: DeltakerHistorikkService,
+    tilgangskontrollService: TilgangskontrollService,
+    deltakelserResponseMapper: DeltakelserResponseMapper,
 ) {
     install(StatusPages) {
         exception<IllegalArgumentException> { call, cause ->
             StatusPageLogger.log(HttpStatusCode.BadRequest, call, cause)
             call.respondText(text = "400: ${cause.message}", status = HttpStatusCode.BadRequest)
+        }
+        exception<AuthenticationException> { call, cause ->
+            StatusPageLogger.log(HttpStatusCode.Forbidden, call, cause)
+            call.respondText(text = "401: ${cause.message}", status = HttpStatusCode.Unauthorized)
+        }
+        exception<AuthorizationException> { call, cause ->
+            StatusPageLogger.log(HttpStatusCode.Forbidden, call, cause)
+            call.respondText(text = "403: ${cause.message}", status = HttpStatusCode.Forbidden)
         }
         exception<NoSuchElementException> { call, cause ->
             StatusPageLogger.log(HttpStatusCode.NotFound, call, cause)
@@ -45,6 +60,7 @@ fun Application.configureRouting(
 
         registerPameldingApi(pameldingService)
         registerDeltakerApi(deltakerService, deltakerHistorikkService)
+        registerHentDeltakelserApi(tilgangskontrollService, deltakerService, deltakelserResponseMapper)
 
         val catchAllRoute = "{...}"
         route(catchAllRoute) {

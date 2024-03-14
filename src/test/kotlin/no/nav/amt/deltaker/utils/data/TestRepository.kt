@@ -268,9 +268,9 @@ object TestRepository {
     fun insert(vedtak: Vedtak) = Database.query {
         val sql = """
             insert into vedtak(id, deltaker_id, fattet, gyldig_til, deltaker_ved_vedtak, fattet_av_nav, opprettet_av,
-              opprettet_av_enhet, sist_endret_av, sist_endret_av_enhet, modified_at) 
+              opprettet_av_enhet, sist_endret_av, sist_endret_av_enhet, modified_at, created_at) 
             values (:id, :deltaker_id, :fattet, :gyldig_til, :deltaker_ved_vedtak, :fattet_av_nav, :opprettet_av,
-              :opprettet_av_enhet, :sist_endret_av, :sist_endret_av_enhet, :sist_endret) 
+              :opprettet_av_enhet, :sist_endret_av, :sist_endret_av_enhet, :sist_endret, :created_at) 
             on conflict (id) do nothing;
         """.trimIndent()
 
@@ -286,6 +286,7 @@ object TestRepository {
             "sist_endret_av" to vedtak.sistEndretAv,
             "sist_endret_av_enhet" to vedtak.sistEndretAvEnhet,
             "sist_endret" to vedtak.sistEndret,
+            "created_at" to vedtak.opprettet,
         )
 
         it.update(queryOf(sql, params))

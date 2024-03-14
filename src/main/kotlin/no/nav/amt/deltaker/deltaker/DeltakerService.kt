@@ -21,6 +21,9 @@ class DeltakerService(
     fun getDeltakelser(personident: String, deltakerlisteId: UUID) =
         deltakerRepository.getMany(personident, deltakerlisteId)
 
+    fun getDeltakelser(personident: String) =
+        deltakerRepository.getMany(personident)
+
     suspend fun upsertDeltaker(oppdatertDeltaker: Deltaker) {
         deltakerRepository.upsert(oppdatertDeltaker)
         if (oppdatertDeltaker.status.type != DeltakerStatus.Type.KLADD) {

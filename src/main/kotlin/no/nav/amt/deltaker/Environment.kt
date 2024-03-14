@@ -26,6 +26,8 @@ data class Environment(
         ),
     ).let { objectMapper.readValue(it) },
     val electorPath: String = getEnvVar(ELECTOR_PATH),
+    val poaoTilgangUrl: String = getEnvVar(POAO_TILGANG_URL_KEY),
+    val poaoTilgangScope: String = getEnvVar(POAO_TILGANG_SCOPE_KEY),
 ) {
 
     companion object {
@@ -54,6 +56,9 @@ data class Environment(
         const val AZURE_OPENID_CONFIG_JWKS_URI_KEY = "AZURE_OPENID_CONFIG_JWKS_URI"
         const val AZURE_OPENID_CONFIG_ISSUER_KEY = "AZURE_OPENID_CONFIG_ISSUER"
         const val AZURE_APP_PRE_AUTHORIZED_APPS = "AZURE_APP_PRE_AUTHORIZED_APPS"
+
+        const val POAO_TILGANG_URL_KEY = "POAO_TILGANG_URL"
+        const val POAO_TILGANG_SCOPE_KEY = "POAO_TILGANG_SCOPE"
 
         const val ELECTOR_PATH = "ELECTOR_PATH"
 

@@ -309,6 +309,8 @@ class DeltakerApiTest {
                 mockk(),
                 deltakerService,
                 deltakerHistorikkService,
+                mockk(),
+                mockk(),
             )
         }
     }

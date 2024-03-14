@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.deltaker
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.model.DeltakerHistorikk
+import java.time.LocalDate
 import java.util.UUID
 
 class DeltakerHistorikkService(
@@ -24,5 +25,10 @@ class DeltakerHistorikkService(
             }
 
         return historikk
+    }
+
+    fun getInnsoktDato(deltakerhistorikk: List<DeltakerHistorikk>): LocalDate? {
+        val vedtak = deltakerhistorikk.filterIsInstance<DeltakerHistorikk.Vedtak>().map { it.vedtak }
+        return vedtak.minByOrNull { it.opprettet }?.opprettet?.toLocalDate()
     }
 }

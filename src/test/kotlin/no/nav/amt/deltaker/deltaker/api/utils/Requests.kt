@@ -8,6 +8,7 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
 import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.utils.generateJWT
+import java.util.UUID
 
 internal fun HttpRequestBuilder.postRequest(body: Any) {
     header(
@@ -23,6 +24,24 @@ internal fun HttpRequestBuilder.postRequest(body: Any) {
     contentType(ContentType.Application.Json)
     setBody(objectMapper.writeValueAsString(body))
 }
+
+internal fun HttpRequestBuilder.postVeilederRequest(body: Any) {
+    val navAnsattAzureId = UUID.randomUUID()
+    header(
+        HttpHeaders.Authorization,
+        "Bearer ${
+            generateJWT(
+                oid = navAnsattAzureId.toString(),
+                consumerClientId = "frontend-clientid",
+                audience = "amt-deltaker",
+            )
+        }",
+    )
+    header("aktiv-enhet", "0101")
+    contentType(ContentType.Application.Json)
+    setBody(objectMapper.writeValueAsString(body))
+}
+
 internal fun HttpRequestBuilder.noBodyRequest() {
     header(
         HttpHeaders.Authorization,
