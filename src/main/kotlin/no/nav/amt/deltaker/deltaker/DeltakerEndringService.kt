@@ -145,7 +145,7 @@ class DeltakerEndringService(
                 endreDeltaker(deltaker.startdato != endring.startdato) {
                     deltaker.copy(
                         startdato = endring.startdato,
-                        status = if (deltaker.status.type == DeltakerStatus.Type.VENTER_PA_OPPSTART && endring.startdato?.isBefore(LocalDate.now()) == true) {
+                        status = if (deltaker.status.type == DeltakerStatus.Type.VENTER_PA_OPPSTART && (endring.startdato != null && !endring.startdato.isAfter(LocalDate.now()))) {
                             nyDeltakerStatus(DeltakerStatus.Type.DELTAR)
                         } else {
                             deltaker.status
