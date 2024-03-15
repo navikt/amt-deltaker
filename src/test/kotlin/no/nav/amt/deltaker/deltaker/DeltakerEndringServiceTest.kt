@@ -161,7 +161,7 @@ class DeltakerEndringServiceTest {
 
     @Test
     fun `upsertEndring - endret startdato - upserter endring og returnerer deltaker`(): Unit = runBlocking {
-        val deltaker = TestData.lagDeltaker()
+        val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR))
         val endretAv = TestData.lagNavAnsatt()
         val endretAvEnhet = TestData.lagNavEnhet()
 
@@ -171,14 +171,16 @@ class DeltakerEndringServiceTest {
             endretAv = endretAv.navIdent,
             endretAvEnhet = endretAvEnhet.enhetsnummer,
             startdato = LocalDate.now().minusWeeks(1),
+            sluttdato = LocalDate.now().plusWeeks(4),
         )
 
         val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)
 
         resultat.isSuccess shouldBe true
         val deltakerFraDb = resultat.getOrThrow()
-        deltakerFraDb.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+        deltakerFraDb.status.type shouldBe DeltakerStatus.Type.DELTAR
         deltakerFraDb.startdato shouldBe endringsrequest.startdato
+        deltakerFraDb.sluttdato shouldBe endringsrequest.sluttdato
 
         val endring = deltakerEndringService.getForDeltaker(deltaker.id).first()
         endring.endretAv shouldBe endretAv.id
@@ -186,6 +188,8 @@ class DeltakerEndringServiceTest {
 
         (endring.endring as DeltakerEndring.Endring.EndreStartdato)
             .startdato shouldBe endringsrequest.startdato
+        (endring.endring as DeltakerEndring.Endring.EndreStartdato)
+            .sluttdato shouldBe endringsrequest.sluttdato
     }
 
     @Test
@@ -200,6 +204,7 @@ class DeltakerEndringServiceTest {
             endretAv = endretAv.navIdent,
             endretAvEnhet = endretAvEnhet.enhetsnummer,
             startdato = LocalDate.now().minusWeeks(1),
+            sluttdato = LocalDate.now().plusWeeks(4),
         )
 
         val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)
@@ -208,6 +213,7 @@ class DeltakerEndringServiceTest {
         val deltakerFraDb = resultat.getOrThrow()
         deltakerFraDb.status.type shouldBe DeltakerStatus.Type.DELTAR
         deltakerFraDb.startdato shouldBe endringsrequest.startdato
+        deltakerFraDb.sluttdato shouldBe endringsrequest.sluttdato
 
         val endring = deltakerEndringService.getForDeltaker(deltaker.id).first()
         endring.endretAv shouldBe endretAv.id
@@ -215,6 +221,8 @@ class DeltakerEndringServiceTest {
 
         (endring.endring as DeltakerEndring.Endring.EndreStartdato)
             .startdato shouldBe endringsrequest.startdato
+        (endring.endring as DeltakerEndring.Endring.EndreStartdato)
+            .sluttdato shouldBe endringsrequest.sluttdato
     }
 
     @Test

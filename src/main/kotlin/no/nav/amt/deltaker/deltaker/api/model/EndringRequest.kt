@@ -32,6 +32,7 @@ data class StartdatoRequest(
     override val endretAv: String,
     override val endretAvEnhet: String,
     val startdato: LocalDate?,
+    val sluttdato: LocalDate?,
 ) : EndringRequest
 
 data class SluttdatoRequest(
