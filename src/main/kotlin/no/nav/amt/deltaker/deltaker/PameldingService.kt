@@ -4,15 +4,11 @@ import no.nav.amt.deltaker.deltaker.api.model.AvbrytUtkastRequest
 import no.nav.amt.deltaker.deltaker.api.model.KladdResponse
 import no.nav.amt.deltaker.deltaker.api.model.UtkastRequest
 import no.nav.amt.deltaker.deltaker.api.model.toKladdResponse
-import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
-import no.nav.amt.deltaker.deltaker.model.Vedtak
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
-import no.nav.amt.deltaker.navansatt.NavAnsatt
 import no.nav.amt.deltaker.navansatt.NavAnsattService
-import no.nav.amt.deltaker.navansatt.navenhet.NavEnhet
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
 import no.nav.amt.deltaker.navbruker.NavBrukerService
 import no.nav.amt.deltaker.navbruker.model.NavBruker
@@ -27,7 +23,7 @@ class PameldingService(
     private val navBrukerService: NavBrukerService,
     private val navAnsattService: NavAnsattService,
     private val navEnhetService: NavEnhetService,
-    private val vedtakRepository: VedtakRepository,
+    private val vedtakService: VedtakService,
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -89,23 +85,15 @@ class PameldingService(
         val endretAv = navAnsattService.hentEllerOpprettNavAnsatt(utkast.endretAv)
         val endretAvNavEnhet = navEnhetService.hentEllerOpprettNavEnhet(utkast.endretAvEnhet)
 
-        val vedtak = vedtakRepository.getIkkeFattet(deltakerId)
-
-        val oppdatertVedtak = oppdatertVedtak(
-            original = vedtak,
-            godkjentAvNav = utkast.godkjentAvNav,
-            endretAv = endretAv,
-            endretAvNavEnhet = endretAvNavEnhet,
+        val vedtak = vedtakService.oppdaterVedtak(
             deltaker = oppdatertDeltaker,
-            fattet = if (utkast.godkjentAvNav) {
-                LocalDateTime.now()
-            } else {
-                null
-            },
+            endretAv = endretAv,
+            endretAvEnhet = endretAvNavEnhet,
+            fattet = utkast.godkjentAvNav,
+            fattetAvNav = utkast.godkjentAvNav,
         )
-        vedtakRepository.upsert(oppdatertVedtak)
 
-        deltakerService.upsertDeltaker(oppdatertDeltaker.copy(vedtaksinformasjon = oppdatertVedtak.tilVedtaksinformasjon()))
+        deltakerService.upsertDeltaker(oppdatertDeltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksinformasjon()))
 
         log.info("Upsertet utkast for deltaker med id $deltakerId, meldt på direkte: ${utkast.godkjentAvNav}")
     }
@@ -128,19 +116,9 @@ class PameldingService(
         val endretAv = navAnsattService.hentEllerOpprettNavAnsatt(avbrytUtkastRequest.avbruttAv)
         val endretAvNavEnhet = navEnhetService.hentEllerOpprettNavEnhet(avbrytUtkastRequest.avbruttAvEnhet)
 
-        val vedtak = vedtakRepository.getIkkeFattet(deltakerId)
+        val vedtak = vedtakService.avbrytVedtak(oppdatertDeltaker, endretAv, endretAvNavEnhet)
 
-        val oppdatertVedtak = oppdatertVedtak(
-            original = vedtak,
-            godkjentAvNav = vedtak?.fattetAvNav ?: false,
-            endretAv = endretAv,
-            endretAvNavEnhet = endretAvNavEnhet,
-            deltaker = oppdatertDeltaker,
-            gyldigTil = LocalDateTime.now(),
-        )
-        vedtakRepository.upsert(oppdatertVedtak)
-
-        deltakerService.upsertDeltaker(oppdatertDeltaker.copy(vedtaksinformasjon = oppdatertVedtak.tilVedtaksinformasjon()))
+        deltakerService.upsertDeltaker(oppdatertDeltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksinformasjon()))
 
         log.info("Avbrutt utkast for deltaker med id $deltakerId")
     }
@@ -170,29 +148,6 @@ class PameldingService(
             }
         }
     }
-
-    private fun oppdatertVedtak(
-        original: Vedtak?,
-        godkjentAvNav: Boolean,
-        endretAv: NavAnsatt,
-        endretAvNavEnhet: NavEnhet,
-        deltaker: Deltaker,
-        fattet: LocalDateTime? = null,
-        gyldigTil: LocalDateTime? = null,
-    ) = Vedtak(
-        id = original?.id ?: UUID.randomUUID(),
-        deltakerId = deltaker.id,
-        fattet = fattet,
-        gyldigTil = gyldigTil,
-        deltakerVedVedtak = deltaker.toDeltakerVedVedtak(),
-        fattetAvNav = godkjentAvNav,
-        opprettetAv = original?.opprettetAv ?: endretAv.id,
-        opprettetAvEnhet = original?.opprettetAvEnhet ?: endretAvNavEnhet.id,
-        opprettet = original?.opprettet ?: LocalDateTime.now(),
-        sistEndretAv = endretAv.id,
-        sistEndretAvEnhet = endretAvNavEnhet.id,
-        sistEndret = LocalDateTime.now(),
-    )
 
     private fun nyDeltakerKladd(
         navBruker: NavBruker,

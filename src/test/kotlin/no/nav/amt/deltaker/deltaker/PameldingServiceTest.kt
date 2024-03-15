@@ -48,6 +48,7 @@ class PameldingServiceTest {
         )
 
         private val vedtakRepository = VedtakRepository()
+        private val vedtakService = VedtakService(vedtakRepository)
 
         private var pameldingService = PameldingService(
             deltakerService = deltakerService,
@@ -60,7 +61,7 @@ class PameldingServiceTest {
             ),
             navAnsattService = navAnsattService,
             navEnhetService = navEnhetService,
-            vedtakRepository = vedtakRepository,
+            vedtakService = vedtakService,
         )
 
         @JvmStatic

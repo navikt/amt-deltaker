@@ -27,6 +27,7 @@ import no.nav.amt.deltaker.deltaker.DeltakerEndringService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.PameldingService
+import no.nav.amt.deltaker.deltaker.VedtakService
 import no.nav.amt.deltaker.deltaker.api.model.DeltakelserResponseMapper
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
@@ -138,6 +139,7 @@ fun Application.module() {
 
     val deltakerProducer = DeltakerProducer(deltakerV2MapperService = deltakerV2MapperService)
 
+    val vedtakService = VedtakService(vedtakRepository)
     val deltakerService = DeltakerService(deltakerRepository, deltakerEndringService, deltakerProducer)
     val pameldingService = PameldingService(
         deltakerService = deltakerService,
@@ -145,7 +147,7 @@ fun Application.module() {
         navBrukerService = navBrukerService,
         navAnsattService = navAnsattService,
         navEnhetService = navEnhetService,
-        vedtakRepository = vedtakRepository,
+        vedtakService = vedtakService,
     )
 
     val deltakerStatusOppdateringService = DeltakerStatusOppdateringService(deltakerRepository, deltakerService)
@@ -166,6 +168,7 @@ fun Application.module() {
         deltakerHistorikkService,
         tilgangskontrollService,
         deltakelserResponseMapper,
+        vedtakService,
     )
     configureMonitoring()
 
