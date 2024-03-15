@@ -259,7 +259,9 @@ class DeltakerEndringServiceTest {
         val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)
 
         resultat.isSuccess shouldBe true
-        resultat.getOrThrow().sluttdato shouldBe endringsrequest.sluttdato
+        val deltakerFraDb = resultat.getOrThrow()
+        deltakerFraDb.sluttdato shouldBe endringsrequest.sluttdato
+        deltakerFraDb.status.type shouldBe DeltakerStatus.Type.DELTAR
 
         val endring = deltakerEndringService.getForDeltaker(deltaker.id).first()
         endring.endretAv shouldBe endretAv.id
@@ -289,6 +291,8 @@ class DeltakerEndringServiceTest {
         val deltakerFraDb = resultat.getOrThrow()
         deltakerFraDb.status.type shouldBe DeltakerStatus.Type.IKKE_AKTUELL
         deltakerFraDb.status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
+        deltakerFraDb.startdato shouldBe null
+        deltakerFraDb.sluttdato shouldBe null
 
         val endring = deltakerEndringService.getForDeltaker(deltaker.id).first()
         endring.endretAv shouldBe endretAv.id
