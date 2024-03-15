@@ -16,6 +16,7 @@ import no.nav.amt.deltaker.deltaker.model.DeltakerEndring
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -142,17 +143,35 @@ class DeltakerEndringService(
             }
             is DeltakerEndring.Endring.EndreStartdato -> {
                 endreDeltaker(deltaker.startdato != endring.startdato) {
-                    deltaker.copy(startdato = endring.startdato)
+                    deltaker.copy(
+                        startdato = endring.startdato,
+                        status = if (deltaker.status.type == DeltakerStatus.Type.VENTER_PA_OPPSTART && (endring.startdato != null && !endring.startdato.isAfter(LocalDate.now()))) {
+                            nyDeltakerStatus(DeltakerStatus.Type.DELTAR)
+                        } else {
+                            deltaker.status
+                        },
+                    )
                 }
             }
             is DeltakerEndring.Endring.ForlengDeltakelse -> {
                 endreDeltaker(deltaker.sluttdato != endring.sluttdato) {
-                    deltaker.copy(sluttdato = endring.sluttdato)
+                    deltaker.copy(
+                        sluttdato = endring.sluttdato,
+                        status = if (deltaker.status.type == DeltakerStatus.Type.HAR_SLUTTET && endring.sluttdato.isAfter(LocalDate.now())) {
+                            nyDeltakerStatus(DeltakerStatus.Type.DELTAR)
+                        } else {
+                            deltaker.status
+                        },
+                    )
                 }
             }
             is DeltakerEndring.Endring.IkkeAktuell -> {
                 endreDeltaker(deltaker.status.aarsak != endring.aarsak.toDeltakerStatusAarsak()) {
-                    deltaker.copy(status = nyDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL, endring.aarsak.toDeltakerStatusAarsak()))
+                    deltaker.copy(
+                        status = nyDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL, endring.aarsak.toDeltakerStatusAarsak()),
+                        startdato = null,
+                        sluttdato = null,
+                    )
                 }
             }
         }
