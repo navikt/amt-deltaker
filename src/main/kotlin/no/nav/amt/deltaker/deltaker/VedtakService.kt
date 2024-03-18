@@ -12,13 +12,13 @@ class VedtakService(
     private val repository: VedtakRepository,
 ) {
     fun avbrytVedtak(
-        deltaker: Deltaker,
+        deltakerId: UUID,
         avbruttAv: NavAnsatt,
         avbruttAvNavEnhet: NavEnhet,
     ): Vedtak {
-        val ikkeFattetVedtak = repository.getIkkeFattet(deltaker.id)
+        val ikkeFattetVedtak = repository.getIkkeFattet(deltakerId)
         require(ikkeFattetVedtak != null) {
-            "Deltaker ${deltaker.id} har ikke et vedtak som kan avbrytes"
+            "Deltaker $deltakerId har ikke et vedtak som kan avbrytes"
         }
 
         val avbruttVedtak = ikkeFattetVedtak.copy(
@@ -33,7 +33,7 @@ class VedtakService(
         return avbruttVedtak
     }
 
-    fun oppdaterVedtak(
+    fun oppdaterEllerOpprettVedtak(
         deltaker: Deltaker,
         endretAv: NavAnsatt,
         endretAvEnhet: NavEnhet,
@@ -58,7 +58,7 @@ class VedtakService(
     fun fattVedtak(id: UUID): Vedtak {
         val vedtak = repository.get(id)
 
-        require(vedtak != null && vedtak.fattet != null) {
+        require(vedtak != null && vedtak.fattet == null) {
             "Vedtak $id kan ikke fattes"
         }
 

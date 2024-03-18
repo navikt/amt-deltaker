@@ -61,7 +61,7 @@ fun Application.configureRouting(
         registerHealthApi()
 
         registerPameldingApi(pameldingService)
-        registerDeltakerApi(deltakerService, deltakerHistorikkService, vedtakService)
+        registerDeltakerApi(deltakerService, deltakerHistorikkService)
         registerHentDeltakelserApi(tilgangskontrollService, deltakerService, deltakelserResponseMapper)
 
         val catchAllRoute = "{...}"
