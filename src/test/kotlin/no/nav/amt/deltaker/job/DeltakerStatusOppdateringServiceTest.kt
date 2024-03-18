@@ -5,6 +5,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.deltaker.DeltakerEndringService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerService
+import no.nav.amt.deltaker.deltaker.VedtakService
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
@@ -41,6 +42,7 @@ class DeltakerStatusOppdateringServiceTest {
         private val deltakerHistorikkService = DeltakerHistorikkService(deltakerEndringRepository, vedtakRepository)
         private val deltakerV2MapperService = DeltakerV2MapperService(navAnsattService, navEnhetService, deltakerHistorikkService)
         private val deltakerEndringService = DeltakerEndringService(deltakerEndringRepository, navAnsattService, navEnhetService)
+        private val vedtakService = VedtakService(vedtakRepository)
 
         @JvmStatic
         @BeforeClass
@@ -51,6 +53,7 @@ class DeltakerStatusOppdateringServiceTest {
                 deltakerRepository,
                 deltakerEndringService,
                 DeltakerProducer(LocalKafkaConfig(SingletonKafkaProvider.getHost()), deltakerV2MapperService),
+                vedtakService,
             )
             deltakerStatusOppdateringService = DeltakerStatusOppdateringService(deltakerRepository, deltakerService)
         }

@@ -37,6 +37,9 @@ class PameldingServiceTest {
         private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonClient())
         private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonClient())
 
+        private val vedtakRepository = VedtakRepository()
+        private val vedtakService = VedtakService(vedtakRepository)
+
         private val deltakerService = DeltakerService(
             deltakerRepository = DeltakerRepository(),
             deltakerProducer = mockk(relaxed = true),
@@ -45,9 +48,8 @@ class PameldingServiceTest {
                 navAnsattService,
                 navEnhetService,
             ),
+            vedtakService = vedtakService,
         )
-
-        private val vedtakRepository = VedtakRepository()
 
         private var pameldingService = PameldingService(
             deltakerService = deltakerService,
@@ -60,7 +62,7 @@ class PameldingServiceTest {
             ),
             navAnsattService = navAnsattService,
             navEnhetService = navEnhetService,
-            vedtakRepository = vedtakRepository,
+            vedtakService = vedtakService,
         )
 
         @JvmStatic

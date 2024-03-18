@@ -71,6 +71,16 @@ fun Routing.registerDeltakerApi(
             val request = call.receive<AvsluttDeltakelseRequest>()
             handleDeltakerEndring(deltakerService, request, historikkService)
         }
+
+        post("/deltaker/{deltakerId}/vedtak/{vedtakId}/fatt") {
+            val deltakerId = UUID.fromString(call.parameters["deltakerId"])
+            val vedtakId = UUID.fromString(call.parameters["vedtakId"])
+
+            val deltaker = deltakerService.fattVedtak(deltakerId, vedtakId)
+            val historikk = historikkService.getForDeltaker(deltaker.id)
+
+            call.respond(deltaker.toDeltakerEndringResponse(historikk))
+        }
     }
 }
 

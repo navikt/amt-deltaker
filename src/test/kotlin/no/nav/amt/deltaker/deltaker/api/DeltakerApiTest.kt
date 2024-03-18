@@ -59,6 +59,7 @@ class DeltakerApiTest {
         client.post("/deltaker/${UUID.randomUUID()}/forleng") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
         client.post("/deltaker/${UUID.randomUUID()}/ikke-aktuell") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
         client.post("/deltaker/${UUID.randomUUID()}/avslutt") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
+        client.post("/deltaker/${UUID.randomUUID()}/vedtak/${UUID.randomUUID()}/fatt") { setBody("") }.status shouldBe HttpStatusCode.Unauthorized
     }
 
     @Test
@@ -302,6 +303,26 @@ class DeltakerApiTest {
         }
     }
 
+    @Test
+    fun `fatt vedtak - har tilgang - returnerer 200`() = testApplication {
+        setUpTestApplication()
+
+        val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.VENTER_PA_OPPSTART))
+        val vedtak = TestData.lagVedtak(deltakerVedVedtak = deltaker)
+
+        val historikk = listOf(DeltakerHistorikk.Vedtak(vedtak))
+
+        coEvery { deltakerService.fattVedtak(any(), any()) } returns deltaker
+        coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
+
+        client.post("/deltaker/${deltaker.id}/vedtak/${vedtak.id}/fatt") {
+            postRequest("")
+        }.apply {
+            status shouldBe HttpStatusCode.OK
+            bodyAsText() shouldBe objectMapper.writeValueAsString(deltaker.toDeltakerEndringResponse(historikk))
+        }
+    }
+
     private fun ApplicationTestBuilder.setUpTestApplication() {
         application {
             configureSerialization()
@@ -310,6 +331,7 @@ class DeltakerApiTest {
                 mockk(),
                 deltakerService,
                 deltakerHistorikkService,
+                mockk(),
                 mockk(),
                 mockk(),
             )

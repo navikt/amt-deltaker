@@ -13,6 +13,7 @@ class DeltakerService(
     private val deltakerRepository: DeltakerRepository,
     private val deltakerEndringService: DeltakerEndringService,
     private val deltakerProducer: DeltakerProducer,
+    private val vedtakService: VedtakService,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -54,6 +55,21 @@ class DeltakerService(
         getDeltakelser(personident).forEach {
             deltakerProducer.produce(it)
         }
+    }
+
+    suspend fun fattVedtak(deltakerId: UUID, vedtakId: UUID): Deltaker {
+        vedtakService.fattVedtak(vedtakId)
+
+        val deltaker = get(deltakerId).getOrThrow().let {
+            if (it.status.type == DeltakerStatus.Type.UTKAST_TIL_PAMELDING) {
+                it.copy(status = nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
+            } else {
+                it
+            }
+        }
+
+        upsertDeltaker(deltaker)
+        return deltaker
     }
 }
 

@@ -214,6 +214,7 @@ class HentDeltakelserApiTest {
                 deltakerHistorikkService,
                 tilgangskontrollService,
                 deltakelserResponseMapper,
+                mockk(),
             )
         }
     }

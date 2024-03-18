@@ -21,6 +21,7 @@ import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.utils.mockAmtPersonClient
 import no.nav.amt.deltaker.utils.shouldBeCloseTo
+import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test
@@ -33,6 +34,7 @@ class DeltakerServiceTest {
         private val deltakerRepository = DeltakerRepository()
         private val deltakerEndringRepository = DeltakerEndringRepository()
         private val vedtakRepository = VedtakRepository()
+        private val vedtakService = VedtakService(vedtakRepository)
         private val deltakerHistorikkService = DeltakerHistorikkService(deltakerEndringRepository, vedtakRepository)
         private val deltakerV2MapperService =
             DeltakerV2MapperService(navAnsattService, navEnhetService, deltakerHistorikkService)
@@ -46,6 +48,7 @@ class DeltakerServiceTest {
                 deltakerV2MapperService,
             ),
             deltakerEndringService = deltakerEndringService,
+            vedtakService = vedtakService,
         )
 
         @JvmStatic
@@ -165,5 +168,68 @@ class DeltakerServiceTest {
 
             assertProduced(deltaker.id)
         }
+    }
+
+    @Test
+    fun `fattVedtak - deltaker har status utkast - oppretter ny status og upserter`() {
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+        )
+        val vedtak = TestData.lagVedtak(deltakerVedVedtak = deltaker)
+        val ansatt = TestData.lagNavAnsatt(id = vedtak.opprettetAv)
+        val enhet = TestData.lagNavEnhet(id = vedtak.opprettetAvEnhet)
+        TestRepository.insertAll(deltaker, ansatt, enhet, vedtak)
+
+        runBlocking {
+            deltakerService.fattVedtak(deltaker.id, vedtak.id)
+        }
+
+        assertProduced(deltaker.id)
+        val oppdatertDeltaker = deltakerService.get(deltaker.id).getOrThrow()
+
+        oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
+        oppdatertDeltaker.vedtaksinformasjon!!.fattet shouldBeCloseTo LocalDateTime.now()
+    }
+
+    @Test
+    fun `fattVedtak - deltaker har ikke status utkast - upserter uten å endre status`() {
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+        )
+        val vedtak = TestData.lagVedtak(deltakerVedVedtak = deltaker)
+        val ansatt = TestData.lagNavAnsatt(id = vedtak.opprettetAv)
+        val enhet = TestData.lagNavEnhet(id = vedtak.opprettetAvEnhet)
+        TestRepository.insertAll(deltaker, ansatt, enhet, vedtak)
+
+        runBlocking {
+            deltakerService.fattVedtak(deltaker.id, vedtak.id)
+        }
+
+        assertProduced(deltaker.id)
+        val oppdatertDeltaker = deltakerService.get(deltaker.id).getOrThrow()
+
+        oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.DELTAR
+        oppdatertDeltaker.vedtaksinformasjon!!.fattet shouldBeCloseTo LocalDateTime.now()
+    }
+
+    @Test
+    fun `fattVedtak - vedtak kunne ikke fattes - upserter ikke`() {
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+        )
+        val vedtak = TestData.lagVedtak(deltakerVedVedtak = deltaker, fattet = LocalDateTime.now())
+        val ansatt = TestData.lagNavAnsatt(id = vedtak.opprettetAv)
+        val enhet = TestData.lagNavEnhet(id = vedtak.opprettetAvEnhet)
+        TestRepository.insertAll(deltaker, ansatt, enhet, vedtak)
+
+        assertThrows(IllegalArgumentException::class.java) {
+            runBlocking {
+                deltakerService.fattVedtak(deltaker.id, vedtak.id)
+            }
+        }
+
+        val ikkeOppdatertDeltaker = deltakerService.get(deltaker.id).getOrThrow()
+
+        ikkeOppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.UTKAST_TIL_PAMELDING
     }
 }

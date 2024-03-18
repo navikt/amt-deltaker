@@ -84,12 +84,20 @@ object TestData {
         adressebeskyttelse,
     )
 
+    private val tiltakstypeCache = mutableMapOf<Tiltakstype.Type, Tiltakstype>()
+
     fun lagTiltakstype(
         id: UUID = UUID.randomUUID(),
         type: Tiltakstype.Type = Tiltakstype.Type.entries.random(),
         navn: String = "Test tiltak $type",
-        innhold: DeltakerRegistreringInnhold = lagDeltakerRegistreringInnhold(),
-    ) = Tiltakstype(id, navn, type, innhold)
+        innhold: DeltakerRegistreringInnhold? = lagDeltakerRegistreringInnhold(),
+    ): Tiltakstype {
+        val tiltak = tiltakstypeCache[type] ?: Tiltakstype(id, navn, type, innhold)
+        val nyttTiltak = tiltak.copy(navn = navn, innhold = innhold)
+        tiltakstypeCache[tiltak.type] = nyttTiltak
+
+        return nyttTiltak
+    }
 
     fun lagDeltakerRegistreringInnhold(
         innholdselementer: List<Innholdselement> = listOf(Innholdselement("Tekst", "kode")),
@@ -175,6 +183,22 @@ object TestData {
                 postboksadresse = null,
             ),
         )
+    fun lagDeltakerKladd(
+        id: UUID = UUID.randomUUID(),
+        navBruker: NavBruker = lagNavBruker(),
+        deltakerliste: Deltakerliste = lagDeltakerliste(),
+    ) = lagDeltaker(
+        id = id,
+        navBruker = navBruker,
+        deltakerliste = deltakerliste,
+        startdato = null,
+        sluttdato = null,
+        dagerPerUke = null,
+        deltakelsesprosent = null,
+        bakgrunnsinformasjon = null,
+        innhold = emptyList(),
+        status = lagDeltakerStatus(type = DeltakerStatus.Type.KLADD),
+    )
 
     fun lagDeltaker(
         id: UUID = UUID.randomUUID(),
