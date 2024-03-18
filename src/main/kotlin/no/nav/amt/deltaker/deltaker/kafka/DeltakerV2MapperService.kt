@@ -77,7 +77,7 @@ class DeltakerV2MapperService(
     }
 
     private fun getSisteEndring(deltakerhistorikk: List<DeltakerHistorikk>): DeltakerHistorikk {
-        return deltakerhistorikk.lastOrNull()
+        return deltakerhistorikk.firstOrNull()
             ?: throw IllegalStateException("Deltaker må ha minst et vedtak for å produseres til topic")
     }
 

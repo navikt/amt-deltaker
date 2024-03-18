@@ -49,6 +49,12 @@ class DeltakerService(
             },
         )
     }
+
+    suspend fun produserDeltakereForPerson(personident: String) {
+        getDeltakelser(personident).forEach {
+            deltakerProducer.produce(it)
+        }
+    }
 }
 
 fun nyDeltakerStatus(type: DeltakerStatus.Type, aarsak: DeltakerStatus.Aarsak? = null) = DeltakerStatus(
