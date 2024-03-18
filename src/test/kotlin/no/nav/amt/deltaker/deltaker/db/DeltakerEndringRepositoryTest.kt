@@ -7,6 +7,7 @@ import no.nav.amt.deltaker.utils.SingletonPostgresContainer
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.utils.shouldBeCloseTo
+import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test
 
@@ -20,6 +21,11 @@ class DeltakerEndringRepositoryTest {
             SingletonPostgresContainer.start()
             repository = DeltakerEndringRepository()
         }
+    }
+
+    @Before
+    fun cleanDatabase() {
+        TestRepository.cleanDatabase()
     }
 
     @Test

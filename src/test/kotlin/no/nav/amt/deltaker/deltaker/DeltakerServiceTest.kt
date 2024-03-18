@@ -140,4 +140,30 @@ class DeltakerServiceTest {
 
         deltakerService.get(deltaker.id).getOrThrow().sistEndret shouldBeCloseTo deltaker.sistEndret
     }
+
+    @Test
+    fun `produserDeltakereForPerson - deltaker finnes - publiserer til kafka`() {
+        val sistEndretAv = TestData.lagNavAnsatt()
+        val sistEndretAvEnhet = TestData.lagNavEnhet()
+        TestRepository.insert(sistEndretAv)
+        TestRepository.insert(sistEndretAvEnhet)
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+        )
+        TestRepository.insert(deltaker)
+        val vedtak = TestData.lagVedtak(
+            deltakerId = deltaker.id,
+            deltakerVedVedtak = deltaker,
+            opprettetAv = sistEndretAv,
+            opprettetAvEnhet = sistEndretAvEnhet,
+            fattet = LocalDateTime.now(),
+        )
+        TestRepository.insert(vedtak)
+
+        runBlocking {
+            deltakerService.produserDeltakereForPerson(deltaker.navBruker.personident)
+
+            assertProduced(deltaker.id)
+        }
+    }
 }
