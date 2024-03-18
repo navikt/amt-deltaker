@@ -49,7 +49,7 @@ class DeltakerEndringService(
             }
 
             is StartdatoRequest -> {
-                val endring = DeltakerEndring.Endring.EndreStartdato(request.startdato)
+                val endring = DeltakerEndring.Endring.EndreStartdato(startdato = request.startdato, sluttdato = request.sluttdato)
                 Pair(endretDeltaker(deltaker, endring), endring)
             }
 
@@ -142,9 +142,10 @@ class DeltakerEndringService(
                 }
             }
             is DeltakerEndring.Endring.EndreStartdato -> {
-                endreDeltaker(deltaker.startdato != endring.startdato) {
+                endreDeltaker(deltaker.startdato != endring.startdato || deltaker.sluttdato != endring.sluttdato) {
                     deltaker.copy(
                         startdato = endring.startdato,
+                        sluttdato = endring.sluttdato,
                         status = if (deltaker.status.type == DeltakerStatus.Type.VENTER_PA_OPPSTART && (endring.startdato != null && !endring.startdato.isAfter(LocalDate.now()))) {
                             nyDeltakerStatus(DeltakerStatus.Type.DELTAR)
                         } else {

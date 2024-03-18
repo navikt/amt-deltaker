@@ -148,7 +148,7 @@ class DeltakerApiTest {
     fun `post startdato - har tilgang - returnerer 200`() = testApplication {
         setUpTestApplication()
 
-        val endring = DeltakerEndring.Endring.EndreStartdato(LocalDate.now().minusDays(2))
+        val endring = DeltakerEndring.Endring.EndreStartdato(LocalDate.now().minusDays(2), LocalDate.now().plusMonths(2))
 
         val deltaker = TestData.lagDeltaker(startdato = endring.startdato)
         val historikk = listOf(DeltakerHistorikk.Endring(TestData.lagDeltakerEndring(endring = endring)))
@@ -162,6 +162,7 @@ class DeltakerApiTest {
                     TestData.randomIdent(),
                     TestData.randomEnhetsnummer(),
                     endring.startdato,
+                    endring.sluttdato,
                 ),
             )
         }.apply {
