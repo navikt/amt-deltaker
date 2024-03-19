@@ -78,3 +78,12 @@ spec:
         databases:
           - name: amt-deltaker
             envVarPrefix: DB
+
+  observability:
+      autoInstrumentation:
+        enabled: true
+        runtime: java
+      logging:
+        destinations:
+          - id: elastic
+          - id: loki
