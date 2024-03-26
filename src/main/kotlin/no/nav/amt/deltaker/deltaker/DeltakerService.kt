@@ -56,8 +56,6 @@ class DeltakerService(
     }
 
     suspend fun fattVedtak(deltakerId: UUID, vedtakId: UUID): Deltaker {
-        vedtakService.fattVedtak(vedtakId)
-
         val deltaker = get(deltakerId).getOrThrow().let {
             if (it.status.type == DeltakerStatus.Type.UTKAST_TIL_PAMELDING) {
                 it.copy(status = nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
@@ -65,6 +63,8 @@ class DeltakerService(
                 it
             }
         }
+
+        vedtakService.fattVedtak(vedtakId, deltaker)
 
         upsertDeltaker(deltaker)
         return deltaker
