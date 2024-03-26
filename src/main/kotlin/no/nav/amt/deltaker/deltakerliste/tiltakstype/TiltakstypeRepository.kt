@@ -19,22 +19,23 @@ class TiltakstypeRepository {
     )
 
     fun upsert(tiltakstype: Tiltakstype) = Database.query {
-        val sql = """
-        INSERT INTO tiltakstype(
-            id, 
-            navn, 
-            type, 
-            innhold)
-        VALUES (:id,
-        		:navn,
-        		:type,
-        		:innhold)
-        ON CONFLICT (id) DO UPDATE SET
-        		navn     		    = :navn,
-        		type				= :type,
-        		innhold 			= :innhold,
-                modified_at         = current_timestamp
-        """.trimIndent()
+        val sql =
+            """
+            INSERT INTO tiltakstype(
+                id, 
+                navn, 
+                type, 
+                innhold)
+            VALUES (:id,
+            		:navn,
+            		:type,
+            		:innhold)
+            ON CONFLICT (id) DO UPDATE SET
+            		navn     		    = :navn,
+            		type				= :type,
+            		innhold 			= :innhold,
+                    modified_at         = current_timestamp
+            """.trimIndent()
 
         it.update(
             queryOf(
@@ -54,12 +55,12 @@ class TiltakstypeRepository {
     fun get(type: Tiltakstype.Type) = Database.query {
         val query = queryOf(
             """
-                SELECT id,
-                   navn,
-                   type,
-                   innhold
-                FROM tiltakstype
-                WHERE type = :type
+            SELECT id,
+               navn,
+               type,
+               innhold
+            FROM tiltakstype
+            WHERE type = :type
             """.trimIndent(),
             mapOf("type" to type.name),
         ).map(::rowMapper).asSingle

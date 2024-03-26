@@ -121,7 +121,11 @@ class DeltakelserResponseMapperTest {
                 arrangor = arrangor,
                 tiltakstype = TestData.lagTiltakstype(type = Tiltakstype.Type.INDOPPFAG, navn = "Oppfølging"),
             ),
-            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.IKKE_AKTUELL, aarsak = DeltakerStatus.Aarsak.Type.ANNET, beskrivelse = "flyttet til Spania"),
+            status = TestData.lagDeltakerStatus(
+                type = DeltakerStatus.Type.IKKE_AKTUELL,
+                aarsak = DeltakerStatus.Aarsak.Type.ANNET,
+                beskrivelse = "flyttet til Spania",
+            ),
         )
         val vedtak = TestData.lagVedtak(
             deltakerId = deltaker.id,
@@ -141,7 +145,10 @@ class DeltakelserResponseMapperTest {
         historiskDeltakelse.deltakerId shouldBe deltaker.id
         historiskDeltakelse.innsoktDato shouldBe LocalDate.now().minusDays(4)
         historiskDeltakelse.periode shouldBe null
-        historiskDeltakelse.historiskStatus shouldBe HistoriskDeltakelse.HistoriskStatus(HistoriskDeltakelse.HistoriskStatusType.IKKE_AKTUELL, "flyttet til Spania")
+        historiskDeltakelse.historiskStatus shouldBe HistoriskDeltakelse.HistoriskStatus(
+            HistoriskDeltakelse.HistoriskStatusType.IKKE_AKTUELL,
+            "flyttet til Spania",
+        )
         historiskDeltakelse.tittel shouldBe "Oppfølging hos Arrangør"
         historiskDeltakelse.tiltakstype shouldBe DeltakelserResponse.Tiltakstype("Oppfølging", Tiltakstype.Type.INDOPPFAG)
     }

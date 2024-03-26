@@ -18,17 +18,16 @@ data class Vedtak(
     val sistEndretAv: UUID,
     val sistEndretAvEnhet: UUID,
 ) {
-    fun tilVedtaksinformasjon(): Deltaker.Vedtaksinformasjon =
-        Deltaker.Vedtaksinformasjon(
-            fattet = fattet,
-            fattetAvNav = fattetAvNav,
-            opprettet = opprettet,
-            opprettetAv = opprettetAv,
-            opprettetAvEnhet = opprettetAvEnhet,
-            sistEndret = sistEndret,
-            sistEndretAv = sistEndretAv,
-            sistEndretAvEnhet = sistEndretAvEnhet,
-        )
+    fun tilVedtaksinformasjon(): Deltaker.Vedtaksinformasjon = Deltaker.Vedtaksinformasjon(
+        fattet = fattet,
+        fattetAvNav = fattetAvNav,
+        opprettet = opprettet,
+        opprettetAv = opprettetAv,
+        opprettetAvEnhet = opprettetAvEnhet,
+        sistEndret = sistEndret,
+        sistEndretAv = sistEndretAv,
+        sistEndretAvEnhet = sistEndretAvEnhet,
+    )
 }
 
 data class DeltakerVedVedtak(

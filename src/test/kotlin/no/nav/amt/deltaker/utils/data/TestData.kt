@@ -115,27 +115,22 @@ object TestData {
         oppstart: Deltakerliste.Oppstartstype? = finnOppstartstype(tiltakstype.type),
     ) = Deltakerliste(id, tiltakstype, navn, status, startDato, sluttDato, oppstart, arrangor)
 
-    fun lagDeltakerlisteDto(
-        arrangor: Arrangor = lagArrangor(),
-        deltakerliste: Deltakerliste = lagDeltakerliste(arrangor = arrangor),
-    ) = DeltakerlisteDto(
-        id = deltakerliste.id,
-        tiltakstype = DeltakerlisteDto.Tiltakstype(
-            deltakerliste.tiltakstype.navn,
-            deltakerliste.tiltakstype.type.name,
-        ),
-        navn = deltakerliste.navn,
-        startDato = deltakerliste.startDato,
-        sluttDato = deltakerliste.sluttDato,
-        status = deltakerliste.status.name,
-        virksomhetsnummer = arrangor.organisasjonsnummer,
-        oppstart = deltakerliste.oppstart,
-    )
+    fun lagDeltakerlisteDto(arrangor: Arrangor = lagArrangor(), deltakerliste: Deltakerliste = lagDeltakerliste(arrangor = arrangor)) =
+        DeltakerlisteDto(
+            id = deltakerliste.id,
+            tiltakstype = DeltakerlisteDto.Tiltakstype(
+                deltakerliste.tiltakstype.navn,
+                deltakerliste.tiltakstype.type.name,
+            ),
+            navn = deltakerliste.navn,
+            startDato = deltakerliste.startDato,
+            sluttDato = deltakerliste.sluttDato,
+            status = deltakerliste.status.name,
+            virksomhetsnummer = arrangor.organisasjonsnummer,
+            oppstart = deltakerliste.oppstart,
+        )
 
-    fun lagNavBrukerDto(
-        navBruker: NavBruker,
-        navEnhet: NavEnhet,
-    ) = NavBrukerDto(
+    fun lagNavBrukerDto(navBruker: NavBruker, navEnhet: NavEnhet) = NavBrukerDto(
         personId = navBruker.personId,
         personident = navBruker.personident,
         fornavn = navBruker.fornavn,
@@ -150,39 +145,37 @@ object TestData {
         adressebeskyttelse = navBruker.adressebeskyttelse,
     )
 
-    fun lagNavEnhetDto(
-        navEnhet: NavEnhet,
-    ) = NavEnhetDto(
+    fun lagNavEnhetDto(navEnhet: NavEnhet) = NavEnhetDto(
         id = navEnhet.id,
         enhetId = navEnhet.enhetsnummer,
         navn = navEnhet.navn,
     )
 
-    fun lagAdresse(): Adresse =
-        Adresse(
-            bostedsadresse = Bostedsadresse(
-                coAdressenavn = "C/O Gutterommet",
-                vegadresse = null,
-                matrikkeladresse = Matrikkeladresse(
-                    tilleggsnavn = "Gården",
-                    postnummer = "0484",
-                    poststed = "OSLO",
-                ),
+    fun lagAdresse(): Adresse = Adresse(
+        bostedsadresse = Bostedsadresse(
+            coAdressenavn = "C/O Gutterommet",
+            vegadresse = null,
+            matrikkeladresse = Matrikkeladresse(
+                tilleggsnavn = "Gården",
+                postnummer = "0484",
+                poststed = "OSLO",
             ),
-            oppholdsadresse = null,
-            kontaktadresse = Kontaktadresse(
-                coAdressenavn = null,
-                vegadresse = Vegadresse(
-                    husnummer = "1",
-                    husbokstav = null,
-                    adressenavn = "Gate",
-                    tilleggsnavn = null,
-                    postnummer = "1234",
-                    poststed = "MOSS",
-                ),
-                postboksadresse = null,
+        ),
+        oppholdsadresse = null,
+        kontaktadresse = Kontaktadresse(
+            coAdressenavn = null,
+            vegadresse = Vegadresse(
+                husnummer = "1",
+                husbokstav = null,
+                adressenavn = "Gate",
+                tilleggsnavn = null,
+                postnummer = "1234",
+                poststed = "MOSS",
             ),
-        )
+            postboksadresse = null,
+        ),
+    )
+
     fun lagDeltakerKladd(
         id: UUID = UUID.randomUUID(),
         navBruker: NavBruker = lagNavBruker(),

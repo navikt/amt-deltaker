@@ -20,15 +20,32 @@ data class DeltakerStatus(
                 error("Aarsak $type skal ikke ha beskrivelse")
             }
         }
+
         enum class Type {
-            SYK, FATT_JOBB, TRENGER_ANNEN_STOTTE, FIKK_IKKE_PLASS, IKKE_MOTT, ANNET, AVLYST_KONTRAKT
+            SYK,
+            FATT_JOBB,
+            TRENGER_ANNEN_STOTTE,
+            FIKK_IKKE_PLASS,
+            IKKE_MOTT,
+            ANNET,
+            AVLYST_KONTRAKT,
         }
     }
 
     enum class Type {
-        KLADD, UTKAST_TIL_PAMELDING, AVBRUTT_UTKAST,
-        VENTER_PA_OPPSTART, DELTAR, HAR_SLUTTET, IKKE_AKTUELL, FEILREGISTRERT,
-        SOKT_INN, VURDERES, VENTELISTE, AVBRUTT, FULLFORT,
+        KLADD,
+        UTKAST_TIL_PAMELDING,
+        AVBRUTT_UTKAST,
+        VENTER_PA_OPPSTART,
+        DELTAR,
+        HAR_SLUTTET,
+        IKKE_AKTUELL,
+        FEILREGISTRERT,
+        SOKT_INN,
+        VURDERES,
+        VENTELISTE,
+        AVBRUTT,
+        FULLFORT,
         PABEGYNT_REGISTRERING,
     }
 }

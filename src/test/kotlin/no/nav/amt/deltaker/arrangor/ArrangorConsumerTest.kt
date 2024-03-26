@@ -11,7 +11,6 @@ import org.junit.BeforeClass
 import org.junit.Test
 
 class ArrangorConsumerTest {
-
     companion object {
         lateinit var repository: ArrangorRepository
 

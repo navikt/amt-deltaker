@@ -25,7 +25,12 @@ data class DeltakerEndring(
         }
 
         enum class Type {
-            SYK, FATT_JOBB, TRENGER_ANNEN_STOTTE, UTDANNING, IKKE_MOTT, ANNET
+            SYK,
+            FATT_JOBB,
+            TRENGER_ANNEN_STOTTE,
+            UTDANNING,
+            IKKE_MOTT,
+            ANNET,
         }
 
         fun toDeltakerStatusAarsak() = DeltakerStatus.Aarsak(

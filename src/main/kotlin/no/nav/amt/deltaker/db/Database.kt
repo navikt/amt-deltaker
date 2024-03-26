@@ -41,16 +41,15 @@ object Database {
         (dataSource as HikariDataSource).close()
     }
 
-    private fun runMigration(initSql: String? = null): Int =
-        Flyway.configure()
-            .connectRetries(5)
-            .dataSource(dataSource)
-            .initSql(initSql)
-            .validateMigrationNaming(true)
-            .load()
-            .migrate()
-            .migrations
-            .size
+    private fun runMigration(initSql: String? = null): Int = Flyway.configure()
+        .connectRetries(5)
+        .dataSource(dataSource)
+        .initSql(initSql)
+        .validateMigrationNaming(true)
+        .load()
+        .migrate()
+        .migrations
+        .size
 }
 
 fun toPGObject(value: Any?) = PGobject().also {

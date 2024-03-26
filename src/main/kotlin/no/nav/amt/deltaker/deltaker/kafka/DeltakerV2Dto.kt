@@ -80,10 +80,9 @@ data class DeltakerV2Dto(
     )
 }
 
-fun NavAnsatt.toDeltakerNavVeilederDto() =
-    DeltakerV2Dto.DeltakerNavVeilederDto(
-        id = id,
-        navn = navn,
-        epost = epost,
-        telefonnummer = telefon,
-    )
+fun NavAnsatt.toDeltakerNavVeilederDto() = DeltakerV2Dto.DeltakerNavVeilederDto(
+    id = id,
+    navn = navn,
+    epost = epost,
+    telefonnummer = telefon,
+)

@@ -9,7 +9,6 @@ import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy
 import org.testcontainers.utility.DockerImageName
 
 object SingletonPostgresContainer {
-
     private val log = LoggerFactory.getLogger(javaClass)
 
     private val postgresDockerImageName = getPostgresImage()

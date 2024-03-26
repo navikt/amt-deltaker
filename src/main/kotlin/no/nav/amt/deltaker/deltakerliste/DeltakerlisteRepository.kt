@@ -35,34 +35,35 @@ class DeltakerlisteRepository {
     )
 
     fun upsert(deltakerliste: Deltakerliste) = Database.query {
-        val sql = """
-        INSERT INTO deltakerliste(
-            id, 
-            navn, 
-            status, 
-            arrangor_id,  
-            tiltakstype_id, 
-            start_dato, 
-            slutt_dato, 
-            oppstart)
-        VALUES (:id,
-        		:navn,
-        		:status,
-        		:arrangor_id,
-        		:tiltakstype_id,
-        		:start_dato,
-        		:slutt_dato,
-                :oppstart)
-        ON CONFLICT (id) DO UPDATE SET
-        		navn     				= :navn,
-        		status					= :status,
-        		arrangor_id 			= :arrangor_id,
-        		tiltakstype_id			= :tiltakstype_id,
-        		start_dato				= :start_dato,
-        		slutt_dato				= :slutt_dato,
-                oppstart                = :oppstart,
-                modified_at             = current_timestamp
-        """.trimIndent()
+        val sql =
+            """
+            INSERT INTO deltakerliste(
+                id, 
+                navn, 
+                status, 
+                arrangor_id,  
+                tiltakstype_id, 
+                start_dato, 
+                slutt_dato, 
+                oppstart)
+            VALUES (:id,
+            		:navn,
+            		:status,
+            		:arrangor_id,
+            		:tiltakstype_id,
+            		:start_dato,
+            		:slutt_dato,
+                    :oppstart)
+            ON CONFLICT (id) DO UPDATE SET
+            		navn     				= :navn,
+            		status					= :status,
+            		arrangor_id 			= :arrangor_id,
+            		tiltakstype_id			= :tiltakstype_id,
+            		start_dato				= :start_dato,
+            		slutt_dato				= :slutt_dato,
+                    oppstart                = :oppstart,
+                    modified_at             = current_timestamp
+            """.trimIndent()
 
         it.update(
             queryOf(
@@ -96,24 +97,24 @@ class DeltakerlisteRepository {
     fun get(id: UUID) = Database.query {
         val query = queryOf(
             """
-                SELECT deltakerliste.id   AS deltakerliste_id,
-                   arrangor_id,
-                   deltakerliste.navn AS deltakerliste_navn,
-                   status,
-                   start_dato,
-                   slutt_dato,
-                   oppstart,
-                   a.navn             AS arrangor_navn,
-                   organisasjonsnummer,
-                   overordnet_arrangor_id,
-                   tiltakstype_id,
-                   t.navn AS tiltakstype_navn,
-                   t.type AS tiltakstype_type,
-                   t.innhold AS innhold
-                FROM deltakerliste
-                     INNER JOIN arrangor a ON a.id = deltakerliste.arrangor_id
-                     INNER JOIN tiltakstype t ON t.id = deltakerliste.tiltakstype_id
-                WHERE deltakerliste.id = :id
+            SELECT deltakerliste.id   AS deltakerliste_id,
+               arrangor_id,
+               deltakerliste.navn AS deltakerliste_navn,
+               status,
+               start_dato,
+               slutt_dato,
+               oppstart,
+               a.navn             AS arrangor_navn,
+               organisasjonsnummer,
+               overordnet_arrangor_id,
+               tiltakstype_id,
+               t.navn AS tiltakstype_navn,
+               t.type AS tiltakstype_type,
+               t.innhold AS innhold
+            FROM deltakerliste
+                 INNER JOIN arrangor a ON a.id = deltakerliste.arrangor_id
+                 INNER JOIN tiltakstype t ON t.id = deltakerliste.tiltakstype_id
+            WHERE deltakerliste.id = :id
             """.trimIndent(),
             mapOf("id" to id),
         ).map(::rowMapper).asSingle

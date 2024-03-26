@@ -8,6 +8,7 @@ import io.ktor.server.routing.get
 import io.ktor.util.AttributeKey
 
 val isReadyKey = AttributeKey<Boolean>("isReady")
+
 fun Routing.registerHealthApi() {
     get("/internal/health/liveness") {
         call.respondText("I'm alive!")

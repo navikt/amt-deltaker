@@ -16,6 +16,7 @@ class DeltakerProducer(
     private val deltakerV2MapperService: DeltakerV2MapperService,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
+
     suspend fun produce(deltaker: Deltaker) {
         if (deltaker.status.type == DeltakerStatus.Type.KLADD) return
 

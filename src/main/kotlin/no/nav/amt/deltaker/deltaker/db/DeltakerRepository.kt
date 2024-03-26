@@ -84,7 +84,8 @@ class DeltakerRepository {
     )
 
     fun upsert(deltaker: Deltaker) = Database.query { session ->
-        val sql = """
+        val sql =
+            """
             insert into deltaker(
                 id, person_id, deltakerliste_id, startdato, sluttdato, dager_per_uke, 
                 deltakelsesprosent, bakgrunnsinformasjon, innhold
@@ -102,7 +103,7 @@ class DeltakerRepository {
                 bakgrunnsinformasjon = :bakgrunnsinformasjon,
                 innhold              = :innhold,
                 modified_at          = current_timestamp
-        """.trimIndent()
+            """.trimIndent()
 
         val parameters = mapOf(
             "id" to deltaker.id,
@@ -166,9 +167,10 @@ class DeltakerRepository {
     }
 
     fun getDeltakerStatuser(deltakerId: UUID) = Database.query { session ->
-        val sql = """
+        val sql =
+            """
             select * from deltaker_status where deltaker_id = :deltaker_id
-        """.trimIndent()
+            """.trimIndent()
 
         val query = queryOf(sql, mapOf("deltaker_id" to deltakerId)).map {
             DeltakerStatus(
@@ -254,10 +256,11 @@ class DeltakerRepository {
     }
 
     private fun slettStatus(deltakerId: UUID): Query {
-        val sql = """
+        val sql =
+            """
             delete from deltaker_status
             where deltaker_id = :deltaker_id;
-        """.trimIndent()
+            """.trimIndent()
 
         val params = mapOf(
             "deltaker_id" to deltakerId,
@@ -267,10 +270,11 @@ class DeltakerRepository {
     }
 
     private fun slettDeltaker(deltakerId: UUID): Query {
-        val sql = """
+        val sql =
+            """
             delete from deltaker
             where id = :deltaker_id;
-        """.trimIndent()
+            """.trimIndent()
 
         val params = mapOf(
             "deltaker_id" to deltakerId,
@@ -280,11 +284,12 @@ class DeltakerRepository {
     }
 
     private fun insertStatusQuery(status: DeltakerStatus, deltakerId: UUID): Query {
-        val sql = """
+        val sql =
+            """
             insert into deltaker_status(id, deltaker_id, type, aarsak, gyldig_fra) 
             values (:id, :deltaker_id, :type, :aarsak, :gyldig_fra) 
             on conflict (id) do nothing;
-        """.trimIndent()
+            """.trimIndent()
 
         val params = mapOf(
             "id" to status.id,
@@ -298,13 +303,14 @@ class DeltakerRepository {
     }
 
     private fun deaktiverTidligereStatuserQuery(status: DeltakerStatus, deltakerId: UUID): Query {
-        val sql = """
+        val sql =
+            """
             update deltaker_status
             set gyldig_til = current_timestamp
             where deltaker_id = :deltaker_id 
               and id != :id 
               and gyldig_til is null;
-        """.trimIndent()
+            """.trimIndent()
 
         return queryOf(sql, mapOf("id" to status.id, "deltaker_id" to deltakerId))
     }

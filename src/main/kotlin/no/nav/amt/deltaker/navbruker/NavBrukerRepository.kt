@@ -11,7 +11,6 @@ import no.nav.amt.deltaker.navbruker.model.NavBruker
 import java.util.UUID
 
 class NavBrukerRepository {
-
     private fun rowMapper(row: Row) = NavBruker(
         personId = row.uuid("person_id"),
         personident = row.string("personident"),
@@ -28,7 +27,8 @@ class NavBrukerRepository {
     )
 
     fun upsert(bruker: NavBruker) = Database.query {
-        val sql = """
+        val sql =
+            """
             insert into nav_bruker(person_id, personident, fornavn, mellomnavn, etternavn, nav_veileder_id, nav_enhet_id, telefonnummer, epost, er_skjermet, adresse, adressebeskyttelse) 
             values (:person_id, :personident, :fornavn, :mellomnavn, :etternavn, :nav_veileder_id, :nav_enhet_id, :telefonnummer, :epost, :er_skjermet, :adresse, :adressebeskyttelse)
             on conflict (person_id) do update set
@@ -45,7 +45,7 @@ class NavBrukerRepository {
                 adressebeskyttelse = :adressebeskyttelse,
                 modified_at = current_timestamp
             returning *
-        """.trimIndent()
+            """.trimIndent()
 
         val params = mapOf(
             "person_id" to bruker.personId,
