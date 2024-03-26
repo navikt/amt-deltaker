@@ -31,9 +31,7 @@ import java.util.UUID
 import kotlin.test.assertFailsWith
 
 class PameldingServiceTest {
-
     companion object {
-
         private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonClient())
         private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonClient())
 

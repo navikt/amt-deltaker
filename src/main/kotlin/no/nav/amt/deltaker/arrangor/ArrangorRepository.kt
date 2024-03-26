@@ -15,7 +15,8 @@ class ArrangorRepository {
     )
 
     fun upsert(arrangor: Arrangor) {
-        val sql = """
+        val sql =
+            """
             INSERT INTO arrangor(id, navn, organisasjonsnummer, overordnet_arrangor_id)
             VALUES (:id, :navn, :organisasjonsnummer, :overordnet_arrangor_id) 
             ON CONFLICT (id) DO UPDATE SET
@@ -23,7 +24,7 @@ class ArrangorRepository {
                 organisasjonsnummer = :organisasjonsnummer,
                 overordnet_arrangor_id = :overordnet_arrangor_id,
                 modified_at = :modified_at
-        """.trimIndent()
+            """.trimIndent()
 
         Database.query {
             val query = queryOf(

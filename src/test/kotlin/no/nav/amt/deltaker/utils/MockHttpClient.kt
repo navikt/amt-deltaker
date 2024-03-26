@@ -73,11 +73,11 @@ fun mockAzureAdClient() = AzureAdTokenClient(
     clientSecret = "secret",
     httpClient = mockHttpClient(
         """
-            {
-                "token_type":"Bearer",
-                "access_token":"XYZ",
-                "expires_in": 3599
-            }
+        {
+            "token_type":"Bearer",
+            "access_token":"XYZ",
+            "expires_in": 3599
+        }
         """.trimIndent(),
     ),
 )

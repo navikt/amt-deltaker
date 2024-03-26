@@ -13,6 +13,7 @@ class NavBrukerService(
     private val navAnsattService: NavAnsattService,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
+
     suspend fun get(personident: String): Result<NavBruker> {
         val brukerResult = repository.get(personident)
         if (brukerResult.isSuccess) return brukerResult

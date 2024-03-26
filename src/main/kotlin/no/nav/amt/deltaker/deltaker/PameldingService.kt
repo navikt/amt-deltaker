@@ -25,13 +25,9 @@ class PameldingService(
     private val navEnhetService: NavEnhetService,
     private val vedtakService: VedtakService,
 ) {
-
     private val log = LoggerFactory.getLogger(javaClass)
 
-    suspend fun opprettKladd(
-        deltakerlisteId: UUID,
-        personident: String,
-    ): KladdResponse {
+    suspend fun opprettKladd(deltakerlisteId: UUID, personident: String): KladdResponse {
         val eksisterendeDeltaker = deltakerService
             .getDeltakelser(personident, deltakerlisteId)
             .firstOrNull { !it.harSluttet() }
@@ -57,7 +53,9 @@ class PameldingService(
         val opprinneligDeltaker = deltakerService.get(deltakerId).getOrThrow()
         if (opprinneligDeltaker.status.type != DeltakerStatus.Type.KLADD) {
             log.warn("Kan ikke slette deltaker med id $deltakerId som har status ${opprinneligDeltaker.status.type}")
-            throw IllegalArgumentException("Kan ikke slette deltaker med id ${opprinneligDeltaker.id} som har status ${opprinneligDeltaker.status.type}")
+            throw IllegalArgumentException(
+                "Kan ikke slette deltaker med id ${opprinneligDeltaker.id} som har status ${opprinneligDeltaker.status.type}",
+            )
         }
         deltakerService.delete(deltakerId)
     }
@@ -102,8 +100,12 @@ class PameldingService(
         val opprinneligDeltaker = deltakerService.get(deltakerId).getOrThrow()
 
         if (opprinneligDeltaker.status.type != DeltakerStatus.Type.UTKAST_TIL_PAMELDING) {
-            log.warn("Kan ikke avbryte utkast for deltaker med id ${opprinneligDeltaker.id} som har status ${opprinneligDeltaker.status.type}")
-            throw IllegalArgumentException("Kan ikke avbryte utkast for deltaker med id ${opprinneligDeltaker.id} som har status ${opprinneligDeltaker.status.type}")
+            log.warn(
+                "Kan ikke avbryte utkast for deltaker med id ${opprinneligDeltaker.id} som har status ${opprinneligDeltaker.status.type}",
+            )
+            throw IllegalArgumentException(
+                "Kan ikke avbryte utkast for deltaker med id ${opprinneligDeltaker.id} som har status ${opprinneligDeltaker.status.type}",
+            )
         }
 
         val status = nyDeltakerStatus(DeltakerStatus.Type.AVBRUTT_UTKAST)
@@ -123,11 +125,10 @@ class PameldingService(
         log.info("Avbrutt utkast for deltaker med id $deltakerId")
     }
 
-    private fun kanUpserteUtkast(opprinneligDeltakerStatus: DeltakerStatus) =
-        opprinneligDeltakerStatus.type in listOf(
-            DeltakerStatus.Type.KLADD,
-            DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
-        )
+    private fun kanUpserteUtkast(opprinneligDeltakerStatus: DeltakerStatus) = opprinneligDeltakerStatus.type in listOf(
+        DeltakerStatus.Type.KLADD,
+        DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
+    )
 
     private fun getOppdatertStatus(opprinneligDeltaker: Deltaker, godkjentAvNav: Boolean): DeltakerStatus {
         return if (godkjentAvNav) {
@@ -149,10 +150,7 @@ class PameldingService(
         }
     }
 
-    private fun nyDeltakerKladd(
-        navBruker: NavBruker,
-        deltakerliste: Deltakerliste,
-    ) = Deltaker(
+    private fun nyDeltakerKladd(navBruker: NavBruker, deltakerliste: Deltakerliste) = Deltaker(
         id = UUID.randomUUID(),
         navBruker = navBruker,
         deltakerliste = deltakerliste,

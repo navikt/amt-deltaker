@@ -23,10 +23,7 @@ import no.nav.amt.deltaker.deltaker.api.model.StartdatoRequest
 import no.nav.amt.deltaker.deltaker.api.model.toDeltakerEndringResponse
 import java.util.UUID
 
-fun Routing.registerDeltakerApi(
-    deltakerService: DeltakerService,
-    historikkService: DeltakerHistorikkService,
-) {
+fun Routing.registerDeltakerApi(deltakerService: DeltakerService, historikkService: DeltakerHistorikkService) {
     authenticate("SYSTEM") {
         post("/deltaker/{deltakerId}/bakgrunnsinformasjon") {
             val request = call.receive<BakgrunnsinformasjonRequest>()

@@ -25,7 +25,6 @@ class DeltakerEndringService(
     private val navAnsattService: NavAnsattService,
     private val navEnhetService: NavEnhetService,
 ) {
-
     fun getForDeltaker(deltakerId: UUID) = repository.getForDeltaker(deltakerId)
 
     suspend fun upsertEndring(deltaker: Deltaker, request: EndringRequest): Result<Deltaker> {
@@ -107,13 +106,18 @@ class DeltakerEndringService(
 
         return when (endring) {
             is DeltakerEndring.Endring.AvsluttDeltakelse -> {
-                endreDeltaker(deltaker.status.type != DeltakerStatus.Type.HAR_SLUTTET || endring.sluttdato != deltaker.sluttdato || deltaker.status.aarsak != endring.aarsak.toDeltakerStatusAarsak()) {
+                endreDeltaker(
+                    deltaker.status.type != DeltakerStatus.Type.HAR_SLUTTET ||
+                        endring.sluttdato != deltaker.sluttdato ||
+                        deltaker.status.aarsak != endring.aarsak.toDeltakerStatusAarsak(),
+                ) {
                     deltaker.copy(
                         sluttdato = endring.sluttdato,
                         status = nyDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET, endring.aarsak.toDeltakerStatusAarsak()),
                     )
                 }
             }
+
             is DeltakerEndring.Endring.EndreBakgrunnsinformasjon -> {
                 endreDeltaker(deltaker.bakgrunnsinformasjon != endring.bakgrunnsinformasjon) {
                     deltaker.copy(bakgrunnsinformasjon = endring.bakgrunnsinformasjon)
@@ -128,25 +132,34 @@ class DeltakerEndringService(
                     )
                 }
             }
+
             is DeltakerEndring.Endring.EndreInnhold -> {
                 endreDeltaker(deltaker.innhold != endring.innhold) {
                     deltaker.copy(innhold = endring.innhold)
                 }
             }
+
             is DeltakerEndring.Endring.EndreSluttdato -> endreDeltaker(endring.sluttdato != deltaker.sluttdato) {
                 deltaker.copy(sluttdato = endring.sluttdato)
             }
+
             is DeltakerEndring.Endring.EndreSluttarsak -> {
                 endreDeltaker(deltaker.status.aarsak != endring.aarsak.toDeltakerStatusAarsak()) {
                     deltaker.copy(status = nyDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET, endring.aarsak.toDeltakerStatusAarsak()))
                 }
             }
+
             is DeltakerEndring.Endring.EndreStartdato -> {
                 endreDeltaker(deltaker.startdato != endring.startdato || deltaker.sluttdato != endring.sluttdato) {
                     deltaker.copy(
                         startdato = endring.startdato,
                         sluttdato = endring.sluttdato,
-                        status = if (deltaker.status.type == DeltakerStatus.Type.VENTER_PA_OPPSTART && (endring.startdato != null && !endring.startdato.isAfter(LocalDate.now()))) {
+                        status = if (deltaker.status.type == DeltakerStatus.Type.VENTER_PA_OPPSTART && (
+                                endring.startdato != null && !endring.startdato.isAfter(
+                                    LocalDate.now(),
+                                )
+                            )
+                        ) {
                             nyDeltakerStatus(DeltakerStatus.Type.DELTAR)
                         } else {
                             deltaker.status
@@ -154,11 +167,15 @@ class DeltakerEndringService(
                     )
                 }
             }
+
             is DeltakerEndring.Endring.ForlengDeltakelse -> {
                 endreDeltaker(deltaker.sluttdato != endring.sluttdato) {
                     deltaker.copy(
                         sluttdato = endring.sluttdato,
-                        status = if (deltaker.status.type == DeltakerStatus.Type.HAR_SLUTTET && endring.sluttdato.isAfter(LocalDate.now())) {
+                        status = if (deltaker.status.type == DeltakerStatus.Type.HAR_SLUTTET && endring.sluttdato.isAfter(
+                                LocalDate.now(),
+                            )
+                        ) {
                             nyDeltakerStatus(DeltakerStatus.Type.DELTAR)
                         } else {
                             deltaker.status
@@ -166,6 +183,7 @@ class DeltakerEndringService(
                     )
                 }
             }
+
             is DeltakerEndring.Endring.IkkeAktuell -> {
                 endreDeltaker(deltaker.status.aarsak != endring.aarsak.toDeltakerStatusAarsak()) {
                     deltaker.copy(

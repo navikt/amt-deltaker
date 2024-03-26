@@ -254,7 +254,9 @@ class DeltakerEndringServiceTest {
 
     @Test
     fun `upsertEndring - endret sluttarsak - upserter endring og returnerer deltaker`(): Unit = runBlocking {
-        val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.HAR_SLUTTET, aarsak = DeltakerStatus.Aarsak.Type.SYK))
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.HAR_SLUTTET, aarsak = DeltakerStatus.Aarsak.Type.SYK),
+        )
         val endretAv = TestData.lagNavAnsatt()
         val endretAvEnhet = TestData.lagNavEnhet()
 
@@ -343,7 +345,10 @@ class DeltakerEndringServiceTest {
 
     @Test
     fun `upsertEndring - avslutt deltakelse - upserter endring og returnerer deltaker`(): Unit = runBlocking {
-        val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR), sluttdato = LocalDate.now().plusMonths(1))
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+            sluttdato = LocalDate.now().plusMonths(1),
+        )
         val endretAv = TestData.lagNavAnsatt()
         val endretAvEnhet = TestData.lagNavEnhet()
 

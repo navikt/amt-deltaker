@@ -59,7 +59,9 @@ class DeltakerApiTest {
         client.post("/deltaker/${UUID.randomUUID()}/forleng") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
         client.post("/deltaker/${UUID.randomUUID()}/ikke-aktuell") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
         client.post("/deltaker/${UUID.randomUUID()}/avslutt") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
-        client.post("/deltaker/${UUID.randomUUID()}/vedtak/${UUID.randomUUID()}/fatt") { setBody("") }.status shouldBe HttpStatusCode.Unauthorized
+        client.post(
+            "/deltaker/${UUID.randomUUID()}/vedtak/${UUID.randomUUID()}/fatt",
+        ) { setBody("") }.status shouldBe HttpStatusCode.Unauthorized
     }
 
     @Test
@@ -204,7 +206,12 @@ class DeltakerApiTest {
 
         val endring = DeltakerEndring.Endring.EndreSluttarsak(DeltakerEndring.Aarsak(type = DeltakerEndring.Aarsak.Type.FATT_JOBB, null))
 
-        val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.HAR_SLUTTET, aarsak = DeltakerStatus.Aarsak.Type.valueOf(endring.aarsak.type.name)))
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(
+                type = DeltakerStatus.Type.HAR_SLUTTET,
+                aarsak = DeltakerStatus.Aarsak.Type.valueOf(endring.aarsak.type.name),
+            ),
+        )
         val historikk = listOf(DeltakerHistorikk.Endring(TestData.lagDeltakerEndring(endring = endring)))
 
         coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
@@ -256,7 +263,12 @@ class DeltakerApiTest {
 
         val endring = DeltakerEndring.Endring.IkkeAktuell(DeltakerEndring.Aarsak(type = DeltakerEndring.Aarsak.Type.FATT_JOBB, null))
 
-        val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.IKKE_AKTUELL, aarsak = DeltakerStatus.Aarsak.Type.valueOf(endring.aarsak.type.name)))
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(
+                type = DeltakerStatus.Type.IKKE_AKTUELL,
+                aarsak = DeltakerStatus.Aarsak.Type.valueOf(endring.aarsak.type.name),
+            ),
+        )
         val historikk = listOf(DeltakerHistorikk.Endring(TestData.lagDeltakerEndring(endring = endring)))
 
         coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
@@ -280,9 +292,18 @@ class DeltakerApiTest {
     fun `post avslutt deltakelse - har tilgang - returnerer 200`() = testApplication {
         setUpTestApplication()
 
-        val endring = DeltakerEndring.Endring.AvsluttDeltakelse(DeltakerEndring.Aarsak(type = DeltakerEndring.Aarsak.Type.FATT_JOBB, null), LocalDate.now())
+        val endring = DeltakerEndring.Endring.AvsluttDeltakelse(
+            DeltakerEndring.Aarsak(type = DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
+            LocalDate.now(),
+        )
 
-        val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.HAR_SLUTTET, aarsak = DeltakerStatus.Aarsak.Type.valueOf(endring.aarsak.type.name)), sluttdato = endring.sluttdato)
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(
+                type = DeltakerStatus.Type.HAR_SLUTTET,
+                aarsak = DeltakerStatus.Aarsak.Type.valueOf(endring.aarsak.type.name),
+            ),
+            sluttdato = endring.sluttdato,
+        )
         val historikk = listOf(DeltakerHistorikk.Endring(TestData.lagDeltakerEndring(endring = endring)))
 
         coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
@@ -331,7 +352,6 @@ class DeltakerApiTest {
                 mockk(),
                 deltakerService,
                 deltakerHistorikkService,
-                mockk(),
                 mockk(),
                 mockk(),
             )

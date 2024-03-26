@@ -44,7 +44,9 @@ class ManagedKafkaConsumer<K, V>(
                 log.debug("Consumed record topic=${record.topic()} partition=${record.partition()} offset=${record.offset()}")
                 success = true
             } catch (t: Throwable) {
-                log.error("Failed to consume record topic=${record.topic()} partition=${record.partition()} offset=${record.offset()} error=$t")
+                log.error(
+                    "Failed to consume record topic=${record.topic()} partition=${record.partition()} offset=${record.offset()} error=$t",
+                )
                 delay(exponentialBackoff(++retries))
             }
         }

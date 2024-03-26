@@ -29,7 +29,6 @@ data class Environment(
     val poaoTilgangUrl: String = getEnvVar(POAO_TILGANG_URL_KEY),
     val poaoTilgangScope: String = getEnvVar(POAO_TILGANG_SCOPE_KEY),
 ) {
-
     companion object {
         const val DB_USERNAME_KEY = "DB_USERNAME"
         const val DB_PASSWORD_KEY = "DB_PASSWORD"

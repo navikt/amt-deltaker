@@ -22,8 +22,14 @@ data class AktivDeltakelse(
     val tiltakstype: DeltakelserResponse.Tiltakstype,
 ) {
     enum class AktivStatusType {
-        KLADD, UTKAST_TIL_PAMELDING, VENTER_PA_OPPSTART, DELTAR,
-        SOKT_INN, VURDERES, VENTELISTE, PABEGYNT_REGISTRERING
+        KLADD,
+        UTKAST_TIL_PAMELDING,
+        VENTER_PA_OPPSTART,
+        DELTAR,
+        SOKT_INN,
+        VURDERES,
+        VENTELISTE,
+        PABEGYNT_REGISTRERING,
     }
 }
 
@@ -41,8 +47,12 @@ data class HistoriskDeltakelse(
     )
 
     enum class HistoriskStatusType {
-        AVBRUTT_UTKAST, HAR_SLUTTET, IKKE_AKTUELL, FEILREGISTRERT,
-        AVBRUTT, FULLFORT
+        AVBRUTT_UTKAST,
+        HAR_SLUTTET,
+        IKKE_AKTUELL,
+        FEILREGISTRERT,
+        AVBRUTT,
+        FULLFORT,
     }
 }
 

@@ -20,16 +20,15 @@ data class KladdResponse(
     val status: DeltakerStatus,
 )
 
-fun Deltaker.toKladdResponse(): KladdResponse =
-    KladdResponse(
-        id = id,
-        navBruker = navBruker,
-        deltakerlisteId = deltakerliste.id,
-        startdato = startdato,
-        sluttdato = sluttdato,
-        dagerPerUke = dagerPerUke,
-        deltakelsesprosent = deltakelsesprosent,
-        bakgrunnsinformasjon = bakgrunnsinformasjon,
-        innhold = innhold,
-        status = status,
-    )
+fun Deltaker.toKladdResponse(): KladdResponse = KladdResponse(
+    id = id,
+    navBruker = navBruker,
+    deltakerlisteId = deltakerliste.id,
+    startdato = startdato,
+    sluttdato = sluttdato,
+    dagerPerUke = dagerPerUke,
+    deltakelsesprosent = deltakelsesprosent,
+    bakgrunnsinformasjon = bakgrunnsinformasjon,
+    innhold = innhold,
+    status = status,
+)

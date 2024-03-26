@@ -14,9 +14,7 @@ import no.nav.amt.deltaker.deltaker.api.model.OpprettKladdRequest
 import no.nav.amt.deltaker.deltaker.api.model.UtkastRequest
 import java.util.UUID
 
-fun Routing.registerPameldingApi(
-    pameldingService: PameldingService,
-) {
+fun Routing.registerPameldingApi(pameldingService: PameldingService) {
     authenticate("SYSTEM") {
         post("/pamelding") {
             val request = call.receive<OpprettKladdRequest>()

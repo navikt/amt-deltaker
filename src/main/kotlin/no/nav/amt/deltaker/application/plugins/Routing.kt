@@ -19,7 +19,6 @@ import no.nav.amt.deltaker.auth.TilgangskontrollService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.PameldingService
-import no.nav.amt.deltaker.deltaker.VedtakService
 import no.nav.amt.deltaker.deltaker.api.model.DeltakelserResponseMapper
 import no.nav.amt.deltaker.deltaker.api.registerDeltakerApi
 import no.nav.amt.deltaker.deltaker.api.registerHentDeltakelserApi
@@ -33,7 +32,6 @@ fun Application.configureRouting(
     deltakerHistorikkService: DeltakerHistorikkService,
     tilgangskontrollService: TilgangskontrollService,
     deltakelserResponseMapper: DeltakelserResponseMapper,
-    vedtakService: VedtakService,
 ) {
     install(StatusPages) {
         exception<IllegalArgumentException> { call, cause ->
@@ -79,10 +77,13 @@ fun Application.configureRouting(
 }
 
 object StatusPageLogger {
-
     val log: Logger = LoggerFactory.getLogger(javaClass)
 
-    fun log(statusCode: HttpStatusCode, call: ApplicationCall, cause: Throwable) {
+    fun log(
+        statusCode: HttpStatusCode,
+        call: ApplicationCall,
+        cause: Throwable,
+    ) {
         val msg = "${statusCode.value} ${statusCode.description}: " +
             "${call.request.httpMethod.value} ${call.request.path()}\n" +
             "Error: ${cause.message}"

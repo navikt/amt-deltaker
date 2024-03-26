@@ -14,7 +14,7 @@ import java.time.ZoneId
 import java.util.Date
 import java.util.UUID
 
-const val keyId = "localhost-signer"
+const val KEY_ID = "localhost-signer"
 
 /* Utsteder en Bearer-token (En slik vi ber AzureAd om). OBS: Det er viktig at KeyId matcher kid i jwkset.json
  */
@@ -32,7 +32,7 @@ fun generateJWT(
     val alg = Algorithm.RSA256(key.toRSAPublicKey(), key.toRSAPrivateKey())
 
     return JWT.create()
-        .withKeyId(keyId)
+        .withKeyId(KEY_ID)
         .withSubject(subject)
         .withIssuer(issuer)
         .withAudience(audience)
@@ -50,7 +50,7 @@ fun generateJWT(
 }
 
 private fun getDefaultRSAKey(): RSAKey {
-    return getJWKSet().getKeyByKeyId(keyId) as RSAKey
+    return getJWKSet().getKeyByKeyId(KEY_ID) as RSAKey
 }
 
 private fun getJWKSet(): JWKSet {

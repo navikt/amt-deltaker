@@ -26,7 +26,8 @@ class VedtakRepository {
     )
 
     fun upsert(vedtak: Vedtak) = Database.query {
-        val sql = """
+        val sql =
+            """
             insert into vedtak (id,
                                 deltaker_id,
                                 fattet,
@@ -55,7 +56,7 @@ class VedtakRepository {
                     modified_at           = current_timestamp,
                     sist_endret_av        = :sist_endret_av,
                     sist_endret_av_enhet  = :sist_endret_av_enhet
-        """.trimIndent()
+            """.trimIndent()
 
         val params = mapOf(
             "id" to vedtak.id,
@@ -80,10 +81,11 @@ class VedtakRepository {
     }
 
     fun getIkkeFattet(deltakerId: UUID) = Database.query {
-        val sql = """
+        val sql =
+            """
             select * from vedtak
             where deltaker_id = :deltaker_id and fattet is null
-        """.trimIndent()
+            """.trimIndent()
 
         val query = queryOf(sql, mapOf("deltaker_id" to deltakerId))
 

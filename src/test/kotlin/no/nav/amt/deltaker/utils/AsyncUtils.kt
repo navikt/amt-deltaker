@@ -4,7 +4,6 @@ import java.time.Duration
 import java.time.LocalDateTime
 
 object AsyncUtils {
-
     fun eventually(
         until: Duration = Duration.ofSeconds(10),
         interval: Duration = Duration.ofMillis(100),

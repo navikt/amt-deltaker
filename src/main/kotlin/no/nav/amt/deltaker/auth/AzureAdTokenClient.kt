@@ -20,7 +20,6 @@ class AzureAdTokenClient(
     private val clientSecret: String,
     private val httpClient: HttpClient,
 ) {
-
     private val log = LoggerFactory.getLogger(javaClass)
 
     private val tokenCache = Caffeine.newBuilder()

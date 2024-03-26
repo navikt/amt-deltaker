@@ -22,7 +22,8 @@ class DeltakerEndringRepository {
     }
 
     fun upsert(deltakerEndring: DeltakerEndring) = Database.query {
-        val sql = """
+        val sql =
+            """
             insert into deltaker_endring (id, deltaker_id, endring, endret_av, endret_av_enhet)
             values (:id, :deltaker_id, :endring, :endret_av, :endret_av_enhet)
             on conflict (id) do update set 
@@ -31,7 +32,7 @@ class DeltakerEndringRepository {
                 endret_av = :endret_av,
                 endret_av_enhet = :endret_av_enhet,
                 modified_at = current_timestamp
-        """.trimIndent()
+            """.trimIndent()
 
         val params = mapOf(
             "id" to deltakerEndring.id,
@@ -47,15 +48,15 @@ class DeltakerEndringRepository {
     fun getForDeltaker(deltakerId: UUID) = Database.query {
         val query = queryOf(
             """
-                SELECT dh.id              AS id,
-                       dh.deltaker_id     AS deltaker_id,
-                       dh.endring         AS endring,
-                       dh.endret_av       AS endret_av,
-                       dh.endret_av_enhet AS endret_av_enhet,
-                       dh.modified_at     AS "dh.modified_at"
-                FROM deltaker_endring dh
-                WHERE deltaker_id = :deltaker_id
-                ORDER BY dh.created_at;
+            SELECT dh.id              AS id,
+                   dh.deltaker_id     AS deltaker_id,
+                   dh.endring         AS endring,
+                   dh.endret_av       AS endret_av,
+                   dh.endret_av_enhet AS endret_av_enhet,
+                   dh.modified_at     AS "dh.modified_at"
+            FROM deltaker_endring dh
+            WHERE deltaker_id = :deltaker_id
+            ORDER BY dh.created_at;
             """.trimIndent(),
             mapOf("deltaker_id" to deltakerId),
         )

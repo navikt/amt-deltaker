@@ -6,7 +6,6 @@ class ArrangorService(
     private val repository: ArrangorRepository,
     private val amtArrangorClient: AmtArrangorClient,
 ) {
-
     suspend fun hentArrangor(orgnr: String): Arrangor {
         return repository.get(orgnr) ?: return opprettArrangor(orgnr)
     }

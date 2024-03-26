@@ -28,17 +28,16 @@ data class Deltaker(
         return deltakerliste.erKurs()
     }
 
-    fun toDeltakerVedVedtak(): DeltakerVedVedtak =
-        DeltakerVedVedtak(
-            id = id,
-            startdato = startdato,
-            sluttdato = sluttdato,
-            dagerPerUke = dagerPerUke,
-            deltakelsesprosent = deltakelsesprosent,
-            bakgrunnsinformasjon = bakgrunnsinformasjon,
-            innhold = innhold,
-            status = status,
-        )
+    fun toDeltakerVedVedtak(): DeltakerVedVedtak = DeltakerVedVedtak(
+        id = id,
+        startdato = startdato,
+        sluttdato = sluttdato,
+        dagerPerUke = dagerPerUke,
+        deltakelsesprosent = deltakelsesprosent,
+        bakgrunnsinformasjon = bakgrunnsinformasjon,
+        innhold = innhold,
+        status = status,
+    )
 
     data class Vedtaksinformasjon(
         val fattet: LocalDateTime?,
