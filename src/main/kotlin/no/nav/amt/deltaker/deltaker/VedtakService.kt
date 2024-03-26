@@ -4,7 +4,7 @@ import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.Vedtak
 import no.nav.amt.deltaker.hendelse.HendelseService
-import no.nav.amt.deltaker.hendelse.model.HendelseEndring
+import no.nav.amt.deltaker.hendelse.model.HendelseType
 import no.nav.amt.deltaker.navansatt.NavAnsatt
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhet
 import java.time.LocalDateTime
@@ -33,7 +33,7 @@ class VedtakService(
 
         repository.upsert(avbruttVedtak)
 
-        hendelseService.hendelseForVedtak(deltaker, avbruttAv, avbruttAvNavEnhet) { HendelseEndring.AvbrytUtkast(it) }
+        hendelseService.hendelseForVedtak(deltaker, avbruttAv, avbruttAvNavEnhet) { HendelseType.AvbrytUtkast(it) }
 
         return avbruttVedtak
     }
@@ -59,9 +59,9 @@ class VedtakService(
 
         hendelseService.hendelseForVedtak(deltaker, endretAv, endretAvEnhet) {
             if (fattetAvNav) {
-                HendelseEndring.NavGodkjennUtkast(it)
+                HendelseType.NavGodkjennUtkast(it)
             } else {
-                HendelseEndring.OpprettUtkast(it)
+                HendelseType.OpprettUtkast(it)
             }
         }
 

@@ -14,7 +14,7 @@ import no.nav.amt.deltaker.deltaker.model.Innhold
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.hendelse.HendelseProducer
 import no.nav.amt.deltaker.hendelse.HendelseService
-import no.nav.amt.deltaker.hendelse.model.HendelseEndring
+import no.nav.amt.deltaker.hendelse.model.HendelseType
 import no.nav.amt.deltaker.kafka.config.LocalKafkaConfig
 import no.nav.amt.deltaker.kafka.utils.SingletonKafkaProvider
 import no.nav.amt.deltaker.kafka.utils.assertProducedHendelse
@@ -209,7 +209,7 @@ class PameldingServiceTest {
             vedtak.sistEndretAv shouldBe sistEndretAv.id
             vedtak.sistEndretAvEnhet shouldBe sistEndretAvEnhet.id
 
-            assertProducedHendelse(deltaker.id, HendelseEndring.OpprettUtkast::class)
+            assertProducedHendelse(deltaker.id, HendelseType.OpprettUtkast::class)
         }
     }
 
@@ -249,7 +249,7 @@ class PameldingServiceTest {
             vedtak.fattetAvNav shouldBe true
             vedtak.sistEndretAv shouldBe sistEndretAv.id
             vedtak.sistEndretAvEnhet shouldBe sistEndretAvEnhet.id
-            assertProducedHendelse(deltaker.id, HendelseEndring.NavGodkjennUtkast::class)
+            assertProducedHendelse(deltaker.id, HendelseType.NavGodkjennUtkast::class)
         }
     }
 
@@ -291,7 +291,7 @@ class PameldingServiceTest {
             vedtakFraDb.gyldigTil shouldNotBe null
             vedtakFraDb.sistEndretAv shouldBe sistEndretAv.id
             vedtakFraDb.sistEndretAvEnhet shouldBe sistEndretAvEnhet.id
-            assertProducedHendelse(deltaker.id, HendelseEndring.AvbrytUtkast::class)
+            assertProducedHendelse(deltaker.id, HendelseType.AvbrytUtkast::class)
         }
     }
 }

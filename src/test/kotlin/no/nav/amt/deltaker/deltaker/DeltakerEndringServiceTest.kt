@@ -17,7 +17,7 @@ import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.deltaker.model.Innhold
 import no.nav.amt.deltaker.hendelse.HendelseProducer
 import no.nav.amt.deltaker.hendelse.HendelseService
-import no.nav.amt.deltaker.hendelse.model.HendelseEndring
+import no.nav.amt.deltaker.hendelse.model.HendelseType
 import no.nav.amt.deltaker.kafka.config.LocalKafkaConfig
 import no.nav.amt.deltaker.kafka.utils.SingletonKafkaProvider
 import no.nav.amt.deltaker.kafka.utils.assertProducedHendelse
@@ -90,7 +90,7 @@ class DeltakerEndringServiceTest {
         (endring.endring as DeltakerEndring.Endring.EndreBakgrunnsinformasjon)
             .bakgrunnsinformasjon shouldBe endringsrequest.bakgrunnsinformasjon
 
-        assertProducedHendelse(deltaker.id, HendelseEndring.EndreBakgrunnsinformasjon::class)
+        assertProducedHendelse(deltaker.id, HendelseType.EndreBakgrunnsinformasjon::class)
     }
 
     @Test
@@ -139,7 +139,7 @@ class DeltakerEndringServiceTest {
 
         (endring.endring as DeltakerEndring.Endring.EndreInnhold)
             .innhold shouldBe endringsrequest.innhold
-        assertProducedHendelse(deltaker.id, HendelseEndring.EndreInnhold::class)
+        assertProducedHendelse(deltaker.id, HendelseType.EndreInnhold::class)
     }
 
     @Test
@@ -173,7 +173,7 @@ class DeltakerEndringServiceTest {
         (endring.endring as DeltakerEndring.Endring.EndreDeltakelsesmengde)
             .dagerPerUke shouldBe endringsrequest.dagerPerUke
 
-        assertProducedHendelse(deltaker.id, HendelseEndring.EndreDeltakelsesmengde::class)
+        assertProducedHendelse(deltaker.id, HendelseType.EndreDeltakelsesmengde::class)
     }
 
     @Test
@@ -208,7 +208,7 @@ class DeltakerEndringServiceTest {
         (endring.endring as DeltakerEndring.Endring.EndreStartdato)
             .sluttdato shouldBe endringsrequest.sluttdato
 
-        assertProducedHendelse(deltaker.id, HendelseEndring.EndreStartdato::class)
+        assertProducedHendelse(deltaker.id, HendelseType.EndreStartdato::class)
     }
 
     @Test
@@ -243,7 +243,7 @@ class DeltakerEndringServiceTest {
         (endring.endring as DeltakerEndring.Endring.EndreStartdato)
             .sluttdato shouldBe endringsrequest.sluttdato
 
-        assertProducedHendelse(deltaker.id, HendelseEndring.EndreStartdato::class)
+        assertProducedHendelse(deltaker.id, HendelseType.EndreStartdato::class)
     }
 
     @Test
@@ -402,7 +402,7 @@ class DeltakerEndringServiceTest {
         (endring.endring as DeltakerEndring.Endring.EndreSluttdato)
             .sluttdato shouldBe endringsrequest.sluttdato
 
-        assertProducedHendelse(deltaker.id, HendelseEndring.EndreSluttdato::class)
+        assertProducedHendelse(deltaker.id, HendelseType.EndreSluttdato::class)
     }
 
     @Test
@@ -435,7 +435,7 @@ class DeltakerEndringServiceTest {
         (endring.endring as DeltakerEndring.Endring.EndreSluttarsak)
             .aarsak shouldBe endringsrequest.aarsak
 
-        assertProducedHendelse(deltaker.id, HendelseEndring.EndreSluttarsak::class)
+        assertProducedHendelse(deltaker.id, HendelseType.EndreSluttarsak::class)
     }
 
     @Test
@@ -466,7 +466,7 @@ class DeltakerEndringServiceTest {
         (endring.endring as DeltakerEndring.Endring.ForlengDeltakelse)
             .sluttdato shouldBe endringsrequest.sluttdato
 
-        assertProducedHendelse(deltaker.id, HendelseEndring.ForlengDeltakelse::class)
+        assertProducedHendelse(deltaker.id, HendelseType.ForlengDeltakelse::class)
     }
 
     @Test
@@ -499,7 +499,7 @@ class DeltakerEndringServiceTest {
         (endring.endring as DeltakerEndring.Endring.IkkeAktuell)
             .aarsak shouldBe endringsrequest.aarsak
 
-        assertProducedHendelse(deltaker.id, HendelseEndring.IkkeAktuell::class)
+        assertProducedHendelse(deltaker.id, HendelseType.IkkeAktuell::class)
     }
 
     @Test
@@ -537,6 +537,6 @@ class DeltakerEndringServiceTest {
         (endring.endring as DeltakerEndring.Endring.AvsluttDeltakelse)
             .sluttdato shouldBe endringsrequest.sluttdato
 
-        assertProducedHendelse(deltaker.id, HendelseEndring.AvsluttDeltakelse::class)
+        assertProducedHendelse(deltaker.id, HendelseType.AvsluttDeltakelse::class)
     }
 }

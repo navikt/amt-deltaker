@@ -6,7 +6,7 @@ import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerV2Dto
 import no.nav.amt.deltaker.hendelse.model.Hendelse
-import no.nav.amt.deltaker.hendelse.model.HendelseEndring
+import no.nav.amt.deltaker.hendelse.model.HendelseType
 import no.nav.amt.deltaker.utils.AsyncUtils
 import java.util.UUID
 import kotlin.reflect.KClass
@@ -28,7 +28,7 @@ fun assertProduced(deltakerId: UUID) {
     consumer.stop()
 }
 
-fun <T : HendelseEndring> assertProducedHendelse(deltakerId: UUID, hendelseEndring: KClass<T>) {
+fun <T : HendelseType> assertProducedHendelse(deltakerId: UUID, hendelseEndring: KClass<T>) {
     val cache = mutableMapOf<UUID, Hendelse>()
 
     val consumer = stringStringConsumer(Environment.DELTAKER_HENDELSE_TOPIC) { k, v ->
@@ -40,7 +40,7 @@ fun <T : HendelseEndring> assertProducedHendelse(deltakerId: UUID, hendelseEndri
     AsyncUtils.eventually {
         val cachedHendelse = cache[deltakerId]!!
         cachedHendelse.deltaker.id shouldBe deltakerId
-        cachedHendelse.endring::class shouldBe hendelseEndring
+        cachedHendelse.payload::class shouldBe hendelseEndring
     }
 
     consumer.stop()

@@ -11,7 +11,7 @@ import no.nav.amt.deltaker.deltaker.kafka.DeltakerV2MapperService
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.hendelse.HendelseProducer
 import no.nav.amt.deltaker.hendelse.HendelseService
-import no.nav.amt.deltaker.hendelse.model.HendelseEndring
+import no.nav.amt.deltaker.hendelse.model.HendelseType
 import no.nav.amt.deltaker.kafka.config.LocalKafkaConfig
 import no.nav.amt.deltaker.kafka.utils.SingletonKafkaProvider
 import no.nav.amt.deltaker.kafka.utils.assertProduced
@@ -194,7 +194,7 @@ class DeltakerServiceTest {
         }
 
         assertProduced(deltaker.id)
-        assertProducedHendelse(deltaker.id, HendelseEndring.InnbyggerGodkjennUtkast::class)
+        assertProducedHendelse(deltaker.id, HendelseType.InnbyggerGodkjennUtkast::class)
 
         val oppdatertDeltaker = deltakerService.get(deltaker.id).getOrThrow()
 
@@ -217,7 +217,7 @@ class DeltakerServiceTest {
         }
 
         assertProduced(deltaker.id)
-        assertProducedHendelse(deltaker.id, HendelseEndring.InnbyggerGodkjennUtkast::class)
+        assertProducedHendelse(deltaker.id, HendelseType.InnbyggerGodkjennUtkast::class)
         val oppdatertDeltaker = deltakerService.get(deltaker.id).getOrThrow()
 
         oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.DELTAR
