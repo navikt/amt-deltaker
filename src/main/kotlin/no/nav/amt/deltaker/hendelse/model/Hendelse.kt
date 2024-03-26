@@ -6,5 +6,5 @@ data class Hendelse(
     val opprettet: LocalDateTime,
     val deltaker: HendelseDeltaker,
     val ansvarlig: HendelseAnsvarlig,
-    val endring: HendelseEndring,
+    val payload: HendelseType,
 )

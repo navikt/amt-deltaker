@@ -6,7 +6,7 @@ import no.nav.amt.deltaker.deltaker.model.Innhold
 import no.nav.amt.deltaker.deltaker.model.Vedtak
 import no.nav.amt.deltaker.hendelse.model.Hendelse
 import no.nav.amt.deltaker.hendelse.model.HendelseAnsvarlig
-import no.nav.amt.deltaker.hendelse.model.HendelseEndring
+import no.nav.amt.deltaker.hendelse.model.HendelseType
 import no.nav.amt.deltaker.hendelse.model.InnholdDto
 import no.nav.amt.deltaker.hendelse.model.UtkastDto
 import no.nav.amt.deltaker.hendelse.model.toHendelseDeltaker
@@ -28,7 +28,7 @@ class HendelseService(
         navAnsatt: NavAnsatt,
         navEnhet: NavEnhet,
     ) {
-        val endring: HendelseEndring = deltakerEndring.toHendelseEndring()
+        val endring: HendelseType = deltakerEndring.toHendelseEndring()
 
         hendelseProducer.produce(nyHendelse(deltaker, navAnsatt, navEnhet, endring))
     }
@@ -37,7 +37,7 @@ class HendelseService(
         val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(vedtak.sistEndretAv)
         val navEnhet = navEnhetService.hentEllerOpprettNavEnhet(vedtak.sistEndretAvEnhet)
 
-        val endring = HendelseEndring.InnbyggerGodkjennUtkast(deltaker.toUtkastDto())
+        val endring = HendelseType.InnbyggerGodkjennUtkast(deltaker.toUtkastDto())
         hendelseProducer.produce(nyHendelse(deltaker, navAnsatt, navEnhet, endring))
     }
 
@@ -45,7 +45,7 @@ class HendelseService(
         deltaker: Deltaker,
         navAnsatt: NavAnsatt,
         enhet: NavEnhet,
-        block: (it: UtkastDto) -> HendelseEndring,
+        block: (it: UtkastDto) -> HendelseType,
     ) {
         val endring = block(deltaker.toUtkastDto())
         hendelseProducer.produce(nyHendelse(deltaker, navAnsatt, enhet, endring))
@@ -55,7 +55,7 @@ class HendelseService(
         deltaker: Deltaker,
         navAnsatt: NavAnsatt,
         navEnhet: NavEnhet,
-        endring: HendelseEndring,
+        endring: HendelseType,
     ) = Hendelse(
         opprettet = LocalDateTime.now(),
         deltaker = deltaker.toHendelseDeltaker(),
@@ -65,7 +65,7 @@ class HendelseService(
             navn = navAnsatt.navn,
             enhet = HendelseAnsvarlig.NavVeileder.Enhet(navEnhet.id, navEnhet.enhetsnummer),
         ),
-        endring = endring,
+        payload = endring,
     )
 }
 
