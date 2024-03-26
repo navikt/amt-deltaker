@@ -15,6 +15,12 @@ import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.model.DeltakerEndring
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.deltaker.model.Innhold
+import no.nav.amt.deltaker.hendelse.HendelseProducer
+import no.nav.amt.deltaker.hendelse.HendelseService
+import no.nav.amt.deltaker.hendelse.model.HendelseEndring
+import no.nav.amt.deltaker.kafka.config.LocalKafkaConfig
+import no.nav.amt.deltaker.kafka.utils.SingletonKafkaProvider
+import no.nav.amt.deltaker.kafka.utils.assertProducedHendelse
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetRepository
@@ -32,11 +38,17 @@ class DeltakerEndringServiceTest {
     private val amtPersonClient = mockAmtPersonClient()
     private val navAnsattService = NavAnsattService(NavAnsattRepository(), amtPersonClient)
     private val navEnhetService = NavEnhetService(NavEnhetRepository(), amtPersonClient)
+    private val hendelseService = HendelseService(
+        HendelseProducer(LocalKafkaConfig(SingletonKafkaProvider.getHost())),
+        navAnsattService,
+        navEnhetService,
+    )
 
     private val deltakerEndringService = DeltakerEndringService(
         repository = DeltakerEndringRepository(),
         navAnsattService = navAnsattService,
         navEnhetService = navEnhetService,
+        hendelseService = hendelseService,
     )
 
     companion object {
@@ -77,6 +89,8 @@ class DeltakerEndringServiceTest {
 
         (endring.endring as DeltakerEndring.Endring.EndreBakgrunnsinformasjon)
             .bakgrunnsinformasjon shouldBe endringsrequest.bakgrunnsinformasjon
+
+        assertProducedHendelse(deltaker.id, HendelseEndring.EndreBakgrunnsinformasjon::class)
     }
 
     @Test
@@ -125,6 +139,7 @@ class DeltakerEndringServiceTest {
 
         (endring.endring as DeltakerEndring.Endring.EndreInnhold)
             .innhold shouldBe endringsrequest.innhold
+        assertProducedHendelse(deltaker.id, HendelseEndring.EndreInnhold::class)
     }
 
     @Test
@@ -157,6 +172,8 @@ class DeltakerEndringServiceTest {
             .deltakelsesprosent shouldBe endringsrequest.deltakelsesprosent
         (endring.endring as DeltakerEndring.Endring.EndreDeltakelsesmengde)
             .dagerPerUke shouldBe endringsrequest.dagerPerUke
+
+        assertProducedHendelse(deltaker.id, HendelseEndring.EndreDeltakelsesmengde::class)
     }
 
     @Test
@@ -190,6 +207,8 @@ class DeltakerEndringServiceTest {
             .startdato shouldBe endringsrequest.startdato
         (endring.endring as DeltakerEndring.Endring.EndreStartdato)
             .sluttdato shouldBe endringsrequest.sluttdato
+
+        assertProducedHendelse(deltaker.id, HendelseEndring.EndreStartdato::class)
     }
 
     @Test
@@ -223,6 +242,8 @@ class DeltakerEndringServiceTest {
             .startdato shouldBe endringsrequest.startdato
         (endring.endring as DeltakerEndring.Endring.EndreStartdato)
             .sluttdato shouldBe endringsrequest.sluttdato
+
+        assertProducedHendelse(deltaker.id, HendelseEndring.EndreStartdato::class)
     }
 
     @Test
@@ -380,6 +401,8 @@ class DeltakerEndringServiceTest {
 
         (endring.endring as DeltakerEndring.Endring.EndreSluttdato)
             .sluttdato shouldBe endringsrequest.sluttdato
+
+        assertProducedHendelse(deltaker.id, HendelseEndring.EndreSluttdato::class)
     }
 
     @Test
@@ -411,6 +434,8 @@ class DeltakerEndringServiceTest {
 
         (endring.endring as DeltakerEndring.Endring.EndreSluttarsak)
             .aarsak shouldBe endringsrequest.aarsak
+
+        assertProducedHendelse(deltaker.id, HendelseEndring.EndreSluttarsak::class)
     }
 
     @Test
@@ -440,6 +465,8 @@ class DeltakerEndringServiceTest {
 
         (endring.endring as DeltakerEndring.Endring.ForlengDeltakelse)
             .sluttdato shouldBe endringsrequest.sluttdato
+
+        assertProducedHendelse(deltaker.id, HendelseEndring.ForlengDeltakelse::class)
     }
 
     @Test
@@ -471,6 +498,8 @@ class DeltakerEndringServiceTest {
 
         (endring.endring as DeltakerEndring.Endring.IkkeAktuell)
             .aarsak shouldBe endringsrequest.aarsak
+
+        assertProducedHendelse(deltaker.id, HendelseEndring.IkkeAktuell::class)
     }
 
     @Test
@@ -507,5 +536,7 @@ class DeltakerEndringServiceTest {
             .aarsak shouldBe endringsrequest.aarsak
         (endring.endring as DeltakerEndring.Endring.AvsluttDeltakelse)
             .sluttdato shouldBe endringsrequest.sluttdato
+
+        assertProducedHendelse(deltaker.id, HendelseEndring.AvsluttDeltakelse::class)
     }
 }

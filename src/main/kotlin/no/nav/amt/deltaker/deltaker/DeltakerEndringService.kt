@@ -14,6 +14,7 @@ import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.DeltakerEndring
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
+import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
 import java.time.LocalDate
@@ -24,6 +25,7 @@ class DeltakerEndringService(
     private val repository: DeltakerEndringRepository,
     private val navAnsattService: NavAnsattService,
     private val navEnhetService: NavEnhetService,
+    private val hendelseService: HendelseService,
 ) {
     fun getForDeltaker(deltakerId: UUID) = repository.getForDeltaker(deltakerId)
 
@@ -78,20 +80,20 @@ class DeltakerEndringService(
             }
         }
 
-        if (endretDeltaker.isSuccess) {
+        endretDeltaker.onSuccess {
             val ansatt = navAnsattService.hentEllerOpprettNavAnsatt(request.endretAv)
             val enhet = navEnhetService.hentEllerOpprettNavEnhet(request.endretAvEnhet)
-
-            repository.upsert(
-                DeltakerEndring(
-                    id = UUID.randomUUID(),
-                    deltakerId = deltaker.id,
-                    endring = endring,
-                    endretAv = ansatt.id,
-                    endretAvEnhet = enhet.id,
-                    endret = LocalDateTime.now(),
-                ),
+            val deltakerEndring = DeltakerEndring(
+                id = UUID.randomUUID(),
+                deltakerId = deltaker.id,
+                endring = endring,
+                endretAv = ansatt.id,
+                endretAvEnhet = enhet.id,
+                endret = LocalDateTime.now(),
             )
+
+            repository.upsert(deltakerEndring)
+            hendelseService.hendelseForDeltakerEndring(deltakerEndring, it, ansatt, enhet)
         }
 
         return endretDeltaker

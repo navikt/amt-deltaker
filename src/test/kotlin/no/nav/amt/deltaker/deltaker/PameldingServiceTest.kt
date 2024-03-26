@@ -12,6 +12,12 @@ import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.deltaker.model.Innhold
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
+import no.nav.amt.deltaker.hendelse.HendelseProducer
+import no.nav.amt.deltaker.hendelse.HendelseService
+import no.nav.amt.deltaker.hendelse.model.HendelseEndring
+import no.nav.amt.deltaker.kafka.config.LocalKafkaConfig
+import no.nav.amt.deltaker.kafka.utils.SingletonKafkaProvider
+import no.nav.amt.deltaker.kafka.utils.assertProducedHendelse
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetRepository
@@ -34,9 +40,14 @@ class PameldingServiceTest {
     companion object {
         private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonClient())
         private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonClient())
+        private val hendelseService = HendelseService(
+            HendelseProducer(LocalKafkaConfig(SingletonKafkaProvider.getHost())),
+            navAnsattService,
+            navEnhetService,
+        )
 
         private val vedtakRepository = VedtakRepository()
-        private val vedtakService = VedtakService(vedtakRepository)
+        private val vedtakService = VedtakService(vedtakRepository, hendelseService)
 
         private val deltakerService = DeltakerService(
             deltakerRepository = DeltakerRepository(),
@@ -45,6 +56,7 @@ class PameldingServiceTest {
                 DeltakerEndringRepository(),
                 navAnsattService,
                 navEnhetService,
+                hendelseService,
             ),
             vedtakService = vedtakService,
         )
@@ -196,6 +208,8 @@ class PameldingServiceTest {
             vedtak.fattetAvNav shouldBe false
             vedtak.sistEndretAv shouldBe sistEndretAv.id
             vedtak.sistEndretAvEnhet shouldBe sistEndretAvEnhet.id
+
+            assertProducedHendelse(deltaker.id, HendelseEndring.OpprettUtkast::class)
         }
     }
 
@@ -235,6 +249,7 @@ class PameldingServiceTest {
             vedtak.fattetAvNav shouldBe true
             vedtak.sistEndretAv shouldBe sistEndretAv.id
             vedtak.sistEndretAvEnhet shouldBe sistEndretAvEnhet.id
+            assertProducedHendelse(deltaker.id, HendelseEndring.NavGodkjennUtkast::class)
         }
     }
 
@@ -276,6 +291,7 @@ class PameldingServiceTest {
             vedtakFraDb.gyldigTil shouldNotBe null
             vedtakFraDb.sistEndretAv shouldBe sistEndretAv.id
             vedtakFraDb.sistEndretAvEnhet shouldBe sistEndretAvEnhet.id
+            assertProducedHendelse(deltaker.id, HendelseEndring.AvbrytUtkast::class)
         }
     }
 }
