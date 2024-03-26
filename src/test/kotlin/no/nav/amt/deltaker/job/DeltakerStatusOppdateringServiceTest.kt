@@ -13,6 +13,8 @@ import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerV2MapperService
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
+import no.nav.amt.deltaker.hendelse.HendelseProducer
+import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.kafka.config.LocalKafkaConfig
 import no.nav.amt.deltaker.kafka.utils.SingletonKafkaProvider
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
@@ -41,8 +43,19 @@ class DeltakerStatusOppdateringServiceTest {
         private val vedtakRepository = VedtakRepository()
         private val deltakerHistorikkService = DeltakerHistorikkService(deltakerEndringRepository, vedtakRepository)
         private val deltakerV2MapperService = DeltakerV2MapperService(navAnsattService, navEnhetService, deltakerHistorikkService)
-        private val deltakerEndringService = DeltakerEndringService(deltakerEndringRepository, navAnsattService, navEnhetService)
-        private val vedtakService = VedtakService(vedtakRepository)
+        private val hendelseService = HendelseService(
+            HendelseProducer(LocalKafkaConfig(SingletonKafkaProvider.getHost())),
+            navAnsattService,
+            navEnhetService,
+        )
+
+        private val deltakerEndringService = DeltakerEndringService(
+            repository = deltakerEndringRepository,
+            navAnsattService = navAnsattService,
+            navEnhetService = navEnhetService,
+            hendelseService = hendelseService,
+        )
+        private val vedtakService = VedtakService(vedtakRepository, hendelseService)
 
         @JvmStatic
         @BeforeClass

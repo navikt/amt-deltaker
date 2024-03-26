@@ -9,9 +9,13 @@ import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerV2MapperService
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
+import no.nav.amt.deltaker.hendelse.HendelseProducer
+import no.nav.amt.deltaker.hendelse.HendelseService
+import no.nav.amt.deltaker.hendelse.model.HendelseEndring
 import no.nav.amt.deltaker.kafka.config.LocalKafkaConfig
 import no.nav.amt.deltaker.kafka.utils.SingletonKafkaProvider
 import no.nav.amt.deltaker.kafka.utils.assertProduced
+import no.nav.amt.deltaker.kafka.utils.assertProducedHendelse
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetRepository
@@ -34,12 +38,17 @@ class DeltakerServiceTest {
         private val deltakerRepository = DeltakerRepository()
         private val deltakerEndringRepository = DeltakerEndringRepository()
         private val vedtakRepository = VedtakRepository()
-        private val vedtakService = VedtakService(vedtakRepository)
+        private val hendelseService = HendelseService(
+            HendelseProducer(LocalKafkaConfig(SingletonKafkaProvider.getHost())),
+            navAnsattService,
+            navEnhetService,
+        )
+        private val vedtakService = VedtakService(vedtakRepository, hendelseService)
         private val deltakerHistorikkService = DeltakerHistorikkService(deltakerEndringRepository, vedtakRepository)
         private val deltakerV2MapperService =
             DeltakerV2MapperService(navAnsattService, navEnhetService, deltakerHistorikkService)
         private val deltakerEndringService =
-            DeltakerEndringService(deltakerEndringRepository, navAnsattService, navEnhetService)
+            DeltakerEndringService(deltakerEndringRepository, navAnsattService, navEnhetService, hendelseService)
 
         private val deltakerService = DeltakerService(
             deltakerRepository = deltakerRepository,
@@ -185,6 +194,8 @@ class DeltakerServiceTest {
         }
 
         assertProduced(deltaker.id)
+        assertProducedHendelse(deltaker.id, HendelseEndring.InnbyggerGodkjennUtkast::class)
+
         val oppdatertDeltaker = deltakerService.get(deltaker.id).getOrThrow()
 
         oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
@@ -206,6 +217,7 @@ class DeltakerServiceTest {
         }
 
         assertProduced(deltaker.id)
+        assertProducedHendelse(deltaker.id, HendelseEndring.InnbyggerGodkjennUtkast::class)
         val oppdatertDeltaker = deltakerService.get(deltaker.id).getOrThrow()
 
         oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.DELTAR

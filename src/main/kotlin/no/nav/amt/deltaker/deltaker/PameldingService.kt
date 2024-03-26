@@ -118,7 +118,7 @@ class PameldingService(
         val endretAv = navAnsattService.hentEllerOpprettNavAnsatt(avbrytUtkastRequest.avbruttAv)
         val endretAvNavEnhet = navEnhetService.hentEllerOpprettNavEnhet(avbrytUtkastRequest.avbruttAvEnhet)
 
-        val vedtak = vedtakService.avbrytVedtak(oppdatertDeltaker.id, endretAv, endretAvNavEnhet)
+        val vedtak = vedtakService.avbrytVedtak(oppdatertDeltaker, endretAv, endretAvNavEnhet)
 
         deltakerService.upsertDeltaker(oppdatertDeltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksinformasjon()))
 

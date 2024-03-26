@@ -3,6 +3,8 @@ package no.nav.amt.deltaker.deltaker
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.Vedtak
+import no.nav.amt.deltaker.hendelse.HendelseService
+import no.nav.amt.deltaker.hendelse.model.HendelseEndring
 import no.nav.amt.deltaker.navansatt.NavAnsatt
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhet
 import java.time.LocalDateTime
@@ -10,15 +12,16 @@ import java.util.UUID
 
 class VedtakService(
     private val repository: VedtakRepository,
+    private val hendelseService: HendelseService,
 ) {
-    fun avbrytVedtak(
-        deltakerId: UUID,
+    suspend fun avbrytVedtak(
+        deltaker: Deltaker,
         avbruttAv: NavAnsatt,
         avbruttAvNavEnhet: NavEnhet,
     ): Vedtak {
-        val ikkeFattetVedtak = repository.getIkkeFattet(deltakerId)
+        val ikkeFattetVedtak = repository.getIkkeFattet(deltaker.id)
         require(ikkeFattetVedtak != null) {
-            "Deltaker $deltakerId har ikke et vedtak som kan avbrytes"
+            "Deltaker ${deltaker.id} har ikke et vedtak som kan avbrytes"
         }
 
         val avbruttVedtak = ikkeFattetVedtak.copy(
@@ -30,10 +33,12 @@ class VedtakService(
 
         repository.upsert(avbruttVedtak)
 
+        hendelseService.hendelseForVedtak(deltaker, avbruttAv, avbruttAvNavEnhet) { HendelseEndring.AvbrytUtkast(it) }
+
         return avbruttVedtak
     }
 
-    fun oppdaterEllerOpprettVedtak(
+    suspend fun oppdaterEllerOpprettVedtak(
         deltaker: Deltaker,
         endretAv: NavAnsatt,
         endretAvEnhet: NavEnhet,
@@ -52,10 +57,18 @@ class VedtakService(
         )
         repository.upsert(oppdatertVedtak)
 
+        hendelseService.hendelseForVedtak(deltaker, endretAv, endretAvEnhet) {
+            if (fattetAvNav) {
+                HendelseEndring.NavGodkjennUtkast(it)
+            } else {
+                HendelseEndring.OpprettUtkast(it)
+            }
+        }
+
         return oppdatertVedtak
     }
 
-    fun fattVedtak(id: UUID): Vedtak {
+    suspend fun fattVedtak(id: UUID, deltaker: Deltaker): Vedtak {
         val vedtak = repository.get(id)
 
         require(vedtak != null && vedtak.fattet == null) {
@@ -65,6 +78,7 @@ class VedtakService(
         val fattetVedtak = vedtak.copy(fattet = LocalDateTime.now())
 
         repository.upsert(fattetVedtak)
+        hendelseService.hendelseForVedtakFattetAvInnbygger(deltaker, vedtak)
 
         return fattetVedtak
     }
