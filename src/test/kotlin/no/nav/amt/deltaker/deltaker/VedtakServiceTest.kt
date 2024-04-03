@@ -3,6 +3,8 @@ package no.nav.amt.deltaker.deltaker
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.runBlocking
+import no.nav.amt.deltaker.arrangor.ArrangorRepository
+import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.model.Vedtak
 import no.nav.amt.deltaker.hendelse.HendelseProducer
@@ -16,6 +18,7 @@ import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
 import no.nav.amt.deltaker.utils.SingletonPostgresContainer
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
+import no.nav.amt.deltaker.utils.mockAmtArrangorClient
 import no.nav.amt.deltaker.utils.mockAmtPersonClient
 import no.nav.amt.deltaker.utils.shouldBeCloseTo
 import org.junit.Assert.assertThrows
@@ -29,10 +32,12 @@ class VedtakServiceTest {
 
     private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonClient())
     private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonClient())
+    private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
     private val hendelseService = HendelseService(
         HendelseProducer(LocalKafkaConfig(SingletonKafkaProvider.getHost())),
         navAnsattService,
         navEnhetService,
+        arrangorService,
     )
 
     private val service = VedtakService(VedtakRepository(), hendelseService)

@@ -134,10 +134,11 @@ fun Application.module() {
         navAnsattService,
     )
 
-    val hendelseProducer = HendelseProducer()
-    val hendelseService = HendelseService(hendelseProducer, navAnsattService, navEnhetService)
-
     val arrangorService = ArrangorService(arrangorRepository, amtArrangorClient)
+
+    val hendelseProducer = HendelseProducer()
+    val hendelseService = HendelseService(hendelseProducer, navAnsattService, navEnhetService, arrangorService)
+
     val deltakerHistorikkService = DeltakerHistorikkService(deltakerEndringRepository, vedtakRepository)
     val deltakerV2MapperService = DeltakerV2MapperService(navAnsattService, navEnhetService, deltakerHistorikkService)
     val deltakerEndringService = DeltakerEndringService(deltakerEndringRepository, navAnsattService, navEnhetService, hendelseService)

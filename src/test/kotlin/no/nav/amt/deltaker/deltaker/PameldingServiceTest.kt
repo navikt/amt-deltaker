@@ -4,6 +4,8 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
+import no.nav.amt.deltaker.arrangor.ArrangorRepository
+import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.api.model.AvbrytUtkastRequest
 import no.nav.amt.deltaker.deltaker.api.model.UtkastRequest
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
@@ -28,6 +30,7 @@ import no.nav.amt.deltaker.utils.MockResponseHandler
 import no.nav.amt.deltaker.utils.SingletonPostgresContainer
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
+import no.nav.amt.deltaker.utils.mockAmtArrangorClient
 import no.nav.amt.deltaker.utils.mockAmtPersonClient
 import org.junit.Before
 import org.junit.BeforeClass
@@ -40,10 +43,12 @@ class PameldingServiceTest {
     companion object {
         private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonClient())
         private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonClient())
+        private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
         private val hendelseService = HendelseService(
             HendelseProducer(LocalKafkaConfig(SingletonKafkaProvider.getHost())),
             navAnsattService,
             navEnhetService,
+            arrangorService,
         )
 
         private val vedtakRepository = VedtakRepository()

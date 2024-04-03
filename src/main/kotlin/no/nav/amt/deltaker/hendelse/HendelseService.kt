@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.hendelse
 
+import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.DeltakerEndring
 import no.nav.amt.deltaker.deltaker.model.Innhold
@@ -21,6 +22,7 @@ class HendelseService(
     private val hendelseProducer: HendelseProducer,
     private val navAnsattService: NavAnsattService,
     private val navEnhetService: NavEnhetService,
+    private val arrangorService: ArrangorService,
 ) {
     suspend fun hendelseForDeltakerEndring(
         deltakerEndring: DeltakerEndring,
@@ -56,17 +58,21 @@ class HendelseService(
         navAnsatt: NavAnsatt,
         navEnhet: NavEnhet,
         endring: HendelseType,
-    ) = Hendelse(
-        opprettet = LocalDateTime.now(),
-        deltaker = deltaker.toHendelseDeltaker(),
-        ansvarlig = HendelseAnsvarlig.NavVeileder(
-            id = navAnsatt.id,
-            navIdent = navAnsatt.navIdent,
-            navn = navAnsatt.navn,
-            enhet = HendelseAnsvarlig.NavVeileder.Enhet(navEnhet.id, navEnhet.enhetsnummer),
-        ),
-        payload = endring,
-    )
+    ): Hendelse {
+        val overordnetArrangor = deltaker.deltakerliste.arrangor.overordnetArrangorId?.let { arrangorService.hentArrangor(it) }
+
+        return Hendelse(
+            opprettet = LocalDateTime.now(),
+            deltaker = deltaker.toHendelseDeltaker(overordnetArrangor),
+            ansvarlig = HendelseAnsvarlig.NavVeileder(
+                id = navAnsatt.id,
+                navIdent = navAnsatt.navIdent,
+                navn = navAnsatt.navn,
+                enhet = HendelseAnsvarlig.NavVeileder.Enhet(navEnhet.id, navEnhet.enhetsnummer),
+            ),
+            payload = endring,
+        )
+    }
 }
 
 private fun Deltaker.toUtkastDto() = UtkastDto(

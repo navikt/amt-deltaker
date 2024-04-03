@@ -2,6 +2,8 @@ package no.nav.amt.deltaker.deltaker
 
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
+import no.nav.amt.deltaker.arrangor.ArrangorRepository
+import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.api.model.AvsluttDeltakelseRequest
 import no.nav.amt.deltaker.deltaker.api.model.BakgrunnsinformasjonRequest
 import no.nav.amt.deltaker.deltaker.api.model.DeltakelsesmengdeRequest
@@ -28,6 +30,7 @@ import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
 import no.nav.amt.deltaker.utils.SingletonPostgresContainer
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
+import no.nav.amt.deltaker.utils.mockAmtArrangorClient
 import no.nav.amt.deltaker.utils.mockAmtPersonClient
 import org.junit.Before
 import org.junit.BeforeClass
@@ -38,10 +41,12 @@ class DeltakerEndringServiceTest {
     private val amtPersonClient = mockAmtPersonClient()
     private val navAnsattService = NavAnsattService(NavAnsattRepository(), amtPersonClient)
     private val navEnhetService = NavEnhetService(NavEnhetRepository(), amtPersonClient)
+    private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
     private val hendelseService = HendelseService(
         HendelseProducer(LocalKafkaConfig(SingletonKafkaProvider.getHost())),
         navAnsattService,
         navEnhetService,
+        arrangorService,
     )
 
     private val deltakerEndringService = DeltakerEndringService(

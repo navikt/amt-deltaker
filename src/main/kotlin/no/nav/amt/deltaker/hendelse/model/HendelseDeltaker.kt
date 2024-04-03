@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.hendelse.model
 
+import no.nav.amt.deltaker.arrangor.Arrangor
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype
 import java.util.UUID
@@ -30,18 +31,13 @@ data class HendelseDeltaker(
     }
 }
 
-fun Deltaker.toHendelseDeltaker() = HendelseDeltaker(
+fun Deltaker.toHendelseDeltaker(overordnetArrangor: Arrangor?) = HendelseDeltaker(
     id = id,
     personident = navBruker.personident,
     deltakerliste = HendelseDeltaker.Deltakerliste(
         id = deltakerliste.id,
         navn = deltakerliste.navn,
-        arrangor = HendelseDeltaker.Deltakerliste.Arrangor(
-            id = deltakerliste.arrangor.id,
-            organisasjonsnummer = deltakerliste.arrangor.organisasjonsnummer,
-            navn = deltakerliste.arrangor.navn,
-            overordnetArrangor = null,
-        ),
+        arrangor = deltakerliste.arrangor.toHendelseArrangor(overordnetArrangor?.toHendelseArrangor()),
         tiltak = HendelseDeltaker.Deltakerliste.Tiltak(
             navn = deltakerliste.tiltakstype.navn,
             type = deltakerliste.tiltakstype.type,
@@ -49,3 +45,11 @@ fun Deltaker.toHendelseDeltaker() = HendelseDeltaker(
         ),
     ),
 )
+
+private fun Arrangor.toHendelseArrangor(overordnetArrangor: HendelseDeltaker.Deltakerliste.Arrangor? = null) =
+    HendelseDeltaker.Deltakerliste.Arrangor(
+        id,
+        organisasjonsnummer,
+        navn,
+        overordnetArrangor,
+    )
