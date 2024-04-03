@@ -38,6 +38,8 @@ import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlisteConsumer
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.kafka.TiltakstypeConsumer
+import no.nav.amt.deltaker.hendelse.HendelseProducer
+import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.job.DeltakerStatusOppdateringService
 import no.nav.amt.deltaker.job.StatusUpdateJob
 import no.nav.amt.deltaker.job.leaderelection.LeaderElection
@@ -131,15 +133,20 @@ fun Application.module() {
         navEnhetService,
         navAnsattService,
     )
+
     val arrangorService = ArrangorService(arrangorRepository, amtArrangorClient)
+
+    val hendelseProducer = HendelseProducer()
+    val hendelseService = HendelseService(hendelseProducer, navAnsattService, navEnhetService, arrangorService)
+
     val deltakerHistorikkService = DeltakerHistorikkService(deltakerEndringRepository, vedtakRepository)
     val deltakerV2MapperService = DeltakerV2MapperService(navAnsattService, navEnhetService, deltakerHistorikkService)
-    val deltakerEndringService = DeltakerEndringService(deltakerEndringRepository, navAnsattService, navEnhetService)
+    val deltakerEndringService = DeltakerEndringService(deltakerEndringRepository, navAnsattService, navEnhetService, hendelseService)
     val deltakelserResponseMapper = DeltakelserResponseMapper(deltakerHistorikkService, arrangorService)
 
     val deltakerProducer = DeltakerProducer(deltakerV2MapperService = deltakerV2MapperService)
 
-    val vedtakService = VedtakService(vedtakRepository)
+    val vedtakService = VedtakService(vedtakRepository, hendelseService)
     val deltakerService = DeltakerService(deltakerRepository, deltakerEndringService, deltakerProducer, vedtakService)
     val pameldingService = PameldingService(
         deltakerService = deltakerService,
