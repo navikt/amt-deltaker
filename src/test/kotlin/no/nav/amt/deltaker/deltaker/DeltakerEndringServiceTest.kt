@@ -226,6 +226,105 @@ class DeltakerEndringServiceTest {
     }
 
     @Test
+    fun `upsertEndring - endret start- og sluttdato i fortid, venter pa oppstart - deltaker blir ikke aktuell`(): Unit = runBlocking {
+        val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.VENTER_PA_OPPSTART))
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+
+        TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
+
+        val endringsrequest = StartdatoRequest(
+            endretAv = endretAv.navIdent,
+            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            startdato = LocalDate.now().minusWeeks(10),
+            sluttdato = LocalDate.now().minusDays(4),
+        )
+
+        val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)
+
+        resultat.isSuccess shouldBe true
+        val deltakerFraDb = resultat.getOrThrow()
+        deltakerFraDb.status.type shouldBe DeltakerStatus.Type.IKKE_AKTUELL
+        deltakerFraDb.startdato shouldBe null
+        deltakerFraDb.sluttdato shouldBe null
+
+        val endring = deltakerEndringService.getForDeltaker(deltaker.id).first()
+        endring.endretAv shouldBe endretAv.id
+        endring.endretAvEnhet shouldBe endretAvEnhet.id
+
+        (endring.endring as DeltakerEndring.Endring.EndreStartdato)
+            .startdato shouldBe endringsrequest.startdato
+        (endring.endring as DeltakerEndring.Endring.EndreStartdato)
+            .sluttdato shouldBe endringsrequest.sluttdato
+    }
+
+    @Test
+    fun `upsertEndring - endret start- og sluttdato i fortid, deltar - deltaker blir har sluttet`(): Unit = runBlocking {
+        val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR))
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+
+        TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
+
+        val endringsrequest = StartdatoRequest(
+            endretAv = endretAv.navIdent,
+            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            startdato = LocalDate.now().minusWeeks(10),
+            sluttdato = LocalDate.now().minusDays(4),
+        )
+
+        val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)
+
+        resultat.isSuccess shouldBe true
+        val deltakerFraDb = resultat.getOrThrow()
+        deltakerFraDb.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+        deltakerFraDb.startdato shouldBe endringsrequest.startdato
+        deltakerFraDb.sluttdato shouldBe endringsrequest.sluttdato
+
+        val endring = deltakerEndringService.getForDeltaker(deltaker.id).first()
+        endring.endretAv shouldBe endretAv.id
+        endring.endretAvEnhet shouldBe endretAvEnhet.id
+
+        (endring.endring as DeltakerEndring.Endring.EndreStartdato)
+            .startdato shouldBe endringsrequest.startdato
+        (endring.endring as DeltakerEndring.Endring.EndreStartdato)
+            .sluttdato shouldBe endringsrequest.sluttdato
+    }
+
+    @Test
+    fun `upsertEndring - endret start- og sluttdato i fremtid, deltar - deltaker blir venter pa oppstart`(): Unit = runBlocking {
+        val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR))
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+
+        TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
+
+        val endringsrequest = StartdatoRequest(
+            endretAv = endretAv.navIdent,
+            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            startdato = LocalDate.now().plusDays(10),
+            sluttdato = LocalDate.now().plusWeeks(4),
+        )
+
+        val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)
+
+        resultat.isSuccess shouldBe true
+        val deltakerFraDb = resultat.getOrThrow()
+        deltakerFraDb.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
+        deltakerFraDb.startdato shouldBe endringsrequest.startdato
+        deltakerFraDb.sluttdato shouldBe endringsrequest.sluttdato
+
+        val endring = deltakerEndringService.getForDeltaker(deltaker.id).first()
+        endring.endretAv shouldBe endretAv.id
+        endring.endretAvEnhet shouldBe endretAvEnhet.id
+
+        (endring.endring as DeltakerEndring.Endring.EndreStartdato)
+            .startdato shouldBe endringsrequest.startdato
+        (endring.endring as DeltakerEndring.Endring.EndreStartdato)
+            .sluttdato shouldBe endringsrequest.sluttdato
+    }
+
+    @Test
     fun `upsertEndring - endret sluttdato - upserter endring og returnerer deltaker`(): Unit = runBlocking {
         val deltaker = TestData.lagDeltaker()
         val endretAv = TestData.lagNavAnsatt()
@@ -242,7 +341,38 @@ class DeltakerEndringServiceTest {
         val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)
 
         resultat.isSuccess shouldBe true
-        resultat.getOrThrow().sluttdato shouldBe endringsrequest.sluttdato
+        val oppdatertDeltaker = resultat.getOrThrow()
+        oppdatertDeltaker.sluttdato shouldBe endringsrequest.sluttdato
+        oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+
+        val endring = deltakerEndringService.getForDeltaker(deltaker.id).first()
+        endring.endretAv shouldBe endretAv.id
+        endring.endretAvEnhet shouldBe endretAvEnhet.id
+
+        (endring.endring as DeltakerEndring.Endring.EndreSluttdato)
+            .sluttdato shouldBe endringsrequest.sluttdato
+    }
+
+    @Test
+    fun `upsertEndring - endret sluttdato frem i tid - upserter endring og returnerer deltaker med status deltar`(): Unit = runBlocking {
+        val deltaker = TestData.lagDeltaker()
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+
+        TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
+
+        val endringsrequest = SluttdatoRequest(
+            endretAv = endretAv.navIdent,
+            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            sluttdato = LocalDate.now().plusWeeks(1),
+        )
+
+        val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)
+
+        resultat.isSuccess shouldBe true
+        val oppdatertDeltaker = resultat.getOrThrow()
+        oppdatertDeltaker.sluttdato shouldBe endringsrequest.sluttdato
+        oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.DELTAR
 
         val endring = deltakerEndringService.getForDeltaker(deltaker.id).first()
         endring.endretAv shouldBe endretAv.id

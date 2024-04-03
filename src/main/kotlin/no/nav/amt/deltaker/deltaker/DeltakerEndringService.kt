@@ -140,7 +140,10 @@ class DeltakerEndringService(
             }
 
             is DeltakerEndring.Endring.EndreSluttdato -> endreDeltaker(endring.sluttdato != deltaker.sluttdato) {
-                deltaker.copy(sluttdato = endring.sluttdato)
+                deltaker.copy(
+                    sluttdato = endring.sluttdato,
+                    status = deltaker.getStatusEndretSluttdato(endring.sluttdato),
+                )
             }
 
             is DeltakerEndring.Endring.EndreSluttarsak -> {
@@ -151,19 +154,14 @@ class DeltakerEndringService(
 
             is DeltakerEndring.Endring.EndreStartdato -> {
                 endreDeltaker(deltaker.startdato != endring.startdato || deltaker.sluttdato != endring.sluttdato) {
-                    deltaker.copy(
+                    val oppdatertStatus = deltaker.getStatusEndretStartOgSluttdato(
                         startdato = endring.startdato,
                         sluttdato = endring.sluttdato,
-                        status = if (deltaker.status.type == DeltakerStatus.Type.VENTER_PA_OPPSTART && (
-                                endring.startdato != null && !endring.startdato.isAfter(
-                                    LocalDate.now(),
-                                )
-                            )
-                        ) {
-                            nyDeltakerStatus(DeltakerStatus.Type.DELTAR)
-                        } else {
-                            deltaker.status
-                        },
+                    )
+                    deltaker.copy(
+                        startdato = if (oppdatertStatus.type == DeltakerStatus.Type.IKKE_AKTUELL) null else endring.startdato,
+                        sluttdato = if (oppdatertStatus.type == DeltakerStatus.Type.IKKE_AKTUELL) null else endring.sluttdato,
+                        status = oppdatertStatus,
                     )
                 }
             }
@@ -172,14 +170,7 @@ class DeltakerEndringService(
                 endreDeltaker(deltaker.sluttdato != endring.sluttdato) {
                     deltaker.copy(
                         sluttdato = endring.sluttdato,
-                        status = if (deltaker.status.type == DeltakerStatus.Type.HAR_SLUTTET && endring.sluttdato.isAfter(
-                                LocalDate.now(),
-                            )
-                        ) {
-                            nyDeltakerStatus(DeltakerStatus.Type.DELTAR)
-                        } else {
-                            deltaker.status
-                        },
+                        status = deltaker.getStatusEndretSluttdato(endring.sluttdato),
                     )
                 }
             }
@@ -193,6 +184,31 @@ class DeltakerEndringService(
                     )
                 }
             }
+        }
+    }
+
+    private fun Deltaker.getStatusEndretSluttdato(sluttdato: LocalDate): DeltakerStatus {
+        return if (status.type == DeltakerStatus.Type.HAR_SLUTTET && sluttdato.isAfter(
+                LocalDate.now(),
+            )
+        ) {
+            nyDeltakerStatus(DeltakerStatus.Type.DELTAR)
+        } else {
+            status
+        }
+    }
+
+    private fun Deltaker.getStatusEndretStartOgSluttdato(startdato: LocalDate?, sluttdato: LocalDate?): DeltakerStatus {
+        return if (status.type == DeltakerStatus.Type.VENTER_PA_OPPSTART && (sluttdato != null && sluttdato.isBefore(LocalDate.now()))) {
+            nyDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL)
+        } else if (status.type == DeltakerStatus.Type.VENTER_PA_OPPSTART && (startdato != null && !startdato.isAfter(LocalDate.now()))) {
+            nyDeltakerStatus(DeltakerStatus.Type.DELTAR)
+        } else if (status.type == DeltakerStatus.Type.DELTAR && (sluttdato != null && sluttdato.isBefore(LocalDate.now()))) {
+            nyDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET)
+        } else if (status.type == DeltakerStatus.Type.DELTAR && (startdato == null || startdato.isAfter(LocalDate.now()))) {
+            nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART)
+        } else {
+            status
         }
     }
 }
