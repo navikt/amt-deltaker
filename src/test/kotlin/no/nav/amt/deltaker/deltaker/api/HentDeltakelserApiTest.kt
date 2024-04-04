@@ -18,11 +18,10 @@ import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.auth.TilgangskontrollService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerService
-import no.nav.amt.deltaker.deltaker.api.model.AktivDeltakelse
 import no.nav.amt.deltaker.deltaker.api.model.DeltakelserRequest
 import no.nav.amt.deltaker.deltaker.api.model.DeltakelserResponse
 import no.nav.amt.deltaker.deltaker.api.model.DeltakelserResponseMapper
-import no.nav.amt.deltaker.deltaker.api.model.HistoriskDeltakelse
+import no.nav.amt.deltaker.deltaker.api.model.DeltakerKort
 import no.nav.amt.deltaker.deltaker.api.model.Periode
 import no.nav.amt.deltaker.deltaker.api.utils.postVeilederRequest
 import no.nav.amt.deltaker.deltaker.model.DeltakerHistorikk
@@ -93,15 +92,23 @@ class HentDeltakelserApiTest {
 
         val forventetRespons = DeltakelserResponse(
             aktive = listOf(
-                AktivDeltakelse(
+                DeltakerKort(
                     deltakerId = deltaker.id,
-                    innsoktDato = innsoktDato,
-                    sistEndretdato = deltaker.sistEndret.toLocalDate(),
-                    aktivStatus = AktivDeltakelse.AktivStatusType.DELTAR,
                     tittel = "Oppfølging hos Arrangør AS",
                     tiltakstype = DeltakelserResponse.Tiltakstype(
                         navn = deltaker.deltakerliste.tiltakstype.navn,
                         tiltakskode = deltaker.deltakerliste.tiltakstype.type,
+                    ),
+                    status = DeltakerKort.Status(
+                        type = DeltakerStatus.Type.DELTAR,
+                        visningstekst = "Deltar",
+                        aarsak = null,
+                    ),
+                    innsoktDato = innsoktDato,
+                    sistEndretDato = null,
+                    periode = Periode(
+                        startdato = deltaker.startdato,
+                        sluttdato = deltaker.sluttdato,
                     ),
                 ),
             ),
@@ -152,28 +159,41 @@ class HentDeltakelserApiTest {
 
         val forventetRespons = DeltakelserResponse(
             aktive = listOf(
-                AktivDeltakelse(
+                DeltakerKort(
                     deltakerId = deltakerKladd.id,
-                    innsoktDato = null,
-                    sistEndretdato = deltakerKladd.sistEndret.toLocalDate(),
-                    aktivStatus = AktivDeltakelse.AktivStatusType.KLADD,
                     tittel = "Oppfølging hos Arrangør AS",
                     tiltakstype = DeltakelserResponse.Tiltakstype(
                         navn = deltakerKladd.deltakerliste.tiltakstype.navn,
                         tiltakskode = deltakerKladd.deltakerliste.tiltakstype.type,
                     ),
+                    status = DeltakerKort.Status(
+                        type = DeltakerStatus.Type.KLADD,
+                        visningstekst = "Kladden er ikke delt",
+                        aarsak = null,
+                    ),
+                    innsoktDato = null,
+                    sistEndretDato = deltakerKladd.sistEndret.toLocalDate(),
+                    periode = null,
                 ),
             ),
             historikk = listOf(
-                HistoriskDeltakelse(
+                DeltakerKort(
                     deltakerId = avsluttetDeltaker.id,
-                    innsoktDato = innsoktDato,
-                    periode = Periode(avsluttetDeltaker.startdato, avsluttetDeltaker.sluttdato),
-                    historiskStatus = HistoriskDeltakelse.HistoriskStatus(HistoriskDeltakelse.HistoriskStatusType.HAR_SLUTTET, "fått jobb"),
                     tittel = "Oppfølging hos Arrangør og Sønn AS",
                     tiltakstype = DeltakelserResponse.Tiltakstype(
                         navn = avsluttetDeltaker.deltakerliste.tiltakstype.navn,
                         tiltakskode = avsluttetDeltaker.deltakerliste.tiltakstype.type,
+                    ),
+                    status = DeltakerKort.Status(
+                        type = DeltakerStatus.Type.HAR_SLUTTET,
+                        visningstekst = "Har sluttet",
+                        aarsak = "fått jobb",
+                    ),
+                    innsoktDato = innsoktDato,
+                    sistEndretDato = null,
+                    periode = Periode(
+                        startdato = avsluttetDeltaker.startdato,
+                        sluttdato = avsluttetDeltaker.sluttdato,
                     ),
                 ),
             ),
