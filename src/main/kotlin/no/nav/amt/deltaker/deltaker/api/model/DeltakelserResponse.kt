@@ -24,8 +24,8 @@ data class DeltakerKort(
     val periode: Periode?,
 ) {
     data class Status(
-        val status: DeltakerStatus.Type,
-        val statustekst: String,
+        val type: DeltakerStatus.Type,
+        val visningstekst: String,
         val aarsak: String?,
     )
 }

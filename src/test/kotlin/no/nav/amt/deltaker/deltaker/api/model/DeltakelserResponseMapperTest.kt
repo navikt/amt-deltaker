@@ -61,8 +61,8 @@ class DeltakelserResponseMapperTest {
         deltakerKort.deltakerId shouldBe deltaker.id
         deltakerKort.tittel shouldBe "Oppfølging hos Arrangør"
         deltakerKort.tiltakstype shouldBe DeltakelserResponse.Tiltakstype("Oppfølging", Tiltakstype.Type.INDOPPFAG)
-        deltakerKort.status.status shouldBe DeltakerStatus.Type.KLADD
-        deltakerKort.status.statustekst shouldBe "Kladden er ikke delt"
+        deltakerKort.status.type shouldBe DeltakerStatus.Type.KLADD
+        deltakerKort.status.visningstekst shouldBe "Kladden er ikke delt"
         deltakerKort.status.aarsak shouldBe null
         deltakerKort.innsoktDato shouldBe null
         deltakerKort.sistEndretDato shouldBe deltaker.sistEndret.toLocalDate()
@@ -105,8 +105,8 @@ class DeltakelserResponseMapperTest {
         deltakerKort.deltakerId shouldBe deltaker.id
         deltakerKort.tittel shouldBe "Oppfølging hos Overordnet Arrangør"
         deltakerKort.tiltakstype shouldBe DeltakelserResponse.Tiltakstype("Oppfølging", Tiltakstype.Type.INDOPPFAG)
-        deltakerKort.status.status shouldBe DeltakerStatus.Type.UTKAST_TIL_PAMELDING
-        deltakerKort.status.statustekst shouldBe "Utkastet er delt og venter på godkjenning"
+        deltakerKort.status.type shouldBe DeltakerStatus.Type.UTKAST_TIL_PAMELDING
+        deltakerKort.status.visningstekst shouldBe "Utkastet er delt og venter på godkjenning"
         deltakerKort.status.aarsak shouldBe null
         deltakerKort.innsoktDato shouldBe null
         deltakerKort.sistEndretDato shouldBe deltaker.sistEndret.toLocalDate()
@@ -149,8 +149,8 @@ class DeltakelserResponseMapperTest {
         deltakerKort.deltakerId shouldBe deltaker.id
         deltakerKort.tittel shouldBe "Oppfølging hos Arrangør"
         deltakerKort.tiltakstype shouldBe DeltakelserResponse.Tiltakstype("Oppfølging", Tiltakstype.Type.INDOPPFAG)
-        deltakerKort.status.status shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
-        deltakerKort.status.statustekst shouldBe "Venter på oppstart"
+        deltakerKort.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
+        deltakerKort.status.visningstekst shouldBe "Venter på oppstart"
         deltakerKort.status.aarsak shouldBe null
         deltakerKort.innsoktDato shouldBe LocalDate.now().minusDays(4)
         deltakerKort.sistEndretDato shouldBe null
@@ -191,8 +191,8 @@ class DeltakelserResponseMapperTest {
         deltakerKort.deltakerId shouldBe deltaker.id
         deltakerKort.tittel shouldBe "Oppfølging hos Arrangør"
         deltakerKort.tiltakstype shouldBe DeltakelserResponse.Tiltakstype("Oppfølging", Tiltakstype.Type.INDOPPFAG)
-        deltakerKort.status.status shouldBe DeltakerStatus.Type.DELTAR
-        deltakerKort.status.statustekst shouldBe "Deltar"
+        deltakerKort.status.type shouldBe DeltakerStatus.Type.DELTAR
+        deltakerKort.status.visningstekst shouldBe "Deltar"
         deltakerKort.status.aarsak shouldBe null
         deltakerKort.innsoktDato shouldBe LocalDate.now().minusDays(4)
         deltakerKort.sistEndretDato shouldBe null
@@ -237,8 +237,8 @@ class DeltakelserResponseMapperTest {
         deltakerKort.deltakerId shouldBe deltaker.id
         deltakerKort.tittel shouldBe "Oppfølging hos Arrangør"
         deltakerKort.tiltakstype shouldBe DeltakelserResponse.Tiltakstype("Oppfølging", Tiltakstype.Type.INDOPPFAG)
-        deltakerKort.status.status shouldBe DeltakerStatus.Type.IKKE_AKTUELL
-        deltakerKort.status.statustekst shouldBe "Ikke aktuell"
+        deltakerKort.status.type shouldBe DeltakerStatus.Type.IKKE_AKTUELL
+        deltakerKort.status.visningstekst shouldBe "Ikke aktuell"
         deltakerKort.status.aarsak shouldBe "flyttet til Spania"
         deltakerKort.innsoktDato shouldBe LocalDate.now().minusDays(4)
         deltakerKort.sistEndretDato shouldBe null
@@ -283,8 +283,8 @@ class DeltakelserResponseMapperTest {
         deltakerKort.deltakerId shouldBe deltaker.id
         deltakerKort.tittel shouldBe "Oppfølging hos Arrangør"
         deltakerKort.tiltakstype shouldBe DeltakelserResponse.Tiltakstype("Oppfølging", Tiltakstype.Type.INDOPPFAG)
-        deltakerKort.status.status shouldBe DeltakerStatus.Type.HAR_SLUTTET
-        deltakerKort.status.statustekst shouldBe "Har sluttet"
+        deltakerKort.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+        deltakerKort.status.visningstekst shouldBe "Har sluttet"
         deltakerKort.status.aarsak shouldBe "trenger annen støtte"
         deltakerKort.innsoktDato shouldBe LocalDate.now().minusDays(4)
         deltakerKort.sistEndretDato shouldBe null
@@ -329,8 +329,8 @@ class DeltakelserResponseMapperTest {
         deltakerKort.deltakerId shouldBe deltaker.id
         deltakerKort.tittel shouldBe "Oppfølging hos Arrangør"
         deltakerKort.tiltakstype shouldBe DeltakelserResponse.Tiltakstype("Oppfølging", Tiltakstype.Type.INDOPPFAG)
-        deltakerKort.status.status shouldBe DeltakerStatus.Type.AVBRUTT_UTKAST
-        deltakerKort.status.statustekst shouldBe "Avbrutt utkast"
+        deltakerKort.status.type shouldBe DeltakerStatus.Type.AVBRUTT_UTKAST
+        deltakerKort.status.visningstekst shouldBe "Avbrutt utkast"
         deltakerKort.status.aarsak shouldBe null
         deltakerKort.innsoktDato shouldBe null
         deltakerKort.sistEndretDato shouldBe deltaker.sistEndret.toLocalDate()

@@ -90,8 +90,8 @@ class DeltakelserResponseMapper(
 
     private fun Deltaker.getStatus(): DeltakerKort.Status {
         return DeltakerKort.Status(
-            status = status.type,
-            statustekst = status.type.getStatustekst(),
+            type = status.type,
+            visningstekst = status.type.getStatustekst(),
             aarsak = getArsak(),
         )
     }

@@ -100,8 +100,8 @@ class HentDeltakelserApiTest {
                         tiltakskode = deltaker.deltakerliste.tiltakstype.type,
                     ),
                     status = DeltakerKort.Status(
-                        status = DeltakerStatus.Type.DELTAR,
-                        statustekst = "Deltar",
+                        type = DeltakerStatus.Type.DELTAR,
+                        visningstekst = "Deltar",
                         aarsak = null,
                     ),
                     innsoktDato = innsoktDato,
@@ -167,8 +167,8 @@ class HentDeltakelserApiTest {
                         tiltakskode = deltakerKladd.deltakerliste.tiltakstype.type,
                     ),
                     status = DeltakerKort.Status(
-                        status = DeltakerStatus.Type.KLADD,
-                        statustekst = "Kladden er ikke delt",
+                        type = DeltakerStatus.Type.KLADD,
+                        visningstekst = "Kladden er ikke delt",
                         aarsak = null,
                     ),
                     innsoktDato = null,
@@ -185,8 +185,8 @@ class HentDeltakelserApiTest {
                         tiltakskode = avsluttetDeltaker.deltakerliste.tiltakstype.type,
                     ),
                     status = DeltakerKort.Status(
-                        status = DeltakerStatus.Type.HAR_SLUTTET,
-                        statustekst = "Har sluttet",
+                        type = DeltakerStatus.Type.HAR_SLUTTET,
+                        visningstekst = "Har sluttet",
                         aarsak = "fått jobb",
                     ),
                     innsoktDato = innsoktDato,
