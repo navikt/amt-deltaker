@@ -4,6 +4,8 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
+import no.nav.amt.deltaker.arrangor.ArrangorRepository
+import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.api.model.AvbrytUtkastRequest
 import no.nav.amt.deltaker.deltaker.api.model.UtkastRequest
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
@@ -12,6 +14,12 @@ import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.deltaker.model.Innhold
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
+import no.nav.amt.deltaker.hendelse.HendelseProducer
+import no.nav.amt.deltaker.hendelse.HendelseService
+import no.nav.amt.deltaker.hendelse.model.HendelseType
+import no.nav.amt.deltaker.kafka.config.LocalKafkaConfig
+import no.nav.amt.deltaker.kafka.utils.SingletonKafkaProvider
+import no.nav.amt.deltaker.kafka.utils.assertProducedHendelse
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetRepository
@@ -22,6 +30,7 @@ import no.nav.amt.deltaker.utils.MockResponseHandler
 import no.nav.amt.deltaker.utils.SingletonPostgresContainer
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
+import no.nav.amt.deltaker.utils.mockAmtArrangorClient
 import no.nav.amt.deltaker.utils.mockAmtPersonClient
 import org.junit.Before
 import org.junit.BeforeClass
@@ -34,9 +43,16 @@ class PameldingServiceTest {
     companion object {
         private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonClient())
         private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonClient())
+        private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
+        private val hendelseService = HendelseService(
+            HendelseProducer(LocalKafkaConfig(SingletonKafkaProvider.getHost())),
+            navAnsattService,
+            navEnhetService,
+            arrangorService,
+        )
 
         private val vedtakRepository = VedtakRepository()
-        private val vedtakService = VedtakService(vedtakRepository)
+        private val vedtakService = VedtakService(vedtakRepository, hendelseService)
 
         private val deltakerService = DeltakerService(
             deltakerRepository = DeltakerRepository(),
@@ -45,6 +61,7 @@ class PameldingServiceTest {
                 DeltakerEndringRepository(),
                 navAnsattService,
                 navEnhetService,
+                hendelseService,
             ),
             vedtakService = vedtakService,
         )
@@ -196,6 +213,8 @@ class PameldingServiceTest {
             vedtak.fattetAvNav shouldBe false
             vedtak.sistEndretAv shouldBe sistEndretAv.id
             vedtak.sistEndretAvEnhet shouldBe sistEndretAvEnhet.id
+
+            assertProducedHendelse(deltaker.id, HendelseType.OpprettUtkast::class)
         }
     }
 
@@ -235,6 +254,7 @@ class PameldingServiceTest {
             vedtak.fattetAvNav shouldBe true
             vedtak.sistEndretAv shouldBe sistEndretAv.id
             vedtak.sistEndretAvEnhet shouldBe sistEndretAvEnhet.id
+            assertProducedHendelse(deltaker.id, HendelseType.NavGodkjennUtkast::class)
         }
     }
 
@@ -276,6 +296,7 @@ class PameldingServiceTest {
             vedtakFraDb.gyldigTil shouldNotBe null
             vedtakFraDb.sistEndretAv shouldBe sistEndretAv.id
             vedtakFraDb.sistEndretAvEnhet shouldBe sistEndretAvEnhet.id
+            assertProducedHendelse(deltaker.id, HendelseType.AvbrytUtkast::class)
         }
     }
 }
