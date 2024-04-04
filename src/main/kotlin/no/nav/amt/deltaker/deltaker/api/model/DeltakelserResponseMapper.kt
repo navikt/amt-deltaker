@@ -8,60 +8,99 @@ import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.deltaker.utils.toTitleCase
 import java.time.LocalDate
-import java.util.UUID
 
 class DeltakelserResponseMapper(
     private val deltakerHistorikkService: DeltakerHistorikkService,
     private val arrangorService: ArrangorService,
 ) {
-    fun toDeltakelserResponse(deltakelser: List<Deltaker>): DeltakelserResponse {
-        val aktive = deltakelser.filter { it.status.type.name in AKTIVE_STATUSER }.map { toAktivDeltakelse(it) }
+    private val skalViseSistEndretDatoStatuser = listOf(
+        DeltakerStatus.Type.KLADD,
+        DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
+        DeltakerStatus.Type.AVBRUTT_UTKAST,
+    )
+    private val skalViseInnsoktDatoStatuser = listOf(
+        DeltakerStatus.Type.VENTER_PA_OPPSTART,
+        DeltakerStatus.Type.DELTAR,
+        DeltakerStatus.Type.HAR_SLUTTET,
+        DeltakerStatus.Type.IKKE_AKTUELL,
+    )
+    private val skalVisePeriodeStatuser = listOf(
+        DeltakerStatus.Type.VENTER_PA_OPPSTART,
+        DeltakerStatus.Type.DELTAR,
+        DeltakerStatus.Type.SOKT_INN,
+        DeltakerStatus.Type.VURDERES,
+        DeltakerStatus.Type.VENTELISTE,
+        DeltakerStatus.Type.HAR_SLUTTET,
+        DeltakerStatus.Type.FULLFORT,
+        DeltakerStatus.Type.AVBRUTT,
+    )
+    private val skalViseArsakStatuser = listOf(
+        DeltakerStatus.Type.HAR_SLUTTET,
+        DeltakerStatus.Type.IKKE_AKTUELL,
+        DeltakerStatus.Type.AVBRUTT,
+    )
 
-        val historikk = deltakelser.filter { it.status.type.name in HISTORISKE_STATUSER }.map { toHistoriskDeltakelse(it) }
+    fun toDeltakelserResponse(deltakelser: List<Deltaker>): DeltakelserResponse {
+        val aktive = deltakelser.filter { it.status.type in AKTIVE_STATUSER }.map { toDeltakerKort(it) }
+
+        val historikk = deltakelser.filter { it.status.type in HISTORISKE_STATUSER }.map { toDeltakerKort(it) }
 
         return DeltakelserResponse(aktive, historikk)
     }
 
-    private fun toAktivDeltakelse(deltaker: Deltaker): AktivDeltakelse {
-        return AktivDeltakelse(
+    private fun toDeltakerKort(deltaker: Deltaker): DeltakerKort {
+        return DeltakerKort(
             deltakerId = deltaker.id,
-            innsoktDato = getInnsoktDato(deltaker.id),
-            sistEndretdato = deltaker.sistEndret.toLocalDate(),
-            aktivStatus = AktivDeltakelse.AktivStatusType.valueOf(deltaker.status.type.name),
             tittel = lagTittel(deltaker),
             tiltakstype = deltaker.deltakerliste.tiltakstype.toTiltakstypeRespons(),
-        )
-    }
-
-    private fun toHistoriskDeltakelse(deltaker: Deltaker): HistoriskDeltakelse {
-        return HistoriskDeltakelse(
-            deltakerId = deltaker.id,
-            innsoktDato = getInnsoktDato(
-                deltaker.id,
-            ) ?: throw IllegalStateException("Historisk deltakelse med id ${deltaker.id} mangler innsøkt-dato"),
+            status = deltaker.getStatus(),
+            innsoktDato = deltaker.getInnsoktDato(),
+            sistEndretdato = deltaker.getSistEndretDato(),
             periode = deltaker.getPeriode(),
-            historiskStatus = HistoriskDeltakelse.HistoriskStatus(
-                historiskStatusType = HistoriskDeltakelse.HistoriskStatusType.valueOf(deltaker.status.type.name),
-                aarsak = deltaker.status.aarsak?.getVisningsnavn(),
-            ),
-            tittel = lagTittel(deltaker),
-            tiltakstype = deltaker.deltakerliste.tiltakstype.toTiltakstypeRespons(),
         )
     }
 
-    private fun getInnsoktDato(deltakerId: UUID): LocalDate? {
-        val deltakerhistorikk = deltakerHistorikkService.getForDeltaker(deltakerId)
-        return deltakerHistorikkService.getInnsoktDato(deltakerhistorikk)
+    private fun Deltaker.getInnsoktDato(): LocalDate? {
+        return if (status.type in skalViseInnsoktDatoStatuser) {
+            val deltakerhistorikk = deltakerHistorikkService.getForDeltaker(id)
+            deltakerHistorikkService.getInnsoktDato(deltakerhistorikk)
+        } else {
+            null
+        }
+    }
+
+    private fun Deltaker.getSistEndretDato(): LocalDate? {
+        return if (status.type in skalViseSistEndretDatoStatuser) {
+            sistEndret.toLocalDate()
+        } else {
+            null
+        }
     }
 
     private fun Deltaker.getPeriode(): Periode? {
-        return if (status.type == DeltakerStatus.Type.IKKE_AKTUELL) {
-            null
-        } else {
+        return if (status.type in skalVisePeriodeStatuser && (startdato != null || sluttdato != null)) {
             Periode(
                 startdato = startdato,
                 sluttdato = sluttdato,
             )
+        } else {
+            null
+        }
+    }
+
+    private fun Deltaker.getStatus(): DeltakerKort.Status {
+        return DeltakerKort.Status(
+            status = status.type,
+            statustekst = status.type.getStatustekst(),
+            aarsak = getArsak(),
+        )
+    }
+
+    private fun Deltaker.getArsak(): String? {
+        return if (status.type in skalViseArsakStatuser && status.aarsak != null) {
+            status.aarsak.getVisningsnavn()
+        } else {
+            return null
         }
     }
 
@@ -77,6 +116,24 @@ class DeltakelserResponseMapper(
             DeltakerStatus.Aarsak.Type.IKKE_MOTT -> "ikke møtt"
             DeltakerStatus.Aarsak.Type.ANNET -> "annet"
             DeltakerStatus.Aarsak.Type.AVLYST_KONTRAKT -> "avlyst kontrakt"
+        }
+    }
+
+    private fun DeltakerStatus.Type.getStatustekst(): String {
+        return when (this) {
+            DeltakerStatus.Type.KLADD -> "Kladden er ikke delt"
+            DeltakerStatus.Type.UTKAST_TIL_PAMELDING -> "Utkastet er delt og venter på godkjenning"
+            DeltakerStatus.Type.AVBRUTT_UTKAST -> "Avbrutt utkast"
+            DeltakerStatus.Type.VENTER_PA_OPPSTART -> "Venter på oppstart"
+            DeltakerStatus.Type.DELTAR -> "Deltar"
+            DeltakerStatus.Type.HAR_SLUTTET -> "Har sluttet"
+            DeltakerStatus.Type.IKKE_AKTUELL -> "Ikke aktuell"
+            DeltakerStatus.Type.SOKT_INN -> "Søkt om plass"
+            DeltakerStatus.Type.VURDERES -> "Vurderes"
+            DeltakerStatus.Type.VENTELISTE -> "På venteliste"
+            DeltakerStatus.Type.AVBRUTT -> "Avbrutt"
+            DeltakerStatus.Type.FULLFORT -> "Fullført"
+            else -> throw IllegalStateException("Skal ikke vise status ${this.name}")
         }
     }
 

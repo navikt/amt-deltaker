@@ -1,11 +1,12 @@
 package no.nav.amt.deltaker.deltaker.api.model
 
+import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import java.time.LocalDate
 import java.util.UUID
 
 data class DeltakelserResponse(
-    val aktive: List<AktivDeltakelse>,
-    val historikk: List<HistoriskDeltakelse>,
+    val aktive: List<DeltakerKort>,
+    val historikk: List<DeltakerKort>,
 ) {
     data class Tiltakstype(
         val navn: String,
@@ -13,47 +14,20 @@ data class DeltakelserResponse(
     )
 }
 
-data class AktivDeltakelse(
+data class DeltakerKort(
     val deltakerId: UUID,
+    val tittel: String,
+    val tiltakstype: DeltakelserResponse.Tiltakstype,
+    val status: Status,
     val innsoktDato: LocalDate?,
-    val sistEndretdato: LocalDate,
-    val aktivStatus: AktivStatusType,
-    val tittel: String,
-    val tiltakstype: DeltakelserResponse.Tiltakstype,
-) {
-    enum class AktivStatusType {
-        KLADD,
-        UTKAST_TIL_PAMELDING,
-        VENTER_PA_OPPSTART,
-        DELTAR,
-        SOKT_INN,
-        VURDERES,
-        VENTELISTE,
-        PABEGYNT_REGISTRERING,
-    }
-}
-
-data class HistoriskDeltakelse(
-    val deltakerId: UUID,
-    val innsoktDato: LocalDate,
+    val sistEndretdato: LocalDate?,
     val periode: Periode?,
-    val historiskStatus: HistoriskStatus,
-    val tittel: String,
-    val tiltakstype: DeltakelserResponse.Tiltakstype,
 ) {
-    data class HistoriskStatus(
-        val historiskStatusType: HistoriskStatusType,
+    data class Status(
+        val status: DeltakerStatus.Type,
+        val statustekst: String,
         val aarsak: String?,
     )
-
-    enum class HistoriskStatusType {
-        AVBRUTT_UTKAST,
-        HAR_SLUTTET,
-        IKKE_AKTUELL,
-        FEILREGISTRERT,
-        AVBRUTT,
-        FULLFORT,
-    }
 }
 
 data class Periode(
@@ -61,5 +35,19 @@ data class Periode(
     val sluttdato: LocalDate?,
 )
 
-val AKTIVE_STATUSER = AktivDeltakelse.AktivStatusType.entries.map { it.name }
-val HISTORISKE_STATUSER = HistoriskDeltakelse.HistoriskStatusType.entries.map { it.name }
+val AKTIVE_STATUSER = listOf(
+    DeltakerStatus.Type.KLADD,
+    DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
+    DeltakerStatus.Type.VENTER_PA_OPPSTART,
+    DeltakerStatus.Type.DELTAR,
+    DeltakerStatus.Type.SOKT_INN,
+    DeltakerStatus.Type.VURDERES,
+    DeltakerStatus.Type.VENTELISTE,
+)
+val HISTORISKE_STATUSER = listOf(
+    DeltakerStatus.Type.AVBRUTT_UTKAST,
+    DeltakerStatus.Type.HAR_SLUTTET,
+    DeltakerStatus.Type.IKKE_AKTUELL,
+    DeltakerStatus.Type.AVBRUTT,
+    DeltakerStatus.Type.FULLFORT,
+)
