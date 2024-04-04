@@ -78,7 +78,7 @@ class DeltakelserResponseMapper(
     }
 
     private fun Deltaker.getPeriode(): Periode? {
-        return if (status.type in skalVisePeriodeStatuser && (startdato != null || sluttdato != null)) {
+        return if (status.type in skalVisePeriodeStatuser && startdato != null) {
             Periode(
                 startdato = startdato,
                 sluttdato = sluttdato,
