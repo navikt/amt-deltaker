@@ -20,7 +20,7 @@ data class DeltakerKort(
     val tiltakstype: DeltakelserResponse.Tiltakstype,
     val status: Status,
     val innsoktDato: LocalDate?,
-    val sistEndretdato: LocalDate?,
+    val sistEndretDato: LocalDate?,
     val periode: Periode?,
 ) {
     data class Status(

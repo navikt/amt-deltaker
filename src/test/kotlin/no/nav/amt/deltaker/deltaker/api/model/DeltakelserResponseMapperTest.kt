@@ -65,7 +65,7 @@ class DeltakelserResponseMapperTest {
         deltakerKort.status.statustekst shouldBe "Kladden er ikke delt"
         deltakerKort.status.aarsak shouldBe null
         deltakerKort.innsoktDato shouldBe null
-        deltakerKort.sistEndretdato shouldBe deltaker.sistEndret.toLocalDate()
+        deltakerKort.sistEndretDato shouldBe deltaker.sistEndret.toLocalDate()
         deltakerKort.periode shouldBe null
     }
 
@@ -109,7 +109,7 @@ class DeltakelserResponseMapperTest {
         deltakerKort.status.statustekst shouldBe "Utkastet er delt og venter på godkjenning"
         deltakerKort.status.aarsak shouldBe null
         deltakerKort.innsoktDato shouldBe null
-        deltakerKort.sistEndretdato shouldBe deltaker.sistEndret.toLocalDate()
+        deltakerKort.sistEndretDato shouldBe deltaker.sistEndret.toLocalDate()
         deltakerKort.periode shouldBe null
     }
 
@@ -153,7 +153,7 @@ class DeltakelserResponseMapperTest {
         deltakerKort.status.statustekst shouldBe "Venter på oppstart"
         deltakerKort.status.aarsak shouldBe null
         deltakerKort.innsoktDato shouldBe LocalDate.now().minusDays(4)
-        deltakerKort.sistEndretdato shouldBe null
+        deltakerKort.sistEndretDato shouldBe null
         deltakerKort.periode shouldBe Periode(deltaker.startdato, deltaker.sluttdato)
     }
 
@@ -195,7 +195,7 @@ class DeltakelserResponseMapperTest {
         deltakerKort.status.statustekst shouldBe "Deltar"
         deltakerKort.status.aarsak shouldBe null
         deltakerKort.innsoktDato shouldBe LocalDate.now().minusDays(4)
-        deltakerKort.sistEndretdato shouldBe null
+        deltakerKort.sistEndretDato shouldBe null
         deltakerKort.periode shouldBe Periode(deltaker.startdato, deltaker.sluttdato)
     }
 
@@ -241,7 +241,7 @@ class DeltakelserResponseMapperTest {
         deltakerKort.status.statustekst shouldBe "Ikke aktuell"
         deltakerKort.status.aarsak shouldBe "flyttet til Spania"
         deltakerKort.innsoktDato shouldBe LocalDate.now().minusDays(4)
-        deltakerKort.sistEndretdato shouldBe null
+        deltakerKort.sistEndretDato shouldBe null
         deltakerKort.periode shouldBe null
     }
 
@@ -287,7 +287,7 @@ class DeltakelserResponseMapperTest {
         deltakerKort.status.statustekst shouldBe "Har sluttet"
         deltakerKort.status.aarsak shouldBe "trenger annen støtte"
         deltakerKort.innsoktDato shouldBe LocalDate.now().minusDays(4)
-        deltakerKort.sistEndretdato shouldBe null
+        deltakerKort.sistEndretDato shouldBe null
         deltakerKort.periode shouldBe Periode(deltaker.startdato, deltaker.sluttdato)
     }
 
@@ -333,7 +333,7 @@ class DeltakelserResponseMapperTest {
         deltakerKort.status.statustekst shouldBe "Avbrutt utkast"
         deltakerKort.status.aarsak shouldBe null
         deltakerKort.innsoktDato shouldBe null
-        deltakerKort.sistEndretdato shouldBe deltaker.sistEndret.toLocalDate()
+        deltakerKort.sistEndretDato shouldBe deltaker.sistEndret.toLocalDate()
         deltakerKort.periode shouldBe null
     }
 

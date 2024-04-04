@@ -55,7 +55,7 @@ class DeltakelserResponseMapper(
             tiltakstype = deltaker.deltakerliste.tiltakstype.toTiltakstypeRespons(),
             status = deltaker.getStatus(),
             innsoktDato = deltaker.getInnsoktDato(),
-            sistEndretdato = deltaker.getSistEndretDato(),
+            sistEndretDato = deltaker.getSistEndretDato(),
             periode = deltaker.getPeriode(),
         )
     }

@@ -105,7 +105,7 @@ class HentDeltakelserApiTest {
                         aarsak = null,
                     ),
                     innsoktDato = innsoktDato,
-                    sistEndretdato = null,
+                    sistEndretDato = null,
                     periode = Periode(
                         startdato = deltaker.startdato,
                         sluttdato = deltaker.sluttdato,
@@ -172,7 +172,7 @@ class HentDeltakelserApiTest {
                         aarsak = null,
                     ),
                     innsoktDato = null,
-                    sistEndretdato = deltakerKladd.sistEndret.toLocalDate(),
+                    sistEndretDato = deltakerKladd.sistEndret.toLocalDate(),
                     periode = null,
                 ),
             ),
@@ -190,7 +190,7 @@ class HentDeltakelserApiTest {
                         aarsak = "fått jobb",
                     ),
                     innsoktDato = innsoktDato,
-                    sistEndretdato = null,
+                    sistEndretDato = null,
                     periode = Periode(
                         startdato = avsluttetDeltaker.startdato,
                         sluttdato = avsluttetDeltaker.sluttdato,
