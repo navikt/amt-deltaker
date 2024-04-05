@@ -149,7 +149,7 @@ class DeltakelserResponseMapper(
             }
 
             Tiltakstype.Type.GRUFAGYRKE -> deltaker.deltakerliste.navn
-            else -> "${deltaker.deltakerliste.tiltakstype.navn} hos $arrangorNavn"
+            else -> "${cleanTiltaksnavn(deltaker.deltakerliste.tiltakstype.navn)} hos $arrangorNavn"
         }
     }
 
@@ -159,7 +159,15 @@ class DeltakelserResponseMapper(
     }
 
     private fun Tiltakstype.toTiltakstypeRespons(): DeltakelserResponse.Tiltakstype = DeltakelserResponse.Tiltakstype(
-        navn = navn,
+        navn = cleanTiltaksnavn(navn),
         tiltakskode = type,
     )
+
+    private fun cleanTiltaksnavn(navn: String) = when (navn) {
+        "Arbeidsforberedende trening (AFT)" -> "Arbeidsforberedende trening"
+        "Arbeidsrettet rehabilitering (dag)" -> "Arbeidsrettet rehabilitering"
+        "Digitalt oppfølgingstiltak for arbeidsledige (jobbklubb)" -> "Digitalt oppfølgingstiltak"
+        "Gruppe AMO" -> "Arbeidsmarkedsopplæring"
+        else -> navn
+    }
 }
