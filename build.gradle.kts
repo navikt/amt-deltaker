@@ -7,7 +7,7 @@ plugins {
     val kotlinVersion = "1.9.23"
 
     kotlin("jvm") version kotlinVersion
-    id("io.ktor.plugin") version "2.3.9"
+    id("io.ktor.plugin") version "2.3.10"
     id("org.jetbrains.kotlin.plugin.serialization") version kotlinVersion
     id("org.jlleitschuh.gradle.ktlint") version "12.1.0"
     id("com.github.johnrengelman.shadow") version "8.1.1"
@@ -19,9 +19,9 @@ repositories {
 }
 
 val kotlinVersion = "1.9.23"
-val ktorVersion = "2.3.9"
-val logbackVersion = "1.5.3"
-val prometeusVersion = "1.12.4"
+val ktorVersion = "2.3.10"
+val logbackVersion = "1.5.4"
+val prometeusVersion = "1.12.5"
 val ktlintVersion = "1.2.1"
 val jacksonVersion = "2.17.0"
 val logstashEncoderVersion = "7.4"
