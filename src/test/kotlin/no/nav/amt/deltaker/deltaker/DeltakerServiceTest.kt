@@ -4,12 +4,14 @@ import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
+import no.nav.amt.deltaker.deltaker.api.model.AvsluttDeltakelseRequest
 import no.nav.amt.deltaker.deltaker.api.model.BakgrunnsinformasjonRequest
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerV2MapperService
+import no.nav.amt.deltaker.deltaker.model.DeltakerEndring
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.hendelse.HendelseProducer
 import no.nav.amt.deltaker.hendelse.HendelseService
@@ -32,6 +34,7 @@ import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 class DeltakerServiceTest {
@@ -156,6 +159,49 @@ class DeltakerServiceTest {
         deltakerService.upsertEndretDeltaker(deltaker.id, endringsrequest)
 
         deltakerService.get(deltaker.id).getOrThrow().sistEndret shouldBeCloseTo deltaker.sistEndret
+    }
+
+    @Test
+    fun `upsertEndretDeltaker - avslutt i fremtiden - setter fremtidig HAR_SLUTTET`(): Unit = runBlocking {
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+            sluttdato = LocalDate.now().plusMonths(1),
+        )
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+
+        TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
+        val vedtak = TestData.lagVedtak(
+            deltakerId = deltaker.id,
+            deltakerVedVedtak = deltaker,
+            opprettetAv = endretAv,
+            opprettetAvEnhet = endretAvEnhet,
+            fattet = LocalDateTime.now(),
+        )
+        TestRepository.insert(vedtak)
+
+        val endringsrequest = AvsluttDeltakelseRequest(
+            endretAv = endretAv.navIdent,
+            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            sluttdato = LocalDate.now().plusWeeks(1),
+            aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
+        )
+
+        deltakerService.upsertEndretDeltaker(deltaker.id, endringsrequest)
+
+        val oppdatertDeltaker = deltakerService.get(deltaker.id).getOrThrow()
+
+        oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.DELTAR
+        oppdatertDeltaker.sluttdato shouldBe endringsrequest.sluttdato
+
+        val statuser = deltakerRepository.getDeltakerStatuser(deltaker.id)
+        statuser.size shouldBe 2
+        statuser.first { it.id == deltaker.status.id }.gyldigTil shouldBe null
+        statuser.first { it.id == deltaker.status.id }.type shouldBe DeltakerStatus.Type.DELTAR
+        statuser.first { it.id != deltaker.status.id }.gyldigTil shouldBe null
+        statuser.first { it.id != deltaker.status.id }.gyldigFra.toLocalDate() shouldBe endringsrequest.sluttdato
+        statuser.first { it.id != deltaker.status.id }.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+        statuser.first { it.id != deltaker.status.id }.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
     }
 
     @Test
