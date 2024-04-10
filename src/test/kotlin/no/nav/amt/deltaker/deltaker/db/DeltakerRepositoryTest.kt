@@ -13,6 +13,7 @@ import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 class DeltakerRepositoryTest {
     companion object {
@@ -76,7 +77,76 @@ class DeltakerRepositoryTest {
 
         val statuser = repository.getDeltakerStatuser(deltaker.id)
         statuser.first { it.id == deltaker.status.id }.gyldigTil shouldNotBe null
+        statuser.first { it.id == deltaker.status.id }.type shouldBe DeltakerStatus.Type.DELTAR
         statuser.first { it.id == oppdatertDeltaker.status.id }.gyldigTil shouldBe null
+        statuser.first { it.id == oppdatertDeltaker.status.id }.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+    }
+
+    @Test
+    fun `upsert - ny status gyldig i fremtid - inserter ny status, deaktiverer ikke gammel`() {
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+        )
+        TestRepository.insert(deltaker)
+
+        val gyldigFra = LocalDateTime.now().plusDays(3)
+        val oppdatertDeltaker = deltaker.copy(
+            status = TestData.lagDeltakerStatus(
+                type = DeltakerStatus.Type.HAR_SLUTTET,
+                aarsak = DeltakerStatus.Aarsak.Type.FATT_JOBB,
+                gyldigFra = gyldigFra,
+            ),
+        )
+
+        repository.upsert(oppdatertDeltaker)
+        sammenlignDeltakere(repository.get(deltaker.id).getOrThrow(), deltaker)
+
+        val statuser = repository.getDeltakerStatuser(deltaker.id)
+        statuser.first { it.id == deltaker.status.id }.gyldigTil shouldBe null
+        statuser.first { it.id == deltaker.status.id }.type shouldBe DeltakerStatus.Type.DELTAR
+        statuser.first { it.id == oppdatertDeltaker.status.id }.gyldigTil shouldBe null
+        statuser.first { it.id == oppdatertDeltaker.status.id }.gyldigFra shouldBeCloseTo gyldigFra
+        statuser.first { it.id == oppdatertDeltaker.status.id }.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+    }
+
+    @Test
+    fun `upsert - har fremtidig status, mottar ny status - inserter ny status, deaktiverer fremtidig status`() {
+        val opprinneligDeltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+            sluttdato = LocalDate.now().plusWeeks(2),
+        )
+        TestRepository.insert(opprinneligDeltaker)
+
+        val gyldigFra = LocalDateTime.now().plusDays(3)
+        val oppdatertDeltakerHarSluttet = opprinneligDeltaker.copy(
+            status = TestData.lagDeltakerStatus(
+                type = DeltakerStatus.Type.HAR_SLUTTET,
+                aarsak = DeltakerStatus.Aarsak.Type.FATT_JOBB,
+                gyldigFra = gyldigFra,
+            ),
+            sluttdato = LocalDate.now().plusDays(3),
+        )
+        repository.upsert(oppdatertDeltakerHarSluttet)
+
+        val oppdatertDeltakerForlenget = opprinneligDeltaker.copy(
+            status = TestData.lagDeltakerStatus(
+                type = DeltakerStatus.Type.DELTAR,
+                gyldigFra = LocalDateTime.now(),
+            ),
+            sluttdato = LocalDate.now().plusWeeks(8),
+        )
+        repository.upsert(oppdatertDeltakerForlenget)
+
+        sammenlignDeltakere(repository.get(opprinneligDeltaker.id).getOrThrow(), oppdatertDeltakerForlenget)
+
+        val statuser = repository.getDeltakerStatuser(opprinneligDeltaker.id)
+        statuser.first { it.id == opprinneligDeltaker.status.id }.gyldigTil shouldNotBe null
+        statuser.first { it.id == opprinneligDeltaker.status.id }.type shouldBe DeltakerStatus.Type.DELTAR
+        statuser.first { it.id == oppdatertDeltakerHarSluttet.status.id }.gyldigTil shouldNotBe null
+        statuser.first { it.id == oppdatertDeltakerHarSluttet.status.id }.gyldigFra shouldBeCloseTo gyldigFra
+        statuser.first { it.id == oppdatertDeltakerHarSluttet.status.id }.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+        statuser.first { it.id == oppdatertDeltakerForlenget.status.id }.gyldigTil shouldBe null
+        statuser.first { it.id == oppdatertDeltakerForlenget.status.id }.type shouldBe DeltakerStatus.Type.DELTAR
     }
 
     @Test
