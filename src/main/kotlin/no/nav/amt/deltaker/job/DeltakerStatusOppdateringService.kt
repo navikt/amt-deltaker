@@ -6,6 +6,7 @@ import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.deltaker.model.harIkkeStartet
 import org.slf4j.LoggerFactory
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -70,22 +71,6 @@ class DeltakerStatusOppdateringService(
         }
         log.info("Endret status til AVBRUTT for ${skalBliAvbrutt.size}")
 
-        skalBliHarSluttet.forEach {
-            oppdaterDeltaker(
-                it.copy(
-                    status = DeltakerStatus(
-                        id = UUID.randomUUID(),
-                        type = DeltakerStatus.Type.HAR_SLUTTET,
-                        aarsak = null,
-                        gyldigFra = LocalDateTime.now(),
-                        gyldigTil = null,
-                        opprettet = LocalDateTime.now(),
-                    ),
-                ),
-            )
-        }
-        log.info("Endret status til HAR SLUTTET for ${skalBliHarSluttet.size}")
-
         skalBliFullfort.forEach {
             oppdaterDeltaker(
                 it.copy(
@@ -101,6 +86,8 @@ class DeltakerStatusOppdateringService(
             )
         }
         log.info("Endret status til FULLFØRT for ${skalBliFullfort.size}")
+
+        oppdaterStatusTilHarSluttet(skalBliHarSluttet)
     }
 
     private suspend fun oppdaterStatusTilDeltar() {
@@ -121,6 +108,35 @@ class DeltakerStatusOppdateringService(
             )
         }
         log.info("Endret status til DELTAR for ${deltakere.size}")
+    }
+
+    private suspend fun oppdaterStatusTilHarSluttet(skalBliHarSluttet: List<Deltaker>) {
+        skalBliHarSluttet.forEach {
+            val fremtidigStatus = deltakerRepository.getDeltakerStatuser(it.id).firstOrNull { status ->
+                status.gyldigTil == null && !status.gyldigFra.toLocalDate().isAfter(
+                    LocalDate.now(),
+                ) && status.type == DeltakerStatus.Type.HAR_SLUTTET
+            }
+            if (fremtidigStatus != null) {
+                oppdaterDeltaker(
+                    it.copy(status = fremtidigStatus),
+                )
+            } else {
+                oppdaterDeltaker(
+                    it.copy(
+                        status = DeltakerStatus(
+                            id = UUID.randomUUID(),
+                            type = DeltakerStatus.Type.HAR_SLUTTET,
+                            aarsak = null,
+                            gyldigFra = LocalDateTime.now(),
+                            gyldigTil = null,
+                            opprettet = LocalDateTime.now(),
+                        ),
+                    ),
+                )
+            }
+        }
+        log.info("Endret status til HAR SLUTTET for ${skalBliHarSluttet.size}")
     }
 
     private suspend fun oppdaterDeltaker(deltaker: Deltaker) {

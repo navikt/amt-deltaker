@@ -143,6 +143,46 @@ class DeltakerStatusOppdateringServiceTest {
     }
 
     @Test
+    fun `oppdaterDeltakerStatuser - sluttdato er passert, ikke kurs, har fremtidig status - bruker fremtidig status HAR_SLUTTET`() {
+        val sistEndretAv = TestData.lagNavAnsatt()
+        val sistEndretAvEnhet = TestData.lagNavEnhet()
+        TestRepository.insert(sistEndretAv)
+        TestRepository.insert(sistEndretAvEnhet)
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+            startdato = LocalDate.now().minusWeeks(1),
+            sluttdato = LocalDate.now().minusDays(2),
+            deltakerliste = TestData.lagDeltakerliste(
+                oppstart = Deltakerliste.Oppstartstype.LOPENDE,
+                sluttDato = LocalDate.now().plusMonths(3),
+            ),
+        )
+        val vedtak = TestData.lagVedtak(
+            deltakerId = deltaker.id,
+            deltakerVedVedtak = deltaker,
+            opprettetAv = sistEndretAv,
+            opprettetAvEnhet = sistEndretAvEnhet,
+            fattet = LocalDateTime.now(),
+        )
+        TestRepository.insert(deltaker, vedtak)
+        val fremtidigStatus = TestData.lagDeltakerStatus(
+            type = DeltakerStatus.Type.HAR_SLUTTET,
+            aarsak = DeltakerStatus.Aarsak.Type.FATT_JOBB,
+            gyldigFra = LocalDateTime.now(),
+            gyldigTil = null,
+        )
+        TestRepository.insert(fremtidigStatus, deltaker.id)
+
+        runBlocking {
+            deltakerStatusOppdateringService.oppdaterDeltakerStatuser()
+
+            val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
+            deltakerFraDb.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+            deltakerFraDb.status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
+        }
+    }
+
+    @Test
     fun `oppdaterDeltakerStatuser - sluttdato er passert, kurs - setter status FULLFORT`() {
         val sistEndretAv = TestData.lagNavAnsatt()
         val sistEndretAvEnhet = TestData.lagNavEnhet()

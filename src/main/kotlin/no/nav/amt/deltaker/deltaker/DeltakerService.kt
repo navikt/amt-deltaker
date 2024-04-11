@@ -41,7 +41,7 @@ class DeltakerService(
         return deltakerEndringService.upsertEndring(deltaker, request).fold(
             onSuccess = { endretDeltaker ->
                 upsertDeltaker(endretDeltaker)
-                return@fold endretDeltaker
+                return@fold get(deltakerId).getOrThrow()
             },
             onFailure = {
                 return@fold deltaker
@@ -71,11 +71,15 @@ class DeltakerService(
     }
 }
 
-fun nyDeltakerStatus(type: DeltakerStatus.Type, aarsak: DeltakerStatus.Aarsak? = null) = DeltakerStatus(
+fun nyDeltakerStatus(
+    type: DeltakerStatus.Type,
+    aarsak: DeltakerStatus.Aarsak? = null,
+    gyldigFra: LocalDateTime = LocalDateTime.now(),
+) = DeltakerStatus(
     id = UUID.randomUUID(),
     type = type,
     aarsak = aarsak,
-    gyldigFra = LocalDateTime.now(),
+    gyldigFra = gyldigFra,
     gyldigTil = null,
     opprettet = LocalDateTime.now(),
 )

@@ -15,6 +15,7 @@ import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.deltaker.navbruker.model.Adressebeskyttelse
 import no.nav.amt.deltaker.navbruker.model.NavBruker
+import java.time.LocalDate
 import java.util.UUID
 
 class DeltakerRepository {
@@ -120,12 +121,14 @@ class DeltakerRepository {
         session.transaction { tx ->
             tx.update(queryOf(sql, parameters))
             tx.update(insertStatusQuery(deltaker.status, deltaker.id))
-            tx.update(deaktiverTidligereStatuserQuery(deltaker.status, deltaker.id))
+            if (!deltaker.status.gyldigFra.toLocalDate().isAfter(LocalDate.now())) {
+                tx.update(deaktiverTidligereStatuserQuery(deltaker.status, deltaker.id))
+            }
         }
     }
 
     fun get(id: UUID) = Database.query {
-        val sql = getDeltakerSql("where d.id = :id and ds.gyldig_til is null")
+        val sql = getDeltakerSql("where d.id = :id and ds.gyldig_til is null and ds.gyldig_fra < CURRENT_TIMESTAMP")
 
         val query = queryOf(sql, mapOf("id" to id)).map(::rowMapper).asSingle
         it.run(query)?.let { d -> Result.success(d) }
@@ -137,6 +140,7 @@ class DeltakerRepository {
             """ where nb.personident = :personident 
                     and d.deltakerliste_id = :deltakerliste_id 
                     and ds.gyldig_til is null
+                    and ds.gyldig_fra < CURRENT_TIMESTAMP
             """.trimMargin(),
         )
 
@@ -154,6 +158,7 @@ class DeltakerRepository {
         val sql = getDeltakerSql(
             """ where nb.personident = :personident
                     and ds.gyldig_til is null
+                    and ds.gyldig_fra < CURRENT_TIMESTAMP
             """.trimMargin(),
         )
 
@@ -197,6 +202,7 @@ class DeltakerRepository {
     fun skalHaStatusDeltar(): List<Deltaker> = Database.query { session ->
         val sql = getDeltakerSql(
             """ where ds.gyldig_til is null
+                and ds.gyldig_fra < CURRENT_TIMESTAMP
                 and ds.type = :status
                 and d.startdato <= CURRENT_DATE
                 and (d.sluttdato is null or d.sluttdato >= CURRENT_DATE)
@@ -217,6 +223,7 @@ class DeltakerRepository {
 
         val sql = getDeltakerSql(
             """ where ds.gyldig_til is null
+                and ds.gyldig_fra < CURRENT_TIMESTAMP
                 and ds.type in (${deltakerstatuser.joinToString { "?" }})
                 and d.sluttdato < CURRENT_DATE
             """.trimMargin(),
@@ -240,6 +247,7 @@ class DeltakerRepository {
         )
         val sql = getDeltakerSql(
             """ where ds.gyldig_til is null
+                and ds.gyldig_fra < CURRENT_TIMESTAMP
                 and ds.type not in (${avsluttendeDeltakerStatuser.joinToString { "?" }})
                 and dl.status in (${avsluttendeDeltakerlisteStatuser.joinToString { "?" }})
             """.trimMargin(),

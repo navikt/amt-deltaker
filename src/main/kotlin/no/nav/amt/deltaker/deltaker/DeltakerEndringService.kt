@@ -115,7 +115,15 @@ class DeltakerEndringService(
                 ) {
                     deltaker.copy(
                         sluttdato = endring.sluttdato,
-                        status = nyDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET, endring.aarsak.toDeltakerStatusAarsak()),
+                        status = nyDeltakerStatus(
+                            type = DeltakerStatus.Type.HAR_SLUTTET,
+                            aarsak = endring.aarsak.toDeltakerStatusAarsak(),
+                            gyldigFra = if (endring.sluttdato.isAfter(LocalDate.now())) {
+                                endring.sluttdato.atStartOfDay()
+                            } else {
+                                LocalDateTime.now()
+                            },
+                        ),
                     )
                 }
             }

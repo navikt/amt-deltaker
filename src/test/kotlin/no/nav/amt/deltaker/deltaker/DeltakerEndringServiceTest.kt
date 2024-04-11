@@ -544,4 +544,42 @@ class DeltakerEndringServiceTest {
 
         assertProducedHendelse(deltaker.id, HendelseType.AvsluttDeltakelse::class)
     }
+
+    @Test
+    fun `upsertEndring - avslutt deltakelse i fremtiden - returnerer deltaker med ny sluttdato, fremtidig status`(): Unit = runBlocking {
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+            sluttdato = LocalDate.now().plusMonths(1),
+        )
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+
+        TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
+
+        val endringsrequest = AvsluttDeltakelseRequest(
+            endretAv = endretAv.navIdent,
+            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            sluttdato = LocalDate.now().plusWeeks(1),
+            aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
+        )
+
+        val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)
+
+        resultat.isSuccess shouldBe true
+        val deltakerFraDb = resultat.getOrThrow()
+        deltakerFraDb.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+        deltakerFraDb.status.gyldigFra.toLocalDate() shouldBe endringsrequest.sluttdato
+        deltakerFraDb.sluttdato shouldBe endringsrequest.sluttdato
+
+        val endring = deltakerEndringService.getForDeltaker(deltaker.id).first()
+        endring.endretAv shouldBe endretAv.id
+        endring.endretAvEnhet shouldBe endretAvEnhet.id
+
+        (endring.endring as DeltakerEndring.Endring.AvsluttDeltakelse)
+            .aarsak shouldBe endringsrequest.aarsak
+        (endring.endring as DeltakerEndring.Endring.AvsluttDeltakelse)
+            .sluttdato shouldBe endringsrequest.sluttdato
+
+        assertProducedHendelse(deltaker.id, HendelseType.AvsluttDeltakelse::class)
+    }
 }
