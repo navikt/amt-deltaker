@@ -189,7 +189,10 @@ class DeltakerServiceTest {
             aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
         )
 
-        deltakerService.upsertEndretDeltaker(deltaker.id, endringsrequest)
+        val deltakerrespons = deltakerService.upsertEndretDeltaker(deltaker.id, endringsrequest)
+
+        deltakerrespons.status.type shouldBe DeltakerStatus.Type.DELTAR
+        deltakerrespons.sluttdato shouldBe endringsrequest.sluttdato
 
         val oppdatertDeltaker = deltakerService.get(deltaker.id).getOrThrow()
 
@@ -236,7 +239,10 @@ class DeltakerServiceTest {
             sluttdato = LocalDate.now().plusMonths(1),
         )
 
-        deltakerService.upsertEndretDeltaker(deltaker.id, endringsrequest)
+        val deltakerrespons = deltakerService.upsertEndretDeltaker(deltaker.id, endringsrequest)
+
+        deltakerrespons.status.type shouldBe DeltakerStatus.Type.DELTAR
+        deltakerrespons.sluttdato shouldBe endringsrequest.sluttdato
 
         val oppdatertDeltaker = deltakerService.get(deltaker.id).getOrThrow()
 

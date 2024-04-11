@@ -41,7 +41,7 @@ class DeltakerService(
         return deltakerEndringService.upsertEndring(deltaker, request).fold(
             onSuccess = { endretDeltaker ->
                 upsertDeltaker(endretDeltaker)
-                return@fold endretDeltaker
+                return@fold get(deltakerId).getOrThrow()
             },
             onFailure = {
                 return@fold deltaker
