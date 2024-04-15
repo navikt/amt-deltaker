@@ -118,8 +118,8 @@ class DeltakerEndringService(
                         status = nyDeltakerStatus(
                             type = DeltakerStatus.Type.HAR_SLUTTET,
                             aarsak = endring.aarsak.toDeltakerStatusAarsak(),
-                            gyldigFra = if (endring.sluttdato.isAfter(LocalDate.now())) {
-                                endring.sluttdato.atStartOfDay()
+                            gyldigFra = if (!endring.sluttdato.isBefore(LocalDate.now())) {
+                                endring.sluttdato.atStartOfDay().plusDays(1)
                             } else {
                                 LocalDateTime.now()
                             },
@@ -198,7 +198,7 @@ class DeltakerEndringService(
     }
 
     private fun Deltaker.getStatusEndretSluttdato(sluttdato: LocalDate): DeltakerStatus {
-        return if (status.type == DeltakerStatus.Type.HAR_SLUTTET && sluttdato.isAfter(
+        return if (status.type == DeltakerStatus.Type.HAR_SLUTTET && !sluttdato.isBefore(
                 LocalDate.now(),
             )
         ) {

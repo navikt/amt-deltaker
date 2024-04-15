@@ -568,7 +568,7 @@ class DeltakerEndringServiceTest {
         resultat.isSuccess shouldBe true
         val deltakerFraDb = resultat.getOrThrow()
         deltakerFraDb.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
-        deltakerFraDb.status.gyldigFra.toLocalDate() shouldBe endringsrequest.sluttdato
+        deltakerFraDb.status.gyldigFra.toLocalDate() shouldBe endringsrequest.sluttdato.plusDays(1)
         deltakerFraDb.sluttdato shouldBe endringsrequest.sluttdato
 
         val endring = deltakerEndringService.getForDeltaker(deltaker.id).first()
