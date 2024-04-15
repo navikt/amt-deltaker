@@ -45,10 +45,10 @@ class VedtakService(
         fattet: Boolean,
         fattetAvNav: Boolean = false,
     ): Vedtak {
-        val vedtak = repository.getIkkeFattet(deltaker.id)
+        val eksisterendeVedtak = repository.getIkkeFattet(deltaker.id)
 
         val oppdatertVedtak = opprettEllerOppdaterVedtak(
-            original = vedtak,
+            original = eksisterendeVedtak,
             godkjentAvNav = fattetAvNav,
             endretAv = endretAv,
             endretAvNavEnhet = endretAvEnhet,
@@ -60,6 +60,8 @@ class VedtakService(
         hendelseService.hendelseForVedtak(deltaker, endretAv, endretAvEnhet) {
             if (fattetAvNav) {
                 HendelseType.NavGodkjennUtkast(it)
+            } else if (eksisterendeVedtak == null) {
+                HendelseType.EndreUtkast(it)
             } else {
                 HendelseType.OpprettUtkast(it)
             }

@@ -15,6 +15,7 @@ import java.time.LocalDate
     JsonSubTypes.Type(value = HendelseType.ForlengDeltakelse::class, name = "ForlengDeltakelse"),
     JsonSubTypes.Type(value = HendelseType.EndreSluttarsak::class, name = "EndreSluttarsak"),
     JsonSubTypes.Type(value = HendelseType.OpprettUtkast::class, name = "OpprettUtkast"),
+    JsonSubTypes.Type(value = HendelseType.EndreUtkast::class, name = "EndreUtkast"),
     JsonSubTypes.Type(value = HendelseType.AvbrytUtkast::class, name = "AvbrytUtkast"),
     JsonSubTypes.Type(value = HendelseType.AvsluttDeltakelse::class, name = "AvsluttDeltakelse"),
     JsonSubTypes.Type(value = HendelseType.IkkeAktuell::class, name = "IkkeAktuell"),
@@ -23,6 +24,10 @@ import java.time.LocalDate
 )
 sealed interface HendelseType {
     data class OpprettUtkast(
+        val utkast: UtkastDto,
+    ) : HendelseType
+
+    data class EndreUtkast(
         val utkast: UtkastDto,
     ) : HendelseType
 
