@@ -119,7 +119,7 @@ class DeltakerEndringService(
                             type = DeltakerStatus.Type.HAR_SLUTTET,
                             aarsak = endring.aarsak.toDeltakerStatusAarsak(),
                             gyldigFra = if (endring.sluttdato.isAfter(LocalDate.now())) {
-                                endring.sluttdato.atStartOfDay()
+                                endring.sluttdato.atStartOfDay().plusDays(1)
                             } else {
                                 LocalDateTime.now()
                             },

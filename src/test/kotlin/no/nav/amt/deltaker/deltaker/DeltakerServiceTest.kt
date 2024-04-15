@@ -204,7 +204,7 @@ class DeltakerServiceTest {
         statuser.first { it.id == deltaker.status.id }.gyldigTil shouldBe null
         statuser.first { it.id == deltaker.status.id }.type shouldBe DeltakerStatus.Type.DELTAR
         statuser.first { it.id != deltaker.status.id }.gyldigTil shouldBe null
-        statuser.first { it.id != deltaker.status.id }.gyldigFra.toLocalDate() shouldBe endringsrequest.sluttdato
+        statuser.first { it.id != deltaker.status.id }.gyldigFra.toLocalDate() shouldBe endringsrequest.sluttdato.plusDays(1)
         statuser.first { it.id != deltaker.status.id }.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
         statuser.first { it.id != deltaker.status.id }.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
     }
