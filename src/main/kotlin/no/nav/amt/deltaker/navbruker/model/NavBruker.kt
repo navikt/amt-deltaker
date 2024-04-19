@@ -15,6 +15,7 @@ data class NavBruker(
     val erSkjermet: Boolean,
     val adresse: Adresse?,
     val adressebeskyttelse: Adressebeskyttelse?,
+    val oppfolgingsperioder: List<Oppfolgingsperiode>,
 )
 
 enum class Adressebeskyttelse {
