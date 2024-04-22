@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.amtperson.dto
 import no.nav.amt.deltaker.navbruker.model.Adresse
 import no.nav.amt.deltaker.navbruker.model.Adressebeskyttelse
 import no.nav.amt.deltaker.navbruker.model.NavBruker
+import no.nav.amt.deltaker.navbruker.model.Oppfolgingsperiode
 import java.util.UUID
 
 data class NavBrukerDto(
@@ -18,6 +19,7 @@ data class NavBrukerDto(
     val erSkjermet: Boolean,
     val adresse: Adresse?,
     val adressebeskyttelse: Adressebeskyttelse?,
+    val oppfolgingsperioder: List<Oppfolgingsperiode> = emptyList(),
 ) {
     fun tilNavBruker(): NavBruker {
         return NavBruker(
@@ -33,6 +35,7 @@ data class NavBrukerDto(
             erSkjermet = erSkjermet,
             adresse = adresse,
             adressebeskyttelse = adressebeskyttelse,
+            oppfolgingsperioder = oppfolgingsperioder,
         )
     }
 }

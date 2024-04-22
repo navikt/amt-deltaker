@@ -21,6 +21,7 @@ import no.nav.amt.deltaker.navbruker.model.Bostedsadresse
 import no.nav.amt.deltaker.navbruker.model.Kontaktadresse
 import no.nav.amt.deltaker.navbruker.model.Matrikkeladresse
 import no.nav.amt.deltaker.navbruker.model.NavBruker
+import no.nav.amt.deltaker.navbruker.model.Oppfolgingsperiode
 import no.nav.amt.deltaker.navbruker.model.Vegadresse
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -69,6 +70,7 @@ object TestData {
         erSkjermet: Boolean = false,
         adresse: Adresse? = lagAdresse(),
         adressebeskyttelse: Adressebeskyttelse? = null,
+        oppfolgingsperioder: List<Oppfolgingsperiode> = listOf(lagOppfolgingsperiode()),
     ) = NavBruker(
         personId,
         personident,
@@ -82,6 +84,17 @@ object TestData {
         erSkjermet,
         adresse,
         adressebeskyttelse,
+        oppfolgingsperioder,
+    )
+
+    fun lagOppfolgingsperiode(
+        id: UUID = UUID.randomUUID(),
+        startdato: LocalDateTime = LocalDateTime.now().minusMonths(1),
+        sluttdato: LocalDateTime? = null,
+    ) = Oppfolgingsperiode(
+        id,
+        startdato,
+        sluttdato,
     )
 
     private val tiltakstypeCache = mutableMapOf<Tiltakstype.Type, Tiltakstype>()
@@ -143,6 +156,7 @@ object TestData {
         erSkjermet = navBruker.erSkjermet,
         adresse = navBruker.adresse,
         adressebeskyttelse = navBruker.adressebeskyttelse,
+        oppfolgingsperioder = navBruker.oppfolgingsperioder,
     )
 
     fun lagNavEnhetDto(navEnhet: NavEnhet) = NavEnhetDto(

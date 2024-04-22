@@ -24,13 +24,14 @@ class NavBrukerRepository {
         erSkjermet = row.boolean("er_skjermet"),
         adresse = row.stringOrNull("adresse")?.let { objectMapper.readValue(it) },
         adressebeskyttelse = row.stringOrNull("adressebeskyttelse")?.let { Adressebeskyttelse.valueOf(it) },
+        oppfolgingsperioder = row.stringOrNull("oppfolgingsperioder")?.let { objectMapper.readValue(it) } ?: emptyList(),
     )
 
     fun upsert(bruker: NavBruker) = Database.query {
         val sql =
             """
-            insert into nav_bruker(person_id, personident, fornavn, mellomnavn, etternavn, nav_veileder_id, nav_enhet_id, telefonnummer, epost, er_skjermet, adresse, adressebeskyttelse) 
-            values (:person_id, :personident, :fornavn, :mellomnavn, :etternavn, :nav_veileder_id, :nav_enhet_id, :telefonnummer, :epost, :er_skjermet, :adresse, :adressebeskyttelse)
+            insert into nav_bruker(person_id, personident, fornavn, mellomnavn, etternavn, nav_veileder_id, nav_enhet_id, telefonnummer, epost, er_skjermet, adresse, adressebeskyttelse, oppfolgingsperioder) 
+            values (:person_id, :personident, :fornavn, :mellomnavn, :etternavn, :nav_veileder_id, :nav_enhet_id, :telefonnummer, :epost, :er_skjermet, :adresse, :adressebeskyttelse, :oppfolgingsperioder)
             on conflict (person_id) do update set
                 personident = :personident,
                 fornavn = :fornavn,
@@ -43,6 +44,7 @@ class NavBrukerRepository {
                 er_skjermet = :er_skjermet,
                 adresse = :adresse,
                 adressebeskyttelse = :adressebeskyttelse,
+                oppfolgingsperioder = :oppfolgingsperioder,
                 modified_at = current_timestamp
             returning *
             """.trimIndent()
@@ -60,6 +62,7 @@ class NavBrukerRepository {
             "er_skjermet" to bruker.erSkjermet,
             "adresse" to toPGObject(bruker.adresse),
             "adressebeskyttelse" to bruker.adressebeskyttelse?.name,
+            "oppfolgingsperioder" to toPGObject(bruker.oppfolgingsperioder),
         )
 
         it.run(queryOf(sql, params).map(::rowMapper).asSingle)
