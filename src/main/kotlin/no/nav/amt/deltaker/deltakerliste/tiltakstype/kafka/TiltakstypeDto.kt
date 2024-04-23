@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.deltakerliste.tiltakstype.kafka
 
+import no.nav.amt.deltaker.deltaker.model.Innsatsgruppe
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.DeltakerRegistreringInnhold
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype
 import java.util.UUID
@@ -7,15 +8,19 @@ import java.util.UUID
 data class TiltakstypeDto(
     val id: UUID,
     val navn: String,
-    val arenaKode: String,
+    val tiltakskode: Tiltakstype.Tiltakskode,
+    val arenaKode: String?,
     val status: Tiltakstypestatus,
+    val innsatsgrupper: Set<Innsatsgruppe>,
     val deltakerRegistreringInnhold: DeltakerRegistreringInnhold?,
 ) {
-    fun toModel(): Tiltakstype {
+    fun toModel(arenaKode: String): Tiltakstype {
         return Tiltakstype(
             id = id,
             navn = navn,
-            type = arenaKodeTilTiltakstype(arenaKode),
+            tiltakskode = tiltakskode,
+            arenaKode = Tiltakstype.ArenaKode.valueOf(arenaKode),
+            innsatsgrupper = innsatsgrupper,
             innhold = deltakerRegistreringInnhold,
         )
     }
@@ -34,15 +39,15 @@ fun erStottet(arenaKode: String) = arenaKode in setOf(
 )
 
 fun arenaKodeTilTiltakstype(type: String?) = when (type) {
-    "ARBFORB" -> Tiltakstype.Type.ARBFORB
-    "ARBRRHDAG" -> Tiltakstype.Type.ARBRRHDAG
-    "AVKLARAG" -> Tiltakstype.Type.AVKLARAG
-    "DIGIOPPARB" -> Tiltakstype.Type.DIGIOPPARB
-    "GRUPPEAMO" -> Tiltakstype.Type.GRUPPEAMO
-    "INDOPPFAG" -> Tiltakstype.Type.INDOPPFAG
-    "JOBBK" -> Tiltakstype.Type.JOBBK
-    "VASV" -> Tiltakstype.Type.VASV
-    "GRUFAGYRKE" -> Tiltakstype.Type.GRUFAGYRKE
+    "ARBFORB" -> Tiltakstype.ArenaKode.ARBFORB
+    "ARBRRHDAG" -> Tiltakstype.ArenaKode.ARBRRHDAG
+    "AVKLARAG" -> Tiltakstype.ArenaKode.AVKLARAG
+    "DIGIOPPARB" -> Tiltakstype.ArenaKode.DIGIOPPARB
+    "GRUPPEAMO" -> Tiltakstype.ArenaKode.GRUPPEAMO
+    "INDOPPFAG" -> Tiltakstype.ArenaKode.INDOPPFAG
+    "JOBBK" -> Tiltakstype.ArenaKode.JOBBK
+    "VASV" -> Tiltakstype.ArenaKode.VASV
+    "GRUFAGYRKE" -> Tiltakstype.ArenaKode.GRUFAGYRKE
     else -> error("Ukjent tiltakstype: $type")
 }
 

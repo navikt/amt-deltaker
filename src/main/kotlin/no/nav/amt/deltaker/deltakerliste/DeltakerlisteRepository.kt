@@ -1,12 +1,10 @@
 package no.nav.amt.deltaker.deltakerliste
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import kotliquery.queryOf
-import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.arrangor.Arrangor
 import no.nav.amt.deltaker.db.Database
-import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype
+import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
@@ -15,12 +13,7 @@ class DeltakerlisteRepository {
 
     private fun rowMapper(row: Row) = Deltakerliste(
         id = row.uuid("deltakerliste_id"),
-        tiltakstype = Tiltakstype(
-            id = row.uuid("tiltakstype_id"),
-            navn = row.string("tiltakstype_navn"),
-            type = Tiltakstype.Type.valueOf(row.string("tiltakstype_type")),
-            innhold = row.stringOrNull("innhold")?.let { objectMapper.readValue(it) },
-        ),
+        tiltakstype = TiltakstypeRepository.rowMapper(row, "t"),
         navn = row.string("deltakerliste_navn"),
         status = Deltakerliste.Status.valueOf(row.string("status")),
         startDato = row.localDate("start_dato"),
@@ -107,10 +100,12 @@ class DeltakerlisteRepository {
                a.navn             AS arrangor_navn,
                organisasjonsnummer,
                overordnet_arrangor_id,
-               tiltakstype_id,
-               t.navn AS tiltakstype_navn,
-               t.type AS tiltakstype_type,
-               t.innhold AS innhold
+               t.id as "t.id",
+               t.navn as "t.navn",
+               t.tiltakskode as "t.tiltakskode",
+               t.type as "t.type",
+               t.innsatsgrupper as "t.innsatsgrupper",
+               t.innhold as "t.innhold"
             FROM deltakerliste
                  INNER JOIN arrangor a ON a.id = deltakerliste.arrangor_id
                  INNER JOIN tiltakstype t ON t.id = deltakerliste.tiltakstype_id

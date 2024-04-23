@@ -7,6 +7,7 @@ import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.DeltakerEndring
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.deltaker.model.Innhold
+import no.nav.amt.deltaker.deltaker.model.Innsatsgruppe
 import no.nav.amt.deltaker.deltaker.model.Vedtak
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlisteDto
@@ -97,17 +98,30 @@ object TestData {
         sluttdato,
     )
 
-    private val tiltakstypeCache = mutableMapOf<Tiltakstype.Type, Tiltakstype>()
+    private val tiltakstyper = Tiltakstype.Tiltakskode.entries.filter { it != Tiltakstype.Tiltakskode.UKJENT }.associateWith {
+        Tiltakstype(
+            id = UUID.randomUUID(),
+            navn = "Test tiltak $it",
+            tiltakskode = it,
+            arenaKode = it.toArenaKode(),
+            innsatsgrupper = setOf(Innsatsgruppe.STANDARD_INNSATS),
+            innhold = lagDeltakerRegistreringInnhold(),
+        )
+    }
+
+    private val tiltakstypeCache = mutableMapOf<Tiltakstype.Tiltakskode, Tiltakstype>()
 
     fun lagTiltakstype(
         id: UUID = UUID.randomUUID(),
-        type: Tiltakstype.Type = Tiltakstype.Type.entries.random(),
-        navn: String = "Test tiltak $type",
+        tiltakskode: Tiltakstype.Tiltakskode = Tiltakstype.Tiltakskode.entries.filter { it != Tiltakstype.Tiltakskode.UKJENT }.random(),
+        arenaKode: Tiltakstype.ArenaKode = tiltakskode.toArenaKode(),
+        navn: String = "Test tiltak $arenaKode",
+        innsatsgrupper: Set<Innsatsgruppe> = setOf(Innsatsgruppe.STANDARD_INNSATS),
         innhold: DeltakerRegistreringInnhold? = lagDeltakerRegistreringInnhold(),
     ): Tiltakstype {
-        val tiltak = tiltakstypeCache[type] ?: Tiltakstype(id, navn, type, innhold)
+        val tiltak = tiltakstypeCache[tiltakskode] ?: Tiltakstype(id, navn, tiltakskode, arenaKode, innsatsgrupper, innhold)
         val nyttTiltak = tiltak.copy(navn = navn, innhold = innhold)
-        tiltakstypeCache[tiltak.type] = nyttTiltak
+        tiltakstypeCache[tiltak.tiltakskode] = nyttTiltak
 
         return nyttTiltak
     }
@@ -121,11 +135,11 @@ object TestData {
         id: UUID = UUID.randomUUID(),
         arrangor: Arrangor = lagArrangor(),
         tiltakstype: Tiltakstype = lagTiltakstype(),
-        navn: String = "Test Deltakerliste ${tiltakstype.type}",
+        navn: String = "Test Deltakerliste ${tiltakstype.arenaKode}",
         status: Deltakerliste.Status = Deltakerliste.Status.GJENNOMFORES,
         startDato: LocalDate = LocalDate.now().minusMonths(1),
         sluttDato: LocalDate? = LocalDate.now().plusYears(1),
-        oppstart: Deltakerliste.Oppstartstype? = finnOppstartstype(tiltakstype.type),
+        oppstart: Deltakerliste.Oppstartstype? = finnOppstartstype(tiltakstype.arenaKode),
     ) = Deltakerliste(id, tiltakstype, navn, status, startDato, sluttDato, oppstart, arrangor)
 
     fun lagDeltakerlisteDto(arrangor: Arrangor = lagArrangor(), deltakerliste: Deltakerliste = lagDeltakerliste(arrangor = arrangor)) =
@@ -133,7 +147,7 @@ object TestData {
             id = deltakerliste.id,
             tiltakstype = DeltakerlisteDto.Tiltakstype(
                 deltakerliste.tiltakstype.navn,
-                deltakerliste.tiltakstype.type.name,
+                deltakerliste.tiltakstype.arenaKode.name,
             ),
             navn = deltakerliste.navn,
             startDato = deltakerliste.startDato,
@@ -291,12 +305,25 @@ object TestData {
         sistEndretAvEnhet.id,
     )
 
-    private fun finnOppstartstype(type: Tiltakstype.Type) = when (type) {
-        Tiltakstype.Type.JOBBK,
-        Tiltakstype.Type.GRUPPEAMO,
-        Tiltakstype.Type.GRUFAGYRKE,
+    private fun finnOppstartstype(type: Tiltakstype.ArenaKode) = when (type) {
+        Tiltakstype.ArenaKode.JOBBK,
+        Tiltakstype.ArenaKode.GRUPPEAMO,
+        Tiltakstype.ArenaKode.GRUFAGYRKE,
         -> Deltakerliste.Oppstartstype.FELLES
 
         else -> Deltakerliste.Oppstartstype.LOPENDE
     }
+}
+
+fun Tiltakstype.Tiltakskode.toArenaKode() = when (this) {
+    Tiltakstype.Tiltakskode.ARBEIDSFORBEREDENDE_TRENING -> Tiltakstype.ArenaKode.ARBFORB
+    Tiltakstype.Tiltakskode.ARBEIDSRETTET_REHABILITERING -> Tiltakstype.ArenaKode.ARBRRHDAG
+    Tiltakstype.Tiltakskode.AVKLARING -> Tiltakstype.ArenaKode.AVKLARAG
+    Tiltakstype.Tiltakskode.DIGITALT_OPPFOLGINGSTILTAK -> Tiltakstype.ArenaKode.DIGIOPPARB
+    Tiltakstype.Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING -> Tiltakstype.ArenaKode.GRUPPEAMO
+    Tiltakstype.Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING -> Tiltakstype.ArenaKode.GRUFAGYRKE
+    Tiltakstype.Tiltakskode.JOBBKLUBB -> Tiltakstype.ArenaKode.JOBBK
+    Tiltakstype.Tiltakskode.OPPFOLGING -> Tiltakstype.ArenaKode.INDOPPFAG
+    Tiltakstype.Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET -> Tiltakstype.ArenaKode.VASV
+    Tiltakstype.Tiltakskode.UKJENT -> Tiltakstype.ArenaKode.ARBFORB
 }

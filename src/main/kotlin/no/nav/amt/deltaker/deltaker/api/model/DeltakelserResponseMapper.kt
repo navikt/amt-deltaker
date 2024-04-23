@@ -139,16 +139,16 @@ class DeltakelserResponseMapper(
 
     private fun lagTittel(deltaker: Deltaker): String {
         val arrangorNavn = deltaker.deltakerliste.getArrangorNavn()
-        return when (deltaker.deltakerliste.tiltakstype.type) {
-            Tiltakstype.Type.DIGIOPPARB -> "Digital oppfølging hos $arrangorNavn"
-            Tiltakstype.Type.JOBBK -> "Jobbsøkerkurs hos $arrangorNavn"
-            Tiltakstype.Type.GRUPPEAMO -> if (deltaker.deltarPaKurs()) {
+        return when (deltaker.deltakerliste.tiltakstype.arenaKode) {
+            Tiltakstype.ArenaKode.DIGIOPPARB -> "Digital oppfølging hos $arrangorNavn"
+            Tiltakstype.ArenaKode.JOBBK -> "Jobbsøkerkurs hos $arrangorNavn"
+            Tiltakstype.ArenaKode.GRUPPEAMO -> if (deltaker.deltarPaKurs()) {
                 "Kurs: ${deltaker.deltakerliste.navn}"
             } else {
                 deltaker.deltakerliste.navn
             }
 
-            Tiltakstype.Type.GRUFAGYRKE -> deltaker.deltakerliste.navn
+            Tiltakstype.ArenaKode.GRUFAGYRKE -> deltaker.deltakerliste.navn
             else -> "${cleanTiltaksnavn(deltaker.deltakerliste.tiltakstype.navn)} hos $arrangorNavn"
         }
     }
@@ -160,7 +160,7 @@ class DeltakelserResponseMapper(
 
     private fun Tiltakstype.toTiltakstypeRespons(): DeltakelserResponse.Tiltakstype = DeltakelserResponse.Tiltakstype(
         navn = cleanTiltaksnavn(navn),
-        tiltakskode = type,
+        tiltakskode = arenaKode,
     )
 
     private fun cleanTiltaksnavn(navn: String) = when (navn) {

@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.deltakerliste.tiltakstype.kafka
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.application.plugins.objectMapper
+import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.kafka.Consumer
 import no.nav.amt.deltaker.kafka.ManagedKafkaConsumer
@@ -34,8 +35,10 @@ class TiltakstypeConsumer(
     }
 
     private fun handterTiltakstype(tiltakstype: TiltakstypeDto) {
-        if (!erStottet(tiltakstype.arenaKode) || tiltakstype.status != Tiltakstypestatus.Aktiv) return
+        val stottedeTiltak = Tiltakstype.ArenaKode.entries.map { it.name }
+        val arenaKode = tiltakstype.arenaKode
+        if (arenaKode !in stottedeTiltak || tiltakstype.status != Tiltakstypestatus.Aktiv) return
 
-        repository.upsert(tiltakstype.toModel())
+        repository.upsert(tiltakstype.toModel(arenaKode!!))
     }
 }

@@ -149,20 +149,40 @@ object TestRepository {
     }
 
     fun insert(tiltakstype: Tiltakstype) = Database.query {
-        val sql =
-            """
-            insert into tiltakstype(id, navn, type, innhold) 
-            values (:id, :navn, :type, :innhold)
-            """.trimIndent()
+        try {
+            val sql =
+                """
+                INSERT INTO tiltakstype(
+                    id, 
+                    navn, 
+                    tiltakskode,
+                    type, 
+                    innsatsgrupper,
+                    innhold)
+                VALUES (:id,
+                        :navn,
+                        :tiltakskode,
+                        :type,
+                        :innsatsgrupper,
+                        :innhold)
+                """.trimIndent()
 
-        val params = mapOf(
-            "id" to tiltakstype.id,
-            "navn" to tiltakstype.navn,
-            "type" to tiltakstype.type.name,
-            "innhold" to toPGObject(tiltakstype.innhold),
-        )
-
-        it.update(queryOf(sql, params))
+            it.update(
+                queryOf(
+                    sql,
+                    mapOf(
+                        "id" to tiltakstype.id,
+                        "navn" to tiltakstype.navn,
+                        "tiltakskode" to tiltakstype.tiltakskode.name,
+                        "type" to tiltakstype.arenaKode.name,
+                        "innsatsgrupper" to toPGObject(tiltakstype.innsatsgrupper),
+                        "innhold" to toPGObject(tiltakstype.innhold),
+                    ),
+                ),
+            )
+        } catch (e: Exception) {
+            log.warn("Tiltakstype ${tiltakstype.navn} er allerede opprettet", e)
+        }
     }
 
     fun insert(deltakerliste: Deltakerliste) {
