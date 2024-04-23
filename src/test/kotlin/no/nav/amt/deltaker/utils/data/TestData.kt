@@ -98,17 +98,6 @@ object TestData {
         sluttdato,
     )
 
-    private val tiltakstyper = Tiltakstype.Tiltakskode.entries.filter { it != Tiltakstype.Tiltakskode.UKJENT }.associateWith {
-        Tiltakstype(
-            id = UUID.randomUUID(),
-            navn = "Test tiltak $it",
-            tiltakskode = it,
-            arenaKode = it.toArenaKode(),
-            innsatsgrupper = setOf(Innsatsgruppe.STANDARD_INNSATS),
-            innhold = lagDeltakerRegistreringInnhold(),
-        )
-    }
-
     private val tiltakstypeCache = mutableMapOf<Tiltakstype.Tiltakskode, Tiltakstype>()
 
     fun lagTiltakstype(
