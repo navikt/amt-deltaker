@@ -102,7 +102,7 @@ object TestData {
 
     fun lagTiltakstype(
         id: UUID = UUID.randomUUID(),
-        tiltakskode: Tiltakstype.Tiltakskode = Tiltakstype.Tiltakskode.entries.filter { it != Tiltakstype.Tiltakskode.UKJENT }.random(),
+        tiltakskode: Tiltakstype.Tiltakskode = Tiltakstype.Tiltakskode.entries.random(),
         arenaKode: Tiltakstype.ArenaKode = tiltakskode.toArenaKode(),
         navn: String = "Test tiltak $arenaKode",
         innsatsgrupper: Set<Innsatsgruppe> = setOf(Innsatsgruppe.STANDARD_INNSATS),
@@ -314,5 +314,4 @@ fun Tiltakstype.Tiltakskode.toArenaKode() = when (this) {
     Tiltakstype.Tiltakskode.JOBBKLUBB -> Tiltakstype.ArenaKode.JOBBK
     Tiltakstype.Tiltakskode.OPPFOLGING -> Tiltakstype.ArenaKode.INDOPPFAG
     Tiltakstype.Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET -> Tiltakstype.ArenaKode.VASV
-    Tiltakstype.Tiltakskode.UKJENT -> Tiltakstype.ArenaKode.ARBFORB
 }
