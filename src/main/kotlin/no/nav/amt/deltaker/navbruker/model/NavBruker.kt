@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.navbruker.model
 
+import no.nav.amt.deltaker.deltaker.model.Innsatsgruppe
 import java.util.UUID
 
 data class NavBruker(
@@ -16,6 +17,7 @@ data class NavBruker(
     val adresse: Adresse?,
     val adressebeskyttelse: Adressebeskyttelse?,
     val oppfolgingsperioder: List<Oppfolgingsperiode>,
+    val innsatsgruppe: Innsatsgruppe?,
 )
 
 enum class Adressebeskyttelse {

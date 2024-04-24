@@ -72,6 +72,7 @@ object TestData {
         adresse: Adresse? = lagAdresse(),
         adressebeskyttelse: Adressebeskyttelse? = null,
         oppfolgingsperioder: List<Oppfolgingsperiode> = listOf(lagOppfolgingsperiode()),
+        innsatsgruppe: Innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS,
     ) = NavBruker(
         personId,
         personident,
@@ -86,6 +87,7 @@ object TestData {
         adresse,
         adressebeskyttelse,
         oppfolgingsperioder,
+        innsatsgruppe,
     )
 
     fun lagOppfolgingsperiode(
@@ -160,6 +162,7 @@ object TestData {
         adresse = navBruker.adresse,
         adressebeskyttelse = navBruker.adressebeskyttelse,
         oppfolgingsperioder = navBruker.oppfolgingsperioder,
+        innsatsgruppe = navBruker.innsatsgruppe,
     )
 
     fun lagNavEnhetDto(navEnhet: NavEnhet) = NavEnhetDto(
