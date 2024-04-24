@@ -345,7 +345,6 @@ class DeltakerRepository {
                    nb.adressebeskyttelse as "nb.adressebeskyttelse",
                    nb.oppfolgingsperioder as "nb.oppfolgingsperioder",
                    nb.innsatsgruppe as "nb.innsatsgruppe",
-                   nb.innsatsgruppe as "innsatsgruppe",
                    ds.id as "ds.id",
                    ds.deltaker_id as "ds.deltaker_id",
                    ds.type as "ds.type",
