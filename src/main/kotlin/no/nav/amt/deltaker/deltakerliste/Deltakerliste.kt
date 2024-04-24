@@ -53,14 +53,14 @@ data class Deltakerliste(
         if (oppstart != null) {
             return oppstart == Oppstartstype.FELLES
         } else {
-            return kursTiltak.contains(tiltakstype.type)
+            return kursTiltak.contains(tiltakstype.arenaKode)
         }
     }
 
     private val kursTiltak = setOf(
-        Tiltakstype.Type.JOBBK,
-        Tiltakstype.Type.GRUPPEAMO,
-        Tiltakstype.Type.GRUFAGYRKE,
+        Tiltakstype.ArenaKode.JOBBK,
+        Tiltakstype.ArenaKode.GRUPPEAMO,
+        Tiltakstype.ArenaKode.GRUFAGYRKE,
     )
 }
 

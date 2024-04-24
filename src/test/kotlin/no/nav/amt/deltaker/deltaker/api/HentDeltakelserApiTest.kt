@@ -74,7 +74,7 @@ class HentDeltakelserApiTest {
         val deltaker = TestData.lagDeltaker(
             deltakerliste = TestData.lagDeltakerliste(
                 arrangor = TestData.lagArrangor(overordnetArrangorId = null, navn = "ARRANGØR AS"),
-                tiltakstype = TestData.lagTiltakstype(type = Tiltakstype.Type.INDOPPFAG, navn = "Oppfølging"),
+                tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
             ),
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
         )
@@ -97,7 +97,7 @@ class HentDeltakelserApiTest {
                     tittel = "Oppfølging hos Arrangør AS",
                     tiltakstype = DeltakelserResponse.Tiltakstype(
                         navn = deltaker.deltakerliste.tiltakstype.navn,
-                        tiltakskode = deltaker.deltakerliste.tiltakstype.type,
+                        tiltakskode = deltaker.deltakerliste.tiltakstype.arenaKode,
                     ),
                     status = DeltakerKort.Status(
                         type = DeltakerStatus.Type.DELTAR,
@@ -130,14 +130,14 @@ class HentDeltakelserApiTest {
         val deltakerKladd = TestData.lagDeltaker(
             deltakerliste = TestData.lagDeltakerliste(
                 arrangor = TestData.lagArrangor(overordnetArrangorId = null, navn = "ARRANGØR AS"),
-                tiltakstype = TestData.lagTiltakstype(type = Tiltakstype.Type.INDOPPFAG, navn = "Oppfølging"),
+                tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
             ),
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.KLADD),
         )
         val avsluttetDeltaker = TestData.lagDeltaker(
             deltakerliste = TestData.lagDeltakerliste(
                 arrangor = TestData.lagArrangor(overordnetArrangorId = null, navn = "ARRANGØR OG SØNN AS"),
-                tiltakstype = TestData.lagTiltakstype(type = Tiltakstype.Type.INDOPPFAG, navn = "Oppfølging"),
+                tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
             ),
             startdato = LocalDate.now().minusMonths(3),
             sluttdato = LocalDate.now().minusDays(2),
@@ -164,7 +164,7 @@ class HentDeltakelserApiTest {
                     tittel = "Oppfølging hos Arrangør AS",
                     tiltakstype = DeltakelserResponse.Tiltakstype(
                         navn = deltakerKladd.deltakerliste.tiltakstype.navn,
-                        tiltakskode = deltakerKladd.deltakerliste.tiltakstype.type,
+                        tiltakskode = deltakerKladd.deltakerliste.tiltakstype.arenaKode,
                     ),
                     status = DeltakerKort.Status(
                         type = DeltakerStatus.Type.KLADD,
@@ -182,7 +182,7 @@ class HentDeltakelserApiTest {
                     tittel = "Oppfølging hos Arrangør og Sønn AS",
                     tiltakstype = DeltakelserResponse.Tiltakstype(
                         navn = avsluttetDeltaker.deltakerliste.tiltakstype.navn,
-                        tiltakskode = avsluttetDeltaker.deltakerliste.tiltakstype.type,
+                        tiltakskode = avsluttetDeltaker.deltakerliste.tiltakstype.arenaKode,
                     ),
                     status = DeltakerKort.Status(
                         type = DeltakerStatus.Type.HAR_SLUTTET,

@@ -10,7 +10,7 @@ data class DeltakelserResponse(
 ) {
     data class Tiltakstype(
         val navn: String,
-        val tiltakskode: no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype.Type,
+        val tiltakskode: no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype.ArenaKode,
     )
 }
 

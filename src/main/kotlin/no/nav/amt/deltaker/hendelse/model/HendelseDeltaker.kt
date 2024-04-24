@@ -25,7 +25,7 @@ data class HendelseDeltaker(
 
         data class Tiltak(
             val navn: String,
-            val type: Tiltakstype.Type,
+            val type: Tiltakstype.ArenaKode,
             val ledetekst: String?,
         )
     }
@@ -40,7 +40,7 @@ fun Deltaker.toHendelseDeltaker(overordnetArrangor: Arrangor?) = HendelseDeltake
         arrangor = deltakerliste.arrangor.toHendelseArrangor(overordnetArrangor?.toHendelseArrangor()),
         tiltak = HendelseDeltaker.Deltakerliste.Tiltak(
             navn = deltakerliste.tiltakstype.navn,
-            type = deltakerliste.tiltakstype.type,
+            type = deltakerliste.tiltakstype.arenaKode,
             ledetekst = deltakerliste.tiltakstype.innhold?.ledetekst,
         ),
     ),

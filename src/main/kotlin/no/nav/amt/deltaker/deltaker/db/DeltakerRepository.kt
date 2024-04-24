@@ -12,7 +12,7 @@ import no.nav.amt.deltaker.deltaker.model.AVSLUTTENDE_STATUSER
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
-import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype
+import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.navbruker.model.Adressebeskyttelse
 import no.nav.amt.deltaker.navbruker.model.NavBruker
 import java.time.LocalDate
@@ -38,12 +38,7 @@ class DeltakerRepository {
         ),
         deltakerliste = Deltakerliste(
             id = row.uuid("deltakerliste_id"),
-            tiltakstype = Tiltakstype(
-                id = row.uuid("t.id"),
-                navn = row.string("t.navn"),
-                type = Tiltakstype.Type.valueOf(row.string("t.type")),
-                innhold = row.stringOrNull("t.innhold")?.let { objectMapper.readValue(it) },
-            ),
+            tiltakstype = TiltakstypeRepository.rowMapper(row, "t"),
             navn = row.string("deltakerliste_navn"),
             status = Deltakerliste.Status.valueOf(row.string("status")),
             startDato = row.localDate("start_dato"),
@@ -367,7 +362,9 @@ class DeltakerRepository {
                    overordnet_arrangor_id,
                    t.id as "t.id",
                    t.navn as "t.navn",
+                   t.tiltakskode as "t.tiltakskode",
                    t.type as "t.type",
+                   t.innsatsgrupper as "t.innsatsgrupper",
                    t.innhold as "t.innhold",
                    v.fattet as "v.fattet",
                    v.fattet_av_nav as "v.fattet_av_nav",

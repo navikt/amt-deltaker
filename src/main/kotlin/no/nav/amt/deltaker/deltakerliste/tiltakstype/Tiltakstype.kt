@@ -1,23 +1,38 @@
 package no.nav.amt.deltaker.deltakerliste.tiltakstype
 
+import no.nav.amt.deltaker.deltaker.model.Innsatsgruppe
 import java.util.UUID
 
 data class Tiltakstype(
     val id: UUID,
     val navn: String,
-    val type: Type,
+    val tiltakskode: Tiltakskode,
+    val arenaKode: ArenaKode,
+    val innsatsgrupper: Set<Innsatsgruppe>,
     val innhold: DeltakerRegistreringInnhold?,
 ) {
-    enum class Type {
-        INDOPPFAG,
+    enum class ArenaKode {
         ARBFORB,
-        AVKLARAG,
-        VASV,
         ARBRRHDAG,
+        AVKLARAG,
         DIGIOPPARB,
-        JOBBK,
-        GRUPPEAMO,
+        INDOPPFAG,
         GRUFAGYRKE,
+        GRUPPEAMO,
+        JOBBK,
+        VASV,
+    }
+
+    enum class Tiltakskode {
+        ARBEIDSFORBEREDENDE_TRENING,
+        ARBEIDSRETTET_REHABILITERING,
+        AVKLARING,
+        DIGITALT_OPPFOLGINGSTILTAK,
+        GRUPPE_ARBEIDSMARKEDSOPPLAERING,
+        GRUPPE_FAG_OG_YRKESOPPLAERING,
+        JOBBKLUBB,
+        OPPFOLGING,
+        VARIG_TILRETTELAGT_ARBEID_SKJERMET,
     }
 }
 

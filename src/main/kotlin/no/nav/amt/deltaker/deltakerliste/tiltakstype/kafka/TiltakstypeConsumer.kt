@@ -11,11 +11,12 @@ import no.nav.amt.deltaker.kafka.config.KafkaConfigImpl
 import no.nav.amt.deltaker.kafka.config.LocalKafkaConfig
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.UUIDDeserializer
+import org.slf4j.LoggerFactory
 import java.util.UUID
 
 class TiltakstypeConsumer(
     private val repository: TiltakstypeRepository,
-    kafkaConfig: KafkaConfig = if (Environment.isLocal()) LocalKafkaConfig() else KafkaConfigImpl(),
+    kafkaConfig: KafkaConfig = if (Environment.isLocal()) LocalKafkaConfig() else KafkaConfigImpl("earliest"),
 ) : Consumer<UUID, String?> {
     private val consumer = ManagedKafkaConsumer(
         topic = Environment.TILTAKSTYPE_TOPIC,
@@ -27,6 +28,8 @@ class TiltakstypeConsumer(
         consume = ::consume,
     )
 
+    private val log = LoggerFactory.getLogger(javaClass)
+
     override fun run() = consumer.run()
 
     override suspend fun consume(key: UUID, value: String?) {
@@ -34,8 +37,12 @@ class TiltakstypeConsumer(
     }
 
     private fun handterTiltakstype(tiltakstype: TiltakstypeDto) {
-        if (!erStottet(tiltakstype.arenaKode) || tiltakstype.status != Tiltakstypestatus.Aktiv) return
+        val arenaKode = tiltakstype.arenaKode
+        if (arenaKode == null) {
+            log.warn("Mottok tiltakstype ${tiltakstype.tiltakskode} uten arenakode")
+            return
+        }
 
-        repository.upsert(tiltakstype.toModel())
+        repository.upsert(tiltakstype.toModel(arenaKode))
     }
 }

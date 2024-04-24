@@ -47,7 +47,7 @@ class DeltakelserResponseMapperTest {
         val deltaker = TestData.lagDeltaker(
             deltakerliste = TestData.lagDeltakerliste(
                 arrangor = arrangor,
-                tiltakstype = TestData.lagTiltakstype(type = Tiltakstype.Type.INDOPPFAG, navn = "Oppfølging"),
+                tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
             ),
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.KLADD),
         )
@@ -59,8 +59,11 @@ class DeltakelserResponseMapperTest {
         deltakelserResponse.aktive.size shouldBe 1
         val deltakerKort = deltakelserResponse.aktive.first()
         deltakerKort.deltakerId shouldBe deltaker.id
-        deltakerKort.tittel shouldBe "Oppfølging hos Arrangør"
-        deltakerKort.tiltakstype shouldBe DeltakelserResponse.Tiltakstype("Oppfølging", Tiltakstype.Type.INDOPPFAG)
+        deltakerKort.tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos Arrangør"
+        deltakerKort.tiltakstype shouldBe DeltakelserResponse.Tiltakstype(
+            deltaker.deltakerliste.tiltakstype.navn,
+            deltaker.deltakerliste.tiltakstype.arenaKode,
+        )
         deltakerKort.status.type shouldBe DeltakerStatus.Type.KLADD
         deltakerKort.status.visningstekst shouldBe "Kladden er ikke delt"
         deltakerKort.status.aarsak shouldBe null
@@ -83,7 +86,7 @@ class DeltakelserResponseMapperTest {
         val deltaker = TestData.lagDeltaker(
             deltakerliste = TestData.lagDeltakerliste(
                 arrangor = arrangor,
-                tiltakstype = TestData.lagTiltakstype(type = Tiltakstype.Type.INDOPPFAG, navn = "Oppfølging"),
+                tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
             ),
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
         )
@@ -103,8 +106,11 @@ class DeltakelserResponseMapperTest {
         deltakelserResponse.aktive.size shouldBe 1
         val deltakerKort = deltakelserResponse.aktive.first()
         deltakerKort.deltakerId shouldBe deltaker.id
-        deltakerKort.tittel shouldBe "Oppfølging hos Overordnet Arrangør"
-        deltakerKort.tiltakstype shouldBe DeltakelserResponse.Tiltakstype("Oppfølging", Tiltakstype.Type.INDOPPFAG)
+        deltakerKort.tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos Overordnet Arrangør"
+        deltakerKort.tiltakstype shouldBe DeltakelserResponse.Tiltakstype(
+            deltaker.deltakerliste.tiltakstype.navn,
+            deltaker.deltakerliste.tiltakstype.arenaKode,
+        )
         deltakerKort.status.type shouldBe DeltakerStatus.Type.UTKAST_TIL_PAMELDING
         deltakerKort.status.visningstekst shouldBe "Utkastet er delt og venter på godkjenning"
         deltakerKort.status.aarsak shouldBe null
@@ -125,7 +131,7 @@ class DeltakelserResponseMapperTest {
         val deltaker = TestData.lagDeltaker(
             deltakerliste = TestData.lagDeltakerliste(
                 arrangor = arrangor,
-                tiltakstype = TestData.lagTiltakstype(type = Tiltakstype.Type.INDOPPFAG, navn = "Oppfølging"),
+                tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
             ),
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
             startdato = LocalDate.now().plusWeeks(1),
@@ -147,8 +153,11 @@ class DeltakelserResponseMapperTest {
         deltakelserResponse.aktive.size shouldBe 1
         val deltakerKort = deltakelserResponse.aktive.first()
         deltakerKort.deltakerId shouldBe deltaker.id
-        deltakerKort.tittel shouldBe "Oppfølging hos Arrangør"
-        deltakerKort.tiltakstype shouldBe DeltakelserResponse.Tiltakstype("Oppfølging", Tiltakstype.Type.INDOPPFAG)
+        deltakerKort.tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos Arrangør"
+        deltakerKort.tiltakstype shouldBe DeltakelserResponse.Tiltakstype(
+            deltaker.deltakerliste.tiltakstype.navn,
+            deltaker.deltakerliste.tiltakstype.arenaKode,
+        )
         deltakerKort.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
         deltakerKort.status.visningstekst shouldBe "Venter på oppstart"
         deltakerKort.status.aarsak shouldBe null
@@ -169,7 +178,7 @@ class DeltakelserResponseMapperTest {
         val deltaker = TestData.lagDeltaker(
             deltakerliste = TestData.lagDeltakerliste(
                 arrangor = arrangor,
-                tiltakstype = TestData.lagTiltakstype(type = Tiltakstype.Type.INDOPPFAG, navn = "Oppfølging"),
+                tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
             ),
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
         )
@@ -189,8 +198,11 @@ class DeltakelserResponseMapperTest {
         deltakelserResponse.aktive.size shouldBe 1
         val deltakerKort = deltakelserResponse.aktive.first()
         deltakerKort.deltakerId shouldBe deltaker.id
-        deltakerKort.tittel shouldBe "Oppfølging hos Arrangør"
-        deltakerKort.tiltakstype shouldBe DeltakelserResponse.Tiltakstype("Oppfølging", Tiltakstype.Type.INDOPPFAG)
+        deltakerKort.tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos Arrangør"
+        deltakerKort.tiltakstype shouldBe DeltakelserResponse.Tiltakstype(
+            deltaker.deltakerliste.tiltakstype.navn,
+            deltaker.deltakerliste.tiltakstype.arenaKode,
+        )
         deltakerKort.status.type shouldBe DeltakerStatus.Type.DELTAR
         deltakerKort.status.visningstekst shouldBe "Deltar"
         deltakerKort.status.aarsak shouldBe null
@@ -211,7 +223,7 @@ class DeltakelserResponseMapperTest {
         val deltaker = TestData.lagDeltaker(
             deltakerliste = TestData.lagDeltakerliste(
                 arrangor = arrangor,
-                tiltakstype = TestData.lagTiltakstype(type = Tiltakstype.Type.INDOPPFAG, navn = "Oppfølging"),
+                tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
             ),
             status = TestData.lagDeltakerStatus(
                 type = DeltakerStatus.Type.IKKE_AKTUELL,
@@ -235,8 +247,11 @@ class DeltakelserResponseMapperTest {
         deltakelserResponse.historikk.size shouldBe 1
         val deltakerKort = deltakelserResponse.historikk.first()
         deltakerKort.deltakerId shouldBe deltaker.id
-        deltakerKort.tittel shouldBe "Oppfølging hos Arrangør"
-        deltakerKort.tiltakstype shouldBe DeltakelserResponse.Tiltakstype("Oppfølging", Tiltakstype.Type.INDOPPFAG)
+        deltakerKort.tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos Arrangør"
+        deltakerKort.tiltakstype shouldBe DeltakelserResponse.Tiltakstype(
+            deltaker.deltakerliste.tiltakstype.navn,
+            deltaker.deltakerliste.tiltakstype.arenaKode,
+        )
         deltakerKort.status.type shouldBe DeltakerStatus.Type.IKKE_AKTUELL
         deltakerKort.status.visningstekst shouldBe "Ikke aktuell"
         deltakerKort.status.aarsak shouldBe "flyttet til Spania"
@@ -257,7 +272,7 @@ class DeltakelserResponseMapperTest {
         val deltaker = TestData.lagDeltaker(
             deltakerliste = TestData.lagDeltakerliste(
                 arrangor = arrangor,
-                tiltakstype = TestData.lagTiltakstype(type = Tiltakstype.Type.INDOPPFAG, navn = "Oppfølging"),
+                tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
             ),
             status = TestData.lagDeltakerStatus(
                 type = DeltakerStatus.Type.HAR_SLUTTET,
@@ -281,8 +296,11 @@ class DeltakelserResponseMapperTest {
         deltakelserResponse.historikk.size shouldBe 1
         val deltakerKort = deltakelserResponse.historikk.first()
         deltakerKort.deltakerId shouldBe deltaker.id
-        deltakerKort.tittel shouldBe "Oppfølging hos Arrangør"
-        deltakerKort.tiltakstype shouldBe DeltakelserResponse.Tiltakstype("Oppfølging", Tiltakstype.Type.INDOPPFAG)
+        deltakerKort.tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos Arrangør"
+        deltakerKort.tiltakstype shouldBe DeltakelserResponse.Tiltakstype(
+            deltaker.deltakerliste.tiltakstype.navn,
+            deltaker.deltakerliste.tiltakstype.arenaKode,
+        )
         deltakerKort.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
         deltakerKort.status.visningstekst shouldBe "Har sluttet"
         deltakerKort.status.aarsak shouldBe "trenger annen støtte"
@@ -303,7 +321,7 @@ class DeltakelserResponseMapperTest {
         val deltaker = TestData.lagDeltaker(
             deltakerliste = TestData.lagDeltakerliste(
                 arrangor = arrangor,
-                tiltakstype = TestData.lagTiltakstype(type = Tiltakstype.Type.INDOPPFAG, navn = "Oppfølging"),
+                tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
             ),
             status = TestData.lagDeltakerStatus(
                 type = DeltakerStatus.Type.AVBRUTT_UTKAST,
@@ -327,8 +345,11 @@ class DeltakelserResponseMapperTest {
         deltakelserResponse.historikk.size shouldBe 1
         val deltakerKort = deltakelserResponse.historikk.first()
         deltakerKort.deltakerId shouldBe deltaker.id
-        deltakerKort.tittel shouldBe "Oppfølging hos Arrangør"
-        deltakerKort.tiltakstype shouldBe DeltakelserResponse.Tiltakstype("Oppfølging", Tiltakstype.Type.INDOPPFAG)
+        deltakerKort.tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos Arrangør"
+        deltakerKort.tiltakstype shouldBe DeltakelserResponse.Tiltakstype(
+            deltaker.deltakerliste.tiltakstype.navn,
+            deltaker.deltakerliste.tiltakstype.arenaKode,
+        )
         deltakerKort.status.type shouldBe DeltakerStatus.Type.AVBRUTT_UTKAST
         deltakerKort.status.visningstekst shouldBe "Avbrutt utkast"
         deltakerKort.status.aarsak shouldBe null
@@ -345,7 +366,7 @@ class DeltakelserResponseMapperTest {
         val deltaker = TestData.lagDeltaker(
             deltakerliste = TestData.lagDeltakerliste(
                 arrangor = arrangor,
-                tiltakstype = TestData.lagTiltakstype(type = Tiltakstype.Type.INDOPPFAG, navn = "Oppfølging"),
+                tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
             ),
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.FEILREGISTRERT),
         )
@@ -365,7 +386,7 @@ class DeltakelserResponseMapperTest {
         val deltaker = TestData.lagDeltaker(
             deltakerliste = TestData.lagDeltakerliste(
                 arrangor = arrangor,
-                tiltakstype = TestData.lagTiltakstype(type = Tiltakstype.Type.INDOPPFAG, navn = "Oppfølging"),
+                tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
             ),
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.PABEGYNT_REGISTRERING),
         )
