@@ -10,7 +10,6 @@ data class TiltakstypeDto(
     val navn: String,
     val tiltakskode: Tiltakstype.Tiltakskode,
     val arenaKode: String?,
-    val status: Tiltakstypestatus,
     val innsatsgrupper: Set<Innsatsgruppe>,
     val deltakerRegistreringInnhold: DeltakerRegistreringInnhold?,
 ) {
@@ -49,10 +48,4 @@ fun arenaKodeTilTiltakstype(type: String?) = when (type) {
     "VASV" -> Tiltakstype.ArenaKode.VASV
     "GRUFAGYRKE" -> Tiltakstype.ArenaKode.GRUFAGYRKE
     else -> error("Ukjent tiltakstype: $type")
-}
-
-enum class Tiltakstypestatus {
-    Aktiv,
-    Planlagt,
-    Avsluttet,
 }

@@ -36,7 +36,6 @@ class TiltakstypeConsumerTest {
             navn = tiltakstype.navn,
             tiltakskode = tiltakstype.tiltakskode,
             arenaKode = tiltakstype.arenaKode.name,
-            status = Tiltakstypestatus.Aktiv,
             innsatsgrupper = tiltakstype.innsatsgrupper,
             deltakerRegistreringInnhold = tiltakstype.innhold,
         )
