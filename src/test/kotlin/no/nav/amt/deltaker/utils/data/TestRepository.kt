@@ -125,8 +125,14 @@ object TestRepository {
 
         val sql =
             """
-            insert into nav_bruker(person_id, personident, fornavn, mellomnavn, etternavn, nav_veileder_id, nav_enhet_id, telefonnummer, epost, er_skjermet, adresse, adressebeskyttelse, oppfolgingsperioder) 
-            values (:person_id, :personident, :fornavn, :mellomnavn, :etternavn, :nav_veileder_id, :nav_enhet_id, :telefonnummer, :epost, :er_skjermet, :adresse, :adressebeskyttelse, :oppfolgingsperioder)
+            insert into nav_bruker(
+                person_id, personident, fornavn, mellomnavn, etternavn, nav_veileder_id, nav_enhet_id, telefonnummer, epost, er_skjermet, 
+                adresse, adressebeskyttelse, oppfolgingsperioder, innsatsgruppe
+            ) 
+            values (
+                :person_id, :personident, :fornavn, :mellomnavn, :etternavn, :nav_veileder_id, :nav_enhet_id, :telefonnummer, :epost, :er_skjermet, 
+                :adresse, :adressebeskyttelse, :oppfolgingsperioder, :innsatsgruppe
+            )
             """.trimIndent()
 
         val params = mapOf(
@@ -143,6 +149,7 @@ object TestRepository {
             "adresse" to toPGObject(bruker.adresse),
             "adressebeskyttelse" to bruker.adressebeskyttelse?.name,
             "oppfolgingsperioder" to toPGObject(bruker.oppfolgingsperioder),
+            "innsatsgruppe" to bruker.innsatsgruppe?.name,
         )
 
         it.update(queryOf(sql, params))

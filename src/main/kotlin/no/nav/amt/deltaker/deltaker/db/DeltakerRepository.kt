@@ -11,6 +11,7 @@ import no.nav.amt.deltaker.db.toPGObject
 import no.nav.amt.deltaker.deltaker.model.AVSLUTTENDE_STATUSER
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
+import no.nav.amt.deltaker.deltaker.model.Innsatsgruppe
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.navbruker.model.Adressebeskyttelse
@@ -35,6 +36,7 @@ class DeltakerRepository {
             adresse = row.stringOrNull("nb.adresse")?.let { objectMapper.readValue(it) },
             adressebeskyttelse = row.stringOrNull("nb.adressebeskyttelse")?.let { Adressebeskyttelse.valueOf(it) },
             oppfolgingsperioder = row.stringOrNull("nb.oppfolgingsperioder")?.let { objectMapper.readValue(it) } ?: emptyList(),
+            innsatsgruppe = row.stringOrNull("nb.innsatsgruppe")?.let { Innsatsgruppe.valueOf(it) },
         ),
         deltakerliste = Deltakerliste(
             id = row.uuid("deltakerliste_id"),
@@ -342,6 +344,7 @@ class DeltakerRepository {
                    nb.adresse as "nb.adresse",
                    nb.adressebeskyttelse as "nb.adressebeskyttelse",
                    nb.oppfolgingsperioder as "nb.oppfolgingsperioder",
+                   nb.innsatsgruppe as "nb.innsatsgruppe",
                    ds.id as "ds.id",
                    ds.deltaker_id as "ds.deltaker_id",
                    ds.type as "ds.type",

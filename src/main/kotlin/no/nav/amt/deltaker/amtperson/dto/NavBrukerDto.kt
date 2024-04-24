@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.amtperson.dto
 
+import no.nav.amt.deltaker.deltaker.model.Innsatsgruppe
 import no.nav.amt.deltaker.navbruker.model.Adresse
 import no.nav.amt.deltaker.navbruker.model.Adressebeskyttelse
 import no.nav.amt.deltaker.navbruker.model.NavBruker
@@ -20,6 +21,7 @@ data class NavBrukerDto(
     val adresse: Adresse?,
     val adressebeskyttelse: Adressebeskyttelse?,
     val oppfolgingsperioder: List<Oppfolgingsperiode> = emptyList(),
+    val innsatsgruppe: Innsatsgruppe? = null,
 ) {
     fun tilNavBruker(): NavBruker {
         return NavBruker(
@@ -36,6 +38,7 @@ data class NavBrukerDto(
             adresse = adresse,
             adressebeskyttelse = adressebeskyttelse,
             oppfolgingsperioder = oppfolgingsperioder,
+            innsatsgruppe = innsatsgruppe,
         )
     }
 }

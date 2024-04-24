@@ -6,6 +6,7 @@ import kotliquery.queryOf
 import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.db.Database
 import no.nav.amt.deltaker.db.toPGObject
+import no.nav.amt.deltaker.deltaker.model.Innsatsgruppe
 import no.nav.amt.deltaker.navbruker.model.Adressebeskyttelse
 import no.nav.amt.deltaker.navbruker.model.NavBruker
 import java.util.UUID
@@ -25,13 +26,20 @@ class NavBrukerRepository {
         adresse = row.stringOrNull("adresse")?.let { objectMapper.readValue(it) },
         adressebeskyttelse = row.stringOrNull("adressebeskyttelse")?.let { Adressebeskyttelse.valueOf(it) },
         oppfolgingsperioder = row.stringOrNull("oppfolgingsperioder")?.let { objectMapper.readValue(it) } ?: emptyList(),
+        innsatsgruppe = row.stringOrNull("innsatsgruppe")?.let { Innsatsgruppe.valueOf(it) },
     )
 
     fun upsert(bruker: NavBruker) = Database.query {
         val sql =
             """
-            insert into nav_bruker(person_id, personident, fornavn, mellomnavn, etternavn, nav_veileder_id, nav_enhet_id, telefonnummer, epost, er_skjermet, adresse, adressebeskyttelse, oppfolgingsperioder) 
-            values (:person_id, :personident, :fornavn, :mellomnavn, :etternavn, :nav_veileder_id, :nav_enhet_id, :telefonnummer, :epost, :er_skjermet, :adresse, :adressebeskyttelse, :oppfolgingsperioder)
+            insert into nav_bruker(
+                person_id, personident, fornavn, mellomnavn, etternavn, nav_veileder_id, nav_enhet_id, telefonnummer, epost, er_skjermet, 
+                adresse, adressebeskyttelse, oppfolgingsperioder, innsatsgruppe
+            ) 
+            values (
+                :person_id, :personident, :fornavn, :mellomnavn, :etternavn, :nav_veileder_id, :nav_enhet_id, :telefonnummer, :epost, :er_skjermet, 
+                :adresse, :adressebeskyttelse, :oppfolgingsperioder, :innsatsgruppe
+            )
             on conflict (person_id) do update set
                 personident = :personident,
                 fornavn = :fornavn,
@@ -45,6 +53,7 @@ class NavBrukerRepository {
                 adresse = :adresse,
                 adressebeskyttelse = :adressebeskyttelse,
                 oppfolgingsperioder = :oppfolgingsperioder,
+                innsatsgruppe = :innsatsgruppe,
                 modified_at = current_timestamp
             returning *
             """.trimIndent()
@@ -63,6 +72,7 @@ class NavBrukerRepository {
             "adresse" to toPGObject(bruker.adresse),
             "adressebeskyttelse" to bruker.adressebeskyttelse?.name,
             "oppfolgingsperioder" to toPGObject(bruker.oppfolgingsperioder),
+            "innsatsgruppe" to bruker.innsatsgruppe?.name,
         )
 
         it.run(queryOf(sql, params).map(::rowMapper).asSingle)
