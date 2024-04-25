@@ -40,7 +40,7 @@ class PameldingService(
         val deltakerliste = deltakerlisteRepository.get(deltakerlisteId).getOrThrow()
         val navBruker = navBrukerService.get(personident).getOrThrow()
 
-        if (navBruker.innsatsgruppe == null || navBruker.innsatsgruppe !in deltakerliste.tiltakstype.innsatsgrupper) {
+        if (navBruker.innsatsgruppe !in deltakerliste.tiltakstype.innsatsgrupper) {
             log.warn("Bruker med id ${navBruker.personId} har ikke riktig innsatsgruppe")
             throw IllegalArgumentException("Bruker har ikke riktig innsatsgruppe")
         }
