@@ -44,7 +44,7 @@ class DeltakerRepository {
             navn = row.string("deltakerliste_navn"),
             status = Deltakerliste.Status.valueOf(row.string("status")),
             startDato = row.localDate("start_dato"),
-            sluttDato = row.localDate("slutt_dato"),
+            sluttDato = row.localDateOrNull("slutt_dato"),
             oppstart = Deltakerliste.Oppstartstype.valueOf(row.string("oppstart")),
             arrangor = Arrangor(
                 id = row.uuid("arrangor_id"),
