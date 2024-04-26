@@ -13,6 +13,7 @@ import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.deltaker.model.Innhold
+import no.nav.amt.deltaker.deltaker.model.Innsatsgruppe
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.hendelse.HendelseProducer
 import no.nav.amt.deltaker.hendelse.HendelseService
@@ -120,6 +121,36 @@ class PameldingServiceTest {
             deltaker.deltakelsesprosent shouldBe null
             deltaker.bakgrunnsinformasjon shouldBe null
             deltaker.innhold shouldBe emptyList()
+        }
+    }
+
+    @Test
+    fun `opprettKladd - deltaker har feil innsatsgruppe ift tiltaket - kaster IllegalArgumentException`() {
+        val tiltakstype = TestData.lagTiltakstype(
+            innsatsgrupper = setOf(Innsatsgruppe.VARIG_TILPASSET_INNSATS, Innsatsgruppe.SPESIELT_TILPASSET_INNSATS),
+        )
+        val arrangor = TestData.lagArrangor()
+        val deltakerliste = TestData.lagDeltakerliste(arrangor = arrangor, tiltakstype = tiltakstype)
+        val opprettetAv = TestData.lagNavAnsatt()
+        val opprettetAvEnhet = TestData.lagNavEnhet()
+        val navBruker = TestData.lagNavBruker(
+            navVeilederId = opprettetAv.id,
+            navEnhetId = opprettetAvEnhet.id,
+            innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS,
+        )
+
+        MockResponseHandler.addNavEnhetResponse(opprettetAvEnhet)
+        MockResponseHandler.addNavAnsattResponse(opprettetAv)
+        MockResponseHandler.addNavBrukerResponse(navBruker)
+        TestRepository.insert(deltakerliste)
+
+        runBlocking {
+            assertFailsWith<IllegalArgumentException> {
+                pameldingService.opprettKladd(
+                    deltakerlisteId = deltakerliste.id,
+                    personident = navBruker.personident,
+                )
+            }
         }
     }
 

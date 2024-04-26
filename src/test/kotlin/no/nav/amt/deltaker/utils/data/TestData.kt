@@ -111,7 +111,7 @@ object TestData {
         innhold: DeltakerRegistreringInnhold? = lagDeltakerRegistreringInnhold(),
     ): Tiltakstype {
         val tiltak = tiltakstypeCache[tiltakskode] ?: Tiltakstype(id, navn, tiltakskode, arenaKode, innsatsgrupper, innhold)
-        val nyttTiltak = tiltak.copy(navn = navn, innhold = innhold)
+        val nyttTiltak = tiltak.copy(navn = navn, innhold = innhold, innsatsgrupper = innsatsgrupper)
         tiltakstypeCache[tiltak.tiltakskode] = nyttTiltak
 
         return nyttTiltak
