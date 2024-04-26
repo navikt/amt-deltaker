@@ -6,6 +6,7 @@ import kotliquery.queryOf
 import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.db.Database
 import no.nav.amt.deltaker.db.toPGObject
+import no.nav.amt.deltaker.utils.prefixColumn
 import org.slf4j.LoggerFactory
 
 class TiltakstypeRepository {
@@ -13,9 +14,7 @@ class TiltakstypeRepository {
 
     companion object {
         fun rowMapper(row: Row, alias: String? = null): Tiltakstype {
-            val prefix = alias?.let { "$alias." } ?: ""
-
-            val col = { label: String -> prefix + label }
+            val col = prefixColumn(alias)
 
             return Tiltakstype(
                 id = row.uuid(col("id")),
