@@ -17,6 +17,7 @@ import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhet
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
 import java.time.LocalDateTime
+import java.util.UUID
 
 class HendelseService(
     private val hendelseProducer: HendelseProducer,
@@ -62,6 +63,7 @@ class HendelseService(
         val overordnetArrangor = deltaker.deltakerliste.arrangor.overordnetArrangorId?.let { arrangorService.hentArrangor(it) }
 
         return Hendelse(
+            id = UUID.randomUUID(),
             opprettet = LocalDateTime.now(),
             deltaker = deltaker.toHendelseDeltaker(overordnetArrangor),
             ansvarlig = HendelseAnsvarlig.NavVeileder(
