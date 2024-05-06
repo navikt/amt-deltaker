@@ -107,6 +107,7 @@ class DeltakerStatusOppdateringServiceTest {
 
             val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
             deltakerFraDb.status.type shouldBe DeltakerStatus.Type.DELTAR
+            deltakerFraDb.sluttdato shouldBe deltaker.sluttdato
         }
     }
 
@@ -139,6 +140,7 @@ class DeltakerStatusOppdateringServiceTest {
 
             val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
             deltakerFraDb.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+            deltakerFraDb.sluttdato shouldBe deltaker.sluttdato
         }
     }
 
@@ -179,6 +181,7 @@ class DeltakerStatusOppdateringServiceTest {
             val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
             deltakerFraDb.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
             deltakerFraDb.status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
+            deltakerFraDb.sluttdato shouldBe deltaker.sluttdato
         }
     }
 
@@ -211,6 +214,7 @@ class DeltakerStatusOppdateringServiceTest {
 
             val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
             deltakerFraDb.status.type shouldBe DeltakerStatus.Type.FULLFORT
+            deltakerFraDb.sluttdato shouldBe deltaker.sluttdato
         }
     }
 
@@ -243,11 +247,12 @@ class DeltakerStatusOppdateringServiceTest {
 
             val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
             deltakerFraDb.status.type shouldBe DeltakerStatus.Type.AVBRUTT
+            deltakerFraDb.sluttdato shouldBe deltaker.sluttdato
         }
     }
 
     @Test
-    fun `oppdaterDeltakerStatuser - deltakerliste avsluttet, status DELTAR - setter status HAR_SLUTTET`() {
+    fun `oppdaterDeltakerStatuser - deltakerliste avsluttet, status DELTAR - setter status HAR_SLUTTET, oppdatert sluttdato`() {
         val sistEndretAv = TestData.lagNavAnsatt()
         val sistEndretAvEnhet = TestData.lagNavEnhet()
         TestRepository.insert(sistEndretAv)
@@ -276,6 +281,7 @@ class DeltakerStatusOppdateringServiceTest {
 
             val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
             deltakerFraDb.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+            deltakerFraDb.sluttdato shouldBe deltaker.deltakerliste.sluttDato
         }
     }
 
@@ -309,6 +315,7 @@ class DeltakerStatusOppdateringServiceTest {
 
             val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
             deltakerFraDb.status.type shouldBe DeltakerStatus.Type.IKKE_AKTUELL
+            deltakerFraDb.sluttdato shouldBe null
         }
     }
 }
