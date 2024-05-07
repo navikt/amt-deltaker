@@ -66,6 +66,7 @@ class DeltakerStatusOppdateringService(
                         gyldigTil = null,
                         opprettet = LocalDateTime.now(),
                     ),
+                    sluttdato = getOppdatertSluttdato(it),
                 ),
             )
         }
@@ -82,6 +83,7 @@ class DeltakerStatusOppdateringService(
                         gyldigTil = null,
                         opprettet = LocalDateTime.now(),
                     ),
+                    sluttdato = getOppdatertSluttdato(it),
                 ),
             )
         }
@@ -119,7 +121,10 @@ class DeltakerStatusOppdateringService(
             }
             if (fremtidigStatus != null) {
                 oppdaterDeltaker(
-                    it.copy(status = fremtidigStatus),
+                    it.copy(
+                        status = fremtidigStatus,
+                        sluttdato = getOppdatertSluttdato(it),
+                    ),
                 )
             } else {
                 oppdaterDeltaker(
@@ -132,6 +137,7 @@ class DeltakerStatusOppdateringService(
                             gyldigTil = null,
                             opprettet = LocalDateTime.now(),
                         ),
+                        sluttdato = getOppdatertSluttdato(it),
                     ),
                 )
             }
@@ -152,5 +158,18 @@ class DeltakerStatusOppdateringService(
             return deltaker.sluttdato?.isBefore(it) == true
         }
         return false
+    }
+
+    private fun getOppdatertSluttdato(deltaker: Deltaker): LocalDate? {
+        return if (deltaker.deltakerliste.sluttDato != null && (
+                deltaker.sluttdato == null || deltaker.sluttdato.isAfter(
+                    LocalDate.now(),
+                )
+            )
+        ) {
+            deltaker.deltakerliste.sluttDato
+        } else {
+            deltaker.sluttdato
+        }
     }
 }
