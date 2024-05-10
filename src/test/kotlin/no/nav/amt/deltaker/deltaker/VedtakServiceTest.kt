@@ -5,6 +5,7 @@ import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
+import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.model.Vedtak
 import no.nav.amt.deltaker.hendelse.HendelseProducer
@@ -33,11 +34,13 @@ class VedtakServiceTest {
     private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonClient())
     private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonClient())
     private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
+    private val deltakerHistorikkService = DeltakerHistorikkService(DeltakerEndringRepository(), VedtakRepository())
     private val hendelseService = HendelseService(
         HendelseProducer(LocalKafkaConfig(SingletonKafkaProvider.getHost())),
         navAnsattService,
         navEnhetService,
         arrangorService,
+        deltakerHistorikkService,
     )
 
     private val service = VedtakService(VedtakRepository(), hendelseService)

@@ -31,4 +31,12 @@ class DeltakerHistorikkService(
         val vedtak = deltakerhistorikk.filterIsInstance<DeltakerHistorikk.Vedtak>().map { it.vedtak }
         return vedtak.minByOrNull { it.opprettet }?.opprettet?.toLocalDate()
     }
+
+    fun getForsteVedtakFattet(deltakerId: UUID): LocalDate? {
+        val deltakerhistorikk = getForDeltaker(deltakerId)
+        val vedtak = deltakerhistorikk.filterIsInstance<DeltakerHistorikk.Vedtak>().map { it.vedtak }
+        val forsteVedtak = vedtak.minByOrNull { it.opprettet }
+
+        return forsteVedtak?.fattet?.toLocalDate()
+    }
 }

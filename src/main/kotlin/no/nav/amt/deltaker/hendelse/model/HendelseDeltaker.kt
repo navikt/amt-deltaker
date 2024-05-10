@@ -3,12 +3,14 @@ package no.nav.amt.deltaker.hendelse.model
 import no.nav.amt.deltaker.arrangor.Arrangor
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype
+import java.time.LocalDate
 import java.util.UUID
 
 data class HendelseDeltaker(
     val id: UUID,
     val personident: String,
     val deltakerliste: Deltakerliste,
+    val forsteVedtakFattet: LocalDate?,
 ) {
     data class Deltakerliste(
         val id: UUID,
@@ -31,7 +33,7 @@ data class HendelseDeltaker(
     }
 }
 
-fun Deltaker.toHendelseDeltaker(overordnetArrangor: Arrangor?) = HendelseDeltaker(
+fun Deltaker.toHendelseDeltaker(overordnetArrangor: Arrangor?, forsteVedtakFattet: LocalDate?) = HendelseDeltaker(
     id = id,
     personident = navBruker.personident,
     deltakerliste = HendelseDeltaker.Deltakerliste(
@@ -44,6 +46,7 @@ fun Deltaker.toHendelseDeltaker(overordnetArrangor: Arrangor?) = HendelseDeltake
             ledetekst = deltakerliste.tiltakstype.innhold?.ledetekst,
         ),
     ),
+    forsteVedtakFattet = forsteVedtakFattet,
 )
 
 private fun Arrangor.toHendelseArrangor(overordnetArrangor: HendelseDeltaker.Deltakerliste.Arrangor? = null) =

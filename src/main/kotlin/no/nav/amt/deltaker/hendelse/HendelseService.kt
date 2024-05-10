@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.hendelse
 
 import no.nav.amt.deltaker.arrangor.ArrangorService
+import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.DeltakerEndring
 import no.nav.amt.deltaker.deltaker.model.Innhold
@@ -24,6 +25,7 @@ class HendelseService(
     private val navAnsattService: NavAnsattService,
     private val navEnhetService: NavEnhetService,
     private val arrangorService: ArrangorService,
+    private val deltakerHistorikkService: DeltakerHistorikkService,
 ) {
     suspend fun hendelseForDeltakerEndring(
         deltakerEndring: DeltakerEndring,
@@ -61,11 +63,12 @@ class HendelseService(
         endring: HendelseType,
     ): Hendelse {
         val overordnetArrangor = deltaker.deltakerliste.arrangor.overordnetArrangorId?.let { arrangorService.hentArrangor(it) }
+        val forsteVedtakFattet = deltakerHistorikkService.getForsteVedtakFattet(deltaker.id)
 
         return Hendelse(
             id = UUID.randomUUID(),
             opprettet = LocalDateTime.now(),
-            deltaker = deltaker.toHendelseDeltaker(overordnetArrangor),
+            deltaker = deltaker.toHendelseDeltaker(overordnetArrangor, forsteVedtakFattet),
             ansvarlig = HendelseAnsvarlig.NavVeileder(
                 id = navAnsatt.id,
                 navIdent = navAnsatt.navIdent,
