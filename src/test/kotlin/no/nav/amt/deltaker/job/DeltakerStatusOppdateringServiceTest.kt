@@ -52,6 +52,7 @@ class DeltakerStatusOppdateringServiceTest {
             navAnsattService,
             navEnhetService,
             arrangorService,
+            deltakerHistorikkService,
         )
 
         private val deltakerEndringService = DeltakerEndringService(

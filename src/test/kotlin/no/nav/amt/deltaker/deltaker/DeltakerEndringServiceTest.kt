@@ -14,6 +14,7 @@ import no.nav.amt.deltaker.deltaker.api.model.SluttarsakRequest
 import no.nav.amt.deltaker.deltaker.api.model.SluttdatoRequest
 import no.nav.amt.deltaker.deltaker.api.model.StartdatoRequest
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
+import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.model.DeltakerEndring
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.deltaker.model.Innhold
@@ -42,11 +43,13 @@ class DeltakerEndringServiceTest {
     private val navAnsattService = NavAnsattService(NavAnsattRepository(), amtPersonClient)
     private val navEnhetService = NavEnhetService(NavEnhetRepository(), amtPersonClient)
     private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
+    private val deltakerHistorikkService = DeltakerHistorikkService(DeltakerEndringRepository(), VedtakRepository())
     private val hendelseService = HendelseService(
         HendelseProducer(LocalKafkaConfig(SingletonKafkaProvider.getHost())),
         navAnsattService,
         navEnhetService,
         arrangorService,
+        deltakerHistorikkService,
     )
 
     private val deltakerEndringService = DeltakerEndringService(
