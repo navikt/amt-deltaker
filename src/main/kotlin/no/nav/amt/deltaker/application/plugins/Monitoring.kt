@@ -32,7 +32,7 @@ fun Application.configureMonitoring() {
 
     val appMicrometerRegistry = PrometheusMeterRegistry(
         PrometheusConfig.DEFAULT,
-        PrometheusRegistry(),
+        PrometheusRegistry.defaultRegistry,
         Clock.SYSTEM,
     )
 
