@@ -13,9 +13,9 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
 import io.micrometer.core.instrument.Clock
-import io.micrometer.prometheus.PrometheusConfig
-import io.micrometer.prometheus.PrometheusMeterRegistry
-import io.prometheus.client.CollectorRegistry
+import io.micrometer.prometheusmetrics.PrometheusConfig
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
+import io.prometheus.metrics.model.registry.PrometheusRegistry
 
 fun Application.configureMonitoring() {
     install(CallLogging) {
@@ -32,7 +32,7 @@ fun Application.configureMonitoring() {
 
     val appMicrometerRegistry = PrometheusMeterRegistry(
         PrometheusConfig.DEFAULT,
-        CollectorRegistry.defaultRegistry,
+        PrometheusRegistry(),
         Clock.SYSTEM,
     )
 
