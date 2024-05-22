@@ -36,7 +36,7 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
       - name: Build artifacts
-        run: ./gradlew build
+        run: ./gradlew build --no-build-cache -x test
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
         with:
