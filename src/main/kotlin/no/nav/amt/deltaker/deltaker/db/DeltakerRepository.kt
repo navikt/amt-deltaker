@@ -16,7 +16,6 @@ import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.navbruker.model.Adressebeskyttelse
 import no.nav.amt.deltaker.navbruker.model.NavBruker
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.util.UUID
 
 class DeltakerRepository {
@@ -305,19 +304,6 @@ class DeltakerRepository {
             """.trimIndent()
 
         return queryOf(sql, mapOf("id" to status.id, "deltaker_id" to deltakerId))
-    }
-
-    fun oppdaterSistBesokt(deltakerId: UUID, sistBesokt: LocalDateTime) = Database.query {
-        val sql =
-            """
-            update deltaker
-            set sist_besokt = :sist_besokt
-            where id = :id
-            """.trimIndent()
-
-        val params = mapOf("id" to deltakerId, "sist_besokt" to sistBesokt)
-
-        it.update(queryOf(sql, params))
     }
 
     private fun getDeltakerSql(where: String = "") = """

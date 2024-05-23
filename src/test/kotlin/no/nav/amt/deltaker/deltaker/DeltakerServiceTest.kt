@@ -353,7 +353,7 @@ class DeltakerServiceTest {
     }
 
     @Test
-    fun `oppdaterSistBesokt - lagrer og produserer hendelse`() {
+    fun `oppdaterSistBesokt - produserer hendelse`() {
         val deltaker = TestData.lagDeltaker()
         val sistBesokt = LocalDateTime.now()
 
@@ -363,7 +363,6 @@ class DeltakerServiceTest {
             deltakerService.oppdaterSistBesokt(deltaker.id, sistBesokt)
         }
 
-        TestRepository.getDeltakerSistBesokt(deltaker.id) shouldBeCloseTo sistBesokt
         assertProducedHendelse(deltaker.id, HendelseType.DeltakerSistBesokt::class)
     }
 }

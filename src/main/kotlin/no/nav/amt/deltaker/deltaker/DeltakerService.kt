@@ -73,8 +73,6 @@ class DeltakerService(
     }
 
     suspend fun oppdaterSistBesokt(deltakerId: UUID, sistBesokt: LocalDateTime) {
-        deltakerRepository.oppdaterSistBesokt(deltakerId, sistBesokt)
-
         val deltaker = get(deltakerId).getOrThrow()
         hendelseService.hendelseForSistBesokt(deltaker, sistBesokt)
     }

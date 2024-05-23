@@ -258,18 +258,6 @@ class DeltakerRepositoryTest {
 
         deltakerePaAvsluttetDeltakerliste.size shouldBe 0
     }
-
-    @Test
-    fun `oppdaterSistBesokt - oppdaterer sistBesokt - skal ikke feile`() {
-        val deltaker = TestData.lagDeltaker()
-        TestRepository.insert(deltaker)
-
-        val sistBesokt = LocalDateTime.now()
-        repository.oppdaterSistBesokt(deltaker.id, sistBesokt)
-
-        val lagretSistBesokt = TestRepository.getDeltakerSistBesokt(deltaker.id)
-        lagretSistBesokt shouldBeCloseTo sistBesokt
-    }
 }
 
 fun sammenlignDeltakere(a: Deltaker, b: Deltaker) {

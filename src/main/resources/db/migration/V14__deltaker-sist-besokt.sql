@@ -1,1 +1,0 @@
-alter table deltaker add column sist_besokt timestamp with time zone;
