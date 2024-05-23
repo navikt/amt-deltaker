@@ -73,6 +73,7 @@ class DeltakerStatusOppdateringServiceTest {
                 deltakerEndringService,
                 DeltakerProducer(LocalKafkaConfig(SingletonKafkaProvider.getHost()), deltakerV2MapperService),
                 vedtakService,
+                hendelseService,
             )
             deltakerStatusOppdateringService = DeltakerStatusOppdateringService(deltakerRepository, deltakerService)
         }

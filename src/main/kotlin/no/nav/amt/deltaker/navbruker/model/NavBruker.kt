@@ -18,7 +18,9 @@ data class NavBruker(
     val adressebeskyttelse: Adressebeskyttelse?,
     val oppfolgingsperioder: List<Oppfolgingsperiode>,
     val innsatsgruppe: Innsatsgruppe?,
-)
+) {
+    val fulltNavn get() = listOfNotNull(fornavn, mellomnavn, etternavn).joinToString(" ")
+}
 
 enum class Adressebeskyttelse {
     STRENGT_FORTROLIG,

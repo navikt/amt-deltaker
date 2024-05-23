@@ -78,6 +78,24 @@ class HendelseService(
             payload = endring,
         )
     }
+
+    suspend fun hendelseForSistBesokt(deltaker: Deltaker, sistBesokt: LocalDateTime) {
+        val overordnetArrangor = deltaker.deltakerliste.arrangor.overordnetArrangorId?.let { arrangorService.hentArrangor(it) }
+        val forsteVedtakFattet = deltakerHistorikkService.getForsteVedtakFattet(deltaker.id)
+
+        val hendelse = Hendelse(
+            id = UUID.randomUUID(),
+            opprettet = LocalDateTime.now(),
+            deltaker = deltaker.toHendelseDeltaker(overordnetArrangor, forsteVedtakFattet),
+            ansvarlig = HendelseAnsvarlig.Deltaker(
+                id = deltaker.id,
+                navn = deltaker.navBruker.fulltNavn,
+            ),
+            payload = HendelseType.DeltakerSistBesokt(sistBesokt),
+        )
+
+        hendelseProducer.produce(hendelse)
+    }
 }
 
 private fun Deltaker.toUtkastDto() = UtkastDto(

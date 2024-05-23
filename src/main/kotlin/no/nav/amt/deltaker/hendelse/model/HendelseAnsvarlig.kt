@@ -22,4 +22,9 @@ sealed interface HendelseAnsvarlig {
             val enhetsnummer: String,
         )
     }
+
+    data class Deltaker(
+        val id: UUID,
+        override val navn: String,
+    ) : HendelseAnsvarlig
 }

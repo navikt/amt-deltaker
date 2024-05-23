@@ -67,6 +67,7 @@ class PameldingServiceTest {
                 hendelseService,
             ),
             vedtakService = vedtakService,
+            hendelseService = hendelseService,
         )
 
         private var pameldingService = PameldingService(

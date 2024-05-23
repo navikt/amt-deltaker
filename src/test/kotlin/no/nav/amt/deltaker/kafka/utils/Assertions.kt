@@ -28,7 +28,7 @@ fun assertProduced(deltakerId: UUID) {
     consumer.stop()
 }
 
-fun <T : HendelseType> assertProducedHendelse(deltakerId: UUID, hendelseEndring: KClass<T>) {
+fun <T : HendelseType> assertProducedHendelse(deltakerId: UUID, hendelsetype: KClass<T>) {
     val cache = mutableMapOf<UUID, Hendelse>()
 
     val consumer = stringStringConsumer(Environment.DELTAKER_HENDELSE_TOPIC) { k, v ->
@@ -40,7 +40,7 @@ fun <T : HendelseType> assertProducedHendelse(deltakerId: UUID, hendelseEndring:
     AsyncUtils.eventually {
         val cachedHendelse = cache[deltakerId]!!
         cachedHendelse.deltaker.id shouldBe deltakerId
-        cachedHendelse.payload::class shouldBe hendelseEndring
+        cachedHendelse.payload::class shouldBe hendelsetype
     }
 
     consumer.stop()
