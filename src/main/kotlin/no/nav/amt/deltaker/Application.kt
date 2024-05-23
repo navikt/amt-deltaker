@@ -148,7 +148,13 @@ fun Application.module() {
     val deltakerProducer = DeltakerProducer(deltakerV2MapperService = deltakerV2MapperService)
 
     val vedtakService = VedtakService(vedtakRepository, hendelseService)
-    val deltakerService = DeltakerService(deltakerRepository, deltakerEndringService, deltakerProducer, vedtakService)
+    val deltakerService = DeltakerService(
+        deltakerRepository = deltakerRepository,
+        deltakerEndringService = deltakerEndringService,
+        deltakerProducer = deltakerProducer,
+        vedtakService = vedtakService,
+        hendelseService = hendelseService,
+    )
     val pameldingService = PameldingService(
         deltakerService = deltakerService,
         deltakerlisteRepository = deltakerlisteRepository,

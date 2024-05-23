@@ -69,6 +69,7 @@ class DeltakerServiceTest {
             ),
             deltakerEndringService = deltakerEndringService,
             vedtakService = vedtakService,
+            hendelseService = hendelseService,
         )
 
         @JvmStatic
@@ -349,5 +350,20 @@ class DeltakerServiceTest {
         val ikkeOppdatertDeltaker = deltakerService.get(deltaker.id).getOrThrow()
 
         ikkeOppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.UTKAST_TIL_PAMELDING
+    }
+
+    @Test
+    fun `oppdaterSistBesokt - lagrer og produserer hendelse`() {
+        val deltaker = TestData.lagDeltaker()
+        val sistBesokt = LocalDateTime.now()
+
+        TestRepository.insert(deltaker)
+
+        runBlocking {
+            deltakerService.oppdaterSistBesokt(deltaker.id, sistBesokt)
+        }
+
+        TestRepository.getDeltakerSistBesokt(deltaker.id) shouldBeCloseTo sistBesokt
+        assertProducedHendelse(deltaker.id, HendelseType.DeltakerSistBesokt::class)
     }
 }

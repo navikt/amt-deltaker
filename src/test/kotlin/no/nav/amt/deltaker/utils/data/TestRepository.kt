@@ -365,4 +365,13 @@ object TestRepository {
             }
         }
     }
+
+    fun getDeltakerSistBesokt(deltakerId: UUID) = Database.query {
+        val sql =
+            """
+            select sist_besokt from deltaker where id = ?
+            """.trimIndent()
+
+        it.run(queryOf(sql, deltakerId).map { row -> row.localDateTime("sist_besokt") }.asSingle)
+    }
 }

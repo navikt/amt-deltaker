@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.deltaker.api
 
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
 import io.ktor.server.auth.authenticate
@@ -21,6 +22,7 @@ import no.nav.amt.deltaker.deltaker.api.model.SluttarsakRequest
 import no.nav.amt.deltaker.deltaker.api.model.SluttdatoRequest
 import no.nav.amt.deltaker.deltaker.api.model.StartdatoRequest
 import no.nav.amt.deltaker.deltaker.api.model.toDeltakerEndringResponse
+import java.time.LocalDateTime
 import java.util.UUID
 
 fun Routing.registerDeltakerApi(deltakerService: DeltakerService, historikkService: DeltakerHistorikkService) {
@@ -77,6 +79,14 @@ fun Routing.registerDeltakerApi(deltakerService: DeltakerService, historikkServi
             val historikk = historikkService.getForDeltaker(deltaker.id)
 
             call.respond(deltaker.toDeltakerEndringResponse(historikk))
+        }
+
+        post("/deltaker/{deltakerId}/sist-besokt") {
+            val deltakerId = UUID.fromString(call.parameters["deltakerId"])
+            val sistBesokt = call.receive<LocalDateTime>()
+
+            deltakerService.oppdaterSistBesokt(deltakerId, sistBesokt)
+            call.respond(HttpStatusCode.OK)
         }
     }
 }

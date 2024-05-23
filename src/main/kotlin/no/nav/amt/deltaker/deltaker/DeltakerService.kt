@@ -5,6 +5,7 @@ import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
+import no.nav.amt.deltaker.hendelse.HendelseService
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.util.UUID
@@ -14,6 +15,7 @@ class DeltakerService(
     private val deltakerEndringService: DeltakerEndringService,
     private val deltakerProducer: DeltakerProducer,
     private val vedtakService: VedtakService,
+    private val hendelseService: HendelseService,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -68,6 +70,13 @@ class DeltakerService(
 
         upsertDeltaker(deltaker)
         return deltaker
+    }
+
+    suspend fun oppdaterSistBesokt(deltakerId: UUID, sistBesokt: LocalDateTime) {
+        deltakerRepository.oppdaterSistBesokt(deltakerId, sistBesokt)
+
+        val deltaker = get(deltakerId).getOrThrow()
+        hendelseService.hendelseForSistBesokt(deltaker, sistBesokt)
     }
 }
 

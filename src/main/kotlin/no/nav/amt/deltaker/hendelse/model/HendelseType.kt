@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.amt.deltaker.deltaker.model.DeltakerEndring
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes(
@@ -80,6 +81,10 @@ sealed interface HendelseType {
 
     data class EndreSluttarsak(
         val aarsak: DeltakerEndring.Aarsak,
+    ) : HendelseType
+
+    data class DeltakerSistBesokt(
+        val sistBesokt: LocalDateTime,
     ) : HendelseType
 }
 
