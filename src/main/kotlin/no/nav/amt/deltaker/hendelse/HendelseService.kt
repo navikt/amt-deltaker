@@ -18,6 +18,7 @@ import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhet
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
 import java.time.LocalDateTime
+import java.time.ZonedDateTime
 import java.util.UUID
 
 class HendelseService(
@@ -79,7 +80,7 @@ class HendelseService(
         )
     }
 
-    suspend fun hendelseForSistBesokt(deltaker: Deltaker, sistBesokt: LocalDateTime) {
+    suspend fun hendelseForSistBesokt(deltaker: Deltaker, sistBesokt: ZonedDateTime) {
         val overordnetArrangor = deltaker.deltakerliste.arrangor.overordnetArrangorId?.let { arrangorService.hentArrangor(it) }
         val forsteVedtakFattet = deltakerHistorikkService.getForsteVedtakFattet(deltaker.id)
 
