@@ -22,7 +22,7 @@ import no.nav.amt.deltaker.deltaker.api.model.SluttarsakRequest
 import no.nav.amt.deltaker.deltaker.api.model.SluttdatoRequest
 import no.nav.amt.deltaker.deltaker.api.model.StartdatoRequest
 import no.nav.amt.deltaker.deltaker.api.model.toDeltakerEndringResponse
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 import java.util.UUID
 
 fun Routing.registerDeltakerApi(deltakerService: DeltakerService, historikkService: DeltakerHistorikkService) {
@@ -83,7 +83,7 @@ fun Routing.registerDeltakerApi(deltakerService: DeltakerService, historikkServi
 
         post("/deltaker/{deltakerId}/sist-besokt") {
             val deltakerId = UUID.fromString(call.parameters["deltakerId"])
-            val sistBesokt = call.receive<LocalDateTime>()
+            val sistBesokt = call.receive<ZonedDateTime>()
 
             deltakerService.oppdaterSistBesokt(deltakerId, sistBesokt)
             call.respond(HttpStatusCode.OK)

@@ -8,6 +8,7 @@ import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.hendelse.HendelseService
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
+import java.time.ZonedDateTime
 import java.util.UUID
 
 class DeltakerService(
@@ -72,7 +73,7 @@ class DeltakerService(
         return deltaker
     }
 
-    suspend fun oppdaterSistBesokt(deltakerId: UUID, sistBesokt: LocalDateTime) {
+    suspend fun oppdaterSistBesokt(deltakerId: UUID, sistBesokt: ZonedDateTime) {
         val deltaker = get(deltakerId).getOrThrow()
         hendelseService.hendelseForSistBesokt(deltaker, sistBesokt)
     }

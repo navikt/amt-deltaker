@@ -38,6 +38,7 @@ import org.junit.BeforeClass
 import org.junit.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 class DeltakerServiceTest {
     companion object {
@@ -355,7 +356,7 @@ class DeltakerServiceTest {
     @Test
     fun `oppdaterSistBesokt - produserer hendelse`() {
         val deltaker = TestData.lagDeltaker()
-        val sistBesokt = LocalDateTime.now()
+        val sistBesokt = ZonedDateTime.now()
 
         TestRepository.insert(deltaker)
 
