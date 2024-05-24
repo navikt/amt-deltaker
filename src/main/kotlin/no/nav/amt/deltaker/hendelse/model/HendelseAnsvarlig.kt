@@ -7,6 +7,7 @@ import java.util.UUID
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes(
     JsonSubTypes.Type(value = HendelseAnsvarlig.NavVeileder::class, name = "NavVeileder"),
+    JsonSubTypes.Type(value = HendelseAnsvarlig.Deltaker::class, name = "Deltaker"),
 )
 sealed interface HendelseAnsvarlig {
     val navn: String
