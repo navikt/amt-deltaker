@@ -22,6 +22,7 @@ import java.time.ZonedDateTime
     JsonSubTypes.Type(value = HendelseType.IkkeAktuell::class, name = "IkkeAktuell"),
     JsonSubTypes.Type(value = HendelseType.InnbyggerGodkjennUtkast::class, name = "InnbyggerGodkjennUtkast"),
     JsonSubTypes.Type(value = HendelseType.NavGodkjennUtkast::class, name = "NavGodkjennUtkast"),
+    JsonSubTypes.Type(value = HendelseType.DeltakerSistBesokt::class, name = "DeltakerSistBesokt"),
 )
 sealed interface HendelseType {
     data class OpprettUtkast(
