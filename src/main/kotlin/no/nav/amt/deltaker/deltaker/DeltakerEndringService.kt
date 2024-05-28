@@ -217,6 +217,14 @@ class DeltakerEndringService(
             nyDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET)
         } else if (status.type == DeltakerStatus.Type.DELTAR && (startdato == null || startdato.isAfter(LocalDate.now()))) {
             nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART)
+        } else if (status.type == DeltakerStatus.Type.HAR_SLUTTET && (sluttdato == null || !sluttdato.isBefore(LocalDate.now())) &&
+            (startdato != null && !startdato.isAfter(LocalDate.now()))
+        ) {
+            nyDeltakerStatus(DeltakerStatus.Type.DELTAR)
+        } else if (status.type == DeltakerStatus.Type.HAR_SLUTTET && (sluttdato == null || !sluttdato.isBefore(LocalDate.now())) &&
+            (startdato == null || startdato.isAfter(LocalDate.now()))
+        ) {
+            nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART)
         } else {
             status
         }
