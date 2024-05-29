@@ -41,9 +41,13 @@ class DeltakelserResponseMapper(
     )
 
     fun toDeltakelserResponse(deltakelser: List<Deltaker>): DeltakelserResponse {
-        val aktive = deltakelser.filter { it.status.type in AKTIVE_STATUSER }.map { toDeltakerKort(it) }
+        val aktive = deltakelser.filter { it.status.type in AKTIVE_STATUSER }
+            .sortedByDescending { it.sistEndret }
+            .map { toDeltakerKort(it) }
 
-        val historikk = deltakelser.filter { it.status.type in HISTORISKE_STATUSER }.map { toDeltakerKort(it) }
+        val historikk = deltakelser.filter { it.status.type in HISTORISKE_STATUSER }
+            .sortedByDescending { it.sistEndret }
+            .map { toDeltakerKort(it) }
 
         return DeltakelserResponse(aktive, historikk)
     }

@@ -188,7 +188,7 @@ object TestRepository {
                 ),
             )
         } catch (e: Exception) {
-            log.warn("Tiltakstype ${tiltakstype.navn} er allerede opprettet", e)
+            log.warn("Tiltakstype ${tiltakstype.navn} er allerede opprettet")
         }
     }
 
@@ -202,7 +202,7 @@ object TestRepository {
         try {
             insert(deltakerliste.tiltakstype)
         } catch (e: Exception) {
-            log.warn("Tiltakstype med id ${deltakerliste.tiltakstype.id} er allerede opprettet", e)
+            log.warn("Tiltakstype med id ${deltakerliste.tiltakstype.id} er allerede opprettet")
         }
 
         Database.query {
@@ -234,13 +234,13 @@ object TestRepository {
         try {
             insert(deltaker.navBruker)
         } catch (e: Exception) {
-            log.warn("Nav-bruker med id ${deltaker.navBruker.personId} er allerede opprettet", e)
+            log.warn("Nav-bruker med id ${deltaker.navBruker.personId} er allerede opprettet")
         }
 
         try {
             insert(deltaker.deltakerliste)
         } catch (e: Exception) {
-            log.warn("Deltakerliste med id ${deltaker.deltakerliste.id} er allerede opprettet", e)
+            log.warn("Deltakerliste med id ${deltaker.deltakerliste.id} er allerede opprettet")
         }
 
         val sql =
