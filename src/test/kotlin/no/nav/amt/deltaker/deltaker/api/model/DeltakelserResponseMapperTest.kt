@@ -359,6 +359,66 @@ class DeltakelserResponseMapperTest {
     }
 
     @Test
+    fun `toDeltakelserResponse - har sluttet og ikke aktuell - returnerer nyeste historiske deltakelse forst`() {
+        val navAnsatt = TestData.lagNavAnsatt()
+        TestRepository.insert(navAnsatt)
+        val navEnhet = TestData.lagNavEnhet()
+        TestRepository.insert(navEnhet)
+        val arrangor = TestData.lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null)
+        TestRepository.insert(arrangor)
+        val deltakerliste = TestData.lagDeltakerliste(
+            arrangor = arrangor,
+            tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
+        )
+        TestRepository.insert(deltakerliste)
+
+        val deltakerHarSluttet = TestData.lagDeltaker(
+            deltakerliste = deltakerliste,
+            status = TestData.lagDeltakerStatus(
+                type = DeltakerStatus.Type.HAR_SLUTTET,
+                aarsak = DeltakerStatus.Aarsak.Type.TRENGER_ANNEN_STOTTE,
+                beskrivelse = null,
+            ),
+            sistEndret = LocalDateTime.now().minusWeeks(2),
+        )
+        val vedtakHarSluttet = TestData.lagVedtak(
+            deltakerId = deltakerHarSluttet.id,
+            fattet = LocalDateTime.now(),
+            opprettetAv = navAnsatt,
+            opprettetAvEnhet = navEnhet,
+            opprettet = LocalDateTime.now().minusDays(4),
+        )
+        TestRepository.insert(deltakerHarSluttet)
+        TestRepository.insert(vedtakHarSluttet)
+
+        val deltakerIkkeAktuell = TestData.lagDeltaker(
+            deltakerliste = deltakerliste,
+            status = TestData.lagDeltakerStatus(
+                type = DeltakerStatus.Type.IKKE_AKTUELL,
+                aarsak = DeltakerStatus.Aarsak.Type.ANNET,
+                beskrivelse = "flyttet til Spania",
+            ),
+            sistEndret = LocalDateTime.now().minusDays(1),
+        )
+        val vedtakIkkeAktuell = TestData.lagVedtak(
+            deltakerId = deltakerIkkeAktuell.id,
+            fattet = LocalDateTime.now(),
+            opprettetAv = navAnsatt,
+            opprettetAvEnhet = navEnhet,
+            opprettet = LocalDateTime.now().minusDays(4),
+        )
+        TestRepository.insert(deltakerIkkeAktuell)
+        TestRepository.insert(vedtakIkkeAktuell)
+
+        val deltakelserResponse = deltakelserResponseMapper.toDeltakelserResponse(listOf(deltakerHarSluttet, deltakerIkkeAktuell))
+
+        deltakelserResponse.aktive.size shouldBe 0
+        deltakelserResponse.historikk.size shouldBe 2
+        deltakelserResponse.historikk[0].deltakerId shouldBe deltakerIkkeAktuell.id
+        deltakelserResponse.historikk[1].deltakerId shouldBe deltakerHarSluttet.id
+    }
+
+    @Test
     fun `toDeltakelserResponse - feilregistrert - returnerer tomme lister`() {
         val arrangor = TestData.lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null)
         TestRepository.insert(arrangor)
