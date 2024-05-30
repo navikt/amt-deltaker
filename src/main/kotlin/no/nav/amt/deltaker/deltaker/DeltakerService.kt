@@ -40,6 +40,10 @@ class DeltakerService(
 
     suspend fun feilregistrerDeltaker(deltakerId: UUID) {
         val deltaker = get(deltakerId).getOrThrow()
+        if (deltaker.status.type == DeltakerStatus.Type.KLADD) {
+            log.warn("Kan ikke feilregistrere deltaker-kladd, id $deltakerId")
+            throw IllegalArgumentException("Kan ikke feilregistrere deltaker-kladd")
+        }
         upsertDeltaker(deltaker.copy(status = nyDeltakerStatus(type = DeltakerStatus.Type.FEILREGISTRERT)))
         log.info("Feilregistrert deltaker med id $deltakerId")
     }
