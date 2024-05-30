@@ -59,6 +59,7 @@ class DeltakelserResponseMapperTest {
         deltakelserResponse.aktive.size shouldBe 1
         val deltakerKort = deltakelserResponse.aktive.first()
         deltakerKort.deltakerId shouldBe deltaker.id
+        deltakerKort.deltakerlisteId shouldBe deltaker.deltakerliste.id
         deltakerKort.tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos Arrangør"
         deltakerKort.tiltakstype shouldBe DeltakelserResponse.Tiltakstype(
             deltaker.deltakerliste.tiltakstype.navn,
@@ -106,6 +107,7 @@ class DeltakelserResponseMapperTest {
         deltakelserResponse.aktive.size shouldBe 1
         val deltakerKort = deltakelserResponse.aktive.first()
         deltakerKort.deltakerId shouldBe deltaker.id
+        deltakerKort.deltakerlisteId shouldBe deltaker.deltakerliste.id
         deltakerKort.tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos Overordnet Arrangør"
         deltakerKort.tiltakstype shouldBe DeltakelserResponse.Tiltakstype(
             deltaker.deltakerliste.tiltakstype.navn,
@@ -153,6 +155,7 @@ class DeltakelserResponseMapperTest {
         deltakelserResponse.aktive.size shouldBe 1
         val deltakerKort = deltakelserResponse.aktive.first()
         deltakerKort.deltakerId shouldBe deltaker.id
+        deltakerKort.deltakerlisteId shouldBe deltaker.deltakerliste.id
         deltakerKort.tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos Arrangør"
         deltakerKort.tiltakstype shouldBe DeltakelserResponse.Tiltakstype(
             deltaker.deltakerliste.tiltakstype.navn,
@@ -198,6 +201,7 @@ class DeltakelserResponseMapperTest {
         deltakelserResponse.aktive.size shouldBe 1
         val deltakerKort = deltakelserResponse.aktive.first()
         deltakerKort.deltakerId shouldBe deltaker.id
+        deltakerKort.deltakerlisteId shouldBe deltaker.deltakerliste.id
         deltakerKort.tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos Arrangør"
         deltakerKort.tiltakstype shouldBe DeltakelserResponse.Tiltakstype(
             deltaker.deltakerliste.tiltakstype.navn,
@@ -247,6 +251,7 @@ class DeltakelserResponseMapperTest {
         deltakelserResponse.historikk.size shouldBe 1
         val deltakerKort = deltakelserResponse.historikk.first()
         deltakerKort.deltakerId shouldBe deltaker.id
+        deltakerKort.deltakerlisteId shouldBe deltaker.deltakerliste.id
         deltakerKort.tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos Arrangør"
         deltakerKort.tiltakstype shouldBe DeltakelserResponse.Tiltakstype(
             deltaker.deltakerliste.tiltakstype.navn,
@@ -296,6 +301,7 @@ class DeltakelserResponseMapperTest {
         deltakelserResponse.historikk.size shouldBe 1
         val deltakerKort = deltakelserResponse.historikk.first()
         deltakerKort.deltakerId shouldBe deltaker.id
+        deltakerKort.deltakerlisteId shouldBe deltaker.deltakerliste.id
         deltakerKort.tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos Arrangør"
         deltakerKort.tiltakstype shouldBe DeltakelserResponse.Tiltakstype(
             deltaker.deltakerliste.tiltakstype.navn,
@@ -345,6 +351,7 @@ class DeltakelserResponseMapperTest {
         deltakelserResponse.historikk.size shouldBe 1
         val deltakerKort = deltakelserResponse.historikk.first()
         deltakerKort.deltakerId shouldBe deltaker.id
+        deltakerKort.deltakerlisteId shouldBe deltaker.deltakerliste.id
         deltakerKort.tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos Arrangør"
         deltakerKort.tiltakstype shouldBe DeltakelserResponse.Tiltakstype(
             deltaker.deltakerliste.tiltakstype.navn,

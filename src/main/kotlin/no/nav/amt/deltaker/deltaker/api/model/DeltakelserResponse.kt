@@ -16,6 +16,7 @@ data class DeltakelserResponse(
 
 data class DeltakerKort(
     val deltakerId: UUID,
+    val deltakerlisteId: UUID,
     val tittel: String,
     val tiltakstype: DeltakelserResponse.Tiltakstype,
     val status: Status,

@@ -94,6 +94,7 @@ class HentDeltakelserApiTest {
             aktive = listOf(
                 DeltakerKort(
                     deltakerId = deltaker.id,
+                    deltakerlisteId = deltaker.deltakerliste.id,
                     tittel = "Oppfølging hos Arrangør AS",
                     tiltakstype = DeltakelserResponse.Tiltakstype(
                         navn = deltaker.deltakerliste.tiltakstype.navn,
@@ -161,6 +162,7 @@ class HentDeltakelserApiTest {
             aktive = listOf(
                 DeltakerKort(
                     deltakerId = deltakerKladd.id,
+                    deltakerlisteId = deltakerKladd.deltakerliste.id,
                     tittel = "Oppfølging hos Arrangør AS",
                     tiltakstype = DeltakelserResponse.Tiltakstype(
                         navn = deltakerKladd.deltakerliste.tiltakstype.navn,
@@ -179,6 +181,7 @@ class HentDeltakelserApiTest {
             historikk = listOf(
                 DeltakerKort(
                     deltakerId = avsluttetDeltaker.id,
+                    deltakerlisteId = avsluttetDeltaker.deltakerliste.id,
                     tittel = "Oppfølging hos Arrangør og Sønn AS",
                     tiltakstype = DeltakelserResponse.Tiltakstype(
                         navn = avsluttetDeltaker.deltakerliste.tiltakstype.navn,
