@@ -55,6 +55,7 @@ class DeltakelserResponseMapper(
     private fun toDeltakerKort(deltaker: Deltaker): DeltakerKort {
         return DeltakerKort(
             deltakerId = deltaker.id,
+            deltakerlisteId = deltaker.deltakerliste.id,
             tittel = lagTittel(deltaker),
             tiltakstype = deltaker.deltakerliste.tiltakstype.toTiltakstypeRespons(),
             status = deltaker.getStatus(),
