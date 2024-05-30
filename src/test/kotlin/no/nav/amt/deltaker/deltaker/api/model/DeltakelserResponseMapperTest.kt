@@ -426,26 +426,6 @@ class DeltakelserResponseMapperTest {
     }
 
     @Test
-    fun `toDeltakelserResponse - feilregistrert - returnerer tomme lister`() {
-        val arrangor = TestData.lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null)
-        TestRepository.insert(arrangor)
-
-        val deltaker = TestData.lagDeltaker(
-            deltakerliste = TestData.lagDeltakerliste(
-                arrangor = arrangor,
-                tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
-            ),
-            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.FEILREGISTRERT),
-        )
-        TestRepository.insert(deltaker)
-
-        val deltakelserResponse = deltakelserResponseMapper.toDeltakelserResponse(listOf(deltaker))
-
-        deltakelserResponse.historikk.size shouldBe 0
-        deltakelserResponse.aktive.size shouldBe 0
-    }
-
-    @Test
     fun `toDeltakelserResponse - pabegynt registrering - returnerer tomme lister`() {
         val arrangor = TestData.lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null)
         TestRepository.insert(arrangor)

@@ -55,7 +55,11 @@ class DeltakerEndringRepository {
                    dh.endret_av_enhet AS endret_av_enhet,
                    dh.modified_at     AS "dh.modified_at"
             FROM deltaker_endring dh
-            WHERE deltaker_id = :deltaker_id
+                INNER JOIN deltaker_status ds on ds.deltaker_id = dh.deltaker_id
+            WHERE dh.deltaker_id = :deltaker_id
+            and ds.gyldig_til is null
+                and ds.gyldig_fra < CURRENT_TIMESTAMP
+                and ds.type != 'FEILREGISTRERT'
             ORDER BY dh.created_at;
             """.trimIndent(),
             mapOf("deltaker_id" to deltakerId),

@@ -38,6 +38,12 @@ class DeltakerService(
         deltakerRepository.deleteDeltakerOgStatus(deltakerId)
     }
 
+    suspend fun feilregistrerDeltaker(deltakerId: UUID) {
+        val deltaker = get(deltakerId).getOrThrow()
+        upsertDeltaker(deltaker.copy(status = nyDeltakerStatus(type = DeltakerStatus.Type.FEILREGISTRERT)))
+        log.info("Feilregistrert deltaker med id $deltakerId")
+    }
+
     suspend fun upsertEndretDeltaker(deltakerId: UUID, request: EndringRequest): Deltaker {
         val deltaker = get(deltakerId).getOrThrow()
 

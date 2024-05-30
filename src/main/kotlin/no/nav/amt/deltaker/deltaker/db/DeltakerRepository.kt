@@ -19,53 +19,69 @@ import java.time.LocalDate
 import java.util.UUID
 
 class DeltakerRepository {
-    private fun rowMapper(row: Row) = Deltaker(
-        id = row.uuid("d.id"),
-        navBruker = NavBruker(
-            personId = row.uuid("d.person_id"),
-            personident = row.string("nb.personident"),
-            fornavn = row.string("nb.fornavn"),
-            mellomnavn = row.stringOrNull("nb.mellomnavn"),
-            etternavn = row.string("nb.etternavn"),
-            navVeilederId = row.uuidOrNull("nb.nav_veileder_id"),
-            navEnhetId = row.uuidOrNull("nb.nav_enhet_id"),
-            telefon = row.stringOrNull("nb.telefonnummer"),
-            epost = row.stringOrNull("nb.epost"),
-            erSkjermet = row.boolean("nb.er_skjermet"),
-            adresse = row.stringOrNull("nb.adresse")?.let { objectMapper.readValue(it) },
-            adressebeskyttelse = row.stringOrNull("nb.adressebeskyttelse")?.let { Adressebeskyttelse.valueOf(it) },
-            oppfolgingsperioder = row.stringOrNull("nb.oppfolgingsperioder")?.let { objectMapper.readValue(it) } ?: emptyList(),
-            innsatsgruppe = row.stringOrNull("nb.innsatsgruppe")?.let { Innsatsgruppe.valueOf(it) },
-        ),
-        deltakerliste = DeltakerlisteRepository.rowMapper(row),
-        startdato = row.localDateOrNull("d.startdato"),
-        sluttdato = row.localDateOrNull("d.sluttdato"),
-        dagerPerUke = row.floatOrNull("d.dager_per_uke"),
-        deltakelsesprosent = row.floatOrNull("d.deltakelsesprosent"),
-        bakgrunnsinformasjon = row.stringOrNull("d.bakgrunnsinformasjon"),
-        innhold = objectMapper.readValue(row.string("d.innhold")),
-        status = DeltakerStatus(
-            id = row.uuid("ds.id"),
-            type = row.string("ds.type").let { DeltakerStatus.Type.valueOf(it) },
-            aarsak = row.stringOrNull("ds.aarsak")?.let { objectMapper.readValue(it) },
-            gyldigFra = row.localDateTime("ds.gyldig_fra"),
-            gyldigTil = row.localDateTimeOrNull("ds.gyldig_til"),
-            opprettet = row.localDateTime("ds.created_at"),
-        ),
-        vedtaksinformasjon = row.localDateTimeOrNull("v.opprettet")?.let { opprettet ->
-            Deltaker.Vedtaksinformasjon(
-                fattet = row.localDateTimeOrNull("v.fattet"),
-                fattetAvNav = row.boolean("v.fattet_av_nav"),
-                opprettet = opprettet,
-                opprettetAv = row.uuid("v.opprettet_av"),
-                opprettetAvEnhet = row.uuid("v.opprettet_av_enhet"),
-                sistEndret = row.localDateTime("v.sist_endret"),
-                sistEndretAv = row.uuid("v.sist_endret_av"),
-                sistEndretAvEnhet = row.uuid("v.sist_endret_av_enhet"),
+    private fun rowMapper(row: Row): Deltaker {
+        val status = row.string("ds.type").let { DeltakerStatus.Type.valueOf(it) }
+        val deltaker = Deltaker(
+            id = row.uuid("d.id"),
+            navBruker = NavBruker(
+                personId = row.uuid("d.person_id"),
+                personident = row.string("nb.personident"),
+                fornavn = row.string("nb.fornavn"),
+                mellomnavn = row.stringOrNull("nb.mellomnavn"),
+                etternavn = row.string("nb.etternavn"),
+                navVeilederId = row.uuidOrNull("nb.nav_veileder_id"),
+                navEnhetId = row.uuidOrNull("nb.nav_enhet_id"),
+                telefon = row.stringOrNull("nb.telefonnummer"),
+                epost = row.stringOrNull("nb.epost"),
+                erSkjermet = row.boolean("nb.er_skjermet"),
+                adresse = row.stringOrNull("nb.adresse")?.let { objectMapper.readValue(it) },
+                adressebeskyttelse = row.stringOrNull("nb.adressebeskyttelse")?.let { Adressebeskyttelse.valueOf(it) },
+                oppfolgingsperioder = row.stringOrNull("nb.oppfolgingsperioder")?.let { objectMapper.readValue(it) } ?: emptyList(),
+                innsatsgruppe = row.stringOrNull("nb.innsatsgruppe")?.let { Innsatsgruppe.valueOf(it) },
+            ),
+            deltakerliste = DeltakerlisteRepository.rowMapper(row),
+            startdato = row.localDateOrNull("d.startdato"),
+            sluttdato = row.localDateOrNull("d.sluttdato"),
+            dagerPerUke = row.floatOrNull("d.dager_per_uke"),
+            deltakelsesprosent = row.floatOrNull("d.deltakelsesprosent"),
+            bakgrunnsinformasjon = row.stringOrNull("d.bakgrunnsinformasjon"),
+            innhold = objectMapper.readValue(row.string("d.innhold")),
+            status = DeltakerStatus(
+                id = row.uuid("ds.id"),
+                type = row.string("ds.type").let { DeltakerStatus.Type.valueOf(it) },
+                aarsak = row.stringOrNull("ds.aarsak")?.let { objectMapper.readValue(it) },
+                gyldigFra = row.localDateTime("ds.gyldig_fra"),
+                gyldigTil = row.localDateTimeOrNull("ds.gyldig_til"),
+                opprettet = row.localDateTime("ds.created_at"),
+            ),
+            vedtaksinformasjon = row.localDateTimeOrNull("v.opprettet")?.let { opprettet ->
+                Deltaker.Vedtaksinformasjon(
+                    fattet = row.localDateTimeOrNull("v.fattet"),
+                    fattetAvNav = row.boolean("v.fattet_av_nav"),
+                    opprettet = opprettet,
+                    opprettetAv = row.uuid("v.opprettet_av"),
+                    opprettetAvEnhet = row.uuid("v.opprettet_av_enhet"),
+                    sistEndret = row.localDateTime("v.sist_endret"),
+                    sistEndretAv = row.uuid("v.sist_endret_av"),
+                    sistEndretAvEnhet = row.uuid("v.sist_endret_av_enhet"),
+                )
+            },
+            sistEndret = row.localDateTime("d.modified_at"),
+        )
+
+        return if (status == DeltakerStatus.Type.FEILREGISTRERT) {
+            deltaker.copy(
+                startdato = null,
+                sluttdato = null,
+                dagerPerUke = null,
+                deltakelsesprosent = null,
+                bakgrunnsinformasjon = null,
+                innhold = emptyList(),
             )
-        },
-        sistEndret = row.localDateTime("d.modified_at"),
-    )
+        } else {
+            deltaker
+        }
+    }
 
     fun upsert(deltaker: Deltaker) = Database.query { session ->
         val sql =
