@@ -50,6 +50,10 @@ class DeltakerService(
 
     suspend fun upsertEndretDeltaker(deltakerId: UUID, request: EndringRequest): Deltaker {
         val deltaker = get(deltakerId).getOrThrow()
+        if (deltaker.status.type == DeltakerStatus.Type.FEILREGISTRERT) {
+            log.warn("Kan ikke oppdatere feilregistrert deltaker, id $deltakerId")
+            throw IllegalArgumentException("Kan ikke oppdatere feilregistrert deltaker")
+        }
 
         return deltakerEndringService.upsertEndring(deltaker, request).fold(
             onSuccess = { endretDeltaker ->
