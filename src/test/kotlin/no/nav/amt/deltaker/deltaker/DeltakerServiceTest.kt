@@ -21,6 +21,7 @@ import no.nav.amt.deltaker.hendelse.model.HendelseType
 import no.nav.amt.deltaker.kafka.config.LocalKafkaConfig
 import no.nav.amt.deltaker.kafka.utils.SingletonKafkaProvider
 import no.nav.amt.deltaker.kafka.utils.assertProduced
+import no.nav.amt.deltaker.kafka.utils.assertProducedFeilregistrert
 import no.nav.amt.deltaker.kafka.utils.assertProducedHendelse
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
@@ -365,5 +366,36 @@ class DeltakerServiceTest {
         }
 
         assertProducedHendelse(deltaker.id, HendelseType.DeltakerSistBesokt::class)
+    }
+
+    @Test
+    fun `feilregistrerDeltaker - deltaker feilregistreres og oppdatert deltaker produseres`() {
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+        )
+        val vedtak = TestData.lagVedtak(deltakerVedVedtak = deltaker)
+        val ansatt = TestData.lagNavAnsatt(id = vedtak.opprettetAv)
+        val enhet = TestData.lagNavEnhet(id = vedtak.opprettetAvEnhet)
+        val deltakerEndring = TestData.lagDeltakerEndring(
+            deltakerId = deltaker.id,
+            endretAv = ansatt.id,
+            endretAvEnhet = enhet.id,
+        )
+        TestRepository.insertAll(deltaker, ansatt, enhet, vedtak, deltakerEndring)
+
+        runBlocking {
+            deltakerService.feilregistrerDeltaker(deltaker.id)
+
+            val deltakerFraDb = deltakerService.get(deltaker.id).getOrThrow()
+            deltakerFraDb.status.type shouldBe DeltakerStatus.Type.FEILREGISTRERT
+            deltakerFraDb.startdato shouldBe null
+            deltakerFraDb.sluttdato shouldBe null
+            deltakerFraDb.dagerPerUke shouldBe null
+            deltakerFraDb.deltakelsesprosent shouldBe null
+            deltakerFraDb.bakgrunnsinformasjon shouldBe null
+            deltakerFraDb.innhold shouldBe emptyList()
+
+            assertProducedFeilregistrert(deltaker.id)
+        }
     }
 }

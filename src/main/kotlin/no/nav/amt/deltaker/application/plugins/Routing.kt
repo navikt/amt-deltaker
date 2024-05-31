@@ -23,6 +23,7 @@ import no.nav.amt.deltaker.deltaker.api.model.DeltakelserResponseMapper
 import no.nav.amt.deltaker.deltaker.api.registerDeltakerApi
 import no.nav.amt.deltaker.deltaker.api.registerHentDeltakelserApi
 import no.nav.amt.deltaker.deltaker.api.registerPameldingApi
+import no.nav.amt.deltaker.internal.registerInternalApi
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -61,6 +62,7 @@ fun Application.configureRouting(
         registerPameldingApi(pameldingService)
         registerDeltakerApi(deltakerService, deltakerHistorikkService)
         registerHentDeltakelserApi(tilgangskontrollService, deltakerService, deltakelserResponseMapper)
+        registerInternalApi(deltakerService)
 
         val catchAllRoute = "{...}"
         route(catchAllRoute) {

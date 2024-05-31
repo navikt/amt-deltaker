@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.deltaker.db
 
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.deltaker.model.DeltakerEndring
+import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.deltaker.model.Innhold
 import no.nav.amt.deltaker.utils.SingletonPostgresContainer
 import no.nav.amt.deltaker.utils.data.TestData
@@ -66,6 +67,40 @@ class DeltakerEndringRepositoryTest {
             endringFraDb.find { it.id == deltakerEndring2.id }!!,
             deltakerEndring2.copy(endretAv = navAnsatt2.id, endretAvEnhet = navEnhet2.id),
         )
+    }
+
+    @Test
+    fun `getForDeltaker - deltaker er feilregistrert - returnerer tom liste`() {
+        val navAnsatt1 = TestData.lagNavAnsatt()
+        TestRepository.insert(navAnsatt1)
+        val navAnsatt2 = TestData.lagNavAnsatt()
+        TestRepository.insert(navAnsatt2)
+        val navEnhet1 = TestData.lagNavEnhet()
+        TestRepository.insert(navEnhet1)
+        val navEnhet2 = TestData.lagNavEnhet()
+        TestRepository.insert(navEnhet2)
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.FEILREGISTRERT),
+        )
+        val deltakerEndring = TestData.lagDeltakerEndring(
+            deltakerId = deltaker.id,
+            endretAv = navAnsatt1.id,
+            endretAvEnhet = navEnhet1.id,
+        )
+        val deltakerEndring2 = TestData.lagDeltakerEndring(
+            deltakerId = deltaker.id,
+            endring = DeltakerEndring.Endring.EndreInnhold(listOf(Innhold("tekst", "type", true, null))),
+            endretAv = navAnsatt2.id,
+            endretAvEnhet = navEnhet2.id,
+        )
+        TestRepository.insert(deltaker)
+
+        repository.upsert(deltakerEndring)
+        repository.upsert(deltakerEndring2)
+
+        val endringFraDb = repository.getForDeltaker(deltaker.id)
+
+        endringFraDb.size shouldBe 0
     }
 
     private fun sammenlignDeltakerEndring(a: DeltakerEndring, b: DeltakerEndring) {

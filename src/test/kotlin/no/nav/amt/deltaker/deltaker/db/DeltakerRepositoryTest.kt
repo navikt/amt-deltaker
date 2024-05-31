@@ -258,6 +258,21 @@ class DeltakerRepositoryTest {
 
         deltakerePaAvsluttetDeltakerliste.size shouldBe 0
     }
+
+    @Test
+    fun `get - deltaker er feilregistrert - fjerner informasjon`() {
+        val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.FEILREGISTRERT))
+        TestRepository.insert(deltaker)
+
+        val deltakerFraDb = repository.get(deltaker.id).getOrThrow()
+
+        deltakerFraDb.startdato shouldBe null
+        deltakerFraDb.sluttdato shouldBe null
+        deltakerFraDb.dagerPerUke shouldBe null
+        deltakerFraDb.deltakelsesprosent shouldBe null
+        deltakerFraDb.bakgrunnsinformasjon shouldBe null
+        deltakerFraDb.innhold shouldBe emptyList()
+    }
 }
 
 fun sammenlignDeltakere(a: Deltaker, b: Deltaker) {

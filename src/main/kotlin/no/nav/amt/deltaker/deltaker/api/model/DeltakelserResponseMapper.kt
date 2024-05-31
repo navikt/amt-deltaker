@@ -23,6 +23,7 @@ class DeltakelserResponseMapper(
         DeltakerStatus.Type.DELTAR,
         DeltakerStatus.Type.HAR_SLUTTET,
         DeltakerStatus.Type.IKKE_AKTUELL,
+        DeltakerStatus.Type.FEILREGISTRERT,
     )
     private val skalVisePeriodeStatuser = listOf(
         DeltakerStatus.Type.VENTER_PA_OPPSTART,
@@ -138,6 +139,7 @@ class DeltakelserResponseMapper(
             DeltakerStatus.Type.VENTELISTE -> "På venteliste"
             DeltakerStatus.Type.AVBRUTT -> "Avbrutt"
             DeltakerStatus.Type.FULLFORT -> "Fullført"
+            DeltakerStatus.Type.FEILREGISTRERT -> "Feilregistrert"
             else -> throw IllegalStateException("Skal ikke vise status ${this.name}")
         }
     }
