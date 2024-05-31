@@ -1,6 +1,8 @@
 package no.nav.amt.deltaker.internal
 
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
+import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.post
 import no.nav.amt.deltaker.auth.AuthorizationException
@@ -12,6 +14,7 @@ fun Routing.registerInternalApi(deltakerService: DeltakerService) {
         if (isInternal(call.request.local.remoteAddress)) {
             val deltakerId = UUID.fromString(call.parameters["deltakerId"])
             deltakerService.feilregistrerDeltaker(deltakerId)
+            call.respond(HttpStatusCode.OK)
         } else {
             throw AuthorizationException("Ikke tilgang til api")
         }
