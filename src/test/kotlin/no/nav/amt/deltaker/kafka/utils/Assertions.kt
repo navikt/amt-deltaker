@@ -5,6 +5,8 @@ import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerV2Dto
+import no.nav.amt.deltaker.deltaker.model.DeltakerHistorikk
+import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.hendelse.model.Hendelse
 import no.nav.amt.deltaker.hendelse.model.HendelseType
 import no.nav.amt.deltaker.utils.AsyncUtils
@@ -23,6 +25,31 @@ fun assertProduced(deltakerId: UUID) {
     AsyncUtils.eventually {
         val cachedDeltaker = cache[deltakerId]!!
         cachedDeltaker.id shouldBe deltakerId
+    }
+
+    consumer.stop()
+}
+
+fun assertProducedFeilregistrert(deltakerId: UUID) {
+    val cache = mutableMapOf<UUID, DeltakerV2Dto>()
+
+    val consumer = stringStringConsumer(Environment.DELTAKER_V2_TOPIC) { k, v ->
+        cache[UUID.fromString(k)] = objectMapper.readValue(v)
+    }
+
+    consumer.run()
+
+    AsyncUtils.eventually {
+        val cachedDeltaker = cache[deltakerId]!!
+        cachedDeltaker.id shouldBe deltakerId
+        cachedDeltaker.status.type shouldBe DeltakerStatus.Type.FEILREGISTRERT
+        cachedDeltaker.dagerPerUke shouldBe null
+        cachedDeltaker.prosentStilling shouldBe null
+        cachedDeltaker.oppstartsdato shouldBe null
+        cachedDeltaker.sluttdato shouldBe null
+        cachedDeltaker.bestillingTekst shouldBe null
+        cachedDeltaker.innhold?.innhold shouldBe emptyList()
+        cachedDeltaker.historikk?.filterIsInstance<DeltakerHistorikk.Endring>() shouldBe emptyList()
     }
 
     consumer.stop()

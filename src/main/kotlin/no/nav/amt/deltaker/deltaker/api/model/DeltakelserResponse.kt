@@ -51,4 +51,5 @@ val HISTORISKE_STATUSER = listOf(
     DeltakerStatus.Type.IKKE_AKTUELL,
     DeltakerStatus.Type.AVBRUTT,
     DeltakerStatus.Type.FULLFORT,
+    DeltakerStatus.Type.FEILREGISTRERT,
 )
