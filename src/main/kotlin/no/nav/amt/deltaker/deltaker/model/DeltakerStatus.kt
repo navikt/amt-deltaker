@@ -29,6 +29,7 @@ data class DeltakerStatus(
             IKKE_MOTT,
             ANNET,
             AVLYST_KONTRAKT,
+            UTDANNING,
         }
     }
 

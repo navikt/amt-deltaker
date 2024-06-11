@@ -115,13 +115,14 @@ class DeltakelserResponseMapper(
             return beskrivelse
         }
         return when (type) {
-            DeltakerStatus.Aarsak.Type.SYK -> "syk"
-            DeltakerStatus.Aarsak.Type.FATT_JOBB -> "fått jobb"
-            DeltakerStatus.Aarsak.Type.TRENGER_ANNEN_STOTTE -> "trenger annen støtte"
-            DeltakerStatus.Aarsak.Type.FIKK_IKKE_PLASS -> "fikk ikke plass"
-            DeltakerStatus.Aarsak.Type.IKKE_MOTT -> "ikke møtt"
-            DeltakerStatus.Aarsak.Type.ANNET -> "annet"
-            DeltakerStatus.Aarsak.Type.AVLYST_KONTRAKT -> "avlyst kontrakt"
+            DeltakerStatus.Aarsak.Type.SYK -> "Syk"
+            DeltakerStatus.Aarsak.Type.FATT_JOBB -> "Fått jobb"
+            DeltakerStatus.Aarsak.Type.TRENGER_ANNEN_STOTTE -> "Trenger annen støtte"
+            DeltakerStatus.Aarsak.Type.FIKK_IKKE_PLASS -> "Fikk ikke plass"
+            DeltakerStatus.Aarsak.Type.IKKE_MOTT -> "Ikke møtt"
+            DeltakerStatus.Aarsak.Type.ANNET -> "Annet"
+            DeltakerStatus.Aarsak.Type.AVLYST_KONTRAKT -> "Avlyst kontrakt"
+            DeltakerStatus.Aarsak.Type.UTDANNING -> "Utdanning"
         }
     }
 
