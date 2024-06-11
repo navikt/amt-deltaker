@@ -190,7 +190,7 @@ class HentDeltakelserApiTest {
                     status = DeltakerKort.Status(
                         type = DeltakerStatus.Type.HAR_SLUTTET,
                         visningstekst = "Har sluttet",
-                        aarsak = "fått jobb",
+                        aarsak = "Fått jobb",
                     ),
                     innsoktDato = innsoktDato,
                     sistEndretDato = null,

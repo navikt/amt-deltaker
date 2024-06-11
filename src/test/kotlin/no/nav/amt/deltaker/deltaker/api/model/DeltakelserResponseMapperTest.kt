@@ -309,7 +309,7 @@ class DeltakelserResponseMapperTest {
         )
         deltakerKort.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
         deltakerKort.status.visningstekst shouldBe "Har sluttet"
-        deltakerKort.status.aarsak shouldBe "trenger annen støtte"
+        deltakerKort.status.aarsak shouldBe "Trenger annen støtte"
         deltakerKort.innsoktDato shouldBe LocalDate.now().minusDays(4)
         deltakerKort.sistEndretDato shouldBe null
         deltakerKort.periode shouldBe Periode(deltaker.startdato, deltaker.sluttdato)
