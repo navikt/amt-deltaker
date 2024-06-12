@@ -171,7 +171,7 @@ fun Application.module() {
         NavAnsattConsumer(navAnsattService),
         NavBrukerConsumer(navBrukerRepository, navEnhetService, deltakerService),
         TiltakstypeConsumer(tiltakstypeRepository),
-        DeltakerlisteConsumer(deltakerlisteRepository, tiltakstypeRepository, arrangorService),
+        DeltakerlisteConsumer(deltakerlisteRepository, tiltakstypeRepository, arrangorService, deltakerStatusOppdateringService),
     )
     consumers.forEach { it.run() }
 

@@ -40,13 +40,8 @@ data class Deltakerliste(
         }
     }
 
-    fun getOppstartstype(): Oppstartstype {
-        return oppstart
-            ?: if (erKurs()) {
-                Oppstartstype.FELLES
-            } else {
-                Oppstartstype.LOPENDE
-            }
+    fun erAvlystEllerAvbrutt(): Boolean {
+        return status == Status.AVLYST || status == Status.AVBRUTT
     }
 
     fun erKurs(): Boolean {

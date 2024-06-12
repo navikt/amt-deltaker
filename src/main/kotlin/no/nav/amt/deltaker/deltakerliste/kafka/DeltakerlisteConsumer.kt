@@ -8,6 +8,7 @@ import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.kafka.arenaKodeTilTiltakstype
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.kafka.erStottet
+import no.nav.amt.deltaker.job.DeltakerStatusOppdateringService
 import no.nav.amt.deltaker.kafka.Consumer
 import no.nav.amt.deltaker.kafka.ManagedKafkaConsumer
 import no.nav.amt.deltaker.kafka.config.KafkaConfig
@@ -21,6 +22,7 @@ class DeltakerlisteConsumer(
     private val repository: DeltakerlisteRepository,
     private val tiltakstypeRepository: TiltakstypeRepository,
     private val arrangorService: ArrangorService,
+    private val deltakerStatusOppdateringService: DeltakerStatusOppdateringService,
     kafkaConfig: KafkaConfig = if (Environment.isLocal()) LocalKafkaConfig() else KafkaConfigImpl(),
 ) : Consumer<UUID, String?> {
     private val consumer = ManagedKafkaConsumer(
@@ -43,12 +45,17 @@ class DeltakerlisteConsumer(
         }
     }
 
-    private suspend fun handterDeltakerliste(deltakerliste: DeltakerlisteDto) {
-        if (!erStottet(deltakerliste.tiltakstype.arenaKode)) return
+    private suspend fun handterDeltakerliste(deltakerlisteDto: DeltakerlisteDto) {
+        if (!erStottet(deltakerlisteDto.tiltakstype.arenaKode)) return
 
-        val tiltakstype = tiltakstypeRepository.get(arenaKodeTilTiltakstype(deltakerliste.tiltakstype.arenaKode)).getOrThrow()
+        val tiltakstype = tiltakstypeRepository.get(arenaKodeTilTiltakstype(deltakerlisteDto.tiltakstype.arenaKode)).getOrThrow()
 
-        val arrangor = arrangorService.hentArrangor(deltakerliste.virksomhetsnummer)
-        repository.upsert(deltakerliste.toModel(arrangor, tiltakstype))
+        val arrangor = arrangorService.hentArrangor(deltakerlisteDto.virksomhetsnummer)
+        val deltakerliste = deltakerlisteDto.toModel(arrangor, tiltakstype)
+        repository.upsert(deltakerliste)
+
+        if (deltakerliste.erAvlystEllerAvbrutt()) {
+            deltakerStatusOppdateringService.avsluttDeltakelserForAvbruttDeltakerliste(deltakerliste.id)
+        }
     }
 }
