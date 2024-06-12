@@ -123,6 +123,7 @@ class DeltakelserResponseMapper(
             DeltakerStatus.Aarsak.Type.ANNET -> "Annet"
             DeltakerStatus.Aarsak.Type.AVLYST_KONTRAKT -> "Avlyst kontrakt"
             DeltakerStatus.Aarsak.Type.UTDANNING -> "Utdanning"
+            DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT -> "Samarbeidet med arrangøren er avbrutt"
         }
     }
 

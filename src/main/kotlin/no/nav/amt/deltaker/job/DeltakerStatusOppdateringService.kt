@@ -21,11 +21,22 @@ class DeltakerStatusOppdateringService(
         oppdaterStatusTilDeltar()
     }
 
+    suspend fun avsluttDeltakelserForAvbruttDeltakerliste(deltakerlisteId: UUID) {
+        val deltakerePaAvbruttDeltakerliste = deltakerService.getDeltakereForDeltakerliste(deltakerlisteId)
+            .filter { it.status.type != DeltakerStatus.Type.KLADD }
+
+        oppdaterTilAvsluttendeStatus(deltakerePaAvbruttDeltakerliste)
+    }
+
     private suspend fun oppdaterTilAvsluttendeStatus() {
         val deltakereSomSkalHaAvsluttendeStatus =
             deltakerRepository.skalHaAvsluttendeStatus().plus(deltakerRepository.deltarPaAvsluttetDeltakerliste())
                 .distinct()
+        oppdaterTilAvsluttendeStatus(deltakereSomSkalHaAvsluttendeStatus)
+    }
 
+    private suspend fun oppdaterTilAvsluttendeStatus(deltakereSomSkalHaAvsluttendeStatus: List<Deltaker>) {
+        val skalBliAvbruttUtkast = deltakereSomSkalHaAvsluttendeStatus.filter { it.status.type == DeltakerStatus.Type.UTKAST_TIL_PAMELDING }
         val skalBliIkkeAktuell = deltakereSomSkalHaAvsluttendeStatus.filter { it.status.harIkkeStartet() }
         val skalBliAvbrutt = deltakereSomSkalHaAvsluttendeStatus
             .filter { it.status.type == DeltakerStatus.Type.DELTAR }
@@ -39,13 +50,28 @@ class DeltakerStatusOppdateringService(
             .filter { it.status.type == DeltakerStatus.Type.DELTAR }
             .filter { it.deltarPaKurs() && !sluttetForTidlig(it) }
 
+        skalBliAvbruttUtkast.forEach {
+            oppdaterDeltaker(
+                it.copy(
+                    status = DeltakerStatus(
+                        id = UUID.randomUUID(),
+                        type = DeltakerStatus.Type.AVBRUTT_UTKAST,
+                        aarsak = null,
+                        gyldigFra = LocalDateTime.now(),
+                        gyldigTil = null,
+                        opprettet = LocalDateTime.now(),
+                    ),
+                ),
+            )
+        }
+
         skalBliIkkeAktuell.forEach {
             oppdaterDeltaker(
                 it.copy(
                     status = DeltakerStatus(
                         id = UUID.randomUUID(),
                         type = DeltakerStatus.Type.IKKE_AKTUELL,
-                        aarsak = null,
+                        aarsak = getSluttarsak(it),
                         gyldigFra = LocalDateTime.now(),
                         gyldigTil = null,
                         opprettet = LocalDateTime.now(),
@@ -61,7 +87,7 @@ class DeltakerStatusOppdateringService(
                     status = DeltakerStatus(
                         id = UUID.randomUUID(),
                         type = DeltakerStatus.Type.AVBRUTT,
-                        aarsak = null,
+                        aarsak = getSluttarsak(it),
                         gyldigFra = LocalDateTime.now(),
                         gyldigTil = null,
                         opprettet = LocalDateTime.now(),
@@ -132,7 +158,7 @@ class DeltakerStatusOppdateringService(
                         status = DeltakerStatus(
                             id = UUID.randomUUID(),
                             type = DeltakerStatus.Type.HAR_SLUTTET,
-                            aarsak = null,
+                            aarsak = getSluttarsak(it),
                             gyldigFra = LocalDateTime.now(),
                             gyldigTil = null,
                             opprettet = LocalDateTime.now(),
@@ -170,6 +196,17 @@ class DeltakerStatusOppdateringService(
             deltaker.deltakerliste.sluttDato
         } else {
             deltaker.sluttdato
+        }
+    }
+
+    private fun getSluttarsak(deltaker: Deltaker): DeltakerStatus.Aarsak? {
+        return if (deltaker.deltakerliste.erAvlystEllerAvbrutt()) {
+            DeltakerStatus.Aarsak(
+                type = DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT,
+                beskrivelse = null,
+            )
+        } else {
+            null
         }
     }
 }

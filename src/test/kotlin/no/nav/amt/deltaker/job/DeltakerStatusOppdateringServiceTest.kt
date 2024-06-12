@@ -283,6 +283,7 @@ class DeltakerStatusOppdateringServiceTest {
 
             val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
             deltakerFraDb.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+            deltakerFraDb.status.aarsak shouldBe null
             deltakerFraDb.sluttdato shouldBe deltaker.deltakerliste.sluttDato
         }
     }
@@ -317,7 +318,168 @@ class DeltakerStatusOppdateringServiceTest {
 
             val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
             deltakerFraDb.status.type shouldBe DeltakerStatus.Type.IKKE_AKTUELL
+            deltakerFraDb.status.aarsak shouldBe null
             deltakerFraDb.sluttdato shouldBe null
+        }
+    }
+
+    @Test
+    fun `oppdaterDeltakerStatuser - deltakerliste avlyst, status DELTAR - setter status HAR_SLUTTET med sluttarsak`() {
+        val sistEndretAv = TestData.lagNavAnsatt()
+        val sistEndretAvEnhet = TestData.lagNavEnhet()
+        TestRepository.insert(sistEndretAv)
+        TestRepository.insert(sistEndretAvEnhet)
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+            startdato = LocalDate.now().minusMonths(1),
+            sluttdato = LocalDate.now().plusDays(2),
+            deltakerliste = TestData.lagDeltakerliste(
+                oppstart = Deltakerliste.Oppstartstype.LOPENDE,
+                sluttDato = LocalDate.now().minusDays(2),
+                status = Deltakerliste.Status.AVLYST,
+            ),
+        )
+        val vedtak = TestData.lagVedtak(
+            deltakerId = deltaker.id,
+            deltakerVedVedtak = deltaker,
+            opprettetAv = sistEndretAv,
+            opprettetAvEnhet = sistEndretAvEnhet,
+            fattet = LocalDateTime.now(),
+        )
+        TestRepository.insert(deltaker, vedtak)
+
+        runBlocking {
+            deltakerStatusOppdateringService.oppdaterDeltakerStatuser()
+
+            val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
+            deltakerFraDb.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+            deltakerFraDb.status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT
+            deltakerFraDb.sluttdato shouldBe deltaker.deltakerliste.sluttDato
+        }
+    }
+
+    @Test
+    fun `oppdaterDeltakerStatuser - deltakerliste avbrutt, status VENTER_PA_OPPSTART - setter status IKKE_AKTUELL med sluttarsak`() {
+        val sistEndretAv = TestData.lagNavAnsatt()
+        val sistEndretAvEnhet = TestData.lagNavEnhet()
+        TestRepository.insert(sistEndretAv)
+        TestRepository.insert(sistEndretAvEnhet)
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
+            startdato = null,
+            sluttdato = null,
+            deltakerliste = TestData.lagDeltakerliste(
+                oppstart = Deltakerliste.Oppstartstype.LOPENDE,
+                sluttDato = LocalDate.now().minusDays(2),
+                status = Deltakerliste.Status.AVBRUTT,
+            ),
+        )
+        val vedtak = TestData.lagVedtak(
+            deltakerId = deltaker.id,
+            deltakerVedVedtak = deltaker,
+            opprettetAv = sistEndretAv,
+            opprettetAvEnhet = sistEndretAvEnhet,
+            fattet = LocalDateTime.now(),
+        )
+        TestRepository.insert(deltaker, vedtak)
+
+        runBlocking {
+            deltakerStatusOppdateringService.oppdaterDeltakerStatuser()
+
+            val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
+            deltakerFraDb.status.type shouldBe DeltakerStatus.Type.IKKE_AKTUELL
+            deltakerFraDb.status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT
+            deltakerFraDb.sluttdato shouldBe null
+        }
+    }
+
+    @Test
+    fun `oppdaterDeltakerStatuser - deltakerliste avbrutt, status UTKAST_TIL_PAMELDING - setter status AVBRUTT_UTKAST`() {
+        val sistEndretAv = TestData.lagNavAnsatt()
+        val sistEndretAvEnhet = TestData.lagNavEnhet()
+        TestRepository.insert(sistEndretAv)
+        TestRepository.insert(sistEndretAvEnhet)
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+            startdato = null,
+            sluttdato = null,
+            deltakerliste = TestData.lagDeltakerliste(
+                oppstart = Deltakerliste.Oppstartstype.LOPENDE,
+                sluttDato = LocalDate.now().minusDays(2),
+                status = Deltakerliste.Status.AVBRUTT,
+            ),
+        )
+        val vedtak = TestData.lagVedtak(
+            deltakerId = deltaker.id,
+            deltakerVedVedtak = deltaker,
+            opprettetAv = sistEndretAv,
+            opprettetAvEnhet = sistEndretAvEnhet,
+            fattet = LocalDateTime.now(),
+        )
+        TestRepository.insert(deltaker, vedtak)
+
+        runBlocking {
+            deltakerStatusOppdateringService.oppdaterDeltakerStatuser()
+
+            val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
+            deltakerFraDb.status.type shouldBe DeltakerStatus.Type.AVBRUTT_UTKAST
+            deltakerFraDb.status.aarsak shouldBe null
+            deltakerFraDb.sluttdato shouldBe null
+        }
+    }
+
+    @Test
+    fun `avsluttDeltakelserForAvbruttDeltakerliste - deltakerliste avlyst - setter riktig status og sluttarsak`() {
+        val sistEndretAv = TestData.lagNavAnsatt()
+        val sistEndretAvEnhet = TestData.lagNavEnhet()
+        TestRepository.insert(sistEndretAv)
+        TestRepository.insert(sistEndretAvEnhet)
+        val deltakerliste = TestData.lagDeltakerliste(
+            oppstart = Deltakerliste.Oppstartstype.LOPENDE,
+            sluttDato = LocalDate.now().minusDays(2),
+            status = Deltakerliste.Status.AVLYST,
+        )
+        TestRepository.insert(deltakerliste)
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+            startdato = LocalDate.now().minusMonths(1),
+            sluttdato = LocalDate.now().plusDays(2),
+            deltakerliste = deltakerliste,
+        )
+        val vedtak = TestData.lagVedtak(
+            deltakerId = deltaker.id,
+            deltakerVedVedtak = deltaker,
+            opprettetAv = sistEndretAv,
+            opprettetAvEnhet = sistEndretAvEnhet,
+            fattet = LocalDateTime.now(),
+        )
+        TestRepository.insert(deltaker, vedtak)
+        val deltaker2 = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.HAR_SLUTTET),
+            startdato = LocalDate.now().minusMonths(1),
+            sluttdato = LocalDate.now().minusDays(2),
+            deltakerliste = deltakerliste,
+        )
+        val vedtak2 = TestData.lagVedtak(
+            deltakerId = deltaker2.id,
+            deltakerVedVedtak = deltaker2,
+            opprettetAv = sistEndretAv,
+            opprettetAvEnhet = sistEndretAvEnhet,
+            fattet = LocalDateTime.now(),
+        )
+        TestRepository.insert(deltaker2, vedtak2)
+
+        runBlocking {
+            deltakerStatusOppdateringService.avsluttDeltakelserForAvbruttDeltakerliste(deltakerliste.id)
+
+            val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
+            deltakerFraDb.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+            deltakerFraDb.status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT
+            deltakerFraDb.sluttdato shouldBe deltakerliste.sluttDato
+            val deltaker2FraDb = deltakerRepository.get(deltaker2.id).getOrThrow()
+            deltaker2FraDb.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+            deltaker2FraDb.status.aarsak?.type shouldBe null
+            deltaker2FraDb.sluttdato shouldBe deltaker2.sluttdato
         }
     }
 }

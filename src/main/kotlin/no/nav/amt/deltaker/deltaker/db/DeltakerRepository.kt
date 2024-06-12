@@ -153,6 +153,23 @@ class DeltakerRepository {
         it.run(query)
     }
 
+    fun getDeltakereForDeltakerliste(deltakerlisteId: UUID) = Database.query {
+        val sql = getDeltakerSql(
+            """ where d.deltakerliste_id = :deltakerliste_id 
+                    and ds.gyldig_til is null
+                    and ds.gyldig_fra < CURRENT_TIMESTAMP
+            """.trimMargin(),
+        )
+
+        val query = queryOf(
+            sql,
+            mapOf(
+                "deltakerliste_id" to deltakerlisteId,
+            ),
+        ).map(::rowMapper).asList
+        it.run(query)
+    }
+
     fun getMany(personIdent: String) = Database.query {
         val sql = getDeltakerSql(
             """ where nb.personident = :personident

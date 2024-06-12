@@ -30,6 +30,7 @@ data class DeltakerStatus(
             ANNET,
             AVLYST_KONTRAKT,
             UTDANNING,
+            SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT,
         }
     }
 
