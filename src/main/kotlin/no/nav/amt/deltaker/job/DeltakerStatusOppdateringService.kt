@@ -187,13 +187,12 @@ class DeltakerStatusOppdateringService(
     }
 
     private fun getOppdatertSluttdato(deltaker: Deltaker): LocalDate? {
-        return if (deltaker.deltakerliste.sluttDato != null && (
-                deltaker.sluttdato == null || deltaker.sluttdato.isAfter(
-                    LocalDate.now(),
-                )
-            )
-        ) {
-            deltaker.deltakerliste.sluttDato
+        return if (deltaker.sluttdato == null || deltaker.sluttdato.isAfter(LocalDate.now())) {
+            if (deltaker.deltakerliste.sluttDato != null && !deltaker.deltakerliste.sluttDato.isAfter(LocalDate.now())) {
+                deltaker.deltakerliste.sluttDato
+            } else {
+                LocalDate.now()
+            }
         } else {
             deltaker.sluttdato
         }
