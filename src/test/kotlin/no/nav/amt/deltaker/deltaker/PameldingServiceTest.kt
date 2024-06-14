@@ -14,6 +14,7 @@ import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.deltaker.model.Innhold
 import no.nav.amt.deltaker.deltaker.model.Innsatsgruppe
+import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.hendelse.HendelseProducer
 import no.nav.amt.deltaker.hendelse.HendelseService
@@ -163,6 +164,29 @@ class PameldingServiceTest {
         runBlocking {
             assertFailsWith<NoSuchElementException> {
                 pameldingService.opprettKladd(UUID.randomUUID(), personident)
+            }
+        }
+    }
+
+    @Test
+    fun `opprettKladd - deltakerliste er avsluttet - kaster IllegalArgumentException`() {
+        val arrangor = TestData.lagArrangor()
+        val deltakerliste = TestData.lagDeltakerliste(arrangor = arrangor, status = Deltakerliste.Status.AVSLUTTET)
+        val opprettetAv = TestData.lagNavAnsatt()
+        val opprettetAvEnhet = TestData.lagNavEnhet()
+        val navBruker = TestData.lagNavBruker(navVeilederId = opprettetAv.id, navEnhetId = opprettetAvEnhet.id)
+
+        MockResponseHandler.addNavEnhetResponse(opprettetAvEnhet)
+        MockResponseHandler.addNavAnsattResponse(opprettetAv)
+        MockResponseHandler.addNavBrukerResponse(navBruker)
+        TestRepository.insert(deltakerliste)
+
+        runBlocking {
+            assertFailsWith<IllegalArgumentException> {
+                pameldingService.opprettKladd(
+                    deltakerlisteId = deltakerliste.id,
+                    personident = navBruker.personident,
+                )
             }
         }
     }

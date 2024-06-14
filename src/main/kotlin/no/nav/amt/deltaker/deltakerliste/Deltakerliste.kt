@@ -44,6 +44,10 @@ data class Deltakerliste(
         return status == Status.AVLYST || status == Status.AVBRUTT
     }
 
+    fun erAvsluttet(): Boolean {
+        return erAvlystEllerAvbrutt() || status == Status.AVSLUTTET
+    }
+
     fun erKurs(): Boolean {
         if (oppstart != null) {
             return oppstart == Oppstartstype.FELLES
