@@ -60,7 +60,7 @@ class VedtakService(
         hendelseService.hendelseForVedtak(deltaker, endretAv, endretAvEnhet) {
             if (fattetAvNav) {
                 HendelseType.NavGodkjennUtkast(it)
-            } else if (eksisterendeVedtak == null) {
+            } else if (eksisterendeVedtak != null) {
                 HendelseType.EndreUtkast(it)
             } else {
                 HendelseType.OpprettUtkast(it)

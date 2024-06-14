@@ -272,7 +272,7 @@ class PameldingServiceTest {
             vedtak.sistEndretAv shouldBe sistEndretAv.id
             vedtak.sistEndretAvEnhet shouldBe sistEndretAvEnhet.id
 
-            assertProducedHendelse(deltaker.id, HendelseType.EndreUtkast::class)
+            assertProducedHendelse(deltaker.id, HendelseType.OpprettUtkast::class)
         }
     }
 

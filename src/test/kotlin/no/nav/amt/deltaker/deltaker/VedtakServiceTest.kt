@@ -10,8 +10,10 @@ import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.model.Vedtak
 import no.nav.amt.deltaker.hendelse.HendelseProducer
 import no.nav.amt.deltaker.hendelse.HendelseService
+import no.nav.amt.deltaker.hendelse.model.HendelseType
 import no.nav.amt.deltaker.kafka.config.LocalKafkaConfig
 import no.nav.amt.deltaker.kafka.utils.SingletonKafkaProvider
+import no.nav.amt.deltaker.kafka.utils.assertProducedHendelse
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetRepository
@@ -57,6 +59,8 @@ class VedtakServiceTest {
             fattetVedtak.fattet shouldNotBe null
             fattetVedtak.fattetAvNav shouldBe false
         }
+
+        assertProducedHendelse(deltaker.id, HendelseType.InnbyggerGodkjennUtkast::class)
     }
 
     @Test
@@ -94,10 +98,12 @@ class VedtakServiceTest {
             vedtak.fattetAvNav shouldBe false
             vedtak.deltakerId shouldBe deltaker.id
         }
+
+        assertProducedHendelse(deltaker.id, HendelseType.OpprettUtkast::class)
     }
 
     @Test
-    fun `oppdaterEllerOpprettVedtak - vedtak finnes - oppdateres`() {
+    fun `oppdaterEllerOpprettVedtak - vedtak finnes, fattes av nav - oppdateres`() {
         val vedtak = TestData.lagVedtak()
         insert(vedtak)
 
@@ -122,6 +128,36 @@ class VedtakServiceTest {
             oppdatertVedtak.fattetAvNav shouldBe true
             oppdatertVedtak.deltakerId shouldBe vedtak.deltakerId
         }
+
+        assertProducedHendelse(oppdatertDeltaker.id, HendelseType.NavGodkjennUtkast::class)
+    }
+
+    @Test
+    fun `oppdaterEllerOpprettVedtak - vedtak finnes, endres - oppdateres`() {
+        val vedtak = TestData.lagVedtak()
+        insert(vedtak)
+
+        val oppdatertDeltaker = TestData.lagDeltakerKladd(id = vedtak.deltakerId).copy(bakgrunnsinformasjon = "Endret bakgrunn")
+        val endretAvAnsatt = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+        TestRepository.insertAll(endretAvAnsatt, endretAvEnhet)
+
+        runBlocking {
+            val oppdatertVedtak = service.oppdaterEllerOpprettVedtak(
+                deltaker = oppdatertDeltaker,
+                endretAv = endretAvAnsatt,
+                endretAvEnhet = endretAvEnhet,
+                fattet = false,
+                fattetAvNav = false,
+            )
+
+            oppdatertVedtak.deltakerVedVedtak shouldBe oppdatertDeltaker.toDeltakerVedVedtak()
+            oppdatertVedtak.sistEndretAv shouldBe endretAvAnsatt.id
+            oppdatertVedtak.sistEndretAvEnhet shouldBe endretAvEnhet.id
+            oppdatertVedtak.deltakerId shouldBe vedtak.deltakerId
+        }
+
+        assertProducedHendelse(oppdatertDeltaker.id, HendelseType.EndreUtkast::class)
     }
 
     @Test
@@ -143,6 +179,8 @@ class VedtakServiceTest {
             avbruttVedtak.sistEndretAv shouldBe avbruttAvAnsatt.id
             avbruttVedtak.sistEndretAvEnhet shouldBe avbryttAvEnhet.id
         }
+
+        assertProducedHendelse(deltaker.id, HendelseType.AvbrytUtkast::class)
     }
 
     @Test
