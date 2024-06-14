@@ -38,6 +38,10 @@ class PameldingService(
         }
 
         val deltakerliste = deltakerlisteRepository.get(deltakerlisteId).getOrThrow()
+        if (deltakerliste.erAvsluttet()) {
+            log.warn("Deltakerliste med id $deltakerlisteId er avsluttet")
+            throw IllegalArgumentException("Deltakerliste er avsluttet")
+        }
         val navBruker = navBrukerService.get(personident).getOrThrow()
 
         if (navBruker.innsatsgruppe !in deltakerliste.tiltakstype.innsatsgrupper) {
