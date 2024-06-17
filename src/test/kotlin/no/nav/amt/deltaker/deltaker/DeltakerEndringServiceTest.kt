@@ -10,6 +10,7 @@ import no.nav.amt.deltaker.deltaker.api.model.DeltakelsesmengdeRequest
 import no.nav.amt.deltaker.deltaker.api.model.ForlengDeltakelseRequest
 import no.nav.amt.deltaker.deltaker.api.model.IkkeAktuellRequest
 import no.nav.amt.deltaker.deltaker.api.model.InnholdRequest
+import no.nav.amt.deltaker.deltaker.api.model.ReaktiverDeltakelseRequest
 import no.nav.amt.deltaker.deltaker.api.model.SluttarsakRequest
 import no.nav.amt.deltaker.deltaker.api.model.SluttdatoRequest
 import no.nav.amt.deltaker.deltaker.api.model.StartdatoRequest
@@ -621,5 +622,36 @@ class DeltakerEndringServiceTest {
             .sluttdato shouldBe endringsrequest.sluttdato
 
         assertProducedHendelse(deltaker.id, HendelseType.AvsluttDeltakelse::class)
+    }
+
+    @Test
+    fun `upsertEndring - reaktiver deltakelse - upserter endring og returnerer deltaker`(): Unit = runBlocking {
+        val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.IKKE_AKTUELL))
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+
+        TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
+
+        val endringsrequest = ReaktiverDeltakelseRequest(
+            endretAv = endretAv.navIdent,
+            endretAvEnhet = endretAvEnhet.enhetsnummer,
+        )
+
+        val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)
+
+        resultat.isSuccess shouldBe true
+        val deltakerFraDb = resultat.getOrThrow()
+        deltakerFraDb.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
+        deltakerFraDb.startdato shouldBe null
+        deltakerFraDb.sluttdato shouldBe null
+
+        val endring = deltakerEndringService.getForDeltaker(deltaker.id).first()
+        endring.endretAv shouldBe endretAv.id
+        endring.endretAvEnhet shouldBe endretAvEnhet.id
+
+        (endring.endring as DeltakerEndring.Endring.ReaktiverDeltakelse)
+            .reaktivertDato shouldBe LocalDate.now()
+
+        assertProducedHendelse(deltaker.id, HendelseType.ReaktiverDeltakelse::class)
     }
 }
