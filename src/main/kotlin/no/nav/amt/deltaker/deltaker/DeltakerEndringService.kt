@@ -164,7 +164,7 @@ class DeltakerEndringService(
 
             is DeltakerEndring.Endring.EndreSluttarsak -> {
                 endreDeltaker(deltaker.status.aarsak != endring.aarsak.toDeltakerStatusAarsak()) {
-                    deltaker.copy(status = nyDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET, endring.aarsak.toDeltakerStatusAarsak()))
+                    deltaker.copy(status = nyDeltakerStatus(deltaker.status.type, endring.aarsak.toDeltakerStatusAarsak()))
                 }
             }
 
