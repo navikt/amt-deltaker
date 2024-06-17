@@ -7,6 +7,7 @@ import no.nav.amt.deltaker.deltaker.api.model.EndringRequest
 import no.nav.amt.deltaker.deltaker.api.model.ForlengDeltakelseRequest
 import no.nav.amt.deltaker.deltaker.api.model.IkkeAktuellRequest
 import no.nav.amt.deltaker.deltaker.api.model.InnholdRequest
+import no.nav.amt.deltaker.deltaker.api.model.ReaktiverDeltakelseRequest
 import no.nav.amt.deltaker.deltaker.api.model.SluttarsakRequest
 import no.nav.amt.deltaker.deltaker.api.model.SluttdatoRequest
 import no.nav.amt.deltaker.deltaker.api.model.StartdatoRequest
@@ -76,6 +77,11 @@ class DeltakerEndringService(
 
             is AvsluttDeltakelseRequest -> {
                 val endring = DeltakerEndring.Endring.AvsluttDeltakelse(request.aarsak, request.sluttdato)
+                Pair(endretDeltaker(deltaker, endring), endring)
+            }
+
+            is ReaktiverDeltakelseRequest -> {
+                val endring = DeltakerEndring.Endring.ReaktiverDeltakelse(LocalDate.now())
                 Pair(endretDeltaker(deltaker, endring), endring)
             }
         }
@@ -158,7 +164,7 @@ class DeltakerEndringService(
 
             is DeltakerEndring.Endring.EndreSluttarsak -> {
                 endreDeltaker(deltaker.status.aarsak != endring.aarsak.toDeltakerStatusAarsak()) {
-                    deltaker.copy(status = nyDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET, endring.aarsak.toDeltakerStatusAarsak()))
+                    deltaker.copy(status = nyDeltakerStatus(deltaker.status.type, endring.aarsak.toDeltakerStatusAarsak()))
                 }
             }
 
@@ -189,6 +195,16 @@ class DeltakerEndringService(
                 endreDeltaker(deltaker.status.aarsak != endring.aarsak.toDeltakerStatusAarsak()) {
                     deltaker.copy(
                         status = nyDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL, endring.aarsak.toDeltakerStatusAarsak()),
+                        startdato = null,
+                        sluttdato = null,
+                    )
+                }
+            }
+
+            is DeltakerEndring.Endring.ReaktiverDeltakelse -> {
+                endreDeltaker(deltaker.status.type == DeltakerStatus.Type.IKKE_AKTUELL) {
+                    deltaker.copy(
+                        status = nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
                         startdato = null,
                         sluttdato = null,
                     )

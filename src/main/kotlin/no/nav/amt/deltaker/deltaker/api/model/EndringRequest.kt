@@ -65,3 +65,8 @@ data class AvsluttDeltakelseRequest(
     val sluttdato: LocalDate,
     val aarsak: DeltakerEndring.Aarsak,
 ) : EndringRequest
+
+data class ReaktiverDeltakelseRequest(
+    override val endretAv: String,
+    override val endretAvEnhet: String,
+) : EndringRequest

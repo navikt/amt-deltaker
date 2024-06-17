@@ -23,6 +23,7 @@ import java.time.ZonedDateTime
     JsonSubTypes.Type(value = HendelseType.InnbyggerGodkjennUtkast::class, name = "InnbyggerGodkjennUtkast"),
     JsonSubTypes.Type(value = HendelseType.NavGodkjennUtkast::class, name = "NavGodkjennUtkast"),
     JsonSubTypes.Type(value = HendelseType.DeltakerSistBesokt::class, name = "DeltakerSistBesokt"),
+    JsonSubTypes.Type(value = HendelseType.ReaktiverDeltakelse::class, name = "ReaktiverDeltakelse"),
 )
 sealed interface HendelseType {
     data class OpprettUtkast(
@@ -87,6 +88,10 @@ sealed interface HendelseType {
     data class DeltakerSistBesokt(
         val sistBesokt: ZonedDateTime,
     ) : HendelseType
+
+    data class ReaktiverDeltakelse(
+        val reaktivertDato: LocalDate,
+    ) : HendelseType
 }
 
 data class UtkastDto(
@@ -142,5 +147,9 @@ fun DeltakerEndring.toHendelseEndring() = when (endring) {
 
     is DeltakerEndring.Endring.IkkeAktuell -> HendelseType.IkkeAktuell(
         endring.aarsak,
+    )
+
+    is DeltakerEndring.Endring.ReaktiverDeltakelse -> HendelseType.ReaktiverDeltakelse(
+        endring.reaktivertDato,
     )
 }
