@@ -22,6 +22,7 @@ import no.nav.amt.deltaker.deltaker.api.model.DeltakelsesmengdeRequest
 import no.nav.amt.deltaker.deltaker.api.model.ForlengDeltakelseRequest
 import no.nav.amt.deltaker.deltaker.api.model.IkkeAktuellRequest
 import no.nav.amt.deltaker.deltaker.api.model.InnholdRequest
+import no.nav.amt.deltaker.deltaker.api.model.ReaktiverDeltakelseRequest
 import no.nav.amt.deltaker.deltaker.api.model.SluttarsakRequest
 import no.nav.amt.deltaker.deltaker.api.model.SluttdatoRequest
 import no.nav.amt.deltaker.deltaker.api.model.StartdatoRequest
@@ -59,6 +60,7 @@ class DeltakerApiTest {
         client.post("/deltaker/${UUID.randomUUID()}/forleng") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
         client.post("/deltaker/${UUID.randomUUID()}/ikke-aktuell") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
         client.post("/deltaker/${UUID.randomUUID()}/avslutt") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
+        client.post("/deltaker/${UUID.randomUUID()}/reaktiver") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
         client.post(
             "/deltaker/${UUID.randomUUID()}/vedtak/${UUID.randomUUID()}/fatt",
         ) { setBody("") }.status shouldBe HttpStatusCode.Unauthorized
@@ -316,6 +318,37 @@ class DeltakerApiTest {
                     TestData.randomEnhetsnummer(),
                     endring.sluttdato,
                     endring.aarsak,
+                ),
+            )
+        }.apply {
+            status shouldBe HttpStatusCode.OK
+            bodyAsText() shouldBe objectMapper.writeValueAsString(deltaker.toDeltakerEndringResponse(historikk))
+        }
+    }
+
+    @Test
+    fun `post reaktiver - har tilgang - returnerer 200`() = testApplication {
+        setUpTestApplication()
+
+        val endring = DeltakerEndring.Endring.ReaktiverDeltakelse(LocalDate.now())
+
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(
+                type = DeltakerStatus.Type.VENTER_PA_OPPSTART,
+            ),
+            startdato = null,
+            sluttdato = null,
+        )
+        val historikk = listOf(DeltakerHistorikk.Endring(TestData.lagDeltakerEndring(endring = endring)))
+
+        coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
+        coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
+
+        client.post("/deltaker/${UUID.randomUUID()}/reaktiver") {
+            postRequest(
+                ReaktiverDeltakelseRequest(
+                    TestData.randomIdent(),
+                    TestData.randomEnhetsnummer(),
                 ),
             )
         }.apply {
