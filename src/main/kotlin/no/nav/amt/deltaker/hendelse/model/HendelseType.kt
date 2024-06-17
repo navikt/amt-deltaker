@@ -90,7 +90,7 @@ sealed interface HendelseType {
     ) : HendelseType
 
     data class ReaktiverDeltakelse(
-        val reaktivertDato: LocalDate,
+        val utkast: UtkastDto,
     ) : HendelseType
 }
 
@@ -109,7 +109,7 @@ data class InnholdDto(
     val beskrivelse: String?,
 )
 
-fun DeltakerEndring.toHendelseEndring() = when (endring) {
+fun DeltakerEndring.toHendelseEndring(utkast: UtkastDto? = null) = when (endring) {
     is DeltakerEndring.Endring.AvsluttDeltakelse -> HendelseType.AvsluttDeltakelse(
         endring.aarsak,
         endring.sluttdato,
@@ -149,7 +149,9 @@ fun DeltakerEndring.toHendelseEndring() = when (endring) {
         endring.aarsak,
     )
 
-    is DeltakerEndring.Endring.ReaktiverDeltakelse -> HendelseType.ReaktiverDeltakelse(
-        endring.reaktivertDato,
-    )
+    is DeltakerEndring.Endring.ReaktiverDeltakelse -> utkast?.let {
+        HendelseType.ReaktiverDeltakelse(
+            utkast,
+        )
+    } ?: throw IllegalStateException("Mangler utkast for reaktivert deltakelse")
 }

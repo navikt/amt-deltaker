@@ -34,7 +34,11 @@ class HendelseService(
         navAnsatt: NavAnsatt,
         navEnhet: NavEnhet,
     ) {
-        val endring: HendelseType = deltakerEndring.toHendelseEndring()
+        val endring: HendelseType = if (deltakerEndring.endring is DeltakerEndring.Endring.ReaktiverDeltakelse) {
+            deltakerEndring.toHendelseEndring(deltaker.toUtkastDto())
+        } else {
+            deltakerEndring.toHendelseEndring()
+        }
 
         hendelseProducer.produce(nyHendelse(deltaker, navAnsatt, navEnhet, endring))
     }
