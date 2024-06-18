@@ -28,12 +28,17 @@ class DeltakerService(
 
     fun getDeltakereForDeltakerliste(deltakerlisteId: UUID) = deltakerRepository.getDeltakereForDeltakerliste(deltakerlisteId)
 
-    suspend fun upsertDeltaker(oppdatertDeltaker: Deltaker) {
-        deltakerRepository.upsert(oppdatertDeltaker)
+    suspend fun upsertDeltaker(deltaker: Deltaker): Deltaker {
+        deltakerRepository.upsert(deltaker)
+
+        val oppdatertDeltaker = get(deltaker.id).getOrThrow()
+
         if (oppdatertDeltaker.status.type != DeltakerStatus.Type.KLADD) {
-            deltakerProducer.produce(get(oppdatertDeltaker.id).getOrThrow())
+            deltakerProducer.produce(oppdatertDeltaker)
         }
-        log.info("Oppdatert deltaker med id ${oppdatertDeltaker.id}")
+
+        log.info("Oppdatert deltaker med id ${deltaker.id}")
+        return oppdatertDeltaker
     }
 
     fun delete(deltakerId: UUID) {
@@ -59,8 +64,7 @@ class DeltakerService(
 
         return deltakerEndringService.upsertEndring(deltaker, request).fold(
             onSuccess = { endretDeltaker ->
-                upsertDeltaker(endretDeltaker)
-                return@fold get(deltakerId).getOrThrow()
+                return@fold upsertDeltaker(endretDeltaker)
             },
             onFailure = {
                 return@fold deltaker
@@ -85,8 +89,7 @@ class DeltakerService(
 
         vedtakService.fattVedtak(vedtakId, deltaker)
 
-        upsertDeltaker(deltaker)
-        return deltaker
+        return upsertDeltaker(deltaker)
     }
 
     suspend fun oppdaterSistBesokt(deltakerId: UUID, sistBesokt: ZonedDateTime) {

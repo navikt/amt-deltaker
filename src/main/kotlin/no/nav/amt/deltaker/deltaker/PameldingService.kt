@@ -51,12 +51,11 @@ class PameldingService(
 
         val deltaker = nyDeltakerKladd(navBruker, deltakerliste)
 
-        deltakerService.upsertDeltaker(deltaker)
+        val oppdatertDeltaker = deltakerService.upsertDeltaker(deltaker)
 
         log.info("Lagret kladd for deltaker med id ${deltaker.id}")
 
-        return deltakerService.get(deltaker.id).getOrThrow()
-            .toKladdResponse()
+        return oppdatertDeltaker.toKladdResponse()
     }
 
     fun slettKladd(deltakerId: UUID) {
