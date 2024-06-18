@@ -12,6 +12,7 @@ import no.nav.amt.deltaker.deltaker.PameldingService
 import no.nav.amt.deltaker.deltaker.api.model.AvbrytUtkastRequest
 import no.nav.amt.deltaker.deltaker.api.model.OpprettKladdRequest
 import no.nav.amt.deltaker.deltaker.api.model.UtkastRequest
+import no.nav.amt.deltaker.deltaker.api.model.toDeltakerEndringResponse
 import java.util.UUID
 
 fun Routing.registerPameldingApi(pameldingService: PameldingService) {
@@ -31,8 +32,8 @@ fun Routing.registerPameldingApi(pameldingService: PameldingService) {
             val request = call.receive<UtkastRequest>()
             val deltakerId = UUID.fromString(call.parameters["deltakerId"])
 
-            pameldingService.upsertUtkast(deltakerId, request)
-            call.respond(HttpStatusCode.OK)
+            val deltaker = pameldingService.upsertUtkast(deltakerId, request)
+            call.respond(deltaker.toDeltakerEndringResponse(emptyList()))
         }
 
         post("/pamelding/{deltakerId}/avbryt") {
