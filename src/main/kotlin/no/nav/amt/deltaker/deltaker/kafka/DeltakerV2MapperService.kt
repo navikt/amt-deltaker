@@ -53,7 +53,7 @@ class DeltakerV2MapperService(
                 ?: throw IllegalStateException("Skal ikke produsere deltaker som mangler vedtak til topic"),
             forsteVedtakFattet = getForsteVedtakFattet(deltakerhistorikk),
             bestillingTekst = deltaker.bakgrunnsinformasjon,
-            navKontor = deltaker.navBruker.navEnhetId?.let { navEnhetService.hentEllerOpprettNavEnhet(it) }?.enhetsnummer,
+            navKontor = deltaker.navBruker.navEnhetId?.let { navEnhetService.hentEllerOpprettNavEnhet(it) }?.navn,
             navVeileder = deltaker.navBruker.navVeilederId?.let { navAnsattService.hentEllerOpprettNavAnsatt(it) }
                 ?.toDeltakerNavVeilederDto(),
             deltarPaKurs = deltaker.deltarPaKurs(),
