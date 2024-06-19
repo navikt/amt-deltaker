@@ -21,9 +21,11 @@ import no.nav.amt.deltaker.deltaker.PameldingService
 import no.nav.amt.deltaker.deltaker.api.model.AvbrytUtkastRequest
 import no.nav.amt.deltaker.deltaker.api.model.OpprettKladdRequest
 import no.nav.amt.deltaker.deltaker.api.model.UtkastRequest
+import no.nav.amt.deltaker.deltaker.api.model.toDeltakerEndringResponse
 import no.nav.amt.deltaker.deltaker.api.model.toKladdResponse
 import no.nav.amt.deltaker.deltaker.api.utils.noBodyRequest
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
+import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.deltaker.model.Innhold
 import no.nav.amt.deltaker.utils.configureEnvForAuthentication
 import no.nav.amt.deltaker.utils.data.TestData
@@ -78,13 +80,14 @@ class PameldingApiTest {
 
     @Test
     fun `post pamelding utkast - har tilgang - returnerer 200`() = testApplication {
-        val deltakerId = UUID.randomUUID()
-        coEvery { pameldingService.upsertUtkast(deltakerId, any()) } just Runs
+        val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING))
+        coEvery { pameldingService.upsertUtkast(deltaker.id, any()) } returns deltaker
 
         setUpTestApplication()
 
-        client.post("/pamelding/$deltakerId") { postRequest(utkastRequest) }.apply {
+        client.post("/pamelding/${deltaker.id}") { postRequest(utkastRequest) }.apply {
             status shouldBe HttpStatusCode.OK
+            bodyAsText() shouldBe objectMapper.writeValueAsString(deltaker.toDeltakerEndringResponse(emptyList()))
         }
     }
 

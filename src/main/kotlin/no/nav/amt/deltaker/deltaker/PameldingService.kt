@@ -51,12 +51,11 @@ class PameldingService(
 
         val deltaker = nyDeltakerKladd(navBruker, deltakerliste)
 
-        deltakerService.upsertDeltaker(deltaker)
+        val oppdatertDeltaker = deltakerService.upsertDeltaker(deltaker)
 
         log.info("Lagret kladd for deltaker med id ${deltaker.id}")
 
-        return deltakerService.get(deltaker.id).getOrThrow()
-            .toKladdResponse()
+        return oppdatertDeltaker.toKladdResponse()
     }
 
     fun slettKladd(deltakerId: UUID) {
@@ -70,7 +69,7 @@ class PameldingService(
         deltakerService.delete(deltakerId)
     }
 
-    suspend fun upsertUtkast(deltakerId: UUID, utkast: UtkastRequest) {
+    suspend fun upsertUtkast(deltakerId: UUID, utkast: UtkastRequest): Deltaker {
         val opprinneligDeltaker = deltakerService.get(deltakerId).getOrThrow()
 
         require(kanUpserteUtkast(opprinneligDeltaker.status)) {
@@ -101,9 +100,10 @@ class PameldingService(
             fattetAvNav = utkast.godkjentAvNav,
         )
 
-        deltakerService.upsertDeltaker(oppdatertDeltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksinformasjon()))
-
+        val deltaker = deltakerService.upsertDeltaker(oppdatertDeltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksinformasjon()))
         log.info("Upsertet utkast for deltaker med id $deltakerId, meldt på direkte: ${utkast.godkjentAvNav}")
+
+        return deltaker
     }
 
     suspend fun avbrytUtkast(deltakerId: UUID, avbrytUtkastRequest: AvbrytUtkastRequest) {

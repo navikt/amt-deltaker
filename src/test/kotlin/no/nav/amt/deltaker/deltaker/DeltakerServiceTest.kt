@@ -113,9 +113,7 @@ class DeltakerServiceTest {
         )
 
         runBlocking {
-            deltakerService.upsertDeltaker(oppdatertDeltaker)
-
-            val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
+            val deltakerFraDb = deltakerService.upsertDeltaker(oppdatertDeltaker)
             deltakerFraDb.status.type shouldBe DeltakerStatus.Type.UTKAST_TIL_PAMELDING
             deltakerFraDb.vedtaksinformasjon?.opprettetAv shouldBe vedtak.opprettetAv
 
@@ -140,9 +138,7 @@ class DeltakerServiceTest {
         )
 
         runBlocking {
-            deltakerService.upsertDeltaker(deltaker)
-
-            val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
+            val deltakerFraDb = deltakerService.upsertDeltaker(deltaker)
             deltakerFraDb.status.type shouldBe DeltakerStatus.Type.KLADD
             deltakerFraDb.vedtaksinformasjon shouldBe null
         }
