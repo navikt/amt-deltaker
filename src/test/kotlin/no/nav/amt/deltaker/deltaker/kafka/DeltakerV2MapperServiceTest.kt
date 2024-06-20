@@ -84,7 +84,7 @@ class DeltakerV2MapperServiceTest {
         deltakerV2Dto.innsoktDato shouldBe vedtak.opprettet.toLocalDate()
         deltakerV2Dto.forsteVedtakFattet shouldBe null
         deltakerV2Dto.bestillingTekst shouldBe deltaker.bakgrunnsinformasjon
-        deltakerV2Dto.navKontor shouldBe brukersEnhet.enhetsnummer
+        deltakerV2Dto.navKontor shouldBe brukersEnhet.navn
         deltakerV2Dto.navVeileder shouldBe veileder.toDeltakerNavVeilederDto()
         deltakerV2Dto.deltarPaKurs shouldBe deltaker.deltarPaKurs()
         deltakerV2Dto.kilde shouldBe DeltakerV2Dto.Kilde.KOMET
@@ -147,7 +147,7 @@ class DeltakerV2MapperServiceTest {
         deltakerV2Dto.innsoktDato shouldBe vedtak.opprettet.toLocalDate()
         deltakerV2Dto.forsteVedtakFattet shouldBe LocalDateTime.now().minusWeeks(1).toLocalDate()
         deltakerV2Dto.bestillingTekst shouldBe deltaker.bakgrunnsinformasjon
-        deltakerV2Dto.navKontor shouldBe brukersEnhet.enhetsnummer
+        deltakerV2Dto.navKontor shouldBe brukersEnhet.navn
         deltakerV2Dto.navVeileder shouldBe veileder.toDeltakerNavVeilederDto()
         deltakerV2Dto.deltarPaKurs shouldBe deltaker.deltarPaKurs()
         deltakerV2Dto.kilde shouldBe DeltakerV2Dto.Kilde.KOMET
