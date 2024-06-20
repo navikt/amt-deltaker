@@ -10,6 +10,7 @@ import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import io.mockk.Runs
 import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import no.nav.amt.deltaker.Environment
@@ -17,6 +18,7 @@ import no.nav.amt.deltaker.application.plugins.configureAuthentication
 import no.nav.amt.deltaker.application.plugins.configureRouting
 import no.nav.amt.deltaker.application.plugins.configureSerialization
 import no.nav.amt.deltaker.application.plugins.objectMapper
+import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.PameldingService
 import no.nav.amt.deltaker.deltaker.api.model.AvbrytUtkastRequest
 import no.nav.amt.deltaker.deltaker.api.model.OpprettKladdRequest
@@ -25,6 +27,7 @@ import no.nav.amt.deltaker.deltaker.api.model.toDeltakerEndringResponse
 import no.nav.amt.deltaker.deltaker.api.model.toKladdResponse
 import no.nav.amt.deltaker.deltaker.api.utils.noBodyRequest
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
+import no.nav.amt.deltaker.deltaker.model.DeltakerHistorikk
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.deltaker.model.Innhold
 import no.nav.amt.deltaker.utils.configureEnvForAuthentication
@@ -35,6 +38,7 @@ import java.util.UUID
 
 class PameldingApiTest {
     private val pameldingService = mockk<PameldingService>()
+    private val historikkService: DeltakerHistorikkService = mockk()
 
     @Before
     fun setup() {
@@ -81,6 +85,12 @@ class PameldingApiTest {
     @Test
     fun `post pamelding utkast - har tilgang - returnerer 200`() = testApplication {
         val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING))
+        val historikk: List<DeltakerHistorikk> = listOf(DeltakerHistorikk.Vedtak(TestData.lagVedtak(deltakerVedVedtak = deltaker)))
+
+        coEvery { historikkService.getForDeltaker(deltaker.id) } returns historikk
+
+        every { historikkService.getForDeltaker(any()) } returns emptyList()
+
         coEvery { pameldingService.upsertUtkast(deltaker.id, any()) } returns deltaker
 
         setUpTestApplication()
@@ -134,7 +144,7 @@ class PameldingApiTest {
             configureRouting(
                 pameldingService,
                 deltakerService = mockk(),
-                mockk(),
+                historikkService,
                 mockk(),
                 mockk(),
             )

@@ -59,7 +59,7 @@ fun Application.configureRouting(
     routing {
         registerHealthApi()
 
-        registerPameldingApi(pameldingService)
+        registerPameldingApi(pameldingService, deltakerHistorikkService)
         registerDeltakerApi(deltakerService, deltakerHistorikkService)
         registerHentDeltakelserApi(tilgangskontrollService, deltakerService, deltakelserResponseMapper)
         registerInternalApi(deltakerService)
