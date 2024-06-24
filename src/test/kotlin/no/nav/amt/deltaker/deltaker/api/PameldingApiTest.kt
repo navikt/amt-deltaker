@@ -17,6 +17,7 @@ import no.nav.amt.deltaker.application.plugins.configureAuthentication
 import no.nav.amt.deltaker.application.plugins.configureRouting
 import no.nav.amt.deltaker.application.plugins.configureSerialization
 import no.nav.amt.deltaker.application.plugins.objectMapper
+import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.PameldingService
 import no.nav.amt.deltaker.deltaker.api.model.AvbrytUtkastRequest
 import no.nav.amt.deltaker.deltaker.api.model.OpprettKladdRequest
@@ -25,6 +26,7 @@ import no.nav.amt.deltaker.deltaker.api.model.toDeltakerEndringResponse
 import no.nav.amt.deltaker.deltaker.api.model.toKladdResponse
 import no.nav.amt.deltaker.deltaker.api.utils.noBodyRequest
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
+import no.nav.amt.deltaker.deltaker.model.DeltakerHistorikk
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.deltaker.model.Innhold
 import no.nav.amt.deltaker.utils.configureEnvForAuthentication
@@ -35,6 +37,7 @@ import java.util.UUID
 
 class PameldingApiTest {
     private val pameldingService = mockk<PameldingService>()
+    private val historikkService: DeltakerHistorikkService = mockk()
 
     @Before
     fun setup() {
@@ -81,13 +84,17 @@ class PameldingApiTest {
     @Test
     fun `post pamelding utkast - har tilgang - returnerer 200`() = testApplication {
         val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING))
+        val historikk: List<DeltakerHistorikk> = listOf(DeltakerHistorikk.Vedtak(TestData.lagVedtak(deltakerVedVedtak = deltaker)))
+
+        coEvery { historikkService.getForDeltaker(deltaker.id) } returns historikk
+
         coEvery { pameldingService.upsertUtkast(deltaker.id, any()) } returns deltaker
 
         setUpTestApplication()
 
         client.post("/pamelding/${deltaker.id}") { postRequest(utkastRequest) }.apply {
             status shouldBe HttpStatusCode.OK
-            bodyAsText() shouldBe objectMapper.writeValueAsString(deltaker.toDeltakerEndringResponse(emptyList()))
+            bodyAsText() shouldBe objectMapper.writeValueAsString(deltaker.toDeltakerEndringResponse(historikk))
         }
     }
 
@@ -134,7 +141,7 @@ class PameldingApiTest {
             configureRouting(
                 pameldingService,
                 deltakerService = mockk(),
-                mockk(),
+                historikkService,
                 mockk(),
                 mockk(),
             )

@@ -8,6 +8,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.delete
 import io.ktor.server.routing.post
+import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.PameldingService
 import no.nav.amt.deltaker.deltaker.api.model.AvbrytUtkastRequest
 import no.nav.amt.deltaker.deltaker.api.model.OpprettKladdRequest
@@ -15,7 +16,7 @@ import no.nav.amt.deltaker.deltaker.api.model.UtkastRequest
 import no.nav.amt.deltaker.deltaker.api.model.toDeltakerEndringResponse
 import java.util.UUID
 
-fun Routing.registerPameldingApi(pameldingService: PameldingService) {
+fun Routing.registerPameldingApi(pameldingService: PameldingService, historikkService: DeltakerHistorikkService) {
     authenticate("SYSTEM") {
         post("/pamelding") {
             val request = call.receive<OpprettKladdRequest>()
@@ -33,7 +34,8 @@ fun Routing.registerPameldingApi(pameldingService: PameldingService) {
             val deltakerId = UUID.fromString(call.parameters["deltakerId"])
 
             val deltaker = pameldingService.upsertUtkast(deltakerId, request)
-            call.respond(deltaker.toDeltakerEndringResponse(emptyList()))
+            val historikk = historikkService.getForDeltaker(deltaker.id)
+            call.respond(deltaker.toDeltakerEndringResponse(historikk))
         }
 
         post("/pamelding/{deltakerId}/avbryt") {
