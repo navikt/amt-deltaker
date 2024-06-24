@@ -10,7 +10,6 @@ import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import io.mockk.Runs
 import io.mockk.coEvery
-import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import no.nav.amt.deltaker.Environment
@@ -89,15 +88,13 @@ class PameldingApiTest {
 
         coEvery { historikkService.getForDeltaker(deltaker.id) } returns historikk
 
-        every { historikkService.getForDeltaker(any()) } returns emptyList()
-
         coEvery { pameldingService.upsertUtkast(deltaker.id, any()) } returns deltaker
 
         setUpTestApplication()
 
         client.post("/pamelding/${deltaker.id}") { postRequest(utkastRequest) }.apply {
             status shouldBe HttpStatusCode.OK
-            bodyAsText() shouldBe objectMapper.writeValueAsString(deltaker.toDeltakerEndringResponse(emptyList()))
+            bodyAsText() shouldBe objectMapper.writeValueAsString(deltaker.toDeltakerEndringResponse(historikk))
         }
     }
 
