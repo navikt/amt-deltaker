@@ -237,6 +237,7 @@ class DeltakerServiceTest {
             endretAv = endretAv.navIdent,
             endretAvEnhet = endretAvEnhet.enhetsnummer,
             sluttdato = LocalDate.now().plusMonths(1),
+            begrunnelse = "begrunnelse",
         )
 
         val deltakerrespons = deltakerService.upsertEndretDeltaker(deltaker.id, endringsrequest)

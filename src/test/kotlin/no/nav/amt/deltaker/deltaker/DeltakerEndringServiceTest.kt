@@ -496,6 +496,7 @@ class DeltakerEndringServiceTest {
             endretAv = endretAv.navIdent,
             endretAvEnhet = endretAvEnhet.enhetsnummer,
             sluttdato = LocalDate.now().plusMonths(1),
+            begrunnelse = "begrunnelse",
         )
 
         val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)
@@ -511,6 +512,8 @@ class DeltakerEndringServiceTest {
 
         (endring.endring as DeltakerEndring.Endring.ForlengDeltakelse)
             .sluttdato shouldBe endringsrequest.sluttdato
+        (endring.endring as DeltakerEndring.Endring.ForlengDeltakelse)
+            .begrunnelse shouldBe endringsrequest.begrunnelse
 
         assertProducedHendelse(deltaker.id, HendelseType.ForlengDeltakelse::class)
     }
