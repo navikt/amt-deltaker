@@ -66,7 +66,7 @@ class DeltakerEndringService(
             }
 
             is ForlengDeltakelseRequest -> {
-                val endring = DeltakerEndring.Endring.ForlengDeltakelse(request.sluttdato)
+                val endring = DeltakerEndring.Endring.ForlengDeltakelse(request.sluttdato, request.begrunnelse)
                 Pair(endretDeltaker(deltaker, endring), endring)
             }
 

@@ -51,6 +51,7 @@ data class ForlengDeltakelseRequest(
     override val endretAv: String,
     override val endretAvEnhet: String,
     val sluttdato: LocalDate,
+    val begrunnelse: String?,
 ) : EndringRequest
 
 data class IkkeAktuellRequest(
