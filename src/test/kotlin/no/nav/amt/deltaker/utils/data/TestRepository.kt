@@ -15,6 +15,7 @@ import no.nav.amt.deltaker.navansatt.navenhet.NavEnhet
 import no.nav.amt.deltaker.navbruker.model.NavBruker
 import no.nav.amt.deltaker.utils.data.TestData.lagNavAnsatt
 import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
+import no.nav.amt.lib.models.arrangor.melding.Forslag
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.util.UUID
@@ -25,6 +26,7 @@ object TestRepository {
     fun cleanDatabase() = Database.query { session ->
         val tables = listOf(
             "deltaker_endring",
+            "forslag",
             "vedtak",
             "deltaker_status",
             "deltaker",
@@ -332,8 +334,8 @@ object TestRepository {
     fun insert(deltakerEndring: DeltakerEndring) = Database.query {
         val sql =
             """
-            insert into deltaker_endring (id, deltaker_id, endring, endret_av, endret_av_enhet, modified_at)
-            values (:id, :deltaker_id, :endring, :endret_av, :endret_av_enhet, :endret)
+            insert into deltaker_endring (id, deltaker_id, endring, endret_av, endret_av_enhet, modified_at, forslag_id)
+            values (:id, :deltaker_id, :endring, :endret_av, :endret_av_enhet, :endret, :forslag_id)
             on conflict (id) do nothing;
             """.trimIndent()
 
@@ -344,9 +346,34 @@ object TestRepository {
             "endret_av" to deltakerEndring.endretAv,
             "endret_av_enhet" to deltakerEndring.endretAvEnhet,
             "endret" to deltakerEndring.endret,
+            "forslag_id" to deltakerEndring.forslag?.id,
         )
 
         it.update(queryOf(sql, params))
+    }
+
+    fun insert(forslag: Forslag) = Database.query {
+        val sql =
+            """
+            INSERT INTO forslag(id, deltaker_id, arrangoransatt_id, opprettet, begrunnelse, endring, status)
+            VALUES (:id, :deltaker_id, :arrangoransatt_id, :opprettet, :begrunnelse, :endring, :status)
+            ON CONFLICT (id) DO NOTHING
+            """.trimIndent()
+
+        it.update(
+            queryOf(
+                sql,
+                mapOf(
+                    "id" to forslag.id,
+                    "deltaker_id" to forslag.deltakerId,
+                    "arrangoransatt_id" to forslag.opprettetAvArrangorAnsattId,
+                    "opprettet" to forslag.opprettet,
+                    "begrunnelse" to forslag.begrunnelse,
+                    "endring" to toPGObject(forslag.endring),
+                    "status" to toPGObject(forslag.status),
+                ),
+            ),
+        )
     }
 
     fun <T> insertAll(vararg values: T) {
@@ -360,6 +387,7 @@ object TestRepository {
                 is Deltakerliste -> insert(it)
                 is Deltaker -> insert(it)
                 is Vedtak -> insert(it)
+                is Forslag -> insert(it)
                 is DeltakerEndring -> insert(it)
                 else -> NotImplementedError("insertAll for type ${it!!::class} er ikke implementert")
             }

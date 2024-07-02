@@ -11,7 +11,9 @@ import no.nav.amt.deltaker.deltaker.api.model.ReaktiverDeltakelseRequest
 import no.nav.amt.deltaker.deltaker.api.model.SluttarsakRequest
 import no.nav.amt.deltaker.deltaker.api.model.SluttdatoRequest
 import no.nav.amt.deltaker.deltaker.api.model.StartdatoRequest
+import no.nav.amt.deltaker.deltaker.api.model.getForslagId
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
+import no.nav.amt.deltaker.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.DeltakerEndring
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
@@ -27,6 +29,7 @@ class DeltakerEndringService(
     private val navAnsattService: NavAnsattService,
     private val navEnhetService: NavEnhetService,
     private val hendelseService: HendelseService,
+    private val forslagService: ForslagService,
 ) {
     fun getForDeltaker(deltakerId: UUID) = repository.getForDeltaker(deltakerId)
 
@@ -89,6 +92,14 @@ class DeltakerEndringService(
         endretDeltaker.onSuccess {
             val ansatt = navAnsattService.hentEllerOpprettNavAnsatt(request.endretAv)
             val enhet = navEnhetService.hentEllerOpprettNavEnhet(request.endretAvEnhet)
+            val godkjentForslag = request.getForslagId()?.let { forslagId ->
+                forslagService.godkjennForslag(
+                    forslagId = forslagId,
+                    godkjentAvAnsattId = ansatt.id,
+                    godkjentAvEnhetId = enhet.id,
+                )
+            }
+
             val deltakerEndring = DeltakerEndring(
                 id = UUID.randomUUID(),
                 deltakerId = deltaker.id,
@@ -96,6 +107,7 @@ class DeltakerEndringService(
                 endretAv = ansatt.id,
                 endretAvEnhet = enhet.id,
                 endret = LocalDateTime.now(),
+                forslag = godkjentForslag,
             )
 
             repository.upsert(deltakerEndring)

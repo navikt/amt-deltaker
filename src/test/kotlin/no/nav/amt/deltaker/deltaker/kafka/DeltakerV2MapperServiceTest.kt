@@ -5,6 +5,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
+import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.model.DeltakerHistorikk
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.deltaker.sammenlignHistorikk
@@ -18,10 +19,12 @@ import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.utils.mockAmtPersonClient
 import no.nav.amt.deltaker.utils.shouldBeCloseTo
+import no.nav.amt.lib.models.arrangor.melding.Forslag
 import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test
 import java.time.LocalDateTime
+import java.util.UUID
 
 class DeltakerV2MapperServiceTest {
     companion object {
@@ -30,6 +33,7 @@ class DeltakerV2MapperServiceTest {
         private val deltakerHistorikkService = DeltakerHistorikkService(
             DeltakerEndringRepository(),
             VedtakRepository(),
+            ForslagRepository(),
         )
         private val deltakerV2MapperService = DeltakerV2MapperService(navAnsattService, navEnhetService, deltakerHistorikkService)
 
@@ -133,6 +137,14 @@ class DeltakerV2MapperServiceTest {
             endret = LocalDateTime.now().minusDays(1),
         )
         TestRepository.insert(endring)
+        val forslag = TestData.lagForslag(
+            deltakerId = deltaker.id,
+            status = Forslag.Status.Tilbakekalt(
+                tilbakekaltAvArrangorAnsattId = UUID.randomUUID(),
+                tilbakekalt = LocalDateTime.now(),
+            ),
+        )
+        TestRepository.insert(forslag)
 
         val deltakerV2Dto = deltakerV2MapperService.tilDeltakerV2Dto(deltaker)
 
@@ -152,9 +164,10 @@ class DeltakerV2MapperServiceTest {
         deltakerV2Dto.deltarPaKurs shouldBe deltaker.deltarPaKurs()
         deltakerV2Dto.kilde shouldBe DeltakerV2Dto.Kilde.KOMET
         deltakerV2Dto.innhold shouldBe DeltakerV2Dto.DeltakelsesInnhold("Beskrivelse av tilaket", emptyList())
-        deltakerV2Dto.historikk?.size shouldBe 2
-        sammenlignHistorikk(deltakerV2Dto.historikk?.get(0)!!, DeltakerHistorikk.Endring(endring))
-        sammenlignHistorikk(deltakerV2Dto.historikk?.get(1)!!, DeltakerHistorikk.Vedtak(vedtak))
+        deltakerV2Dto.historikk?.size shouldBe 3
+        sammenlignHistorikk(deltakerV2Dto.historikk?.get(0)!!, DeltakerHistorikk.Forslag(forslag))
+        sammenlignHistorikk(deltakerV2Dto.historikk?.get(1)!!, DeltakerHistorikk.Endring(endring))
+        sammenlignHistorikk(deltakerV2Dto.historikk?.get(2)!!, DeltakerHistorikk.Vedtak(vedtak))
         deltakerV2Dto.sistEndret shouldBeCloseTo deltaker.sistEndret
         deltakerV2Dto.sistEndretAv shouldBe veileder.id
         deltakerV2Dto.sistEndretAvEnhet shouldBe brukersEnhet.id

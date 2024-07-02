@@ -16,6 +16,9 @@ import no.nav.amt.deltaker.deltaker.api.model.SluttdatoRequest
 import no.nav.amt.deltaker.deltaker.api.model.StartdatoRequest
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
+import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
+import no.nav.amt.deltaker.deltaker.forslag.ForslagService
+import no.nav.amt.deltaker.deltaker.forslag.kafka.ArrangorMeldingProducer
 import no.nav.amt.deltaker.deltaker.model.DeltakerEndring
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.deltaker.model.Innhold
@@ -24,6 +27,7 @@ import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.hendelse.model.HendelseType
 import no.nav.amt.deltaker.kafka.config.LocalKafkaConfig
 import no.nav.amt.deltaker.kafka.utils.SingletonKafkaProvider
+import no.nav.amt.deltaker.kafka.utils.assertProducedForslag
 import no.nav.amt.deltaker.kafka.utils.assertProducedHendelse
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
@@ -34,17 +38,20 @@ import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.utils.mockAmtArrangorClient
 import no.nav.amt.deltaker.utils.mockAmtPersonClient
+import no.nav.amt.lib.models.arrangor.melding.Forslag
 import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 class DeltakerEndringServiceTest {
     private val amtPersonClient = mockAmtPersonClient()
     private val navAnsattService = NavAnsattService(NavAnsattRepository(), amtPersonClient)
     private val navEnhetService = NavEnhetService(NavEnhetRepository(), amtPersonClient)
     private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
-    private val deltakerHistorikkService = DeltakerHistorikkService(DeltakerEndringRepository(), VedtakRepository())
+    private val forslagRepository = ForslagRepository()
+    private val deltakerHistorikkService = DeltakerHistorikkService(DeltakerEndringRepository(), VedtakRepository(), forslagRepository)
     private val hendelseService = HendelseService(
         HendelseProducer(LocalKafkaConfig(SingletonKafkaProvider.getHost())),
         navAnsattService,
@@ -52,12 +59,17 @@ class DeltakerEndringServiceTest {
         arrangorService,
         deltakerHistorikkService,
     )
+    private val forslagService = ForslagService(
+        forslagRepository,
+        ArrangorMeldingProducer(LocalKafkaConfig(SingletonKafkaProvider.getHost())),
+    )
 
     private val deltakerEndringService = DeltakerEndringService(
         repository = DeltakerEndringRepository(),
         navAnsattService = navAnsattService,
         navEnhetService = navEnhetService,
         hendelseService = hendelseService,
+        forslagService = forslagService,
     )
 
     companion object {
@@ -489,14 +501,16 @@ class DeltakerEndringServiceTest {
         val deltaker = TestData.lagDeltaker()
         val endretAv = TestData.lagNavAnsatt()
         val endretAvEnhet = TestData.lagNavEnhet()
+        val forslag = TestData.lagForslag(deltakerId = deltaker.id)
 
-        TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
+        TestRepository.insertAll(deltaker, endretAv, endretAvEnhet, forslag)
 
         val endringsrequest = ForlengDeltakelseRequest(
             endretAv = endretAv.navIdent,
             endretAvEnhet = endretAvEnhet.enhetsnummer,
             sluttdato = LocalDate.now().plusMonths(1),
             begrunnelse = "begrunnelse",
+            forslagId = forslag.id,
         )
 
         val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)
@@ -515,7 +529,21 @@ class DeltakerEndringServiceTest {
         (endring.endring as DeltakerEndring.Endring.ForlengDeltakelse)
             .begrunnelse shouldBe endringsrequest.begrunnelse
 
+        val forslagFraDb = forslagService.get(forslag.id).getOrThrow()
+        (forslagFraDb.status as Forslag.Status.Godkjent).godkjentAv shouldBe Forslag.NavAnsatt(endretAv.id, endretAvEnhet.id)
+
         assertProducedHendelse(deltaker.id, HendelseType.ForlengDeltakelse::class)
+        assertProducedForslag(
+            forslag.copy(
+                status = Forslag.Status.Godkjent(
+                    godkjentAv = Forslag.NavAnsatt(
+                        id = endretAv.id,
+                        enhetId = endretAvEnhet.id,
+                    ),
+                    godkjent = LocalDateTime.now(),
+                ),
+            ),
+        )
     }
 
     @Test

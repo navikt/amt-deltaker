@@ -4,22 +4,27 @@ import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.db.sammenlignDeltakereVedVedtak
+import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.model.DeltakerHistorikk
+import no.nav.amt.deltaker.kafka.utils.sammenlignForslagStatus
 import no.nav.amt.deltaker.utils.SingletonPostgresContainer
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.utils.shouldBeCloseTo
+import no.nav.amt.lib.models.arrangor.melding.Forslag
 import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.UUID
 
 class DeltakerHistorikkServiceTest {
     companion object {
         private val service = DeltakerHistorikkService(
             DeltakerEndringRepository(),
             VedtakRepository(),
+            ForslagRepository(),
         )
 
         @BeforeClass
@@ -35,7 +40,7 @@ class DeltakerHistorikkServiceTest {
     }
 
     @Test
-    fun `getForDeltaker - ett vedtak flere endringer - returner liste riktig sortert`() {
+    fun `getForDeltaker - ett vedtak flere endringer og forslag - returner liste riktig sortert`() {
         val navAnsatt = TestData.lagNavAnsatt()
         TestRepository.insert(navAnsatt)
         val navEnhet = TestData.lagNavEnhet()
@@ -61,6 +66,14 @@ class DeltakerHistorikkServiceTest {
             endretAvEnhet = navEnhet.id,
             endret = LocalDateTime.now().minusDays(20),
         )
+        val forslag = TestData.lagForslag(
+            deltakerId = deltaker.id,
+            status = Forslag.Status.Tilbakekalt(
+                tilbakekaltAvArrangorAnsattId = UUID.randomUUID(),
+                tilbakekalt = LocalDateTime.now().minusDays(15),
+            ),
+        )
+        val forslagVenter = TestData.lagForslag(deltakerId = deltaker.id)
         val nyEndring = TestData.lagDeltakerEndring(
             deltakerId = deltaker.id,
             endretAv = navAnsatt.id,
@@ -72,14 +85,17 @@ class DeltakerHistorikkServiceTest {
         TestRepository.insert(ikkeFattetVedtak)
         TestRepository.insert(gammelEndring)
         TestRepository.insert(nyEndring)
+        TestRepository.insert(forslag)
+        TestRepository.insert(forslagVenter)
 
         val historikk = service.getForDeltaker(deltaker.id)
 
-        historikk.size shouldBe 4
+        historikk.size shouldBe 5
         sammenlignHistorikk(historikk[0], DeltakerHistorikk.Endring(nyEndring))
         sammenlignHistorikk(historikk[1], DeltakerHistorikk.Vedtak(ikkeFattetVedtak))
-        sammenlignHistorikk(historikk[2], DeltakerHistorikk.Endring(gammelEndring))
-        sammenlignHistorikk(historikk[3], DeltakerHistorikk.Vedtak(vedtak))
+        sammenlignHistorikk(historikk[2], DeltakerHistorikk.Forslag(forslag))
+        sammenlignHistorikk(historikk[3], DeltakerHistorikk.Endring(gammelEndring))
+        sammenlignHistorikk(historikk[4], DeltakerHistorikk.Vedtak(vedtak))
     }
 
     @Test
@@ -138,6 +154,17 @@ fun sammenlignHistorikk(a: DeltakerHistorikk, b: DeltakerHistorikk) {
             a.vedtak.opprettetAv shouldBe b.vedtak.opprettetAv
             a.vedtak.opprettetAvEnhet shouldBe b.vedtak.opprettetAvEnhet
             a.vedtak.opprettet shouldBeCloseTo b.vedtak.opprettet
+        }
+
+        is DeltakerHistorikk.Forslag -> {
+            b as DeltakerHistorikk.Forslag
+            a.forslag.id shouldBe b.forslag.id
+            a.forslag.deltakerId shouldBe b.forslag.deltakerId
+            a.forslag.opprettet shouldBeCloseTo b.forslag.opprettet
+            a.forslag.begrunnelse shouldBe b.forslag.begrunnelse
+            a.forslag.opprettetAvArrangorAnsattId shouldBe b.forslag.opprettetAvArrangorAnsattId
+            a.forslag.endring shouldBe b.forslag.endring
+            sammenlignForslagStatus(a.forslag.status, b.forslag.status)
         }
     }
 }

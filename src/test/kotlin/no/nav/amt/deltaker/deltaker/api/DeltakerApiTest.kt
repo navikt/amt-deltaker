@@ -252,6 +252,7 @@ class DeltakerApiTest {
                     TestData.randomEnhetsnummer(),
                     endring.sluttdato,
                     endring.begrunnelse,
+                    null,
                 ),
             )
         }.apply {

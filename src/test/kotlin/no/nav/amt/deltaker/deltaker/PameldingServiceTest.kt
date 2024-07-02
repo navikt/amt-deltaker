@@ -11,6 +11,8 @@ import no.nav.amt.deltaker.deltaker.api.model.UtkastRequest
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
+import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
+import no.nav.amt.deltaker.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.deltaker.model.Innhold
 import no.nav.amt.deltaker.deltaker.model.Innsatsgruppe
@@ -46,7 +48,8 @@ class PameldingServiceTest {
         private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonClient())
         private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonClient())
         private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
-        private val deltakerHistorikkService = DeltakerHistorikkService(DeltakerEndringRepository(), VedtakRepository())
+        private val forslagRepository = ForslagRepository()
+        private val deltakerHistorikkService = DeltakerHistorikkService(DeltakerEndringRepository(), VedtakRepository(), forslagRepository)
         private val hendelseService = HendelseService(
             HendelseProducer(LocalKafkaConfig(SingletonKafkaProvider.getHost())),
             navAnsattService,
@@ -57,6 +60,7 @@ class PameldingServiceTest {
 
         private val vedtakRepository = VedtakRepository()
         private val vedtakService = VedtakService(vedtakRepository, hendelseService)
+        private val forslagService = ForslagService(forslagRepository, mockk())
 
         private val deltakerService = DeltakerService(
             deltakerRepository = DeltakerRepository(),
@@ -66,6 +70,7 @@ class PameldingServiceTest {
                 navAnsattService,
                 navEnhetService,
                 hendelseService,
+                forslagService,
             ),
             vedtakService = vedtakService,
             hendelseService = hendelseService,

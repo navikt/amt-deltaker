@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.deltaker.api.model
 import no.nav.amt.deltaker.deltaker.model.DeltakerEndring
 import no.nav.amt.deltaker.deltaker.model.Innhold
 import java.time.LocalDate
+import java.util.UUID
 
 sealed interface EndringRequest {
     val endretAv: String
@@ -52,6 +53,7 @@ data class ForlengDeltakelseRequest(
     override val endretAvEnhet: String,
     val sluttdato: LocalDate,
     val begrunnelse: String?,
+    val forslagId: UUID?,
 ) : EndringRequest
 
 data class IkkeAktuellRequest(
@@ -71,3 +73,10 @@ data class ReaktiverDeltakelseRequest(
     override val endretAv: String,
     override val endretAvEnhet: String,
 ) : EndringRequest
+
+fun EndringRequest.getForslagId(): UUID? {
+    return when (this) {
+        is ForlengDeltakelseRequest -> this.forslagId
+        else -> null
+    }
+}

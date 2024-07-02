@@ -37,6 +37,7 @@ val postgresVersion = "42.7.3"
 val caffeineVersion = "3.1.8"
 val mockkVersion = "1.13.11"
 val nimbusVersion = "9.40"
+val amtLibVersion = "1.2024.07.02_04.39-4f9ef4c3140f"
 
 dependencies {
     implementation("io.ktor:ktor-server-content-negotiation-jvm")
@@ -63,6 +64,8 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:$logbackVersion")
     implementation("net.logstash.logback:logstash-logback-encoder:$logstashEncoderVersion")
     implementation("no.nav.common:log:$commonVersion")
+
+    implementation("no.nav.amt.lib:models:$amtLibVersion")
 
     implementation("no.nav.poao-tilgang:client:$poaoTilgangVersion")
 

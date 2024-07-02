@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.job
 
 import io.kotest.matchers.shouldBe
+import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
@@ -11,6 +12,8 @@ import no.nav.amt.deltaker.deltaker.VedtakService
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
+import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
+import no.nav.amt.deltaker.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerV2MapperService
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
@@ -44,7 +47,8 @@ class DeltakerStatusOppdateringServiceTest {
         private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonClient())
         private val deltakerEndringRepository = DeltakerEndringRepository()
         private val vedtakRepository = VedtakRepository()
-        private val deltakerHistorikkService = DeltakerHistorikkService(deltakerEndringRepository, vedtakRepository)
+        private val forslagRepository = ForslagRepository()
+        private val deltakerHistorikkService = DeltakerHistorikkService(deltakerEndringRepository, vedtakRepository, forslagRepository)
         private val deltakerV2MapperService = DeltakerV2MapperService(navAnsattService, navEnhetService, deltakerHistorikkService)
         private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
         private val hendelseService = HendelseService(
@@ -54,12 +58,14 @@ class DeltakerStatusOppdateringServiceTest {
             arrangorService,
             deltakerHistorikkService,
         )
+        private val forslagService = ForslagService(forslagRepository, mockk())
 
         private val deltakerEndringService = DeltakerEndringService(
             repository = deltakerEndringRepository,
             navAnsattService = navAnsattService,
             navEnhetService = navEnhetService,
             hendelseService = hendelseService,
+            forslagService = forslagService,
         )
         private val vedtakService = VedtakService(vedtakRepository, hendelseService)
 
