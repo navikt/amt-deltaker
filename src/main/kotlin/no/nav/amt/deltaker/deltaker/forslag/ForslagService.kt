@@ -35,8 +35,8 @@ class ForslagService(
                 godkjent = LocalDateTime.now(),
             ),
         )
-        arrangorMeldingProducer.produce(godkjentForslag)
         upsert(godkjentForslag)
+        arrangorMeldingProducer.produce(godkjentForslag)
         log.info("Godkjent forslag for deltaker ${opprinneligForslag.deltakerId}")
         return godkjentForslag
     }
