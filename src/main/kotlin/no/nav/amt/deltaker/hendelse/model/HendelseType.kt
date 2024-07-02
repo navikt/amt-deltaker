@@ -70,7 +70,8 @@ sealed interface HendelseType {
 
     data class ForlengDeltakelse(
         val sluttdato: LocalDate,
-        val begrunnelse: String?,
+        val begrunnelseFraNav: String?,
+        val begrunnelseFraArrangor: String?,
     ) : HendelseType
 
     data class IkkeAktuell(
@@ -143,8 +144,9 @@ fun DeltakerEndring.toHendelseEndring(utkast: UtkastDto? = null) = when (endring
     )
 
     is DeltakerEndring.Endring.ForlengDeltakelse -> HendelseType.ForlengDeltakelse(
-        endring.sluttdato,
-        endring.begrunnelse,
+        sluttdato = endring.sluttdato,
+        begrunnelseFraNav = endring.begrunnelse,
+        begrunnelseFraArrangor = this.forslag?.begrunnelse,
     )
 
     is DeltakerEndring.Endring.IkkeAktuell -> HendelseType.IkkeAktuell(
