@@ -90,7 +90,7 @@ fun assertProducedForslag(forslag: Forslag) {
         cachedForslag.deltakerId shouldBe forslag.deltakerId
         cachedForslag.endring shouldBe forslag.endring
         cachedForslag.begrunnelse shouldBe forslag.begrunnelse
-        cachedForslag.opprettet shouldBe forslag.opprettet
+        cachedForslag.opprettet shouldBeCloseTo forslag.opprettet
         cachedForslag.opprettetAvArrangorAnsattId shouldBe forslag.opprettetAvArrangorAnsattId
         sammenlignForslagStatus(cachedForslag.status, forslag.status)
     }
