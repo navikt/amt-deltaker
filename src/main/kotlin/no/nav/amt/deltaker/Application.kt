@@ -32,6 +32,10 @@ import no.nav.amt.deltaker.deltaker.api.model.DeltakelserResponseMapper
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
+import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
+import no.nav.amt.deltaker.deltaker.forslag.ForslagService
+import no.nav.amt.deltaker.deltaker.forslag.kafka.ArrangorMeldingConsumer
+import no.nav.amt.deltaker.deltaker.forslag.kafka.ArrangorMeldingProducer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerV2MapperService
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
@@ -116,6 +120,7 @@ fun Application.module() {
     val deltakerRepository = DeltakerRepository()
     val deltakerEndringRepository = DeltakerEndringRepository()
     val vedtakRepository = VedtakRepository()
+    val forslagRepository = ForslagRepository()
 
     val poaoTilgangCachedClient = PoaoTilgangCachedClient.createDefaultCacheClient(
         PoaoTilgangHttpClient(
@@ -136,13 +141,16 @@ fun Application.module() {
 
     val arrangorService = ArrangorService(arrangorRepository, amtArrangorClient)
 
-    val deltakerHistorikkService = DeltakerHistorikkService(deltakerEndringRepository, vedtakRepository)
+    val forslagService = ForslagService(forslagRepository, ArrangorMeldingProducer())
+
+    val deltakerHistorikkService = DeltakerHistorikkService(deltakerEndringRepository, vedtakRepository, forslagRepository)
 
     val hendelseProducer = HendelseProducer()
     val hendelseService = HendelseService(hendelseProducer, navAnsattService, navEnhetService, arrangorService, deltakerHistorikkService)
 
     val deltakerV2MapperService = DeltakerV2MapperService(navAnsattService, navEnhetService, deltakerHistorikkService)
-    val deltakerEndringService = DeltakerEndringService(deltakerEndringRepository, navAnsattService, navEnhetService, hendelseService)
+    val deltakerEndringService =
+        DeltakerEndringService(deltakerEndringRepository, navAnsattService, navEnhetService, hendelseService, forslagService)
     val deltakelserResponseMapper = DeltakelserResponseMapper(deltakerHistorikkService, arrangorService)
 
     val deltakerProducer = DeltakerProducer(deltakerV2MapperService = deltakerV2MapperService)
@@ -172,6 +180,7 @@ fun Application.module() {
         NavBrukerConsumer(navBrukerRepository, navEnhetService, deltakerService),
         TiltakstypeConsumer(tiltakstypeRepository),
         DeltakerlisteConsumer(deltakerlisteRepository, tiltakstypeRepository, arrangorService, deltakerStatusOppdateringService),
+        ArrangorMeldingConsumer(forslagService),
     )
     consumers.forEach { it.run() }
 

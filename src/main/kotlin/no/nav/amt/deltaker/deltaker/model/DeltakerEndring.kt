@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.deltaker.model
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import no.nav.amt.lib.models.arrangor.melding.Forslag
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -13,6 +14,7 @@ data class DeltakerEndring(
     val endretAv: UUID,
     val endretAvEnhet: UUID,
     val endret: LocalDateTime,
+    val forslag: Forslag?,
 ) {
     data class Aarsak(
         val type: Type,

@@ -11,6 +11,9 @@ import no.nav.amt.deltaker.deltaker.api.model.ForlengDeltakelseRequest
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
+import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
+import no.nav.amt.deltaker.deltaker.forslag.ForslagService
+import no.nav.amt.deltaker.deltaker.forslag.kafka.ArrangorMeldingProducer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerV2MapperService
 import no.nav.amt.deltaker.deltaker.model.DeltakerEndring
@@ -48,8 +51,9 @@ class DeltakerServiceTest {
         private val deltakerRepository = DeltakerRepository()
         private val deltakerEndringRepository = DeltakerEndringRepository()
         private val vedtakRepository = VedtakRepository()
+        private val forslagRepository = ForslagRepository()
         private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
-        private val deltakerHistorikkService = DeltakerHistorikkService(deltakerEndringRepository, vedtakRepository)
+        private val deltakerHistorikkService = DeltakerHistorikkService(deltakerEndringRepository, vedtakRepository, forslagRepository)
         private val hendelseService = HendelseService(
             HendelseProducer(LocalKafkaConfig(SingletonKafkaProvider.getHost())),
             navAnsattService,
@@ -57,11 +61,15 @@ class DeltakerServiceTest {
             arrangorService,
             deltakerHistorikkService,
         )
+        private val forslagService = ForslagService(
+            forslagRepository,
+            ArrangorMeldingProducer(LocalKafkaConfig(SingletonKafkaProvider.getHost())),
+        )
         private val vedtakService = VedtakService(vedtakRepository, hendelseService)
         private val deltakerV2MapperService =
             DeltakerV2MapperService(navAnsattService, navEnhetService, deltakerHistorikkService)
         private val deltakerEndringService =
-            DeltakerEndringService(deltakerEndringRepository, navAnsattService, navEnhetService, hendelseService)
+            DeltakerEndringService(deltakerEndringRepository, navAnsattService, navEnhetService, hendelseService, forslagService)
 
         private val deltakerService = DeltakerService(
             deltakerRepository = deltakerRepository,
@@ -238,6 +246,7 @@ class DeltakerServiceTest {
             endretAvEnhet = endretAvEnhet.enhetsnummer,
             sluttdato = LocalDate.now().plusMonths(1),
             begrunnelse = "begrunnelse",
+            forslagId = null,
         )
 
         val deltakerrespons = deltakerService.upsertEndretDeltaker(deltaker.id, endringsrequest)

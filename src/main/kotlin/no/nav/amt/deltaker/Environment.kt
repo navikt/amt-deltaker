@@ -44,6 +44,7 @@ data class Environment(
         const val TILTAKSTYPE_TOPIC = "team-mulighetsrommet.siste-tiltakstyper-v2"
         const val DELTAKER_V2_TOPIC = "amt.deltaker-v2"
         const val DELTAKER_HENDELSE_TOPIC = "amt.deltaker-hendelse-v1"
+        const val ARRANGOR_MELDING_TOPIC = "amt.arrangor-melding-v1"
 
         const val AMT_PERSONSERVICE_URL_KEY = "AMT_PERSONSERVICE_URL"
         const val AMT_PERSONSERVICE_SCOPE_KEY = "AMT_PERSONSERVICE_SCOPE"
