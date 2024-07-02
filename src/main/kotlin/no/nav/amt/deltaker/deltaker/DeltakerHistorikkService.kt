@@ -4,9 +4,7 @@ import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.model.DeltakerHistorikk
-import no.nav.amt.deltaker.deltaker.model.getSistEndret
 import no.nav.amt.deltaker.deltaker.model.skalInkluderesIHistorikk
-import no.nav.amt.lib.models.arrangor.melding.Forslag
 import java.time.LocalDate
 import java.util.UUID
 
@@ -27,7 +25,7 @@ class DeltakerHistorikkService(
                 when (it) {
                     is DeltakerHistorikk.Endring -> it.endring.endret
                     is DeltakerHistorikk.Vedtak -> it.vedtak.sistEndret
-                    is DeltakerHistorikk.Forslag -> it.forslag.getSistEndret()
+                    is DeltakerHistorikk.Forslag -> it.forslag.sistEndret
                 }
             }
 
