@@ -37,6 +37,6 @@ data class DeltakerVedVedtak(
     val dagerPerUke: Float?,
     val deltakelsesprosent: Float?,
     val bakgrunnsinformasjon: String?,
-    val innhold: List<Innhold>,
+    val deltakelsesinnhold: Deltakelsesinnhold?,
     val status: DeltakerStatus,
 )

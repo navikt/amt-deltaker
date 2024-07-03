@@ -162,7 +162,8 @@ fun sammenlignDeltakereVedVedtak(a: DeltakerVedVedtak, b: DeltakerVedVedtak) {
     a.dagerPerUke shouldBe b.dagerPerUke
     a.deltakelsesprosent shouldBe b.deltakelsesprosent
     a.bakgrunnsinformasjon shouldBe b.bakgrunnsinformasjon
-    a.innhold shouldBe b.innhold
+    a.deltakelsesinnhold?.ledetekst shouldBe b.deltakelsesinnhold?.ledetekst
+    a.deltakelsesinnhold?.innhold shouldBe b.deltakelsesinnhold?.innhold
     a.status.id shouldBe b.status.id
     a.status.type shouldBe b.status.type
     a.status.aarsak shouldBe b.status.aarsak

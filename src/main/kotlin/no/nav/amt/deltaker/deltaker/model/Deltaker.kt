@@ -35,7 +35,9 @@ data class Deltaker(
         dagerPerUke = dagerPerUke,
         deltakelsesprosent = deltakelsesprosent,
         bakgrunnsinformasjon = bakgrunnsinformasjon,
-        innhold = innhold,
+        deltakelsesinnhold = deltakerliste.tiltakstype.innhold?.let {
+            Deltakelsesinnhold(it.ledetekst, innhold)
+        },
         status = status,
     )
 

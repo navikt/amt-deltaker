@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.deltaker.kafka
 
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
+import no.nav.amt.deltaker.deltaker.model.Deltakelsesinnhold
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.DeltakerHistorikk
 import no.nav.amt.deltaker.navansatt.NavAnsattService
@@ -59,7 +60,7 @@ class DeltakerV2MapperService(
             deltarPaKurs = deltaker.deltarPaKurs(),
             kilde = DeltakerV2Dto.Kilde.KOMET,
             innhold = deltaker.deltakerliste.tiltakstype.innhold?.let {
-                DeltakerV2Dto.DeltakelsesInnhold(it.ledetekst, deltaker.innhold)
+                Deltakelsesinnhold(it.ledetekst, deltaker.innhold)
             },
             historikk = deltakerhistorikk,
             sistEndret = deltaker.sistEndret,
