@@ -14,7 +14,7 @@ class DeltakerV2MapperService(
     private val navEnhetService: NavEnhetService,
     private val deltakerHistorikkService: DeltakerHistorikkService,
 ) {
-    suspend fun tilDeltakerV2Dto(deltaker: Deltaker): DeltakerV2Dto {
+    suspend fun tilDeltakerV2Dto(deltaker: Deltaker, forcedUpdate: Boolean? = false): DeltakerV2Dto {
         val deltakerhistorikk = deltakerHistorikkService.getForDeltaker(deltaker.id)
 
         val sisteEndring = getSisteEndring(deltakerhistorikk)
@@ -66,6 +66,7 @@ class DeltakerV2MapperService(
             sistEndret = deltaker.sistEndret,
             sistEndretAv = getSistEndretAv(sisteEndring),
             sistEndretAvEnhet = getSistEndretAvEnhet(sisteEndring),
+            forcedUpdate = forcedUpdate,
         )
     }
 
