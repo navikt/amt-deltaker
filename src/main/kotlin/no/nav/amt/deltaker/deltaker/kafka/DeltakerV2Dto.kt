@@ -31,6 +31,7 @@ data class DeltakerV2Dto(
     val sistEndretAv: UUID?,
     val sistEndretAvEnhet: UUID?,
     val sistEndret: LocalDateTime?,
+    val forcedUpdate: Boolean? = false,
 ) {
     enum class Kilde {
         KOMET,
