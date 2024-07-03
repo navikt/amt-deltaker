@@ -1,8 +1,8 @@
 package no.nav.amt.deltaker.deltaker.kafka
 
+import no.nav.amt.deltaker.deltaker.model.Deltakelsesinnhold
 import no.nav.amt.deltaker.deltaker.model.DeltakerHistorikk
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
-import no.nav.amt.deltaker.deltaker.model.Innhold
 import no.nav.amt.deltaker.navansatt.NavAnsatt
 import no.nav.amt.deltaker.navbruker.model.Adresse
 import no.nav.amt.deltaker.navbruker.model.Adressebeskyttelse
@@ -26,7 +26,7 @@ data class DeltakerV2Dto(
     val navVeileder: DeltakerNavVeilederDto?,
     val deltarPaKurs: Boolean,
     val kilde: Kilde?,
-    val innhold: DeltakelsesInnhold?,
+    val innhold: Deltakelsesinnhold?,
     val historikk: List<DeltakerHistorikk>?,
     val sistEndretAv: UUID?,
     val sistEndretAvEnhet: UUID?,
@@ -72,11 +72,6 @@ data class DeltakerV2Dto(
         val navn: String,
         val epost: String?,
         val telefonnummer: String?,
-    )
-
-    data class DeltakelsesInnhold(
-        val ledetekst: String,
-        val innhold: List<Innhold>,
     )
 }
 
