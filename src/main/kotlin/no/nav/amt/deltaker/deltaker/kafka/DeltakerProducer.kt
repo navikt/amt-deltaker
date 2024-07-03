@@ -17,10 +17,10 @@ class DeltakerProducer(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    suspend fun produce(deltaker: Deltaker) {
+    suspend fun produce(deltaker: Deltaker, forcedUpdate: Boolean? = false) {
         if (deltaker.status.type == DeltakerStatus.Type.KLADD) return
 
-        val deltakerV2Dto = deltakerV2MapperService.tilDeltakerV2Dto(deltaker)
+        val deltakerV2Dto = deltakerV2MapperService.tilDeltakerV2Dto(deltaker, forcedUpdate)
 
         val key = deltaker.id.toString()
         val value = objectMapper.writeValueAsString(deltakerV2Dto)
