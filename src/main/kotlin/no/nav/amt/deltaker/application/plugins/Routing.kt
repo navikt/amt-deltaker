@@ -23,6 +23,7 @@ import no.nav.amt.deltaker.deltaker.api.model.DeltakelserResponseMapper
 import no.nav.amt.deltaker.deltaker.api.registerDeltakerApi
 import no.nav.amt.deltaker.deltaker.api.registerHentDeltakelserApi
 import no.nav.amt.deltaker.deltaker.api.registerPameldingApi
+import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.internal.registerInternalApi
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -33,6 +34,7 @@ fun Application.configureRouting(
     deltakerHistorikkService: DeltakerHistorikkService,
     tilgangskontrollService: TilgangskontrollService,
     deltakelserResponseMapper: DeltakelserResponseMapper,
+    vedtakRepository: VedtakRepository,
 ) {
     install(StatusPages) {
         exception<IllegalArgumentException> { call, cause ->
@@ -62,7 +64,7 @@ fun Application.configureRouting(
         registerPameldingApi(pameldingService, deltakerHistorikkService)
         registerDeltakerApi(deltakerService, deltakerHistorikkService)
         registerHentDeltakelserApi(tilgangskontrollService, deltakerService, deltakelserResponseMapper)
-        registerInternalApi(deltakerService)
+        registerInternalApi(deltakerService, vedtakRepository)
 
         val catchAllRoute = "{...}"
         route(catchAllRoute) {

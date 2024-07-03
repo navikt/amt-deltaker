@@ -191,6 +191,7 @@ fun Application.module() {
         deltakerHistorikkService,
         tilgangskontrollService,
         deltakelserResponseMapper,
+        vedtakRepository,
     )
     configureMonitoring()
 

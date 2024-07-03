@@ -99,4 +99,10 @@ class VedtakRepository {
         )
         it.run(query.map(::rowMapper).asList)
     }
+
+    fun getAll() = Database.query {
+        val query = queryOf("select * from vedtak")
+
+        it.run(query.map(::rowMapper).asList)
+    }
 }
