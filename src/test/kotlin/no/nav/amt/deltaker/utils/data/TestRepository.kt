@@ -10,6 +10,7 @@ import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.deltaker.model.Vedtak
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype
+import no.nav.amt.deltaker.internal.konvertervedtak.VedtakOld
 import no.nav.amt.deltaker.navansatt.NavAnsatt
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhet
 import no.nav.amt.deltaker.navbruker.model.NavBruker
@@ -331,6 +332,34 @@ object TestRepository {
         it.update(queryOf(sql, params))
     }
 
+    fun insert(vedtak: VedtakOld) = Database.query {
+        val sql =
+            """
+            insert into vedtak(id, deltaker_id, fattet, gyldig_til, deltaker_ved_vedtak, fattet_av_nav, opprettet_av,
+              opprettet_av_enhet, sist_endret_av, sist_endret_av_enhet, modified_at, created_at) 
+            values (:id, :deltaker_id, :fattet, :gyldig_til, :deltaker_ved_vedtak, :fattet_av_nav, :opprettet_av,
+              :opprettet_av_enhet, :sist_endret_av, :sist_endret_av_enhet, :sist_endret, :created_at) 
+            on conflict (id) do nothing;
+            """.trimIndent()
+
+        val params = mapOf(
+            "id" to vedtak.id,
+            "deltaker_id" to vedtak.deltakerId,
+            "fattet" to vedtak.fattet,
+            "gyldig_til" to vedtak.gyldigTil,
+            "deltaker_ved_vedtak" to toPGObject(vedtak.deltakerVedVedtak),
+            "fattet_av_nav" to vedtak.fattetAvNav,
+            "opprettet_av" to vedtak.opprettetAv,
+            "opprettet_av_enhet" to vedtak.opprettetAvEnhet,
+            "sist_endret_av" to vedtak.sistEndretAv,
+            "sist_endret_av_enhet" to vedtak.sistEndretAvEnhet,
+            "sist_endret" to vedtak.sistEndret,
+            "created_at" to vedtak.opprettet,
+        )
+
+        it.update(queryOf(sql, params))
+    }
+
     fun insert(deltakerEndring: DeltakerEndring) = Database.query {
         val sql =
             """
@@ -387,6 +416,7 @@ object TestRepository {
                 is Deltakerliste -> insert(it)
                 is Deltaker -> insert(it)
                 is Vedtak -> insert(it)
+                is VedtakOld -> insert(it)
                 is Forslag -> insert(it)
                 is DeltakerEndring -> insert(it)
                 else -> NotImplementedError("insertAll for type ${it!!::class} er ikke implementert")

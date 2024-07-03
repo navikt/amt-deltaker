@@ -44,6 +44,8 @@ import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.kafka.TiltakstypeConsumer
 import no.nav.amt.deltaker.hendelse.HendelseProducer
 import no.nav.amt.deltaker.hendelse.HendelseService
+import no.nav.amt.deltaker.internal.konvertervedtak.KonverterVedtakService
+import no.nav.amt.deltaker.internal.konvertervedtak.VedtakOldRepository
 import no.nav.amt.deltaker.job.DeltakerStatusOppdateringService
 import no.nav.amt.deltaker.job.StatusUpdateJob
 import no.nav.amt.deltaker.job.leaderelection.LeaderElection
@@ -174,6 +176,8 @@ fun Application.module() {
 
     val deltakerStatusOppdateringService = DeltakerStatusOppdateringService(deltakerRepository, deltakerService)
 
+    val konverterVedtakService = KonverterVedtakService(VedtakOldRepository(), deltakerService)
+
     val consumers = listOf(
         ArrangorConsumer(arrangorRepository),
         NavAnsattConsumer(navAnsattService),
@@ -191,6 +195,7 @@ fun Application.module() {
         deltakerHistorikkService,
         tilgangskontrollService,
         deltakelserResponseMapper,
+        konverterVedtakService,
     )
     configureMonitoring()
 

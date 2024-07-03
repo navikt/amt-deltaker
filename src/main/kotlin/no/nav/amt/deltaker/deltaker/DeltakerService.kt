@@ -78,6 +78,13 @@ class DeltakerService(
         }
     }
 
+    suspend fun produserDeltaker(deltakerId: UUID) {
+        val deltaker = get(deltakerId).getOrThrow()
+        if (deltaker.status.type != DeltakerStatus.Type.KLADD) {
+            deltakerProducer.produce(deltaker)
+        }
+    }
+
     suspend fun fattVedtak(deltakerId: UUID, vedtakId: UUID): Deltaker {
         val deltaker = get(deltakerId).getOrThrow().let {
             if (it.status.type == DeltakerStatus.Type.UTKAST_TIL_PAMELDING) {
