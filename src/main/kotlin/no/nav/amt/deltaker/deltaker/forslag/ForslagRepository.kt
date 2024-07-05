@@ -117,4 +117,14 @@ class ForslagRepository {
         )
         it.update(query)
     }
+
+    fun kanLagres(deltakerId: UUID) = Database.query {
+        val query = queryOf(
+            """
+            SELECT id FROM deltaker WHERE id = :id
+            """.trimIndent(),
+            mapOf("id" to deltakerId),
+        ).map { row -> row.uuid("id") }.asSingle
+        it.run(query)?.let { true } ?: false
+    }
 }
