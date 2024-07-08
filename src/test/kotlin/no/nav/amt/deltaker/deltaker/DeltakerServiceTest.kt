@@ -61,22 +61,25 @@ class DeltakerServiceTest {
             arrangorService,
             deltakerHistorikkService,
         )
+        private val deltakerV2MapperService =
+            DeltakerV2MapperService(navAnsattService, navEnhetService, deltakerHistorikkService)
+        private val deltakerProducer = DeltakerProducer(
+            LocalKafkaConfig(SingletonKafkaProvider.getHost()),
+            deltakerV2MapperService,
+        )
         private val forslagService = ForslagService(
             forslagRepository,
             ArrangorMeldingProducer(LocalKafkaConfig(SingletonKafkaProvider.getHost())),
+            deltakerRepository,
+            deltakerProducer,
         )
         private val vedtakService = VedtakService(vedtakRepository, hendelseService)
-        private val deltakerV2MapperService =
-            DeltakerV2MapperService(navAnsattService, navEnhetService, deltakerHistorikkService)
         private val deltakerEndringService =
             DeltakerEndringService(deltakerEndringRepository, navAnsattService, navEnhetService, hendelseService, forslagService)
 
         private val deltakerService = DeltakerService(
             deltakerRepository = deltakerRepository,
-            deltakerProducer = DeltakerProducer(
-                LocalKafkaConfig(SingletonKafkaProvider.getHost()),
-                deltakerV2MapperService,
-            ),
+            deltakerProducer = deltakerProducer,
             deltakerEndringService = deltakerEndringService,
             vedtakService = vedtakService,
             hendelseService = hendelseService,

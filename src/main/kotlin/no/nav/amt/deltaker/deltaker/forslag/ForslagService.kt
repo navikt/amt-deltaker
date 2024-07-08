@@ -1,6 +1,8 @@
 package no.nav.amt.deltaker.deltaker.forslag
 
+import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.forslag.kafka.ArrangorMeldingProducer
+import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
@@ -9,6 +11,8 @@ import java.util.UUID
 class ForslagService(
     private val forslagRepository: ForslagRepository,
     private val arrangorMeldingProducer: ArrangorMeldingProducer,
+    private val deltakerRepository: DeltakerRepository,
+    private val deltakerProducer: DeltakerProducer,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -16,13 +20,19 @@ class ForslagService(
 
     fun get(id: UUID) = forslagRepository.get(id)
 
-    fun upsert(forslag: Forslag) = forslagRepository.upsert(forslag)
+    suspend fun upsert(forslag: Forslag) {
+        forslagRepository.upsert(forslag)
+        if (forslag.status is Forslag.Status.Tilbakekalt || forslag.status is Forslag.Status.Avvist) {
+            val deltaker = deltakerRepository.get(forslag.deltakerId).getOrThrow()
+            deltakerProducer.produce(deltaker)
+        }
+    }
 
     fun delete(id: UUID) = forslagRepository.delete(id)
 
     fun kanLagres(deltakerId: UUID) = forslagRepository.kanLagres(deltakerId)
 
-    fun godkjennForslag(
+    suspend fun godkjennForslag(
         forslagId: UUID,
         godkjentAvAnsattId: UUID,
         godkjentAvEnhetId: UUID,

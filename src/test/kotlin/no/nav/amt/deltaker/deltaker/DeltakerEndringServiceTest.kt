@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.deltaker
 
 import io.kotest.matchers.shouldBe
+import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
@@ -15,6 +16,7 @@ import no.nav.amt.deltaker.deltaker.api.model.SluttarsakRequest
 import no.nav.amt.deltaker.deltaker.api.model.SluttdatoRequest
 import no.nav.amt.deltaker.deltaker.api.model.StartdatoRequest
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
+import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagService
@@ -62,6 +64,8 @@ class DeltakerEndringServiceTest {
     private val forslagService = ForslagService(
         forslagRepository,
         ArrangorMeldingProducer(LocalKafkaConfig(SingletonKafkaProvider.getHost())),
+        DeltakerRepository(),
+        mockk(),
     )
 
     private val deltakerEndringService = DeltakerEndringService(
