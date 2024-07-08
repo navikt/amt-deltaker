@@ -49,6 +49,7 @@ class PameldingServiceTest {
         private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonClient())
         private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
         private val forslagRepository = ForslagRepository()
+        private val deltakerRepository = DeltakerRepository()
         private val deltakerHistorikkService = DeltakerHistorikkService(DeltakerEndringRepository(), VedtakRepository(), forslagRepository)
         private val hendelseService = HendelseService(
             HendelseProducer(LocalKafkaConfig(SingletonKafkaProvider.getHost())),
@@ -60,10 +61,10 @@ class PameldingServiceTest {
 
         private val vedtakRepository = VedtakRepository()
         private val vedtakService = VedtakService(vedtakRepository, hendelseService)
-        private val forslagService = ForslagService(forslagRepository, mockk())
+        private val forslagService = ForslagService(forslagRepository, mockk(), deltakerRepository, mockk())
 
         private val deltakerService = DeltakerService(
-            deltakerRepository = DeltakerRepository(),
+            deltakerRepository = deltakerRepository,
             deltakerProducer = mockk(relaxed = true),
             deltakerEndringService = DeltakerEndringService(
                 DeltakerEndringRepository(),

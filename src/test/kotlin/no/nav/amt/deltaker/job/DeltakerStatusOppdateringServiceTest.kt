@@ -39,7 +39,7 @@ import java.time.LocalDateTime
 
 class DeltakerStatusOppdateringServiceTest {
     companion object {
-        lateinit var deltakerRepository: DeltakerRepository
+        private val deltakerRepository: DeltakerRepository = DeltakerRepository()
         lateinit var deltakerStatusOppdateringService: DeltakerStatusOppdateringService
         private lateinit var deltakerService: DeltakerService
 
@@ -50,6 +50,7 @@ class DeltakerStatusOppdateringServiceTest {
         private val forslagRepository = ForslagRepository()
         private val deltakerHistorikkService = DeltakerHistorikkService(deltakerEndringRepository, vedtakRepository, forslagRepository)
         private val deltakerV2MapperService = DeltakerV2MapperService(navAnsattService, navEnhetService, deltakerHistorikkService)
+        private val deltakerProducer = DeltakerProducer(LocalKafkaConfig(SingletonKafkaProvider.getHost()), deltakerV2MapperService)
         private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
         private val hendelseService = HendelseService(
             HendelseProducer(LocalKafkaConfig(SingletonKafkaProvider.getHost())),
@@ -58,7 +59,7 @@ class DeltakerStatusOppdateringServiceTest {
             arrangorService,
             deltakerHistorikkService,
         )
-        private val forslagService = ForslagService(forslagRepository, mockk())
+        private val forslagService = ForslagService(forslagRepository, mockk(), deltakerRepository, deltakerProducer)
 
         private val deltakerEndringService = DeltakerEndringService(
             repository = deltakerEndringRepository,
@@ -73,11 +74,10 @@ class DeltakerStatusOppdateringServiceTest {
         @BeforeClass
         fun setup() {
             SingletonPostgresContainer.start()
-            deltakerRepository = DeltakerRepository()
             deltakerService = DeltakerService(
                 deltakerRepository,
                 deltakerEndringService,
-                DeltakerProducer(LocalKafkaConfig(SingletonKafkaProvider.getHost()), deltakerV2MapperService),
+                deltakerProducer,
                 vedtakService,
                 hendelseService,
             )
