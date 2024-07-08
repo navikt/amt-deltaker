@@ -198,6 +198,8 @@ class DeltakerServiceTest {
             endretAvEnhet = endretAvEnhet.enhetsnummer,
             sluttdato = LocalDate.now().plusWeeks(1),
             aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
+            begrunnelse = null,
+            forslagId = null,
         )
 
         val deltakerrespons = deltakerService.upsertEndretDeltaker(deltaker.id, endringsrequest)

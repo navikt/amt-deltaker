@@ -265,7 +265,10 @@ class DeltakerApiTest {
     fun `post ikke aktuell - har tilgang - returnerer 200`() = testApplication {
         setUpTestApplication()
 
-        val endring = DeltakerEndring.Endring.IkkeAktuell(DeltakerEndring.Aarsak(type = DeltakerEndring.Aarsak.Type.FATT_JOBB, null))
+        val endring = DeltakerEndring.Endring.IkkeAktuell(
+            DeltakerEndring.Aarsak(type = DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
+            "begrunnelse",
+        )
 
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(
@@ -284,6 +287,8 @@ class DeltakerApiTest {
                     TestData.randomIdent(),
                     TestData.randomEnhetsnummer(),
                     endring.aarsak,
+                    endring.begrunnelse,
+                    null,
                 ),
             )
         }.apply {
@@ -299,6 +304,7 @@ class DeltakerApiTest {
         val endring = DeltakerEndring.Endring.AvsluttDeltakelse(
             DeltakerEndring.Aarsak(type = DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
             LocalDate.now(),
+            "begrunnelse",
         )
 
         val deltaker = TestData.lagDeltaker(
@@ -320,6 +326,8 @@ class DeltakerApiTest {
                     TestData.randomEnhetsnummer(),
                     endring.sluttdato,
                     endring.aarsak,
+                    endring.begrunnelse,
+                    null,
                 ),
             )
         }.apply {
