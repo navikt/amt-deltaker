@@ -40,6 +40,7 @@ import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.utils.mockAmtArrangorClient
 import no.nav.amt.deltaker.utils.mockAmtPersonClient
+import no.nav.amt.lib.models.arrangor.melding.EndringAarsak
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import org.junit.Before
 import org.junit.BeforeClass
@@ -555,13 +556,16 @@ class DeltakerEndringServiceTest {
         val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.VENTER_PA_OPPSTART))
         val endretAv = TestData.lagNavAnsatt()
         val endretAvEnhet = TestData.lagNavEnhet()
+        val forslag = TestData.lagForslag(deltakerId = deltaker.id, endring = Forslag.IkkeAktuell(EndringAarsak.FattJobb))
 
-        TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
+        TestRepository.insertAll(deltaker, endretAv, endretAvEnhet, forslag)
 
         val endringsrequest = IkkeAktuellRequest(
             endretAv = endretAv.navIdent,
             endretAvEnhet = endretAvEnhet.enhetsnummer,
             aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
+            begrunnelse = "begrunnelse",
+            forslagId = forslag.id,
         )
 
         val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)
@@ -579,8 +583,24 @@ class DeltakerEndringServiceTest {
 
         (endring.endring as DeltakerEndring.Endring.IkkeAktuell)
             .aarsak shouldBe endringsrequest.aarsak
+        (endring.endring as DeltakerEndring.Endring.IkkeAktuell)
+            .begrunnelse shouldBe endringsrequest.begrunnelse
+
+        val forslagFraDb = forslagService.get(forslag.id).getOrThrow()
+        (forslagFraDb.status as Forslag.Status.Godkjent).godkjentAv shouldBe Forslag.NavAnsatt(endretAv.id, endretAvEnhet.id)
 
         assertProducedHendelse(deltaker.id, HendelseType.IkkeAktuell::class)
+        assertProducedForslag(
+            forslag.copy(
+                status = Forslag.Status.Godkjent(
+                    godkjentAv = Forslag.NavAnsatt(
+                        id = endretAv.id,
+                        enhetId = endretAvEnhet.id,
+                    ),
+                    godkjent = LocalDateTime.now(),
+                ),
+            ),
+        )
     }
 
     @Test
@@ -591,14 +611,20 @@ class DeltakerEndringServiceTest {
         )
         val endretAv = TestData.lagNavAnsatt()
         val endretAvEnhet = TestData.lagNavEnhet()
+        val forslag = TestData.lagForslag(
+            deltakerId = deltaker.id,
+            endring = Forslag.AvsluttDeltakelse(LocalDate.now(), EndringAarsak.FattJobb),
+        )
 
-        TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
+        TestRepository.insertAll(deltaker, endretAv, endretAvEnhet, forslag)
 
         val endringsrequest = AvsluttDeltakelseRequest(
             endretAv = endretAv.navIdent,
             endretAvEnhet = endretAvEnhet.enhetsnummer,
             sluttdato = LocalDate.now(),
             aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
+            begrunnelse = "begrunnelse",
+            forslagId = forslag.id,
         )
 
         val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)
@@ -617,8 +643,24 @@ class DeltakerEndringServiceTest {
             .aarsak shouldBe endringsrequest.aarsak
         (endring.endring as DeltakerEndring.Endring.AvsluttDeltakelse)
             .sluttdato shouldBe endringsrequest.sluttdato
+        (endring.endring as DeltakerEndring.Endring.AvsluttDeltakelse)
+            .begrunnelse shouldBe endringsrequest.begrunnelse
+
+        val forslagFraDb = forslagService.get(forslag.id).getOrThrow()
+        (forslagFraDb.status as Forslag.Status.Godkjent).godkjentAv shouldBe Forslag.NavAnsatt(endretAv.id, endretAvEnhet.id)
 
         assertProducedHendelse(deltaker.id, HendelseType.AvsluttDeltakelse::class)
+        assertProducedForslag(
+            forslag.copy(
+                status = Forslag.Status.Godkjent(
+                    godkjentAv = Forslag.NavAnsatt(
+                        id = endretAv.id,
+                        enhetId = endretAvEnhet.id,
+                    ),
+                    godkjent = LocalDateTime.now(),
+                ),
+            ),
+        )
     }
 
     @Test
@@ -637,6 +679,8 @@ class DeltakerEndringServiceTest {
             endretAvEnhet = endretAvEnhet.enhetsnummer,
             sluttdato = LocalDate.now().plusWeeks(1),
             aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
+            begrunnelse = null,
+            forslagId = null,
         )
 
         val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)

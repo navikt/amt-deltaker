@@ -76,11 +76,15 @@ sealed interface HendelseType {
 
     data class IkkeAktuell(
         val aarsak: DeltakerEndring.Aarsak,
+        val begrunnelseFraNav: String?,
+        val begrunnelseFraArrangor: String?,
     ) : HendelseType
 
     data class AvsluttDeltakelse(
         val aarsak: DeltakerEndring.Aarsak,
         val sluttdato: LocalDate,
+        val begrunnelseFraNav: String?,
+        val begrunnelseFraArrangor: String?,
     ) : HendelseType
 
     data class EndreSluttarsak(
@@ -113,8 +117,10 @@ data class InnholdDto(
 
 fun DeltakerEndring.toHendelseEndring(utkast: UtkastDto? = null) = when (endring) {
     is DeltakerEndring.Endring.AvsluttDeltakelse -> HendelseType.AvsluttDeltakelse(
-        endring.aarsak,
-        endring.sluttdato,
+        aarsak = endring.aarsak,
+        sluttdato = endring.sluttdato,
+        begrunnelseFraNav = endring.begrunnelse,
+        begrunnelseFraArrangor = forslag?.begrunnelse,
     )
 
     is DeltakerEndring.Endring.EndreBakgrunnsinformasjon -> HendelseType.EndreBakgrunnsinformasjon(
@@ -146,11 +152,13 @@ fun DeltakerEndring.toHendelseEndring(utkast: UtkastDto? = null) = when (endring
     is DeltakerEndring.Endring.ForlengDeltakelse -> HendelseType.ForlengDeltakelse(
         sluttdato = endring.sluttdato,
         begrunnelseFraNav = endring.begrunnelse,
-        begrunnelseFraArrangor = this.forslag?.begrunnelse,
+        begrunnelseFraArrangor = forslag?.begrunnelse,
     )
 
     is DeltakerEndring.Endring.IkkeAktuell -> HendelseType.IkkeAktuell(
-        endring.aarsak,
+        aarsak = endring.aarsak,
+        begrunnelseFraNav = endring.begrunnelse,
+        begrunnelseFraArrangor = forslag?.begrunnelse,
     )
 
     is DeltakerEndring.Endring.ReaktiverDeltakelse -> utkast?.let {

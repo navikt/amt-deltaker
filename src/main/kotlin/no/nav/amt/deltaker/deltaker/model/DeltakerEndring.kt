@@ -84,11 +84,13 @@ data class DeltakerEndring(
 
         data class IkkeAktuell(
             val aarsak: Aarsak,
+            val begrunnelse: String?,
         ) : Endring()
 
         data class AvsluttDeltakelse(
             val aarsak: Aarsak,
             val sluttdato: LocalDate,
+            val begrunnelse: String?,
         ) : Endring()
 
         data class EndreSluttarsak(

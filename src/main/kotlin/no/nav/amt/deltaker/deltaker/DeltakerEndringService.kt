@@ -74,12 +74,12 @@ class DeltakerEndringService(
             }
 
             is IkkeAktuellRequest -> {
-                val endring = DeltakerEndring.Endring.IkkeAktuell(request.aarsak)
+                val endring = DeltakerEndring.Endring.IkkeAktuell(request.aarsak, request.begrunnelse)
                 Pair(endretDeltaker(deltaker, endring), endring)
             }
 
             is AvsluttDeltakelseRequest -> {
-                val endring = DeltakerEndring.Endring.AvsluttDeltakelse(request.aarsak, request.sluttdato)
+                val endring = DeltakerEndring.Endring.AvsluttDeltakelse(request.aarsak, request.sluttdato, request.begrunnelse)
                 Pair(endretDeltaker(deltaker, endring), endring)
             }
 
