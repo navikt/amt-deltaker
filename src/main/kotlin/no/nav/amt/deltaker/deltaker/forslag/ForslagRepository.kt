@@ -20,7 +20,7 @@ class ForslagRepository {
                 deltakerId = row.uuid(col("deltaker_id")),
                 opprettetAvArrangorAnsattId = row.uuid(col("arrangoransatt_id")),
                 opprettet = row.localDateTime(col("opprettet")),
-                begrunnelse = row.string(col("begrunnelse")),
+                begrunnelse = row.stringOrNull(col("begrunnelse")),
                 endring = objectMapper.readValue(row.string(col("endring"))),
                 status = objectMapper.readValue(row.string(col("status"))),
             )
