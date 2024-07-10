@@ -714,6 +714,7 @@ class DeltakerEndringServiceTest {
         val endringsrequest = ReaktiverDeltakelseRequest(
             endretAv = endretAv.navIdent,
             endretAvEnhet = endretAvEnhet.enhetsnummer,
+            begrunnelse = "begrunnelse",
         )
 
         val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)
@@ -730,6 +731,8 @@ class DeltakerEndringServiceTest {
 
         (endring.endring as DeltakerEndring.Endring.ReaktiverDeltakelse)
             .reaktivertDato shouldBe LocalDate.now()
+        (endring.endring as DeltakerEndring.Endring.ReaktiverDeltakelse)
+            .begrunnelse shouldBe endringsrequest.begrunnelse
 
         assertProducedHendelse(deltaker.id, HendelseType.ReaktiverDeltakelse::class)
     }

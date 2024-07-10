@@ -97,6 +97,7 @@ sealed interface HendelseType {
 
     data class ReaktiverDeltakelse(
         val utkast: UtkastDto,
+        val begrunnelseFraNav: String,
     ) : HendelseType
 }
 
@@ -164,6 +165,7 @@ fun DeltakerEndring.toHendelseEndring(utkast: UtkastDto? = null) = when (endring
     is DeltakerEndring.Endring.ReaktiverDeltakelse -> utkast?.let {
         HendelseType.ReaktiverDeltakelse(
             utkast,
+            endring.begrunnelse,
         )
     } ?: throw IllegalStateException("Mangler utkast for reaktivert deltakelse")
 }

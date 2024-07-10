@@ -84,7 +84,7 @@ class DeltakerEndringService(
             }
 
             is ReaktiverDeltakelseRequest -> {
-                val endring = DeltakerEndring.Endring.ReaktiverDeltakelse(LocalDate.now())
+                val endring = DeltakerEndring.Endring.ReaktiverDeltakelse(LocalDate.now(), request.begrunnelse)
                 Pair(endretDeltaker(deltaker, endring), endring)
             }
         }

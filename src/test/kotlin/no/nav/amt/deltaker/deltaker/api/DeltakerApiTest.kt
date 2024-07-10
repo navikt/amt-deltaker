@@ -340,7 +340,7 @@ class DeltakerApiTest {
     fun `post reaktiver - har tilgang - returnerer 200`() = testApplication {
         setUpTestApplication()
 
-        val endring = DeltakerEndring.Endring.ReaktiverDeltakelse(LocalDate.now())
+        val endring = DeltakerEndring.Endring.ReaktiverDeltakelse(LocalDate.now(), "begrunnelse")
 
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(
@@ -359,6 +359,7 @@ class DeltakerApiTest {
                 ReaktiverDeltakelseRequest(
                     TestData.randomIdent(),
                     TestData.randomEnhetsnummer(),
+                    endring.begrunnelse,
                 ),
             )
         }.apply {
