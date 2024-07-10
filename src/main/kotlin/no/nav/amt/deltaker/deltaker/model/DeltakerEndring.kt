@@ -99,6 +99,7 @@ data class DeltakerEndring(
 
         data class ReaktiverDeltakelse(
             val reaktivertDato: LocalDate,
+            val begrunnelse: String,
         ) : Endring()
     }
 }
