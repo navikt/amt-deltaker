@@ -104,21 +104,30 @@ fun sammenlignForslagStatus(a: Forslag.Status, b: Forslag.Status) {
             b as Forslag.Status.VenterPaSvar
             a shouldBe b
         }
+
         is Forslag.Status.Avvist -> {
             b as Forslag.Status.Avvist
             a.avvist shouldBeCloseTo b.avvist
             a.avvistAv shouldBe b.avvistAv
             a.begrunnelseFraNav shouldBe b.begrunnelseFraNav
         }
+
         is Forslag.Status.Godkjent -> {
             b as Forslag.Status.Godkjent
             a.godkjent shouldBeCloseTo b.godkjent
             a.godkjentAv shouldBe b.godkjentAv
         }
+
         is Forslag.Status.Tilbakekalt -> {
             b as Forslag.Status.Tilbakekalt
             a.tilbakekalt shouldBeCloseTo b.tilbakekalt
             a.tilbakekaltAvArrangorAnsattId shouldBe b.tilbakekaltAvArrangorAnsattId
+        }
+
+        is Forslag.Status.Erstattet -> {
+            b as Forslag.Status.Erstattet
+            a.erstattetMedForslagId shouldBe b.erstattetMedForslagId
+            a.erstattet shouldBeCloseTo b.erstattet
         }
     }
 }
