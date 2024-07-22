@@ -22,9 +22,17 @@ class ForslagService(
 
     suspend fun upsert(forslag: Forslag) {
         forslagRepository.upsert(forslag)
-        if (forslag.status is Forslag.Status.Tilbakekalt || forslag.status is Forslag.Status.Avvist) {
-            val deltaker = deltakerRepository.get(forslag.deltakerId).getOrThrow()
-            deltakerProducer.produce(deltaker)
+        when (forslag.status) {
+            is Forslag.Status.Godkjent,
+            Forslag.Status.VenterPaSvar,
+            -> {}
+            is Forslag.Status.Avvist,
+            is Forslag.Status.Erstattet,
+            is Forslag.Status.Tilbakekalt,
+            -> {
+                val deltaker = deltakerRepository.get(forslag.deltakerId).getOrThrow()
+                deltakerProducer.produce(deltaker)
+            }
         }
     }
 
