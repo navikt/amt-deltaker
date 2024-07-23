@@ -61,9 +61,9 @@ class DeltakerApiTest {
         client.post("/deltaker/${UUID.randomUUID()}/ikke-aktuell") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
         client.post("/deltaker/${UUID.randomUUID()}/avslutt") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
         client.post("/deltaker/${UUID.randomUUID()}/reaktiver") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
-        client.post(
-            "/deltaker/${UUID.randomUUID()}/vedtak/${UUID.randomUUID()}/fatt",
-        ) { setBody("") }.status shouldBe HttpStatusCode.Unauthorized
+        client.post("/deltaker/${UUID.randomUUID()}/vedtak/${UUID.randomUUID()}/fatt") {
+            setBody("")
+        }.status shouldBe HttpStatusCode.Unauthorized
     }
 
     @Test
@@ -139,6 +139,7 @@ class DeltakerApiTest {
                 DeltakelsesmengdeRequest(
                     TestData.randomIdent(),
                     TestData.randomEnhetsnummer(),
+                    null,
                     endring.deltakelsesprosent?.toInt(),
                     endring.dagerPerUke?.toInt(),
                 ),
@@ -250,9 +251,9 @@ class DeltakerApiTest {
                 ForlengDeltakelseRequest(
                     TestData.randomIdent(),
                     TestData.randomEnhetsnummer(),
+                    null,
                     endring.sluttdato,
                     endring.begrunnelse,
-                    null,
                 ),
             )
         }.apply {
@@ -286,9 +287,9 @@ class DeltakerApiTest {
                 IkkeAktuellRequest(
                     TestData.randomIdent(),
                     TestData.randomEnhetsnummer(),
+                    null,
                     endring.aarsak,
                     endring.begrunnelse,
-                    null,
                 ),
             )
         }.apply {
@@ -324,10 +325,10 @@ class DeltakerApiTest {
                 AvsluttDeltakelseRequest(
                     TestData.randomIdent(),
                     TestData.randomEnhetsnummer(),
+                    null,
                     endring.sluttdato,
                     endring.aarsak,
                     endring.begrunnelse,
-                    null,
                 ),
             )
         }.apply {
@@ -354,18 +355,19 @@ class DeltakerApiTest {
         coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
         coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
 
-        client.post("/deltaker/${UUID.randomUUID()}/reaktiver") {
-            postRequest(
-                ReaktiverDeltakelseRequest(
-                    TestData.randomIdent(),
-                    TestData.randomEnhetsnummer(),
-                    endring.begrunnelse,
-                ),
-            )
-        }.apply {
-            status shouldBe HttpStatusCode.OK
-            bodyAsText() shouldBe objectMapper.writeValueAsString(deltaker.toDeltakerEndringResponse(historikk))
-        }
+        client
+            .post("/deltaker/${UUID.randomUUID()}/reaktiver") {
+                postRequest(
+                    ReaktiverDeltakelseRequest(
+                        TestData.randomIdent(),
+                        TestData.randomEnhetsnummer(),
+                        endring.begrunnelse,
+                    ),
+                )
+            }.apply {
+                status shouldBe HttpStatusCode.OK
+                bodyAsText() shouldBe objectMapper.writeValueAsString(deltaker.toDeltakerEndringResponse(historikk))
+            }
     }
 
     @Test
@@ -380,12 +382,13 @@ class DeltakerApiTest {
         coEvery { deltakerService.fattVedtak(any(), any()) } returns deltaker
         coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
 
-        client.post("/deltaker/${deltaker.id}/vedtak/${vedtak.id}/fatt") {
-            postRequest("")
-        }.apply {
-            status shouldBe HttpStatusCode.OK
-            bodyAsText() shouldBe objectMapper.writeValueAsString(deltaker.toDeltakerEndringResponse(historikk))
-        }
+        client
+            .post("/deltaker/${deltaker.id}/vedtak/${vedtak.id}/fatt") {
+                postRequest("")
+            }.apply {
+                status shouldBe HttpStatusCode.OK
+                bodyAsText() shouldBe objectMapper.writeValueAsString(deltaker.toDeltakerEndringResponse(historikk))
+            }
     }
 
     private fun ApplicationTestBuilder.setUpTestApplication() {
