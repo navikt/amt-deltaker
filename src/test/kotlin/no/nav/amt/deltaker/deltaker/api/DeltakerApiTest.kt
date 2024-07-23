@@ -61,9 +61,10 @@ class DeltakerApiTest {
         client.post("/deltaker/${UUID.randomUUID()}/ikke-aktuell") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
         client.post("/deltaker/${UUID.randomUUID()}/avslutt") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
         client.post("/deltaker/${UUID.randomUUID()}/reaktiver") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
-        client.post("/deltaker/${UUID.randomUUID()}/vedtak/${UUID.randomUUID()}/fatt") {
-            setBody("")
-        }.status shouldBe HttpStatusCode.Unauthorized
+        client
+            .post("/deltaker/${UUID.randomUUID()}/vedtak/${UUID.randomUUID()}/fatt") {
+                setBody("")
+            }.status shouldBe HttpStatusCode.Unauthorized
     }
 
     @Test
@@ -78,18 +79,19 @@ class DeltakerApiTest {
         coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
         coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
 
-        client.post("/deltaker/${UUID.randomUUID()}/bakgrunnsinformasjon") {
-            postRequest(
-                BakgrunnsinformasjonRequest(
-                    TestData.randomIdent(),
-                    TestData.randomEnhetsnummer(),
-                    "bakgrunnsinformasjon",
-                ),
-            )
-        }.apply {
-            status shouldBe HttpStatusCode.OK
-            bodyAsText() shouldBe objectMapper.writeValueAsString(deltaker.toDeltakerEndringResponse(historikk))
-        }
+        client
+            .post("/deltaker/${UUID.randomUUID()}/bakgrunnsinformasjon") {
+                postRequest(
+                    BakgrunnsinformasjonRequest(
+                        TestData.randomIdent(),
+                        TestData.randomEnhetsnummer(),
+                        "bakgrunnsinformasjon",
+                    ),
+                )
+            }.apply {
+                status shouldBe HttpStatusCode.OK
+                bodyAsText() shouldBe objectMapper.writeValueAsString(deltaker.toDeltakerEndringResponse(historikk))
+            }
     }
 
     @Test
@@ -105,25 +107,26 @@ class DeltakerApiTest {
         coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
         coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
 
-        client.post("/deltaker/${UUID.randomUUID()}/innhold") {
-            postRequest(
-                InnholdRequest(
-                    TestData.randomIdent(),
-                    TestData.randomEnhetsnummer(),
-                    endring.innhold,
-                ),
-            )
-        }.apply {
-            status shouldBe HttpStatusCode.OK
-            bodyAsText() shouldBe objectMapper.writeValueAsString(deltaker.toDeltakerEndringResponse(historikk))
-        }
+        client
+            .post("/deltaker/${UUID.randomUUID()}/innhold") {
+                postRequest(
+                    InnholdRequest(
+                        TestData.randomIdent(),
+                        TestData.randomEnhetsnummer(),
+                        endring.innhold,
+                    ),
+                )
+            }.apply {
+                status shouldBe HttpStatusCode.OK
+                bodyAsText() shouldBe objectMapper.writeValueAsString(deltaker.toDeltakerEndringResponse(historikk))
+            }
     }
 
     @Test
     fun `post deltakelsesmengde - har tilgang - returnerer 200`() = testApplication {
         setUpTestApplication()
 
-        val endring = DeltakerEndring.Endring.EndreDeltakelsesmengde(50F, 2F)
+        val endring = DeltakerEndring.Endring.EndreDeltakelsesmengde(50F, 2F, "begrunnelse")
 
         val deltaker = TestData.lagDeltaker(
             deltakelsesprosent = endring.deltakelsesprosent,
@@ -134,20 +137,22 @@ class DeltakerApiTest {
         coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
         coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
 
-        client.post("/deltaker/${UUID.randomUUID()}/deltakelsesmengde") {
-            postRequest(
-                DeltakelsesmengdeRequest(
-                    TestData.randomIdent(),
-                    TestData.randomEnhetsnummer(),
-                    null,
-                    endring.deltakelsesprosent?.toInt(),
-                    endring.dagerPerUke?.toInt(),
-                ),
-            )
-        }.apply {
-            status shouldBe HttpStatusCode.OK
-            bodyAsText() shouldBe objectMapper.writeValueAsString(deltaker.toDeltakerEndringResponse(historikk))
-        }
+        client
+            .post("/deltaker/${UUID.randomUUID()}/deltakelsesmengde") {
+                postRequest(
+                    DeltakelsesmengdeRequest(
+                        TestData.randomIdent(),
+                        TestData.randomEnhetsnummer(),
+                        null,
+                        endring.deltakelsesprosent?.toInt(),
+                        endring.dagerPerUke?.toInt(),
+                        endring.begrunnelse,
+                    ),
+                )
+            }.apply {
+                status shouldBe HttpStatusCode.OK
+                bodyAsText() shouldBe objectMapper.writeValueAsString(deltaker.toDeltakerEndringResponse(historikk))
+            }
     }
 
     @Test
@@ -162,19 +167,20 @@ class DeltakerApiTest {
         coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
         coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
 
-        client.post("/deltaker/${UUID.randomUUID()}/startdato") {
-            postRequest(
-                StartdatoRequest(
-                    TestData.randomIdent(),
-                    TestData.randomEnhetsnummer(),
-                    endring.startdato,
-                    endring.sluttdato,
-                ),
-            )
-        }.apply {
-            status shouldBe HttpStatusCode.OK
-            bodyAsText() shouldBe objectMapper.writeValueAsString(deltaker.toDeltakerEndringResponse(historikk))
-        }
+        client
+            .post("/deltaker/${UUID.randomUUID()}/startdato") {
+                postRequest(
+                    StartdatoRequest(
+                        TestData.randomIdent(),
+                        TestData.randomEnhetsnummer(),
+                        endring.startdato,
+                        endring.sluttdato,
+                    ),
+                )
+            }.apply {
+                status shouldBe HttpStatusCode.OK
+                bodyAsText() shouldBe objectMapper.writeValueAsString(deltaker.toDeltakerEndringResponse(historikk))
+            }
     }
 
     @Test
@@ -189,18 +195,19 @@ class DeltakerApiTest {
         coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
         coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
 
-        client.post("/deltaker/${UUID.randomUUID()}/sluttdato") {
-            postRequest(
-                SluttdatoRequest(
-                    TestData.randomIdent(),
-                    TestData.randomEnhetsnummer(),
-                    endring.sluttdato,
-                ),
-            )
-        }.apply {
-            status shouldBe HttpStatusCode.OK
-            bodyAsText() shouldBe objectMapper.writeValueAsString(deltaker.toDeltakerEndringResponse(historikk))
-        }
+        client
+            .post("/deltaker/${UUID.randomUUID()}/sluttdato") {
+                postRequest(
+                    SluttdatoRequest(
+                        TestData.randomIdent(),
+                        TestData.randomEnhetsnummer(),
+                        endring.sluttdato,
+                    ),
+                )
+            }.apply {
+                status shouldBe HttpStatusCode.OK
+                bodyAsText() shouldBe objectMapper.writeValueAsString(deltaker.toDeltakerEndringResponse(historikk))
+            }
     }
 
     @Test
@@ -220,18 +227,19 @@ class DeltakerApiTest {
         coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
         coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
 
-        client.post("/deltaker/${UUID.randomUUID()}/sluttarsak") {
-            postRequest(
-                SluttarsakRequest(
-                    TestData.randomIdent(),
-                    TestData.randomEnhetsnummer(),
-                    endring.aarsak,
-                ),
-            )
-        }.apply {
-            status shouldBe HttpStatusCode.OK
-            bodyAsText() shouldBe objectMapper.writeValueAsString(deltaker.toDeltakerEndringResponse(historikk))
-        }
+        client
+            .post("/deltaker/${UUID.randomUUID()}/sluttarsak") {
+                postRequest(
+                    SluttarsakRequest(
+                        TestData.randomIdent(),
+                        TestData.randomEnhetsnummer(),
+                        endring.aarsak,
+                    ),
+                )
+            }.apply {
+                status shouldBe HttpStatusCode.OK
+                bodyAsText() shouldBe objectMapper.writeValueAsString(deltaker.toDeltakerEndringResponse(historikk))
+            }
     }
 
     @Test
@@ -246,20 +254,21 @@ class DeltakerApiTest {
         coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
         coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
 
-        client.post("/deltaker/${UUID.randomUUID()}/forleng") {
-            postRequest(
-                ForlengDeltakelseRequest(
-                    TestData.randomIdent(),
-                    TestData.randomEnhetsnummer(),
-                    null,
-                    endring.sluttdato,
-                    endring.begrunnelse,
-                ),
-            )
-        }.apply {
-            status shouldBe HttpStatusCode.OK
-            bodyAsText() shouldBe objectMapper.writeValueAsString(deltaker.toDeltakerEndringResponse(historikk))
-        }
+        client
+            .post("/deltaker/${UUID.randomUUID()}/forleng") {
+                postRequest(
+                    ForlengDeltakelseRequest(
+                        TestData.randomIdent(),
+                        TestData.randomEnhetsnummer(),
+                        null,
+                        endring.sluttdato,
+                        endring.begrunnelse,
+                    ),
+                )
+            }.apply {
+                status shouldBe HttpStatusCode.OK
+                bodyAsText() shouldBe objectMapper.writeValueAsString(deltaker.toDeltakerEndringResponse(historikk))
+            }
     }
 
     @Test
@@ -282,20 +291,21 @@ class DeltakerApiTest {
         coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
         coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
 
-        client.post("/deltaker/${UUID.randomUUID()}/ikke-aktuell") {
-            postRequest(
-                IkkeAktuellRequest(
-                    TestData.randomIdent(),
-                    TestData.randomEnhetsnummer(),
-                    null,
-                    endring.aarsak,
-                    endring.begrunnelse,
-                ),
-            )
-        }.apply {
-            status shouldBe HttpStatusCode.OK
-            bodyAsText() shouldBe objectMapper.writeValueAsString(deltaker.toDeltakerEndringResponse(historikk))
-        }
+        client
+            .post("/deltaker/${UUID.randomUUID()}/ikke-aktuell") {
+                postRequest(
+                    IkkeAktuellRequest(
+                        TestData.randomIdent(),
+                        TestData.randomEnhetsnummer(),
+                        null,
+                        endring.aarsak,
+                        endring.begrunnelse,
+                    ),
+                )
+            }.apply {
+                status shouldBe HttpStatusCode.OK
+                bodyAsText() shouldBe objectMapper.writeValueAsString(deltaker.toDeltakerEndringResponse(historikk))
+            }
     }
 
     @Test
@@ -320,21 +330,22 @@ class DeltakerApiTest {
         coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
         coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
 
-        client.post("/deltaker/${UUID.randomUUID()}/avslutt") {
-            postRequest(
-                AvsluttDeltakelseRequest(
-                    TestData.randomIdent(),
-                    TestData.randomEnhetsnummer(),
-                    null,
-                    endring.sluttdato,
-                    endring.aarsak,
-                    endring.begrunnelse,
-                ),
-            )
-        }.apply {
-            status shouldBe HttpStatusCode.OK
-            bodyAsText() shouldBe objectMapper.writeValueAsString(deltaker.toDeltakerEndringResponse(historikk))
-        }
+        client
+            .post("/deltaker/${UUID.randomUUID()}/avslutt") {
+                postRequest(
+                    AvsluttDeltakelseRequest(
+                        TestData.randomIdent(),
+                        TestData.randomEnhetsnummer(),
+                        null,
+                        endring.sluttdato,
+                        endring.aarsak,
+                        endring.begrunnelse,
+                    ),
+                )
+            }.apply {
+                status shouldBe HttpStatusCode.OK
+                bodyAsText() shouldBe objectMapper.writeValueAsString(deltaker.toDeltakerEndringResponse(historikk))
+            }
     }
 
     @Test

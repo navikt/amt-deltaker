@@ -32,6 +32,7 @@ data class DeltakelsesmengdeRequest(
     override val forslagId: UUID?,
     val deltakelsesprosent: Int?,
     val dagerPerUke: Int?,
+    val begrunnelse: String?,
 ) : EndringForslagRequest
 
 data class StartdatoRequest(
