@@ -421,7 +421,9 @@ class DeltakerEndringServiceTest {
         val endringsrequest = SluttdatoRequest(
             endretAv = endretAv.navIdent,
             endretAvEnhet = endretAvEnhet.enhetsnummer,
+            forslagId = null,
             sluttdato = LocalDate.now().minusWeeks(1),
+            begrunnelse = "begrunnelse",
         )
 
         val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)
@@ -450,7 +452,9 @@ class DeltakerEndringServiceTest {
         val endringsrequest = SluttdatoRequest(
             endretAv = endretAv.navIdent,
             endretAvEnhet = endretAvEnhet.enhetsnummer,
+            forslagId = null,
             sluttdato = LocalDate.now().plusWeeks(1),
+            begrunnelse = "begrunnelse",
         )
 
         val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)

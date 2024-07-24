@@ -45,8 +45,10 @@ data class StartdatoRequest(
 data class SluttdatoRequest(
     override val endretAv: String,
     override val endretAvEnhet: String,
+    override val forslagId: UUID?,
     val sluttdato: LocalDate,
-) : EndringRequest
+    val begrunnelse: String?,
+) : EndringForslagRequest
 
 data class SluttarsakRequest(
     override val endretAv: String,
