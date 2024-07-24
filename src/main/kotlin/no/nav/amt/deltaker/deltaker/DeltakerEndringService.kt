@@ -49,6 +49,7 @@ class DeltakerEndringService(
                 val endring = DeltakerEndring.Endring.EndreDeltakelsesmengde(
                     deltakelsesprosent = request.deltakelsesprosent?.toFloat(),
                     dagerPerUke = request.dagerPerUke?.toFloat(),
+                    begrunnelse = request.begrunnelse,
                 )
                 Pair(endretDeltaker(deltaker, endring), endring)
             }
@@ -225,8 +226,9 @@ class DeltakerEndringService(
         }
     }
 
-    private fun Deltaker.getStatusEndretSluttdato(sluttdato: LocalDate): DeltakerStatus {
-        return if (status.type == DeltakerStatus.Type.HAR_SLUTTET && !sluttdato.isBefore(
+    private fun Deltaker.getStatusEndretSluttdato(sluttdato: LocalDate): DeltakerStatus =
+        if (status.type == DeltakerStatus.Type.HAR_SLUTTET &&
+            !sluttdato.isBefore(
                 LocalDate.now(),
             )
         ) {
@@ -234,10 +236,9 @@ class DeltakerEndringService(
         } else {
             status
         }
-    }
 
-    private fun Deltaker.getStatusEndretStartOgSluttdato(startdato: LocalDate?, sluttdato: LocalDate?): DeltakerStatus {
-        return if (status.type == DeltakerStatus.Type.VENTER_PA_OPPSTART && (sluttdato != null && sluttdato.isBefore(LocalDate.now()))) {
+    private fun Deltaker.getStatusEndretStartOgSluttdato(startdato: LocalDate?, sluttdato: LocalDate?): DeltakerStatus =
+        if (status.type == DeltakerStatus.Type.VENTER_PA_OPPSTART && (sluttdato != null && sluttdato.isBefore(LocalDate.now()))) {
             nyDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL)
         } else if (status.type == DeltakerStatus.Type.VENTER_PA_OPPSTART && (startdato != null && !startdato.isAfter(LocalDate.now()))) {
             nyDeltakerStatus(DeltakerStatus.Type.DELTAR)
@@ -245,16 +246,17 @@ class DeltakerEndringService(
             nyDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET)
         } else if (status.type == DeltakerStatus.Type.DELTAR && (startdato == null || startdato.isAfter(LocalDate.now()))) {
             nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART)
-        } else if (status.type == DeltakerStatus.Type.HAR_SLUTTET && (sluttdato == null || !sluttdato.isBefore(LocalDate.now())) &&
+        } else if (status.type == DeltakerStatus.Type.HAR_SLUTTET &&
+            (sluttdato == null || !sluttdato.isBefore(LocalDate.now())) &&
             (startdato != null && !startdato.isAfter(LocalDate.now()))
         ) {
             nyDeltakerStatus(DeltakerStatus.Type.DELTAR)
-        } else if (status.type == DeltakerStatus.Type.HAR_SLUTTET && (sluttdato == null || !sluttdato.isBefore(LocalDate.now())) &&
+        } else if (status.type == DeltakerStatus.Type.HAR_SLUTTET &&
+            (sluttdato == null || !sluttdato.isBefore(LocalDate.now())) &&
             (startdato == null || startdato.isAfter(LocalDate.now()))
         ) {
             nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART)
         } else {
             status
         }
-    }
 }

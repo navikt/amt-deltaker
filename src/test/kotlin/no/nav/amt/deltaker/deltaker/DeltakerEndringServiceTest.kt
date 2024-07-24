@@ -181,6 +181,8 @@ class DeltakerEndringServiceTest {
             endretAvEnhet = endretAvEnhet.enhetsnummer,
             deltakelsesprosent = 50,
             dagerPerUke = null,
+            forslagId = null,
+            begrunnelse = "begrunnelse",
         )
 
         val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)

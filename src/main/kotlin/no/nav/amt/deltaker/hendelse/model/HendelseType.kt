@@ -1,31 +1,17 @@
 package no.nav.amt.deltaker.hendelse.model
 
-import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.amt.deltaker.deltaker.model.DeltakerEndring
 import java.time.LocalDate
 import java.time.ZonedDateTime
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
-@JsonSubTypes(
-    JsonSubTypes.Type(value = HendelseType.EndreStartdato::class, name = "EndreStartdato"),
-    JsonSubTypes.Type(value = HendelseType.EndreSluttdato::class, name = "EndreSluttdato"),
-    JsonSubTypes.Type(value = HendelseType.EndreDeltakelsesmengde::class, name = "EndreDeltakelsesmengde"),
-    JsonSubTypes.Type(value = HendelseType.EndreBakgrunnsinformasjon::class, name = "EndreBakgrunnsinformasjon"),
-    JsonSubTypes.Type(value = HendelseType.EndreInnhold::class, name = "EndreInnhold"),
-    JsonSubTypes.Type(value = HendelseType.ForlengDeltakelse::class, name = "ForlengDeltakelse"),
-    JsonSubTypes.Type(value = HendelseType.EndreSluttarsak::class, name = "EndreSluttarsak"),
-    JsonSubTypes.Type(value = HendelseType.OpprettUtkast::class, name = "OpprettUtkast"),
-    JsonSubTypes.Type(value = HendelseType.EndreUtkast::class, name = "EndreUtkast"),
-    JsonSubTypes.Type(value = HendelseType.AvbrytUtkast::class, name = "AvbrytUtkast"),
-    JsonSubTypes.Type(value = HendelseType.AvsluttDeltakelse::class, name = "AvsluttDeltakelse"),
-    JsonSubTypes.Type(value = HendelseType.IkkeAktuell::class, name = "IkkeAktuell"),
-    JsonSubTypes.Type(value = HendelseType.InnbyggerGodkjennUtkast::class, name = "InnbyggerGodkjennUtkast"),
-    JsonSubTypes.Type(value = HendelseType.NavGodkjennUtkast::class, name = "NavGodkjennUtkast"),
-    JsonSubTypes.Type(value = HendelseType.DeltakerSistBesokt::class, name = "DeltakerSistBesokt"),
-    JsonSubTypes.Type(value = HendelseType.ReaktiverDeltakelse::class, name = "ReaktiverDeltakelse"),
-)
+@JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 sealed interface HendelseType {
+    sealed interface HendelseMedForslag : HendelseType {
+        val begrunnelseFraNav: String?
+        val begrunnelseFraArrangor: String?
+    }
+
     data class OpprettUtkast(
         val utkast: UtkastDto,
     ) : HendelseType
@@ -57,7 +43,9 @@ sealed interface HendelseType {
     data class EndreDeltakelsesmengde(
         val deltakelsesprosent: Float?,
         val dagerPerUke: Float?,
-    ) : HendelseType
+        override val begrunnelseFraNav: String?,
+        override val begrunnelseFraArrangor: String?,
+    ) : HendelseMedForslag
 
     data class EndreStartdato(
         val startdato: LocalDate?,
@@ -70,22 +58,22 @@ sealed interface HendelseType {
 
     data class ForlengDeltakelse(
         val sluttdato: LocalDate,
-        val begrunnelseFraNav: String?,
-        val begrunnelseFraArrangor: String?,
-    ) : HendelseType
+        override val begrunnelseFraNav: String?,
+        override val begrunnelseFraArrangor: String?,
+    ) : HendelseMedForslag
 
     data class IkkeAktuell(
         val aarsak: DeltakerEndring.Aarsak,
-        val begrunnelseFraNav: String?,
-        val begrunnelseFraArrangor: String?,
-    ) : HendelseType
+        override val begrunnelseFraNav: String?,
+        override val begrunnelseFraArrangor: String?,
+    ) : HendelseMedForslag
 
     data class AvsluttDeltakelse(
         val aarsak: DeltakerEndring.Aarsak,
         val sluttdato: LocalDate,
-        val begrunnelseFraNav: String?,
-        val begrunnelseFraArrangor: String?,
-    ) : HendelseType
+        override val begrunnelseFraNav: String?,
+        override val begrunnelseFraArrangor: String?,
+    ) : HendelseMedForslag
 
     data class EndreSluttarsak(
         val aarsak: DeltakerEndring.Aarsak,
@@ -131,6 +119,8 @@ fun DeltakerEndring.toHendelseEndring(utkast: UtkastDto? = null) = when (endring
     is DeltakerEndring.Endring.EndreDeltakelsesmengde -> HendelseType.EndreDeltakelsesmengde(
         endring.deltakelsesprosent,
         endring.dagerPerUke,
+        begrunnelseFraNav = endring.begrunnelse,
+        begrunnelseFraArrangor = forslag?.begrunnelse,
     )
 
     is DeltakerEndring.Endring.EndreInnhold -> HendelseType.EndreInnhold(

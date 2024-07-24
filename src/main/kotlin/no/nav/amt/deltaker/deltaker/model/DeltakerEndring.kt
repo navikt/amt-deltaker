@@ -66,6 +66,7 @@ data class DeltakerEndring(
         data class EndreDeltakelsesmengde(
             val deltakelsesprosent: Float?,
             val dagerPerUke: Float?,
+            val begrunnelse: String?,
         ) : Endring()
 
         data class EndreStartdato(
