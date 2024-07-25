@@ -60,7 +60,7 @@ class DeltakerEndringService(
             }
 
             is SluttdatoRequest -> {
-                val endring = DeltakerEndring.Endring.EndreSluttdato(request.sluttdato)
+                val endring = DeltakerEndring.Endring.EndreSluttdato(request.sluttdato, request.begrunnelse)
                 Pair(endretDeltaker(deltaker, endring), endring)
             }
 
