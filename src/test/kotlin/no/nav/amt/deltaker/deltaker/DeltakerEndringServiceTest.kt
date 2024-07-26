@@ -217,6 +217,8 @@ class DeltakerEndringServiceTest {
             endretAvEnhet = endretAvEnhet.enhetsnummer,
             startdato = LocalDate.now().minusWeeks(1),
             sluttdato = LocalDate.now().plusWeeks(4),
+            begrunnelse = null,
+            forslagId = null,
         )
 
         val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)
@@ -252,6 +254,8 @@ class DeltakerEndringServiceTest {
             endretAvEnhet = endretAvEnhet.enhetsnummer,
             startdato = LocalDate.now().minusWeeks(1),
             sluttdato = LocalDate.now().plusWeeks(4),
+            begrunnelse = null,
+            forslagId = null,
         )
 
         val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)
@@ -287,6 +291,8 @@ class DeltakerEndringServiceTest {
             endretAvEnhet = endretAvEnhet.enhetsnummer,
             startdato = LocalDate.now().minusWeeks(10),
             sluttdato = LocalDate.now().minusDays(4),
+            begrunnelse = null,
+            forslagId = null,
         )
 
         val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)
@@ -320,6 +326,8 @@ class DeltakerEndringServiceTest {
             endretAvEnhet = endretAvEnhet.enhetsnummer,
             startdato = LocalDate.now().minusWeeks(10),
             sluttdato = LocalDate.now().minusDays(4),
+            begrunnelse = null,
+            forslagId = null,
         )
 
         val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)
@@ -353,6 +361,8 @@ class DeltakerEndringServiceTest {
             endretAvEnhet = endretAvEnhet.enhetsnummer,
             startdato = LocalDate.now().plusDays(10),
             sluttdato = LocalDate.now().plusWeeks(4),
+            begrunnelse = null,
+            forslagId = null,
         )
 
         val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)
@@ -390,6 +400,8 @@ class DeltakerEndringServiceTest {
             endretAvEnhet = endretAvEnhet.enhetsnummer,
             startdato = LocalDate.now().minusDays(10),
             sluttdato = LocalDate.now().plusWeeks(4),
+            begrunnelse = null,
+            forslagId = null,
         )
 
         val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)
@@ -488,6 +500,8 @@ class DeltakerEndringServiceTest {
             endretAv = endretAv.navIdent,
             endretAvEnhet = endretAvEnhet.enhetsnummer,
             aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
+            begrunnelse = null,
+            forslagId = null,
         )
 
         val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)

@@ -159,7 +159,7 @@ class DeltakerApiTest {
     fun `post startdato - har tilgang - returnerer 200`() = testApplication {
         setUpTestApplication()
 
-        val endring = DeltakerEndring.Endring.EndreStartdato(LocalDate.now().minusDays(2), LocalDate.now().plusMonths(2))
+        val endring = DeltakerEndring.Endring.EndreStartdato(LocalDate.now().minusDays(2), LocalDate.now().plusMonths(2), "begrunnelse")
 
         val deltaker = TestData.lagDeltaker(startdato = endring.startdato)
         val historikk = listOf(DeltakerHistorikk.Endring(TestData.lagDeltakerEndring(endring = endring)))
@@ -173,8 +173,10 @@ class DeltakerApiTest {
                     StartdatoRequest(
                         TestData.randomIdent(),
                         TestData.randomEnhetsnummer(),
+                        null,
                         endring.startdato,
                         endring.sluttdato,
+                        endring.begrunnelse,
                     ),
                 )
             }.apply {
@@ -216,7 +218,8 @@ class DeltakerApiTest {
     fun `post sluttarsak - har tilgang - returnerer 200`() = testApplication {
         setUpTestApplication()
 
-        val endring = DeltakerEndring.Endring.EndreSluttarsak(DeltakerEndring.Aarsak(type = DeltakerEndring.Aarsak.Type.FATT_JOBB, null))
+        val endring =
+            DeltakerEndring.Endring.EndreSluttarsak(DeltakerEndring.Aarsak(type = DeltakerEndring.Aarsak.Type.FATT_JOBB, null), null)
 
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(
@@ -235,7 +238,9 @@ class DeltakerApiTest {
                     SluttarsakRequest(
                         TestData.randomIdent(),
                         TestData.randomEnhetsnummer(),
+                        null,
                         endring.aarsak,
+                        endring.begrunnelse,
                     ),
                 )
             }.apply {
