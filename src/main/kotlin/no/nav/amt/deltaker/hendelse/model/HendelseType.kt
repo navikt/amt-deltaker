@@ -50,7 +50,9 @@ sealed interface HendelseType {
     data class EndreStartdato(
         val startdato: LocalDate?,
         val sluttdato: LocalDate? = null,
-    ) : HendelseType
+        override val begrunnelseFraNav: String?,
+        override val begrunnelseFraArrangor: String?,
+    ) : HendelseMedForslag
 
     data class EndreSluttdato(
         val sluttdato: LocalDate,
@@ -79,7 +81,9 @@ sealed interface HendelseType {
 
     data class EndreSluttarsak(
         val aarsak: DeltakerEndring.Aarsak,
-    ) : HendelseType
+        override val begrunnelseFraNav: String?,
+        override val begrunnelseFraArrangor: String?,
+    ) : HendelseMedForslag
 
     data class DeltakerSistBesokt(
         val sistBesokt: ZonedDateTime,
@@ -131,6 +135,8 @@ fun DeltakerEndring.toHendelseEndring(utkast: UtkastDto? = null) = when (endring
 
     is DeltakerEndring.Endring.EndreSluttarsak -> HendelseType.EndreSluttarsak(
         endring.aarsak,
+        begrunnelseFraNav = endring.begrunnelse,
+        begrunnelseFraArrangor = forslag?.begrunnelse,
     )
 
     is DeltakerEndring.Endring.EndreSluttdato -> HendelseType.EndreSluttdato(
@@ -142,6 +148,8 @@ fun DeltakerEndring.toHendelseEndring(utkast: UtkastDto? = null) = when (endring
     is DeltakerEndring.Endring.EndreStartdato -> HendelseType.EndreStartdato(
         endring.startdato,
         endring.sluttdato,
+        begrunnelseFraNav = endring.begrunnelse,
+        begrunnelseFraArrangor = forslag?.begrunnelse,
     )
 
     is DeltakerEndring.Endring.ForlengDeltakelse -> HendelseType.ForlengDeltakelse(

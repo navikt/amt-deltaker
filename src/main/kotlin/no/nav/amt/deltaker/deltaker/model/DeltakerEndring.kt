@@ -72,6 +72,7 @@ data class DeltakerEndring(
         data class EndreStartdato(
             val startdato: LocalDate?,
             val sluttdato: LocalDate? = null,
+            val begrunnelse: String?,
         ) : Endring()
 
         data class EndreSluttdato(
@@ -97,6 +98,7 @@ data class DeltakerEndring(
 
         data class EndreSluttarsak(
             val aarsak: Aarsak,
+            val begrunnelse: String?,
         ) : Endring()
 
         data class ReaktiverDeltakelse(
