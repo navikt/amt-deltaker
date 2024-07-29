@@ -3,11 +3,11 @@ package no.nav.amt.deltaker.navansatt
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.application.plugins.objectMapper
-import no.nav.amt.deltaker.kafka.Consumer
-import no.nav.amt.deltaker.kafka.ManagedKafkaConsumer
-import no.nav.amt.deltaker.kafka.config.KafkaConfig
-import no.nav.amt.deltaker.kafka.config.KafkaConfigImpl
-import no.nav.amt.deltaker.kafka.config.LocalKafkaConfig
+import no.nav.amt.lib.kafka.Consumer
+import no.nav.amt.lib.kafka.ManagedKafkaConsumer
+import no.nav.amt.lib.kafka.config.KafkaConfig
+import no.nav.amt.lib.kafka.config.KafkaConfigImpl
+import no.nav.amt.lib.kafka.config.LocalKafkaConfig
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.UUIDDeserializer
 import org.slf4j.LoggerFactory

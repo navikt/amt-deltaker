@@ -22,7 +22,6 @@ import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.auth.AzureAdTokenClient
 import no.nav.amt.deltaker.auth.TilgangskontrollService
-import no.nav.amt.deltaker.db.Database
 import no.nav.amt.deltaker.deltaker.DeltakerEndringService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerService
@@ -55,6 +54,7 @@ import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
 import no.nav.amt.deltaker.navbruker.NavBrukerConsumer
 import no.nav.amt.deltaker.navbruker.NavBrukerRepository
 import no.nav.amt.deltaker.navbruker.NavBrukerService
+import no.nav.amt.lib.utils.database.Database
 import no.nav.poao_tilgang.client.PoaoTilgangCachedClient
 import no.nav.poao_tilgang.client.PoaoTilgangHttpClient
 
@@ -75,7 +75,7 @@ fun Application.module() {
 
     val environment = Environment()
 
-    Database.init(environment)
+    Database.init(environment.databaseConfig)
 
     val httpClient = HttpClient(Apache) {
         engine {

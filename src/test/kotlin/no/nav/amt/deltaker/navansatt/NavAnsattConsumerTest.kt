@@ -5,8 +5,8 @@ import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.amtperson.AmtPersonServiceClient
 import no.nav.amt.deltaker.application.plugins.objectMapper
-import no.nav.amt.deltaker.utils.SingletonPostgresContainer
 import no.nav.amt.deltaker.utils.data.TestData
+import no.nav.amt.lib.testing.SingletonPostgresContainer
 import org.junit.BeforeClass
 import org.junit.Test
 

@@ -4,9 +4,9 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import kotliquery.queryOf
 import no.nav.amt.deltaker.application.plugins.objectMapper
-import no.nav.amt.deltaker.db.Database
-import no.nav.amt.deltaker.db.toPGObject
 import no.nav.amt.deltaker.utils.prefixColumn
+import no.nav.amt.deltaker.utils.toPGObject
+import no.nav.amt.lib.utils.database.Database
 import org.slf4j.LoggerFactory
 
 class TiltakstypeRepository {

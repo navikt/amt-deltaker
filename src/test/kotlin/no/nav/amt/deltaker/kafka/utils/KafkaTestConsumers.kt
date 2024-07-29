@@ -1,7 +1,8 @@
-package no.nav.amt.deltaker.kafka.utils
+package no.nav.amt.lib.kafka.utils
 
-import no.nav.amt.deltaker.kafka.ManagedKafkaConsumer
-import no.nav.amt.deltaker.kafka.config.LocalKafkaConfig
+import no.nav.amt.lib.kafka.ManagedKafkaConsumer
+import no.nav.amt.lib.kafka.config.LocalKafkaConfig
+import no.nav.amt.lib.testing.SingletonKafkaProvider
 import org.apache.kafka.common.serialization.StringDeserializer
 
 private var id = 1

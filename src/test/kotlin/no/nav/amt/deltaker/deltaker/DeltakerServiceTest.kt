@@ -21,8 +21,6 @@ import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.hendelse.HendelseProducer
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.hendelse.model.HendelseType
-import no.nav.amt.deltaker.kafka.config.LocalKafkaConfig
-import no.nav.amt.deltaker.kafka.utils.SingletonKafkaProvider
 import no.nav.amt.deltaker.kafka.utils.assertProduced
 import no.nav.amt.deltaker.kafka.utils.assertProducedFeilregistrert
 import no.nav.amt.deltaker.kafka.utils.assertProducedHendelse
@@ -30,12 +28,14 @@ import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
-import no.nav.amt.deltaker.utils.SingletonPostgresContainer
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.utils.mockAmtArrangorClient
 import no.nav.amt.deltaker.utils.mockAmtPersonClient
-import no.nav.amt.deltaker.utils.shouldBeCloseTo
+import no.nav.amt.lib.kafka.config.LocalKafkaConfig
+import no.nav.amt.lib.testing.SingletonKafkaProvider
+import no.nav.amt.lib.testing.SingletonPostgresContainer
+import no.nav.amt.lib.testing.shouldBeCloseTo
 import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.BeforeClass

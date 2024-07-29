@@ -3,9 +3,9 @@ package no.nav.amt.deltaker.hendelse
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.hendelse.model.Hendelse
-import no.nav.amt.deltaker.kafka.config.KafkaConfig
-import no.nav.amt.deltaker.kafka.config.KafkaConfigImpl
-import no.nav.amt.deltaker.kafka.config.LocalKafkaConfig
+import no.nav.amt.lib.kafka.config.KafkaConfig
+import no.nav.amt.lib.kafka.config.KafkaConfigImpl
+import no.nav.amt.lib.kafka.config.LocalKafkaConfig
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.slf4j.LoggerFactory

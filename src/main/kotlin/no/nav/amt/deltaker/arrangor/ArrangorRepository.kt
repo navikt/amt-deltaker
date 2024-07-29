@@ -2,7 +2,7 @@ package no.nav.amt.deltaker.arrangor
 
 import kotliquery.Row
 import kotliquery.queryOf
-import no.nav.amt.deltaker.db.Database
+import no.nav.amt.lib.utils.database.Database
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -41,26 +41,22 @@ class ArrangorRepository {
         }
     }
 
-    fun get(id: UUID): Arrangor? {
-        return Database.query {
-            val query = queryOf(
-                """select * from arrangor where id = :id""",
-                mapOf("id" to id),
-            ).map(::rowMapper).asSingle
+    fun get(id: UUID): Arrangor? = Database.query {
+        val query = queryOf(
+            """select * from arrangor where id = :id""",
+            mapOf("id" to id),
+        ).map(::rowMapper).asSingle
 
-            it.run(query)
-        }
+        it.run(query)
     }
 
-    fun get(orgnr: String): Arrangor? {
-        return Database.query {
-            val query = queryOf(
-                """select * from arrangor where organisasjonsnummer = :orgnr""",
-                mapOf("orgnr" to orgnr),
-            ).map(::rowMapper).asSingle
+    fun get(orgnr: String): Arrangor? = Database.query {
+        val query = queryOf(
+            """select * from arrangor where organisasjonsnummer = :orgnr""",
+            mapOf("orgnr" to orgnr),
+        ).map(::rowMapper).asSingle
 
-            it.run(query)
-        }
+        it.run(query)
     }
 
     fun delete(id: UUID) = Database.query {

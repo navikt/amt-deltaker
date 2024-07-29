@@ -15,12 +15,12 @@ import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
 import no.nav.amt.deltaker.navbruker.model.NavBruker
-import no.nav.amt.deltaker.utils.SingletonPostgresContainer
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.utils.mockAmtPersonClient
-import no.nav.amt.deltaker.utils.shouldBeCloseTo
 import no.nav.amt.lib.models.arrangor.melding.Forslag
+import no.nav.amt.lib.testing.SingletonPostgresContainer
+import no.nav.amt.lib.testing.shouldBeCloseTo
 import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test
