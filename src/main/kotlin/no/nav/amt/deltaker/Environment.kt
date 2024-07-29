@@ -3,13 +3,10 @@ package no.nav.amt.deltaker
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.auth.PreAuthorizedApp
+import no.nav.amt.lib.utils.database.DatabaseConfig
 
 data class Environment(
-    val dbUsername: String = getEnvVar(DB_USERNAME_KEY),
-    val dbPassword: String = getEnvVar(DB_PASSWORD_KEY),
-    val dbDatabase: String = getEnvVar(DB_DATABASE_KEY),
-    val dbHost: String = getEnvVar(DB_HOST_KEY),
-    val dbPort: String = getEnvVar(DB_PORT_KEY),
+    val databaseConfig: DatabaseConfig = DatabaseConfig(),
     val azureAdTokenUrl: String = getEnvVar(AZURE_AD_TOKEN_URL_KEY),
     val azureClientId: String = getEnvVar(AZURE_APP_CLIENT_ID_KEY),
     val azureClientSecret: String = getEnvVar(AZURE_APP_CLIENT_SECRET_KEY),
@@ -75,9 +72,7 @@ data class Environment(
             return cluster == "prod-gcp"
         }
 
-        fun isLocal(): Boolean {
-            return !isDev() && !isProd()
-        }
+        fun isLocal(): Boolean = !isDev() && !isProd()
     }
 }
 

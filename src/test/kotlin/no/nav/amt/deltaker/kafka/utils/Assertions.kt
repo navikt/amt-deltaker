@@ -9,9 +9,10 @@ import no.nav.amt.deltaker.deltaker.model.DeltakerHistorikk
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.hendelse.model.Hendelse
 import no.nav.amt.deltaker.hendelse.model.HendelseType
-import no.nav.amt.deltaker.utils.AsyncUtils
-import no.nav.amt.deltaker.utils.shouldBeCloseTo
+import no.nav.amt.lib.kafka.utils.stringStringConsumer
 import no.nav.amt.lib.models.arrangor.melding.Forslag
+import no.nav.amt.lib.testing.AsyncUtils
+import no.nav.amt.lib.testing.shouldBeCloseTo
 import java.util.UUID
 import kotlin.reflect.KClass
 

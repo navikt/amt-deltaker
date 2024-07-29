@@ -9,11 +9,11 @@ import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.kafka.arenaKodeTilTiltakstype
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.kafka.erStottet
 import no.nav.amt.deltaker.job.DeltakerStatusOppdateringService
-import no.nav.amt.deltaker.kafka.Consumer
-import no.nav.amt.deltaker.kafka.ManagedKafkaConsumer
-import no.nav.amt.deltaker.kafka.config.KafkaConfig
-import no.nav.amt.deltaker.kafka.config.KafkaConfigImpl
-import no.nav.amt.deltaker.kafka.config.LocalKafkaConfig
+import no.nav.amt.lib.kafka.Consumer
+import no.nav.amt.lib.kafka.ManagedKafkaConsumer
+import no.nav.amt.lib.kafka.config.KafkaConfig
+import no.nav.amt.lib.kafka.config.KafkaConfigImpl
+import no.nav.amt.lib.kafka.config.LocalKafkaConfig
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.UUIDDeserializer
 import java.util.UUID

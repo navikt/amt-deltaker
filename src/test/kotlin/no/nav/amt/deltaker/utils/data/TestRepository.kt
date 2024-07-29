@@ -2,8 +2,6 @@ package no.nav.amt.deltaker.utils.data
 
 import kotliquery.queryOf
 import no.nav.amt.deltaker.arrangor.Arrangor
-import no.nav.amt.deltaker.db.Database
-import no.nav.amt.deltaker.db.toPGObject
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.DeltakerEndring
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
@@ -15,7 +13,9 @@ import no.nav.amt.deltaker.navansatt.navenhet.NavEnhet
 import no.nav.amt.deltaker.navbruker.model.NavBruker
 import no.nav.amt.deltaker.utils.data.TestData.lagNavAnsatt
 import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
+import no.nav.amt.deltaker.utils.toPGObject
 import no.nav.amt.lib.models.arrangor.melding.Forslag
+import no.nav.amt.lib.utils.database.Database
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.util.UUID

@@ -4,24 +4,22 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import kotliquery.queryOf
 import no.nav.amt.deltaker.application.plugins.objectMapper
-import no.nav.amt.deltaker.db.Database
-import no.nav.amt.deltaker.db.toPGObject
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.model.DeltakerEndring
+import no.nav.amt.deltaker.utils.toPGObject
+import no.nav.amt.lib.utils.database.Database
 import java.util.UUID
 
 class DeltakerEndringRepository {
-    private fun rowMapper(row: Row): DeltakerEndring {
-        return DeltakerEndring(
-            id = row.uuid("id"),
-            deltakerId = row.uuid("deltaker_id"),
-            endring = objectMapper.readValue(row.string("endring")),
-            endretAv = row.uuid("endret_av"),
-            endretAvEnhet = row.uuid("endret_av_enhet"),
-            endret = row.localDateTime("dh.modified_at"),
-            forslag = row.uuidOrNull("f.id")?.let { ForslagRepository.rowMapper(row) },
-        )
-    }
+    private fun rowMapper(row: Row): DeltakerEndring = DeltakerEndring(
+        id = row.uuid("id"),
+        deltakerId = row.uuid("deltaker_id"),
+        endring = objectMapper.readValue(row.string("endring")),
+        endretAv = row.uuid("endret_av"),
+        endretAvEnhet = row.uuid("endret_av_enhet"),
+        endret = row.localDateTime("dh.modified_at"),
+        forslag = row.uuidOrNull("f.id")?.let { ForslagRepository.rowMapper(row) },
+    )
 
     fun upsert(deltakerEndring: DeltakerEndring) = Database.query {
         val sql =

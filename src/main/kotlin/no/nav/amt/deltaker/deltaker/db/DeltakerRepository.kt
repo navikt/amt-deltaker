@@ -5,8 +5,6 @@ import kotliquery.Query
 import kotliquery.Row
 import kotliquery.queryOf
 import no.nav.amt.deltaker.application.plugins.objectMapper
-import no.nav.amt.deltaker.db.Database
-import no.nav.amt.deltaker.db.toPGObject
 import no.nav.amt.deltaker.deltaker.model.AVSLUTTENDE_STATUSER
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
@@ -15,6 +13,8 @@ import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.navbruker.model.Adressebeskyttelse
 import no.nav.amt.deltaker.navbruker.model.NavBruker
+import no.nav.amt.deltaker.utils.toPGObject
+import no.nav.amt.lib.utils.database.Database
 import java.time.LocalDate
 import java.util.UUID
 
@@ -120,7 +120,10 @@ class DeltakerRepository {
         session.transaction { tx ->
             tx.update(queryOf(sql, parameters))
             tx.update(insertStatusQuery(deltaker.status, deltaker.id))
-            if (!deltaker.status.gyldigFra.toLocalDate().isAfter(LocalDate.now())) {
+            if (!deltaker.status.gyldigFra
+                    .toLocalDate()
+                    .isAfter(LocalDate.now())
+            ) {
                 tx.update(deaktiverTidligereStatuserQuery(deltaker.status, deltaker.id))
             }
         }
@@ -193,17 +196,17 @@ class DeltakerRepository {
             select * from deltaker_status where deltaker_id = :deltaker_id
             """.trimIndent()
 
-        val query = queryOf(sql, mapOf("deltaker_id" to deltakerId)).map {
-            DeltakerStatus(
-                id = it.uuid("id"),
-                type = it.string("type").let { t -> DeltakerStatus.Type.valueOf(t) },
-                aarsak = it.stringOrNull("aarsak")?.let { aarsak -> objectMapper.readValue(aarsak) },
-                gyldigFra = it.localDateTime("gyldig_fra"),
-                gyldigTil = it.localDateTimeOrNull("gyldig_til"),
-                opprettet = it.localDateTime("created_at"),
-            )
-        }
-            .asList
+        val query = queryOf(sql, mapOf("deltaker_id" to deltakerId))
+            .map {
+                DeltakerStatus(
+                    id = it.uuid("id"),
+                    type = it.string("type").let { t -> DeltakerStatus.Type.valueOf(t) },
+                    aarsak = it.stringOrNull("aarsak")?.let { aarsak -> objectMapper.readValue(aarsak) },
+                    gyldigFra = it.localDateTime("gyldig_fra"),
+                    gyldigTil = it.localDateTimeOrNull("gyldig_til"),
+                    opprettet = it.localDateTime("created_at"),
+                )
+            }.asList
 
         session.run(query)
     }
@@ -226,7 +229,8 @@ class DeltakerRepository {
         )
 
         val query = queryOf(sql, mapOf("status" to DeltakerStatus.Type.VENTER_PA_OPPSTART.name))
-            .map(::rowMapper).asList
+            .map(::rowMapper)
+            .asList
 
         session.run(query)
     }
@@ -248,8 +252,8 @@ class DeltakerRepository {
         val query = queryOf(
             sql,
             *deltakerstatuser.toTypedArray(),
-        )
-            .map(::rowMapper).asList
+        ).map(::rowMapper)
+            .asList
 
         session.run(query)
     }
@@ -273,8 +277,8 @@ class DeltakerRepository {
             sql,
             *avsluttendeDeltakerStatuser.toTypedArray(),
             *avsluttendeDeltakerlisteStatuser.toTypedArray(),
-        )
-            .map(::rowMapper).asList
+        ).map(::rowMapper)
+            .asList
 
         session.run(query)
     }
