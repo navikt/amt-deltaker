@@ -11,6 +11,8 @@ import no.nav.amt.deltaker.deltaker.api.model.ForlengDeltakelseRequest
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
+import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
+import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorService
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.deltaker.forslag.kafka.ArrangorMeldingProducer
@@ -76,6 +78,7 @@ class DeltakerServiceTest {
         private val vedtakService = VedtakService(vedtakRepository, hendelseService)
         private val deltakerEndringService =
             DeltakerEndringService(deltakerEndringRepository, navAnsattService, navEnhetService, hendelseService, forslagService)
+        private val endringFraArrangorService = EndringFraArrangorService(EndringFraArrangorRepository())
 
         private val deltakerService = DeltakerService(
             deltakerRepository = deltakerRepository,
@@ -83,6 +86,7 @@ class DeltakerServiceTest {
             deltakerEndringService = deltakerEndringService,
             vedtakService = vedtakService,
             hendelseService = hendelseService,
+            endringFraArrangorService = endringFraArrangorService,
         )
 
         @JvmStatic

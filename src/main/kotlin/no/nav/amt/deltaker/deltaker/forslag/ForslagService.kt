@@ -34,6 +34,7 @@ class ForslagService(
                 deltakerProducer.produce(deltaker)
             }
         }
+        log.info("Lagret forslag ${forslag.id}")
     }
 
     fun delete(id: UUID) = forslagRepository.delete(id)

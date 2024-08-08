@@ -31,6 +31,8 @@ import no.nav.amt.deltaker.deltaker.api.model.DeltakelserResponseMapper
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
+import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
+import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorService
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.deltaker.forslag.kafka.ArrangorMeldingConsumer
@@ -155,6 +157,9 @@ fun Application.module() {
         DeltakerEndringService(deltakerEndringRepository, navAnsattService, navEnhetService, hendelseService, forslagService)
     val deltakelserResponseMapper = DeltakelserResponseMapper(deltakerHistorikkService, arrangorService)
 
+    val endringFraArrangorRepository = EndringFraArrangorRepository()
+    val endringFraArrangorService = EndringFraArrangorService(endringFraArrangorRepository)
+
     val vedtakService = VedtakService(vedtakRepository, hendelseService)
     val deltakerService = DeltakerService(
         deltakerRepository = deltakerRepository,
@@ -162,6 +167,7 @@ fun Application.module() {
         deltakerProducer = deltakerProducer,
         vedtakService = vedtakService,
         hendelseService = hendelseService,
+        endringFraArrangorService = endringFraArrangorService,
     )
     val pameldingService = PameldingService(
         deltakerService = deltakerService,
@@ -180,7 +186,7 @@ fun Application.module() {
         NavBrukerConsumer(navBrukerRepository, navEnhetService, deltakerService),
         TiltakstypeConsumer(tiltakstypeRepository),
         DeltakerlisteConsumer(deltakerlisteRepository, tiltakstypeRepository, arrangorService, deltakerStatusOppdateringService),
-        ArrangorMeldingConsumer(forslagService),
+        ArrangorMeldingConsumer(forslagService, deltakerService),
     )
     consumers.forEach { it.run() }
 
