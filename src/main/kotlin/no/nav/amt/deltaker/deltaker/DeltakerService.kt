@@ -2,10 +2,12 @@ package no.nav.amt.deltaker.deltaker
 
 import no.nav.amt.deltaker.deltaker.api.model.EndringRequest
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
+import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.hendelse.HendelseService
+import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
@@ -17,6 +19,7 @@ class DeltakerService(
     private val deltakerProducer: DeltakerProducer,
     private val vedtakService: VedtakService,
     private val hendelseService: HendelseService,
+    private val endringFraArrangorService: EndringFraArrangorService,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -57,10 +60,7 @@ class DeltakerService(
 
     suspend fun upsertEndretDeltaker(deltakerId: UUID, request: EndringRequest): Deltaker {
         val deltaker = get(deltakerId).getOrThrow()
-        if (deltaker.status.type == DeltakerStatus.Type.FEILREGISTRERT) {
-            log.warn("Kan ikke oppdatere feilregistrert deltaker, id $deltakerId")
-            throw IllegalArgumentException("Kan ikke oppdatere feilregistrert deltaker")
-        }
+        validerIkkeFeilregistrert(deltaker)
 
         return deltakerEndringService.upsertEndring(deltaker, request).fold(
             onSuccess = { endretDeltaker ->
@@ -70,6 +70,24 @@ class DeltakerService(
                 return@fold deltaker
             },
         )
+    }
+
+    suspend fun upsertEndretDeltaker(endring: EndringFraArrangor): Deltaker {
+        val deltaker = get(endring.deltakerId).getOrThrow()
+        validerIkkeFeilregistrert(deltaker)
+
+        return endringFraArrangorService.insertEndring(deltaker, endring).fold(
+            onSuccess = { endretDeltaker ->
+                return@fold upsertDeltaker(endretDeltaker)
+            },
+            onFailure = {
+                return@fold deltaker
+            },
+        )
+    }
+
+    private fun validerIkkeFeilregistrert(deltaker: Deltaker) = require(deltaker.status.type != DeltakerStatus.Type.FEILREGISTRERT) {
+        "Kan ikke oppdatere feilregistrert deltaker, id ${deltaker.id}"
     }
 
     suspend fun produserDeltakereForPerson(personident: String) {

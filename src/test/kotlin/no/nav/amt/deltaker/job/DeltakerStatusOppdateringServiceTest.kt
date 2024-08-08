@@ -12,6 +12,8 @@ import no.nav.amt.deltaker.deltaker.VedtakService
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
+import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
+import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorService
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
@@ -69,6 +71,7 @@ class DeltakerStatusOppdateringServiceTest {
             forslagService = forslagService,
         )
         private val vedtakService = VedtakService(vedtakRepository, hendelseService)
+        private val endringFraArrangorService = EndringFraArrangorService(EndringFraArrangorRepository())
 
         @JvmStatic
         @BeforeClass
@@ -80,6 +83,7 @@ class DeltakerStatusOppdateringServiceTest {
                 deltakerProducer,
                 vedtakService,
                 hendelseService,
+                endringFraArrangorService,
             )
             deltakerStatusOppdateringService = DeltakerStatusOppdateringService(deltakerRepository, deltakerService)
         }
