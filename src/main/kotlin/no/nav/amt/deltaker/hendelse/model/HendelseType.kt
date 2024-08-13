@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.hendelse.model
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.amt.deltaker.deltaker.model.DeltakerEndring
+import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import java.time.LocalDate
 import java.time.ZonedDateTime
 
@@ -93,6 +94,11 @@ sealed interface HendelseType {
         val utkast: UtkastDto,
         val begrunnelseFraNav: String,
     ) : HendelseType
+
+    data class LeggTilOppstartsdato(
+        val startdato: LocalDate,
+        val sluttdato: LocalDate?,
+    ) : HendelseType
 }
 
 data class UtkastDto(
@@ -170,4 +176,12 @@ fun DeltakerEndring.toHendelseEndring(utkast: UtkastDto? = null) = when (endring
             endring.begrunnelse,
         )
     } ?: throw IllegalStateException("Mangler utkast for reaktivert deltakelse")
+}
+
+fun EndringFraArrangor.toHendelseEndring() = when (val endring = this.endring) {
+    is EndringFraArrangor.LeggTilOppstartsdato ->
+        HendelseType.LeggTilOppstartsdato(
+            startdato = endring.startdato,
+            sluttdato = endring.sluttdato,
+        )
 }

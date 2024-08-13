@@ -17,6 +17,7 @@ import no.nav.amt.deltaker.navansatt.NavAnsatt
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhet
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
+import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import java.util.UUID
@@ -41,6 +42,19 @@ class HendelseService(
         }
 
         hendelseProducer.produce(nyHendelse(deltaker, navAnsatt, navEnhet, endring))
+    }
+
+    suspend fun hendelseForEndringFraArrangor(endringFraArrangor: EndringFraArrangor, deltaker: Deltaker) {
+        if (deltaker.vedtaksinformasjon != null) {
+            val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(deltaker.vedtaksinformasjon.sistEndretAv)
+            val navEnhet = navEnhetService.hentEllerOpprettNavEnhet(deltaker.vedtaksinformasjon.sistEndretAvEnhet)
+
+            val endring = endringFraArrangor.toHendelseEndring()
+
+            hendelseProducer.produce(nyHendelse(deltaker, navAnsatt, navEnhet, endring))
+        } else {
+            throw IllegalStateException("Kan ikke produsere hendelse for endring fra arrangør for deltaker uten vedtak, id ${deltaker.id}")
+        }
     }
 
     suspend fun hendelseForVedtakFattetAvInnbygger(deltaker: Deltaker, vedtak: Vedtak) {

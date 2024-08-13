@@ -14,6 +14,7 @@ import no.nav.amt.deltaker.navbruker.model.NavBruker
 import no.nav.amt.deltaker.utils.data.TestData.lagNavAnsatt
 import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
 import no.nav.amt.deltaker.utils.toPGObject
+import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.utils.database.Database
 import org.slf4j.LoggerFactory
@@ -27,6 +28,7 @@ object TestRepository {
         val tables = listOf(
             "deltaker_endring",
             "forslag",
+            "endring_fra_arrangor",
             "vedtak",
             "deltaker_status",
             "deltaker",
@@ -376,6 +378,28 @@ object TestRepository {
         )
     }
 
+    fun insert(endringFraArrangor: EndringFraArrangor) = Database.query {
+        val sql =
+            """
+            insert into endring_fra_arrangor (id, deltaker_id, arrangor_ansatt_id, opprettet, endring)
+            values (:id, :deltaker_id, :arrangor_ansatt_id, :opprettet, :endring)
+            on conflict (id) do nothing
+            """.trimIndent()
+
+        it.update(
+            queryOf(
+                sql,
+                mapOf(
+                    "id" to endringFraArrangor.id,
+                    "deltaker_id" to endringFraArrangor.deltakerId,
+                    "arrangor_ansatt_id" to endringFraArrangor.opprettetAvArrangorAnsattId,
+                    "opprettet" to endringFraArrangor.opprettet,
+                    "endring" to toPGObject(endringFraArrangor.endring),
+                ),
+            ),
+        )
+    }
+
     fun <T> insertAll(vararg values: T) {
         values.forEach {
             when (it) {
@@ -389,6 +413,7 @@ object TestRepository {
                 is Vedtak -> insert(it)
                 is Forslag -> insert(it)
                 is DeltakerEndring -> insert(it)
+                is EndringFraArrangor -> insert(it)
                 else -> NotImplementedError("insertAll for type ${it!!::class} er ikke implementert")
             }
         }

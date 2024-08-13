@@ -4,6 +4,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.db.sammenlignDeltakereVedVedtak
+import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.model.DeltakerHistorikk
 import no.nav.amt.deltaker.kafka.utils.sammenlignForslagStatus
@@ -25,6 +26,7 @@ class DeltakerHistorikkServiceTest {
             DeltakerEndringRepository(),
             VedtakRepository(),
             ForslagRepository(),
+            EndringFraArrangorRepository(),
         )
 
         @BeforeClass
@@ -66,6 +68,10 @@ class DeltakerHistorikkServiceTest {
             endretAvEnhet = navEnhet.id,
             endret = LocalDateTime.now().minusDays(20),
         )
+        val endringFraArrangor = TestData.lagEndringFraArrangor(
+            deltakerId = deltaker.id,
+            opprettet = LocalDateTime.now().minusDays(18),
+        )
         val forslag = TestData.lagForslag(
             deltakerId = deltaker.id,
             status = Forslag.Status.Tilbakekalt(
@@ -84,18 +90,20 @@ class DeltakerHistorikkServiceTest {
         TestRepository.insert(vedtak)
         TestRepository.insert(ikkeFattetVedtak)
         TestRepository.insert(gammelEndring)
+        TestRepository.insert(endringFraArrangor)
         TestRepository.insert(nyEndring)
         TestRepository.insert(forslag)
         TestRepository.insert(forslagVenter)
 
         val historikk = service.getForDeltaker(deltaker.id)
 
-        historikk.size shouldBe 5
+        historikk.size shouldBe 6
         sammenlignHistorikk(historikk[0], DeltakerHistorikk.Endring(nyEndring))
         sammenlignHistorikk(historikk[1], DeltakerHistorikk.Vedtak(ikkeFattetVedtak))
         sammenlignHistorikk(historikk[2], DeltakerHistorikk.Forslag(forslag))
-        sammenlignHistorikk(historikk[3], DeltakerHistorikk.Endring(gammelEndring))
-        sammenlignHistorikk(historikk[4], DeltakerHistorikk.Vedtak(vedtak))
+        sammenlignHistorikk(historikk[3], DeltakerHistorikk.EndringFraArrangor(endringFraArrangor))
+        sammenlignHistorikk(historikk[4], DeltakerHistorikk.Endring(gammelEndring))
+        sammenlignHistorikk(historikk[5], DeltakerHistorikk.Vedtak(vedtak))
     }
 
     @Test
@@ -165,6 +173,15 @@ fun sammenlignHistorikk(a: DeltakerHistorikk, b: DeltakerHistorikk) {
             a.forslag.opprettetAvArrangorAnsattId shouldBe b.forslag.opprettetAvArrangorAnsattId
             a.forslag.endring shouldBe b.forslag.endring
             sammenlignForslagStatus(a.forslag.status, b.forslag.status)
+        }
+
+        is DeltakerHistorikk.EndringFraArrangor -> {
+            b as DeltakerHistorikk.EndringFraArrangor
+            a.endringFraArrangor.id shouldBe b.endringFraArrangor.id
+            a.endringFraArrangor.deltakerId shouldBe b.endringFraArrangor.deltakerId
+            a.endringFraArrangor.opprettet shouldBeCloseTo b.endringFraArrangor.opprettet
+            a.endringFraArrangor.opprettetAvArrangorAnsattId shouldBe b.endringFraArrangor.opprettetAvArrangorAnsattId
+            a.endringFraArrangor.endring shouldBe b.endringFraArrangor.endring
         }
     }
 }

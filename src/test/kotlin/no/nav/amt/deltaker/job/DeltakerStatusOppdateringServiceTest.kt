@@ -50,7 +50,9 @@ class DeltakerStatusOppdateringServiceTest {
         private val deltakerEndringRepository = DeltakerEndringRepository()
         private val vedtakRepository = VedtakRepository()
         private val forslagRepository = ForslagRepository()
-        private val deltakerHistorikkService = DeltakerHistorikkService(deltakerEndringRepository, vedtakRepository, forslagRepository)
+        private val endringFraArrangorRepository = EndringFraArrangorRepository()
+        private val deltakerHistorikkService =
+            DeltakerHistorikkService(deltakerEndringRepository, vedtakRepository, forslagRepository, endringFraArrangorRepository)
         private val deltakerV2MapperService = DeltakerV2MapperService(navAnsattService, navEnhetService, deltakerHistorikkService)
         private val deltakerProducer = DeltakerProducer(LocalKafkaConfig(SingletonKafkaProvider.getHost()), deltakerV2MapperService)
         private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
@@ -71,7 +73,7 @@ class DeltakerStatusOppdateringServiceTest {
             forslagService = forslagService,
         )
         private val vedtakService = VedtakService(vedtakRepository, hendelseService)
-        private val endringFraArrangorService = EndringFraArrangorService(EndringFraArrangorRepository())
+        private val endringFraArrangorService = EndringFraArrangorService(endringFraArrangorRepository, hendelseService)
 
         @JvmStatic
         @BeforeClass

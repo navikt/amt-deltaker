@@ -24,6 +24,7 @@ import no.nav.amt.deltaker.navbruker.model.Matrikkeladresse
 import no.nav.amt.deltaker.navbruker.model.NavBruker
 import no.nav.amt.deltaker.navbruker.model.Oppfolgingsperiode
 import no.nav.amt.deltaker.navbruker.model.Vegadresse
+import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -278,6 +279,17 @@ object TestData {
         endring: Forslag.Endring = Forslag.ForlengDeltakelse(LocalDate.now().plusWeeks(2)),
         status: Forslag.Status = Forslag.Status.VenterPaSvar,
     ) = Forslag(id, deltakerId, opprettetAvArrangorAnsattId, opprettet, begrunnelse, endring, status)
+
+    fun lagEndringFraArrangor(
+        id: UUID = UUID.randomUUID(),
+        deltakerId: UUID = UUID.randomUUID(),
+        opprettetAvArrangorAnsattId: UUID = UUID.randomUUID(),
+        opprettet: LocalDateTime = LocalDateTime.now(),
+        endring: EndringFraArrangor.Endring = EndringFraArrangor.LeggTilOppstartsdato(
+            LocalDate.now().plusDays(2),
+            LocalDate.now().plusMonths(3),
+        ),
+    ) = EndringFraArrangor(id, deltakerId, opprettetAvArrangorAnsattId, opprettet, endring)
 
     fun lagVedtak(
         id: UUID = UUID.randomUUID(),

@@ -54,8 +54,10 @@ class DeltakerServiceTest {
         private val deltakerEndringRepository = DeltakerEndringRepository()
         private val vedtakRepository = VedtakRepository()
         private val forslagRepository = ForslagRepository()
+        private val endringFraArrangorRepository = EndringFraArrangorRepository()
         private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
-        private val deltakerHistorikkService = DeltakerHistorikkService(deltakerEndringRepository, vedtakRepository, forslagRepository)
+        private val deltakerHistorikkService =
+            DeltakerHistorikkService(deltakerEndringRepository, vedtakRepository, forslagRepository, endringFraArrangorRepository)
         private val hendelseService = HendelseService(
             HendelseProducer(LocalKafkaConfig(SingletonKafkaProvider.getHost())),
             navAnsattService,
@@ -78,7 +80,7 @@ class DeltakerServiceTest {
         private val vedtakService = VedtakService(vedtakRepository, hendelseService)
         private val deltakerEndringService =
             DeltakerEndringService(deltakerEndringRepository, navAnsattService, navEnhetService, hendelseService, forslagService)
-        private val endringFraArrangorService = EndringFraArrangorService(EndringFraArrangorRepository())
+        private val endringFraArrangorService = EndringFraArrangorService(endringFraArrangorRepository, hendelseService)
 
         private val deltakerService = DeltakerService(
             deltakerRepository = deltakerRepository,

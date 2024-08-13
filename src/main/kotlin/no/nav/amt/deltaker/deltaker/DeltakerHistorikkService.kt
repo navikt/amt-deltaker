@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.deltaker
 
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
+import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.model.DeltakerHistorikk
 import no.nav.amt.deltaker.deltaker.model.skalInkluderesIHistorikk
@@ -12,20 +13,24 @@ class DeltakerHistorikkService(
     private val deltakerEndringRepository: DeltakerEndringRepository,
     private val vedtakRepository: VedtakRepository,
     private val forslagRepository: ForslagRepository,
+    private val endringFraArrangorRepository: EndringFraArrangorRepository,
 ) {
     fun getForDeltaker(id: UUID): List<DeltakerHistorikk> {
         val deltakerHistorikk = deltakerEndringRepository.getForDeltaker(id).map { DeltakerHistorikk.Endring(it) }
         val vedtak = vedtakRepository.getForDeltaker(id).map { DeltakerHistorikk.Vedtak(it) }
         val forslag = forslagRepository.getForDeltaker(id).filter { it.skalInkluderesIHistorikk() }.map { DeltakerHistorikk.Forslag(it) }
+        val endringerFraArrangor = endringFraArrangorRepository.getForDeltaker(id).map { DeltakerHistorikk.EndringFraArrangor(it) }
 
         val historikk = deltakerHistorikk
             .plus(vedtak)
             .plus(forslag)
+            .plus(endringerFraArrangor)
             .sortedByDescending {
                 when (it) {
                     is DeltakerHistorikk.Endring -> it.endring.endret
                     is DeltakerHistorikk.Vedtak -> it.vedtak.sistEndret
                     is DeltakerHistorikk.Forslag -> it.forslag.sistEndret
+                    is DeltakerHistorikk.EndringFraArrangor -> it.endringFraArrangor.opprettet
                 }
             }
 

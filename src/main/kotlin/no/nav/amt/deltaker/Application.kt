@@ -123,6 +123,7 @@ fun Application.module() {
     val deltakerEndringRepository = DeltakerEndringRepository()
     val vedtakRepository = VedtakRepository()
     val forslagRepository = ForslagRepository()
+    val endringFraArrangorRepository = EndringFraArrangorRepository()
 
     val poaoTilgangCachedClient = PoaoTilgangCachedClient.createDefaultCacheClient(
         PoaoTilgangHttpClient(
@@ -143,7 +144,12 @@ fun Application.module() {
 
     val arrangorService = ArrangorService(arrangorRepository, amtArrangorClient)
 
-    val deltakerHistorikkService = DeltakerHistorikkService(deltakerEndringRepository, vedtakRepository, forslagRepository)
+    val deltakerHistorikkService = DeltakerHistorikkService(
+        deltakerEndringRepository,
+        vedtakRepository,
+        forslagRepository,
+        endringFraArrangorRepository,
+    )
 
     val hendelseProducer = HendelseProducer()
     val hendelseService = HendelseService(hendelseProducer, navAnsattService, navEnhetService, arrangorService, deltakerHistorikkService)
@@ -157,8 +163,7 @@ fun Application.module() {
         DeltakerEndringService(deltakerEndringRepository, navAnsattService, navEnhetService, hendelseService, forslagService)
     val deltakelserResponseMapper = DeltakelserResponseMapper(deltakerHistorikkService, arrangorService)
 
-    val endringFraArrangorRepository = EndringFraArrangorRepository()
-    val endringFraArrangorService = EndringFraArrangorService(endringFraArrangorRepository)
+    val endringFraArrangorService = EndringFraArrangorService(endringFraArrangorRepository, hendelseService)
 
     val vedtakService = VedtakService(vedtakRepository, hendelseService)
     val deltakerService = DeltakerService(
