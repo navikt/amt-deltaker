@@ -11,6 +11,8 @@ import no.nav.amt.deltaker.deltaker.api.model.ForlengDeltakelseRequest
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
+import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
+import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorService
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.deltaker.forslag.kafka.ArrangorMeldingProducer
@@ -52,8 +54,10 @@ class DeltakerServiceTest {
         private val deltakerEndringRepository = DeltakerEndringRepository()
         private val vedtakRepository = VedtakRepository()
         private val forslagRepository = ForslagRepository()
+        private val endringFraArrangorRepository = EndringFraArrangorRepository()
         private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
-        private val deltakerHistorikkService = DeltakerHistorikkService(deltakerEndringRepository, vedtakRepository, forslagRepository)
+        private val deltakerHistorikkService =
+            DeltakerHistorikkService(deltakerEndringRepository, vedtakRepository, forslagRepository, endringFraArrangorRepository)
         private val hendelseService = HendelseService(
             HendelseProducer(LocalKafkaConfig(SingletonKafkaProvider.getHost())),
             navAnsattService,
@@ -76,6 +80,7 @@ class DeltakerServiceTest {
         private val vedtakService = VedtakService(vedtakRepository, hendelseService)
         private val deltakerEndringService =
             DeltakerEndringService(deltakerEndringRepository, navAnsattService, navEnhetService, hendelseService, forslagService)
+        private val endringFraArrangorService = EndringFraArrangorService(endringFraArrangorRepository, hendelseService)
 
         private val deltakerService = DeltakerService(
             deltakerRepository = deltakerRepository,
@@ -83,6 +88,7 @@ class DeltakerServiceTest {
             deltakerEndringService = deltakerEndringService,
             vedtakService = vedtakService,
             hendelseService = hendelseService,
+            endringFraArrangorService = endringFraArrangorService,
         )
 
         @JvmStatic

@@ -12,6 +12,8 @@ import no.nav.amt.deltaker.deltaker.VedtakService
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
+import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
+import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorService
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
@@ -48,7 +50,9 @@ class DeltakerStatusOppdateringServiceTest {
         private val deltakerEndringRepository = DeltakerEndringRepository()
         private val vedtakRepository = VedtakRepository()
         private val forslagRepository = ForslagRepository()
-        private val deltakerHistorikkService = DeltakerHistorikkService(deltakerEndringRepository, vedtakRepository, forslagRepository)
+        private val endringFraArrangorRepository = EndringFraArrangorRepository()
+        private val deltakerHistorikkService =
+            DeltakerHistorikkService(deltakerEndringRepository, vedtakRepository, forslagRepository, endringFraArrangorRepository)
         private val deltakerV2MapperService = DeltakerV2MapperService(navAnsattService, navEnhetService, deltakerHistorikkService)
         private val deltakerProducer = DeltakerProducer(LocalKafkaConfig(SingletonKafkaProvider.getHost()), deltakerV2MapperService)
         private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
@@ -69,6 +73,7 @@ class DeltakerStatusOppdateringServiceTest {
             forslagService = forslagService,
         )
         private val vedtakService = VedtakService(vedtakRepository, hendelseService)
+        private val endringFraArrangorService = EndringFraArrangorService(endringFraArrangorRepository, hendelseService)
 
         @JvmStatic
         @BeforeClass
@@ -80,6 +85,7 @@ class DeltakerStatusOppdateringServiceTest {
                 deltakerProducer,
                 vedtakService,
                 hendelseService,
+                endringFraArrangorService,
             )
             deltakerStatusOppdateringService = DeltakerStatusOppdateringService(deltakerRepository, deltakerService)
         }

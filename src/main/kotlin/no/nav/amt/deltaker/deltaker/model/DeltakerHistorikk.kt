@@ -16,6 +16,10 @@ sealed class DeltakerHistorikk {
     data class Forslag(
         val forslag: no.nav.amt.lib.models.arrangor.melding.Forslag,
     ) : DeltakerHistorikk()
+
+    data class EndringFraArrangor(
+        val endringFraArrangor: no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor,
+    ) : DeltakerHistorikk()
 }
 
 fun Forslag.skalInkluderesIHistorikk() = when (this.status) {

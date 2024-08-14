@@ -11,6 +11,8 @@ import no.nav.amt.deltaker.deltaker.api.model.UtkastRequest
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
+import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
+import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorService
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
@@ -50,7 +52,11 @@ class PameldingServiceTest {
         private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
         private val forslagRepository = ForslagRepository()
         private val deltakerRepository = DeltakerRepository()
-        private val deltakerHistorikkService = DeltakerHistorikkService(DeltakerEndringRepository(), VedtakRepository(), forslagRepository)
+        private val deltakerEndringRepository = DeltakerEndringRepository()
+        private val endringFraArrangorRepository = EndringFraArrangorRepository()
+        private val vedtakRepository = VedtakRepository()
+        private val deltakerHistorikkService =
+            DeltakerHistorikkService(deltakerEndringRepository, vedtakRepository, forslagRepository, endringFraArrangorRepository)
         private val hendelseService = HendelseService(
             HendelseProducer(LocalKafkaConfig(SingletonKafkaProvider.getHost())),
             navAnsattService,
@@ -59,15 +65,15 @@ class PameldingServiceTest {
             deltakerHistorikkService,
         )
 
-        private val vedtakRepository = VedtakRepository()
         private val vedtakService = VedtakService(vedtakRepository, hendelseService)
         private val forslagService = ForslagService(forslagRepository, mockk(), deltakerRepository, mockk())
+        private val endringFraArrangorService = EndringFraArrangorService(endringFraArrangorRepository, hendelseService)
 
         private val deltakerService = DeltakerService(
             deltakerRepository = deltakerRepository,
             deltakerProducer = mockk(relaxed = true),
             deltakerEndringService = DeltakerEndringService(
-                DeltakerEndringRepository(),
+                deltakerEndringRepository,
                 navAnsattService,
                 navEnhetService,
                 hendelseService,
@@ -75,6 +81,7 @@ class PameldingServiceTest {
             ),
             vedtakService = vedtakService,
             hendelseService = hendelseService,
+            endringFraArrangorService = endringFraArrangorService,
         )
 
         private var pameldingService = PameldingService(
