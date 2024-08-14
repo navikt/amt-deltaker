@@ -119,7 +119,7 @@ class DeltakelserResponseMapper(
             DeltakerStatus.Aarsak.Type.FATT_JOBB -> "Fått jobb"
             DeltakerStatus.Aarsak.Type.TRENGER_ANNEN_STOTTE -> "Trenger annen støtte"
             DeltakerStatus.Aarsak.Type.FIKK_IKKE_PLASS -> "Fikk ikke plass"
-            DeltakerStatus.Aarsak.Type.IKKE_MOTT -> "Ikke møtt"
+            DeltakerStatus.Aarsak.Type.IKKE_MOTT -> "Møter ikke opp"
             DeltakerStatus.Aarsak.Type.ANNET -> "Annet"
             DeltakerStatus.Aarsak.Type.AVLYST_KONTRAKT -> "Avlyst kontrakt"
             DeltakerStatus.Aarsak.Type.UTDANNING -> "Utdanning"
