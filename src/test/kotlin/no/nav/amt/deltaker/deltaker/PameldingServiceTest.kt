@@ -15,6 +15,7 @@ import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepos
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorService
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagService
+import no.nav.amt.deltaker.deltaker.model.Deltakelsesinnhold
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.deltaker.model.Innhold
 import no.nav.amt.deltaker.deltaker.model.Innsatsgruppe
@@ -137,7 +138,8 @@ class PameldingServiceTest {
             deltaker.dagerPerUke shouldBe null
             deltaker.deltakelsesprosent shouldBe null
             deltaker.bakgrunnsinformasjon shouldBe null
-            deltaker.innhold shouldBe emptyList()
+            deltaker.deltakelsesinnhold.ledetekst shouldBe deltakerliste.tiltakstype.innhold!!.ledetekst
+            deltaker.deltakelsesinnhold.innhold shouldBe emptyList()
         }
     }
 
@@ -226,7 +228,7 @@ class PameldingServiceTest {
             eksisterendeDeltaker.dagerPerUke shouldBe deltaker.dagerPerUke
             eksisterendeDeltaker.deltakelsesprosent shouldBe deltaker.deltakelsesprosent
             eksisterendeDeltaker.bakgrunnsinformasjon shouldBe deltaker.bakgrunnsinformasjon
-            eksisterendeDeltaker.innhold shouldBe deltaker.innhold
+            eksisterendeDeltaker.deltakelsesinnhold shouldBe deltaker.deltakelsesinnhold
         }
     }
 
@@ -263,7 +265,7 @@ class PameldingServiceTest {
         TestRepository.insert(sistEndretAvEnhet)
 
         val utkastRequest = UtkastRequest(
-            innhold = listOf(Innhold("Tekst", "kode", true, null)),
+            deltakelsesinnhold = Deltakelsesinnhold("utkastledetekst", listOf(Innhold("Tekst", "kode", true, null))),
             bakgrunnsinformasjon = "Bakgrunn",
             deltakelsesprosent = 100F,
             dagerPerUke = null,
@@ -304,7 +306,7 @@ class PameldingServiceTest {
         TestRepository.insert(sistEndretAvEnhet)
 
         val utkastRequest = UtkastRequest(
-            innhold = listOf(Innhold("Tekst", "kode", true, null)),
+            deltakelsesinnhold = Deltakelsesinnhold("test", listOf(Innhold("Tekst", "kode", true, null))),
             bakgrunnsinformasjon = "Bakgrunn",
             deltakelsesprosent = 100F,
             dagerPerUke = null,

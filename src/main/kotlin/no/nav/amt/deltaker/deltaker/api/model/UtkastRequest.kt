@@ -1,9 +1,9 @@
 package no.nav.amt.deltaker.deltaker.api.model
 
-import no.nav.amt.deltaker.deltaker.model.Innhold
+import no.nav.amt.deltaker.deltaker.model.Deltakelsesinnhold
 
 data class UtkastRequest(
-    val innhold: List<Innhold>,
+    val deltakelsesinnhold: Deltakelsesinnhold,
     val bakgrunnsinformasjon: String?,
     val deltakelsesprosent: Float?,
     val dagerPerUke: Float?,

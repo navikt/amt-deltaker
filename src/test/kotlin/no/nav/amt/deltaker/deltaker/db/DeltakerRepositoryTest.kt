@@ -271,7 +271,8 @@ class DeltakerRepositoryTest {
         deltakerFraDb.dagerPerUke shouldBe null
         deltakerFraDb.deltakelsesprosent shouldBe null
         deltakerFraDb.bakgrunnsinformasjon shouldBe null
-        deltakerFraDb.innhold shouldBe emptyList()
+        deltakerFraDb.deltakelsesinnhold.innhold shouldBe emptyList()
+        deltakerFraDb.deltakelsesinnhold.ledetekst shouldBe null
     }
 }
 
@@ -283,7 +284,7 @@ fun sammenlignDeltakere(a: Deltaker, b: Deltaker) {
     a.dagerPerUke shouldBe b.dagerPerUke
     a.deltakelsesprosent shouldBe b.deltakelsesprosent
     a.bakgrunnsinformasjon shouldBe b.bakgrunnsinformasjon
-    a.innhold shouldBe b.innhold
+    a.deltakelsesinnhold shouldBe b.deltakelsesinnhold
     a.status.id shouldBe b.status.id
     a.status.type shouldBe b.status.type
     a.status.aarsak shouldBe b.status.aarsak

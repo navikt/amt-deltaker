@@ -14,6 +14,7 @@ import no.nav.amt.deltaker.deltaker.api.model.StartdatoRequest
 import no.nav.amt.deltaker.deltaker.api.model.getForslagId
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagService
+import no.nav.amt.deltaker.deltaker.model.Deltakelsesinnhold
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.DeltakerEndring
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
@@ -41,7 +42,7 @@ class DeltakerEndringService(
             }
 
             is InnholdRequest -> {
-                val endring = DeltakerEndring.Endring.EndreInnhold(request.innhold)
+                val endring = DeltakerEndring.Endring.EndreInnhold(request.deltakelsesinnhold.ledetekst, request.deltakelsesinnhold.innhold)
                 Pair(endretDeltaker(deltaker, endring), endring)
             }
 
@@ -167,8 +168,8 @@ class DeltakerEndringService(
             }
 
             is DeltakerEndring.Endring.EndreInnhold -> {
-                endreDeltaker(deltaker.innhold != endring.innhold) {
-                    deltaker.copy(innhold = endring.innhold)
+                endreDeltaker(deltaker.deltakelsesinnhold.innhold != endring.innhold) {
+                    deltaker.copy(deltakelsesinnhold = Deltakelsesinnhold(endring.ledetekst, endring.innhold))
                 }
             }
 

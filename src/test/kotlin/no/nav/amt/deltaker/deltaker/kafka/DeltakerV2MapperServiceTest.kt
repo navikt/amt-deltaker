@@ -95,7 +95,7 @@ class DeltakerV2MapperServiceTest {
         deltakerV2Dto.navVeileder shouldBe veileder.toDeltakerNavVeilederDto()
         deltakerV2Dto.deltarPaKurs shouldBe deltaker.deltarPaKurs()
         deltakerV2Dto.kilde shouldBe DeltakerV2Dto.Kilde.KOMET
-        deltakerV2Dto.innhold shouldBe Deltakelsesinnhold("Beskrivelse av tilaket", emptyList())
+        deltakerV2Dto.innhold shouldBe Deltakelsesinnhold(deltaker.deltakelsesinnhold.ledetekst, deltaker.deltakelsesinnhold.innhold)
         deltakerV2Dto.historikk?.size shouldBe 1
         sammenlignHistorikk(deltakerV2Dto.historikk?.first()!!, DeltakerHistorikk.Vedtak(vedtak))
         deltakerV2Dto.sistEndret shouldBeCloseTo deltaker.sistEndret
@@ -171,7 +171,7 @@ class DeltakerV2MapperServiceTest {
         deltakerV2Dto.navVeileder shouldBe veileder.toDeltakerNavVeilederDto()
         deltakerV2Dto.deltarPaKurs shouldBe deltaker.deltarPaKurs()
         deltakerV2Dto.kilde shouldBe DeltakerV2Dto.Kilde.KOMET
-        deltakerV2Dto.innhold shouldBe Deltakelsesinnhold("Beskrivelse av tilaket", emptyList())
+        deltakerV2Dto.innhold shouldBe Deltakelsesinnhold(deltaker.deltakelsesinnhold.ledetekst, deltaker.deltakelsesinnhold.innhold)
         deltakerV2Dto.historikk?.size shouldBe 4
         sammenlignHistorikk(deltakerV2Dto.historikk?.get(0)!!, DeltakerHistorikk.EndringFraArrangor(endringFraArrangor))
         sammenlignHistorikk(deltakerV2Dto.historikk?.get(1)!!, DeltakerHistorikk.Forslag(forslag))

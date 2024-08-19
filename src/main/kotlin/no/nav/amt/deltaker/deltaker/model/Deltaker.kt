@@ -15,7 +15,7 @@ data class Deltaker(
     val dagerPerUke: Float?,
     val deltakelsesprosent: Float?,
     val bakgrunnsinformasjon: String?,
-    val innhold: List<Innhold>,
+    val deltakelsesinnhold: Deltakelsesinnhold,
     val status: DeltakerStatus,
     val vedtaksinformasjon: Vedtaksinformasjon?,
     val sistEndret: LocalDateTime,
@@ -35,9 +35,7 @@ data class Deltaker(
         dagerPerUke = dagerPerUke,
         deltakelsesprosent = deltakelsesprosent,
         bakgrunnsinformasjon = bakgrunnsinformasjon,
-        deltakelsesinnhold = deltakerliste.tiltakstype.innhold?.let {
-            Deltakelsesinnhold(it.ledetekst, innhold)
-        },
+        deltakelsesinnhold = deltakelsesinnhold,
         status = status,
     )
 
@@ -52,10 +50,3 @@ data class Deltaker(
         val sistEndretAvEnhet: UUID,
     )
 }
-
-data class Innhold(
-    val tekst: String,
-    val innholdskode: String,
-    val valgt: Boolean,
-    val beskrivelse: String?,
-)

@@ -47,7 +47,7 @@ class DeltakerEndringRepositoryTest {
         )
         val deltakerEndring2 = TestData.lagDeltakerEndring(
             deltakerId = deltaker.id,
-            endring = DeltakerEndring.Endring.EndreInnhold(listOf(Innhold("tekst", "type", true, null))),
+            endring = DeltakerEndring.Endring.EndreInnhold("ledetekst", listOf(Innhold("tekst", "type", true, null))),
             endretAv = navAnsatt2.id,
             endretAvEnhet = navEnhet2.id,
         )
@@ -89,7 +89,7 @@ class DeltakerEndringRepositoryTest {
         )
         val deltakerEndring2 = TestData.lagDeltakerEndring(
             deltakerId = deltaker.id,
-            endring = DeltakerEndring.Endring.EndreInnhold(listOf(Innhold("tekst", "type", true, null))),
+            endring = DeltakerEndring.Endring.EndreInnhold("ledetekst", listOf(Innhold("tekst", "type", true, null))),
             endretAv = navAnsatt2.id,
             endretAvEnhet = navEnhet2.id,
         )

@@ -1,8 +1,8 @@
 package no.nav.amt.deltaker.deltaker.api.model
 
+import no.nav.amt.deltaker.deltaker.model.Deltakelsesinnhold
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
-import no.nav.amt.deltaker.deltaker.model.Innhold
 import no.nav.amt.deltaker.navbruker.model.NavBruker
 import java.time.LocalDate
 import java.util.UUID
@@ -16,7 +16,7 @@ data class KladdResponse(
     val dagerPerUke: Float?,
     val deltakelsesprosent: Float?,
     val bakgrunnsinformasjon: String?,
-    val innhold: List<Innhold>,
+    val deltakelsesinnhold: Deltakelsesinnhold,
     val status: DeltakerStatus,
 )
 
@@ -29,6 +29,6 @@ fun Deltaker.toKladdResponse(): KladdResponse = KladdResponse(
     dagerPerUke = dagerPerUke,
     deltakelsesprosent = deltakelsesprosent,
     bakgrunnsinformasjon = bakgrunnsinformasjon,
-    innhold = innhold,
+    deltakelsesinnhold = deltakelsesinnhold,
     status = status,
 )

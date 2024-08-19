@@ -123,7 +123,7 @@ private fun Deltaker.toUtkastDto() = UtkastDto(
     dagerPerUke,
     deltakelsesprosent,
     bakgrunnsinformasjon,
-    innhold.toDto(),
+    deltakelsesinnhold.innhold.toDto(),
 )
 
 private fun List<Innhold>.toDto() = this.map { InnholdDto(it.tekst, it.innholdskode, it.beskrivelse) }
