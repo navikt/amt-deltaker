@@ -16,7 +16,7 @@ import java.util.UUID
 
 class DeltakerConsumer(
     private val repository: DeltakerRepository,
-    kafkaConfig: KafkaConfig = if (Environment.isLocal()) LocalKafkaConfig() else KafkaConfigImpl(),
+    kafkaConfig: KafkaConfig = if (Environment.isLocal()) LocalKafkaConfig() else KafkaConfigImpl("earliest"),
 ) : Consumer<UUID, String?> {
     private val log = LoggerFactory.getLogger(javaClass)
     private val consumer = ManagedKafkaConsumer(
