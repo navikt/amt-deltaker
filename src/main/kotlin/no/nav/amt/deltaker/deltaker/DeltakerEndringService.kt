@@ -168,7 +168,7 @@ class DeltakerEndringService(
             }
 
             is DeltakerEndring.Endring.EndreInnhold -> {
-                endreDeltaker(deltaker.deltakelsesinnhold.innhold != endring.innhold) {
+                endreDeltaker(deltaker.deltakelsesinnhold?.innhold != endring.innhold) {
                     deltaker.copy(deltakelsesinnhold = Deltakelsesinnhold(endring.ledetekst, endring.innhold))
                 }
             }

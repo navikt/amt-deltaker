@@ -14,7 +14,7 @@ data class DeltakerEndringResponse(
     val dagerPerUke: Float?,
     val deltakelsesprosent: Float?,
     val bakgrunnsinformasjon: String?,
-    val innhold: Deltakelsesinnhold,
+    val deltakelsesinnhold: Deltakelsesinnhold?,
     val status: DeltakerStatus,
     val historikk: List<DeltakerHistorikk>,
 )
@@ -26,7 +26,7 @@ fun Deltaker.toDeltakerEndringResponse(historikk: List<DeltakerHistorikk>) = Del
     dagerPerUke = dagerPerUke,
     deltakelsesprosent = deltakelsesprosent,
     bakgrunnsinformasjon = bakgrunnsinformasjon,
-    innhold = deltakelsesinnhold,
+    deltakelsesinnhold = deltakelsesinnhold,
     status = status,
     historikk = historikk,
 )

@@ -15,7 +15,7 @@ data class Deltaker(
     val dagerPerUke: Float?,
     val deltakelsesprosent: Float?,
     val bakgrunnsinformasjon: String?,
-    val deltakelsesinnhold: Deltakelsesinnhold,
+    val deltakelsesinnhold: Deltakelsesinnhold?, // arenadeltakere vil ikke ha denne
     val status: DeltakerStatus,
     val vedtaksinformasjon: Vedtaksinformasjon?,
     val sistEndret: LocalDateTime,

@@ -29,6 +29,6 @@ fun Deltaker.toKladdResponse(): KladdResponse = KladdResponse(
     dagerPerUke = dagerPerUke,
     deltakelsesprosent = deltakelsesprosent,
     bakgrunnsinformasjon = bakgrunnsinformasjon,
-    deltakelsesinnhold = deltakelsesinnhold,
+    deltakelsesinnhold = deltakelsesinnhold ?: throw IllegalStateException("Kladd mangler obligatorisk innhold(deltakelsesinnhold)"),
     status = status,
 )
