@@ -44,12 +44,8 @@ class DeltakerConsumer(
         if (deltaker.kilde != DeltakerV2Dto.Kilde.KOMET) return
 
         val prewDeltaker = repository.getUtenInnhold(deltaker.id)
-        val newDeltaker = prewDeltaker
-            .isSuccess
-            .let { prewDeltaker.getOrThrow() }
-            .copy(deltakelsesinnhold = deltaker.innhold)
-
-        repository.upsertInnholdOnly(newDeltaker)
+        prewDeltaker
+            .onSuccess { repository.upsertInnholdOnly(it.copy(deltakelsesinnhold = deltaker.innhold))}
     }
 
     override fun run() = consumer.run()
