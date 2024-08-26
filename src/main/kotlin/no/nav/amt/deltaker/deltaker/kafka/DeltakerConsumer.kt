@@ -36,11 +36,12 @@ class DeltakerConsumer(
         } else {
             log.info("Konsumerer deltaker med key $key")
             processDeltaker(objectMapper.readValue(value))
+            log.info("Ferdig med å konsumere deltaker med key $key")
         }
     }
 
     private fun processDeltaker(deltaker: DeltakerV2Dto) {
-        if (deltaker.kilde == DeltakerV2Dto.Kilde.ARENA) return
+        if (deltaker.kilde != DeltakerV2Dto.Kilde.KOMET) return
 
         val prewDeltaker = repository.getUtenInnhold(deltaker.id)
         val newDeltaker = prewDeltaker
