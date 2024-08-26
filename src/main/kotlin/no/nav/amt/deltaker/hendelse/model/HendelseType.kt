@@ -107,7 +107,7 @@ data class UtkastDto(
     val dagerPerUke: Float?,
     val deltakelsesprosent: Float?,
     val bakgrunnsinformasjon: String?,
-    val innhold: List<InnholdDto>,
+    val innhold: List<InnholdDto>?,
 )
 
 data class InnholdDto(

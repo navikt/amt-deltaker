@@ -60,6 +60,7 @@ data class DeltakerEndring(
         ) : Endring()
 
         data class EndreInnhold(
+            val ledetekst: String?,
             val innhold: List<Innhold>,
         ) : Endring()
 

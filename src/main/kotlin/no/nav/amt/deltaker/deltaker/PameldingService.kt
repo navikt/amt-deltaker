@@ -4,6 +4,7 @@ import no.nav.amt.deltaker.deltaker.api.model.AvbrytUtkastRequest
 import no.nav.amt.deltaker.deltaker.api.model.KladdResponse
 import no.nav.amt.deltaker.deltaker.api.model.UtkastRequest
 import no.nav.amt.deltaker.deltaker.api.model.toKladdResponse
+import no.nav.amt.deltaker.deltaker.model.Deltakelsesinnhold
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
@@ -81,7 +82,7 @@ class PameldingService(
         val status = getOppdatertStatus(opprinneligDeltaker, utkast.godkjentAvNav)
 
         val oppdatertDeltaker = opprinneligDeltaker.copy(
-            innhold = utkast.innhold,
+            deltakelsesinnhold = utkast.deltakelsesinnhold,
             bakgrunnsinformasjon = utkast.bakgrunnsinformasjon,
             deltakelsesprosent = utkast.deltakelsesprosent,
             dagerPerUke = utkast.dagerPerUke,
@@ -169,7 +170,7 @@ class PameldingService(
         dagerPerUke = null,
         deltakelsesprosent = null,
         bakgrunnsinformasjon = null,
-        innhold = emptyList(),
+        deltakelsesinnhold = Deltakelsesinnhold(deltakerliste.tiltakstype.innhold?.ledetekst, emptyList()),
         status = nyDeltakerStatus(DeltakerStatus.Type.KLADD),
         vedtaksinformasjon = null,
         sistEndret = LocalDateTime.now(),

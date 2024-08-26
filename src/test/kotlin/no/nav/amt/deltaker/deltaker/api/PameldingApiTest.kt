@@ -26,6 +26,7 @@ import no.nav.amt.deltaker.deltaker.api.model.toDeltakerEndringResponse
 import no.nav.amt.deltaker.deltaker.api.model.toKladdResponse
 import no.nav.amt.deltaker.deltaker.api.utils.noBodyRequest
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
+import no.nav.amt.deltaker.deltaker.model.Deltakelsesinnhold
 import no.nav.amt.deltaker.deltaker.model.DeltakerHistorikk
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.deltaker.model.Innhold
@@ -150,7 +151,7 @@ class PameldingApiTest {
 
     private val opprettKladdRequest = OpprettKladdRequest(UUID.randomUUID(), "1234")
     private val utkastRequest = UtkastRequest(
-        listOf(Innhold("Tekst", "kode", true, null)),
+        Deltakelsesinnhold("test", listOf(Innhold("Tekst", "kode", true, null))),
         "bakgrunn og sånn",
         50F,
         3F,

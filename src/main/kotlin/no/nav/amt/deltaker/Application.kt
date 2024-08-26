@@ -37,6 +37,7 @@ import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.deltaker.forslag.kafka.ArrangorMeldingConsumer
 import no.nav.amt.deltaker.deltaker.forslag.kafka.ArrangorMeldingProducer
+import no.nav.amt.deltaker.deltaker.kafka.DeltakerConsumer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerV2MapperService
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
@@ -191,6 +192,7 @@ fun Application.module() {
         NavBrukerConsumer(navBrukerRepository, navEnhetService, deltakerService),
         TiltakstypeConsumer(tiltakstypeRepository),
         DeltakerlisteConsumer(deltakerlisteRepository, tiltakstypeRepository, arrangorService, deltakerStatusOppdateringService),
+        DeltakerConsumer(deltakerRepository),
         ArrangorMeldingConsumer(forslagService, deltakerService),
     )
     consumers.forEach { it.run() }

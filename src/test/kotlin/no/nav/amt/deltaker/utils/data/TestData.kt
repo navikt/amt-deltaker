@@ -3,10 +3,10 @@ package no.nav.amt.deltaker.utils.data
 import no.nav.amt.deltaker.amtperson.dto.NavBrukerDto
 import no.nav.amt.deltaker.amtperson.dto.NavEnhetDto
 import no.nav.amt.deltaker.arrangor.Arrangor
+import no.nav.amt.deltaker.deltaker.model.Deltakelsesinnhold
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.DeltakerEndring
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
-import no.nav.amt.deltaker.deltaker.model.Innhold
 import no.nav.amt.deltaker.deltaker.model.Innsatsgruppe
 import no.nav.amt.deltaker.deltaker.model.Vedtak
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
@@ -211,7 +211,7 @@ object TestData {
         dagerPerUke = null,
         deltakelsesprosent = null,
         bakgrunnsinformasjon = null,
-        innhold = emptyList(),
+        innhold = Deltakelsesinnhold(deltakerliste.tiltakstype.innhold?.ledetekst, emptyList()),
         status = lagDeltakerStatus(type = DeltakerStatus.Type.KLADD),
     )
 
@@ -224,7 +224,7 @@ object TestData {
         dagerPerUke: Float? = 5F,
         deltakelsesprosent: Float? = 100F,
         bakgrunnsinformasjon: String? = "Søkes inn fordi...",
-        innhold: List<Innhold> = emptyList(),
+        innhold: Deltakelsesinnhold = Deltakelsesinnhold("ledetekst", emptyList()),
         status: DeltakerStatus = lagDeltakerStatus(type = DeltakerStatus.Type.HAR_SLUTTET),
         vedtaksinformasjon: Deltaker.Vedtaksinformasjon? = null,
         sistEndret: LocalDateTime = LocalDateTime.now(),

@@ -28,6 +28,7 @@ import no.nav.amt.deltaker.deltaker.api.model.SluttdatoRequest
 import no.nav.amt.deltaker.deltaker.api.model.StartdatoRequest
 import no.nav.amt.deltaker.deltaker.api.model.toDeltakerEndringResponse
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
+import no.nav.amt.deltaker.deltaker.model.Deltakelsesinnhold
 import no.nav.amt.deltaker.deltaker.model.DeltakerEndring
 import no.nav.amt.deltaker.deltaker.model.DeltakerHistorikk
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
@@ -99,9 +100,9 @@ class DeltakerApiTest {
         setUpTestApplication()
 
         val endring =
-            DeltakerEndring.Endring.EndreInnhold(listOf(Innhold("tekst", "kode", valgt = true, "beskrivelse")))
+            DeltakerEndring.Endring.EndreInnhold("ledetekst", listOf(Innhold("tekst", "kode", valgt = true, "beskrivelse")))
 
-        val deltaker = TestData.lagDeltaker(innhold = endring.innhold)
+        val deltaker = TestData.lagDeltaker(innhold = Deltakelsesinnhold("test", endring.innhold))
         val historikk = listOf(DeltakerHistorikk.Endring(TestData.lagDeltakerEndring(endring = endring)))
 
         coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
@@ -113,7 +114,7 @@ class DeltakerApiTest {
                     InnholdRequest(
                         TestData.randomIdent(),
                         TestData.randomEnhetsnummer(),
-                        endring.innhold,
+                        Deltakelsesinnhold(endring.ledetekst, endring.innhold),
                     ),
                 )
             }.apply {

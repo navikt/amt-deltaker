@@ -268,7 +268,7 @@ object TestRepository {
             "dagerPerUke" to deltaker.dagerPerUke,
             "deltakelsesprosent" to deltaker.deltakelsesprosent,
             "bakgrunnsinformasjon" to deltaker.bakgrunnsinformasjon,
-            "innhold" to toPGObject(deltaker.innhold),
+            "innhold" to toPGObject(deltaker.deltakelsesinnhold),
             "sistEndret" to deltaker.sistEndret,
         )
 

@@ -6,6 +6,7 @@ import kotliquery.Row
 import kotliquery.queryOf
 import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.deltaker.model.AVSLUTTENDE_STATUSER
+import no.nav.amt.deltaker.deltaker.model.Deltakelsesinnhold
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.deltaker.model.Innsatsgruppe
@@ -45,7 +46,7 @@ class DeltakerRepository {
             dagerPerUke = row.floatOrNull("d.dager_per_uke"),
             deltakelsesprosent = row.floatOrNull("d.deltakelsesprosent"),
             bakgrunnsinformasjon = row.stringOrNull("d.bakgrunnsinformasjon"),
-            innhold = objectMapper.readValue(row.string("d.innhold")),
+            deltakelsesinnhold = objectMapper.readValue(row.string("d.innhold")),
             status = DeltakerStatus(
                 id = row.uuid("ds.id"),
                 type = row.string("ds.type").let { DeltakerStatus.Type.valueOf(it) },
@@ -76,7 +77,7 @@ class DeltakerRepository {
                 dagerPerUke = null,
                 deltakelsesprosent = null,
                 bakgrunnsinformasjon = null,
-                innhold = emptyList(),
+                deltakelsesinnhold = Deltakelsesinnhold(null, emptyList()),
             )
         } else {
             deltaker
@@ -114,7 +115,7 @@ class DeltakerRepository {
             "dagerPerUke" to deltaker.dagerPerUke,
             "deltakelsesprosent" to deltaker.deltakelsesprosent,
             "bakgrunnsinformasjon" to deltaker.bakgrunnsinformasjon,
-            "innhold" to toPGObject(deltaker.innhold),
+            "innhold" to toPGObject(deltaker.deltakelsesinnhold),
         )
 
         session.transaction { tx ->
@@ -129,12 +130,44 @@ class DeltakerRepository {
         }
     }
 
+    fun upsertInnholdOnly(deltaker: DeltakerDbo) = Database.query { session ->
+        val sql =
+            """UPDATE deltaker SET innhold = :innhold WHERE id = :id""".trimIndent()
+
+        val parameters = mapOf(
+            "id" to deltaker.id,
+            "innhold" to toPGObject(deltaker.deltakelsesinnhold),
+        )
+
+        session.update(queryOf(sql, parameters))
+    }
+
     fun get(id: UUID) = Database.query {
         val sql = getDeltakerSql("where d.id = :id and ds.gyldig_til is null and ds.gyldig_fra < CURRENT_TIMESTAMP")
 
         val query = queryOf(sql, mapOf("id" to id)).map(::rowMapper).asSingle
         it.run(query)?.let { d -> Result.success(d) }
             ?: Result.failure(NoSuchElementException("Ingen deltaker med id $id"))
+    }
+
+    fun getUtenInnhold(id: UUID) = Database.query {
+        fun rowMapper(row: Row): DeltakerDbo = DeltakerDbo(
+            id = row.uuid("id"),
+            personId = row.uuid("person_id"),
+            deltakerlisteId = row.uuid("deltakerliste_id"),
+            startdato = row.localDateOrNull("startdato"),
+            sluttdato = row.localDateOrNull("sluttdato"),
+            dagerPerUke = row.floatOrNull("dager_per_uke"),
+            deltakelsesprosent = row.floatOrNull("deltakelsesprosent"),
+            bakgrunnsinformasjon = row.stringOrNull("bakgrunnsinformasjon"),
+            deltakelsesinnhold = null,
+        )
+
+        val sql = """select * from deltaker where id=:id""".trimIndent()
+        val query = queryOf(sql, mapOf("id" to id)).map(::rowMapper).asSingle
+
+        it.run(query)?.let { d -> Result.success(d) }
+            ?: Result.failure(NoSuchElementException("Fant ingen deltaker med id $id"))
     }
 
     fun getMany(personIdent: String, deltakerlisteId: UUID) = Database.query {

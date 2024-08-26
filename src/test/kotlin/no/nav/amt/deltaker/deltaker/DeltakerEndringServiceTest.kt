@@ -22,6 +22,7 @@ import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepos
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.deltaker.forslag.kafka.ArrangorMeldingProducer
+import no.nav.amt.deltaker.deltaker.model.Deltakelsesinnhold
 import no.nav.amt.deltaker.deltaker.model.DeltakerEndring
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.deltaker.model.Innhold
@@ -157,20 +158,20 @@ class DeltakerEndringServiceTest {
         val endringsrequest = InnholdRequest(
             endretAv = endretAv.navIdent,
             endretAvEnhet = endretAvEnhet.enhetsnummer,
-            innhold = listOf(Innhold("Tekst", "kode", true, null)),
+            deltakelsesinnhold = Deltakelsesinnhold("tekst", listOf(Innhold("Tekst", "kode", true, null))),
         )
 
         val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)
 
         resultat.isSuccess shouldBe true
-        resultat.getOrThrow().innhold shouldBe endringsrequest.innhold
+        resultat.getOrThrow().deltakelsesinnhold shouldBe endringsrequest.deltakelsesinnhold
 
         val endring = deltakerEndringService.getForDeltaker(deltaker.id).first()
         endring.endretAv shouldBe endretAv.id
         endring.endretAvEnhet shouldBe endretAvEnhet.id
 
-        (endring.endring as DeltakerEndring.Endring.EndreInnhold)
-            .innhold shouldBe endringsrequest.innhold
+        (endring.endring as DeltakerEndring.Endring.EndreInnhold).innhold shouldBe endringsrequest.deltakelsesinnhold.innhold
+        (endring.endring as DeltakerEndring.Endring.EndreInnhold).ledetekst shouldBe endringsrequest.deltakelsesinnhold.ledetekst
         assertProducedHendelse(deltaker.id, HendelseType.EndreInnhold::class)
     }
 
