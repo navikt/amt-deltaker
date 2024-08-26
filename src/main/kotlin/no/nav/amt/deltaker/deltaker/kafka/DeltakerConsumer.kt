@@ -45,7 +45,7 @@ class DeltakerConsumer(
 
         val prewDeltaker = repository.getUtenInnhold(deltaker.id)
         prewDeltaker
-            .onSuccess { repository.upsertInnholdOnly(it.copy(deltakelsesinnhold = deltaker.innhold))}
+            .onSuccess { repository.upsertInnholdOnly(it.copy(deltakelsesinnhold = deltaker.innhold)) }
     }
 
     override fun run() = consumer.run()
