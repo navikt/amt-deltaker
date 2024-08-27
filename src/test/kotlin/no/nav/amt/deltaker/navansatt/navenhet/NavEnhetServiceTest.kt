@@ -8,7 +8,7 @@ import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.mockAzureAdClient
 import no.nav.amt.deltaker.utils.mockHttpClient
-import no.nav.amt.lib.testing.SingletonPostgresContainer
+import no.nav.amt.lib.testing.SingletonPostgres16Container
 import org.junit.BeforeClass
 import org.junit.Test
 
@@ -19,7 +19,7 @@ class NavEnhetServiceTest {
         @JvmStatic
         @BeforeClass
         fun setup() {
-            SingletonPostgresContainer.start()
+            SingletonPostgres16Container
             repository = NavEnhetRepository()
         }
     }
