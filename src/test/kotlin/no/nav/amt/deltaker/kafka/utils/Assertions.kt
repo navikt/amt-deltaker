@@ -51,7 +51,7 @@ fun assertProducedFeilregistrert(deltakerId: UUID) {
         cachedDeltaker.oppstartsdato shouldBe null
         cachedDeltaker.sluttdato shouldBe null
         cachedDeltaker.bestillingTekst shouldBe null
-        cachedDeltaker.innhold?.innhold shouldBe emptyList()
+        cachedDeltaker.innhold shouldBe null
         cachedDeltaker.historikk?.filterIsInstance<DeltakerHistorikk.Endring>() shouldBe emptyList()
     }
 

@@ -271,8 +271,7 @@ class DeltakerRepositoryTest {
         deltakerFraDb.dagerPerUke shouldBe null
         deltakerFraDb.deltakelsesprosent shouldBe null
         deltakerFraDb.bakgrunnsinformasjon shouldBe null
-        deltakerFraDb.deltakelsesinnhold!!.innhold shouldBe emptyList()
-        deltakerFraDb.deltakelsesinnhold!!.ledetekst shouldBe null
+        deltakerFraDb.deltakelsesinnhold shouldBe null
     }
 }
 

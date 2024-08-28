@@ -6,7 +6,6 @@ import kotliquery.Row
 import kotliquery.queryOf
 import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.deltaker.model.AVSLUTTENDE_STATUSER
-import no.nav.amt.deltaker.deltaker.model.Deltakelsesinnhold
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.deltaker.model.Innsatsgruppe
@@ -77,7 +76,7 @@ class DeltakerRepository {
                 dagerPerUke = null,
                 deltakelsesprosent = null,
                 bakgrunnsinformasjon = null,
-                deltakelsesinnhold = Deltakelsesinnhold(null, emptyList()),
+                deltakelsesinnhold = null,
             )
         } else {
             deltaker
