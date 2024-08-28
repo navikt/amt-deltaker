@@ -410,7 +410,7 @@ class DeltakerServiceTest {
             deltakerFraDb.dagerPerUke shouldBe null
             deltakerFraDb.deltakelsesprosent shouldBe null
             deltakerFraDb.bakgrunnsinformasjon shouldBe null
-            deltakerFraDb.deltakelsesinnhold!!.innhold shouldBe emptyList()
+            deltakerFraDb.deltakelsesinnhold shouldBe null
 
             assertProducedFeilregistrert(deltaker.id)
         }
