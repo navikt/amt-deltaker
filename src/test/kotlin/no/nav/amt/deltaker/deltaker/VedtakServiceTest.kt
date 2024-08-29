@@ -24,7 +24,7 @@ import no.nav.amt.deltaker.utils.mockAmtArrangorClient
 import no.nav.amt.deltaker.utils.mockAmtPersonClient
 import no.nav.amt.lib.kafka.config.LocalKafkaConfig
 import no.nav.amt.lib.testing.SingletonKafkaProvider
-import no.nav.amt.lib.testing.SingletonPostgresContainer
+import no.nav.amt.lib.testing.SingletonPostgres16Container
 import no.nav.amt.lib.testing.shouldBeCloseTo
 import org.junit.Assert.assertThrows
 import org.junit.Test
@@ -32,7 +32,7 @@ import java.time.LocalDateTime
 
 class VedtakServiceTest {
     init {
-        SingletonPostgresContainer.start()
+        SingletonPostgres16Container
     }
 
     private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonClient())

@@ -25,7 +25,7 @@ import no.nav.amt.deltaker.utils.mockAmtPersonClient
 import no.nav.amt.lib.kafka.config.LocalKafkaConfig
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.testing.SingletonKafkaProvider
-import no.nav.amt.lib.testing.SingletonPostgresContainer
+import no.nav.amt.lib.testing.SingletonPostgres16Container
 import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test
@@ -59,7 +59,7 @@ class EndringFraArrangorServiceTest {
         @JvmStatic
         @BeforeClass
         fun setup() {
-            SingletonPostgresContainer.start()
+            SingletonPostgres16Container
         }
     }
 

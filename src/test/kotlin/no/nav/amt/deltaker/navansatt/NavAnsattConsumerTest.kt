@@ -6,7 +6,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.amtperson.AmtPersonServiceClient
 import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.utils.data.TestData
-import no.nav.amt.lib.testing.SingletonPostgresContainer
+import no.nav.amt.lib.testing.SingletonPostgres16Container
 import org.junit.BeforeClass
 import org.junit.Test
 
@@ -19,7 +19,7 @@ class NavAnsattConsumerTest {
         @JvmStatic
         @BeforeClass
         fun setup() {
-            SingletonPostgresContainer.start()
+            SingletonPostgres16Container
             repository = NavAnsattRepository()
         }
     }

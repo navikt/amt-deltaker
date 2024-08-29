@@ -13,7 +13,7 @@ import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
-import no.nav.amt.lib.testing.SingletonPostgresContainer
+import no.nav.amt.lib.testing.SingletonPostgres16Container
 import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test
@@ -34,7 +34,7 @@ class DeltakelserResponseMapperTest {
         @BeforeClass
         @JvmStatic
         fun setup() {
-            SingletonPostgresContainer.start()
+            SingletonPostgres16Container
         }
     }
 

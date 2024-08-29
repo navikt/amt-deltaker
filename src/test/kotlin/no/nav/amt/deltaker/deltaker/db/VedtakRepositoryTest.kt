@@ -5,7 +5,7 @@ import no.nav.amt.deltaker.deltaker.model.DeltakerVedVedtak
 import no.nav.amt.deltaker.deltaker.model.Vedtak
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
-import no.nav.amt.lib.testing.SingletonPostgresContainer
+import no.nav.amt.lib.testing.SingletonPostgres16Container
 import no.nav.amt.lib.testing.shouldBeCloseTo
 import org.junit.Before
 import org.junit.BeforeClass
@@ -19,7 +19,7 @@ class VedtakRepositoryTest {
         @JvmStatic
         @BeforeClass
         fun setup() {
-            SingletonPostgresContainer.start()
+            SingletonPostgres16Container
             repository = VedtakRepository()
         }
     }

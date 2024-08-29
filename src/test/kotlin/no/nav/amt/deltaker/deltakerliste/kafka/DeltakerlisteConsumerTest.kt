@@ -15,7 +15,7 @@ import no.nav.amt.deltaker.job.DeltakerStatusOppdateringService
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.utils.mockAmtArrangorClient
-import no.nav.amt.lib.testing.SingletonPostgresContainer
+import no.nav.amt.lib.testing.SingletonPostgres16Container
 import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test
@@ -30,7 +30,7 @@ class DeltakerlisteConsumerTest {
         @JvmStatic
         @BeforeClass
         fun setup() {
-            SingletonPostgresContainer.start()
+            SingletonPostgres16Container
             deltakerlisteRepository = DeltakerlisteRepository()
             tiltakstypeRepository = TiltakstypeRepository()
             deltakerStatusOppdateringService = mockk<DeltakerStatusOppdateringService>(relaxed = true)
