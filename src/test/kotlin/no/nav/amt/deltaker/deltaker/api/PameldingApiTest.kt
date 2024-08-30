@@ -145,6 +145,7 @@ class PameldingApiTest {
                 historikkService,
                 mockk(),
                 mockk(),
+                mockk(),
             )
         }
     }

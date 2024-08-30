@@ -420,6 +420,7 @@ class DeltakerApiTest {
                 deltakerHistorikkService,
                 mockk(),
                 mockk(),
+                mockk(),
             )
         }
     }
