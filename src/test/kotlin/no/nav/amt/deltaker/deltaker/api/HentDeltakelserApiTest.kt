@@ -24,6 +24,7 @@ import no.nav.amt.deltaker.deltaker.api.model.DeltakelserResponseMapper
 import no.nav.amt.deltaker.deltaker.api.model.DeltakerKort
 import no.nav.amt.deltaker.deltaker.api.model.Periode
 import no.nav.amt.deltaker.deltaker.api.utils.postVeilederRequest
+import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
 import no.nav.amt.deltaker.deltaker.model.DeltakerHistorikk
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype
@@ -43,6 +44,7 @@ class HentDeltakelserApiTest {
     private val deltakerHistorikkService = mockk<DeltakerHistorikkService>()
     private val arrangorService = mockk<ArrangorService>()
     private val deltakelserResponseMapper = DeltakelserResponseMapper(deltakerHistorikkService, arrangorService)
+    private val deltakerProducer = mockk<DeltakerProducer>()
 
     @Before
     fun setup() {
@@ -246,6 +248,7 @@ class HentDeltakelserApiTest {
                 deltakerHistorikkService,
                 tilgangskontrollService,
                 deltakelserResponseMapper,
+                deltakerProducer,
             )
         }
     }

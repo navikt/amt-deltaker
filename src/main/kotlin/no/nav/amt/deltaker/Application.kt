@@ -204,6 +204,7 @@ fun Application.module() {
         deltakerHistorikkService,
         tilgangskontrollService,
         deltakelserResponseMapper,
+        deltakerProducer,
     )
     configureMonitoring()
 
