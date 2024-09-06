@@ -7,6 +7,7 @@ import io.ktor.server.auth.authenticate
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
+import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.util.pipeline.PipelineContext
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
@@ -28,6 +29,15 @@ import java.util.UUID
 
 fun Routing.registerDeltakerApi(deltakerService: DeltakerService, historikkService: DeltakerHistorikkService) {
     authenticate("SYSTEM") {
+        get("/deltaker/{deltakerId}") {
+            val deltakerId = UUID.fromString(call.parameters["deltakerId"])
+            val deltaker = deltakerService.get(deltakerId)
+                .onFailure { call.respond(HttpStatusCode.NotFound) }
+                .getOrThrow()
+
+            call.respond(deltaker)
+        }
+
         post("/deltaker/{deltakerId}/bakgrunnsinformasjon") {
             val request = call.receive<BakgrunnsinformasjonRequest>()
             handleDeltakerEndring(deltakerService, request, historikkService)
