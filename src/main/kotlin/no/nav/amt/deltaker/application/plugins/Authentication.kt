@@ -36,7 +36,7 @@ fun Application.configureAuthentication(environment: Environment) {
                 }
                 val appid: String = credentials.payload.getClaim("azp").asString()
                 val app = environment.preAuthorizedApp.firstOrNull { it.clientId == appid }
-                if (app?.appName != "amt-deltaker-bff") {
+                if (app?.appName !in listOf("amt-deltaker-bff", "amt-distribusjon")) {
                     application.log.warn("App-id $appid med navn ${app?.appName} har ikke tilgang til api med systemkontekst")
                     return@validate null
                 }
