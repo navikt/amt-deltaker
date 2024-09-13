@@ -10,6 +10,7 @@ import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.model.Deltakelsesinnhold
 import no.nav.amt.deltaker.deltaker.model.DeltakerHistorikk
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
+import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.deltaker.deltaker.sammenlignHistorikk
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
@@ -94,7 +95,7 @@ class DeltakerV2MapperServiceTest {
         deltakerV2Dto.navKontor shouldBe brukersEnhet.navn
         deltakerV2Dto.navVeileder shouldBe veileder.toDeltakerNavVeilederDto()
         deltakerV2Dto.deltarPaKurs shouldBe deltaker.deltarPaKurs()
-        deltakerV2Dto.kilde shouldBe DeltakerV2Dto.Kilde.KOMET
+        deltakerV2Dto.kilde shouldBe Kilde.KOMET
         deltakerV2Dto.innhold shouldBe Deltakelsesinnhold(deltaker.deltakelsesinnhold!!.ledetekst, deltaker.deltakelsesinnhold!!.innhold)
         deltakerV2Dto.historikk?.size shouldBe 1
         sammenlignHistorikk(deltakerV2Dto.historikk?.first()!!, DeltakerHistorikk.Vedtak(vedtak))
@@ -170,7 +171,7 @@ class DeltakerV2MapperServiceTest {
         deltakerV2Dto.navKontor shouldBe brukersEnhet.navn
         deltakerV2Dto.navVeileder shouldBe veileder.toDeltakerNavVeilederDto()
         deltakerV2Dto.deltarPaKurs shouldBe deltaker.deltarPaKurs()
-        deltakerV2Dto.kilde shouldBe DeltakerV2Dto.Kilde.KOMET
+        deltakerV2Dto.kilde shouldBe Kilde.KOMET
         deltakerV2Dto.innhold shouldBe Deltakelsesinnhold(deltaker.deltakelsesinnhold!!.ledetekst, deltaker.deltakelsesinnhold!!.innhold)
         deltakerV2Dto.historikk?.size shouldBe 4
         sammenlignHistorikk(deltakerV2Dto.historikk?.get(0)!!, DeltakerHistorikk.EndringFraArrangor(endringFraArrangor))

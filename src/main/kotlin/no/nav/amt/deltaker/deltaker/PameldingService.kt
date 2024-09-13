@@ -7,6 +7,7 @@ import no.nav.amt.deltaker.deltaker.api.model.toKladdResponse
 import no.nav.amt.deltaker.deltaker.model.Deltakelsesinnhold
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
+import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
@@ -174,5 +175,6 @@ class PameldingService(
         status = nyDeltakerStatus(DeltakerStatus.Type.KLADD),
         vedtaksinformasjon = null,
         sistEndret = LocalDateTime.now(),
+        kilde = Kilde.KOMET,
     )
 }

@@ -19,6 +19,7 @@ data class Deltaker(
     val status: DeltakerStatus,
     val vedtaksinformasjon: Vedtaksinformasjon?,
     val sistEndret: LocalDateTime,
+    val kilde: Kilde,
 ) {
     fun harSluttet(): Boolean {
         return status.type in AVSLUTTENDE_STATUSER

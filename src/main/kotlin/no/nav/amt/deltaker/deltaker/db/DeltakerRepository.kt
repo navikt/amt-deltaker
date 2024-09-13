@@ -9,6 +9,7 @@ import no.nav.amt.deltaker.deltaker.model.AVSLUTTENDE_STATUSER
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.deltaker.model.Innsatsgruppe
+import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.navbruker.model.Adressebeskyttelse
@@ -67,6 +68,7 @@ class DeltakerRepository {
                 )
             },
             sistEndret = row.localDateTime("d.modified_at"),
+            kilde = Kilde.valueOf(row.string("d.kilde")),
         )
 
         return if (status == DeltakerStatus.Type.FEILREGISTRERT) {
@@ -88,11 +90,11 @@ class DeltakerRepository {
             """
             insert into deltaker(
                 id, person_id, deltakerliste_id, startdato, sluttdato, dager_per_uke, 
-                deltakelsesprosent, bakgrunnsinformasjon, innhold
+                deltakelsesprosent, bakgrunnsinformasjon, innhold, kilde
             )
             values (
                 :id, :person_id, :deltakerlisteId, :startdato, :sluttdato, :dagerPerUke, 
-                :deltakelsesprosent, :bakgrunnsinformasjon, :innhold
+                :deltakelsesprosent, :bakgrunnsinformasjon, :innhold, :kilde
             )
             on conflict (id) do update set 
                 person_id          = :person_id,
@@ -102,6 +104,7 @@ class DeltakerRepository {
                 deltakelsesprosent   = :deltakelsesprosent,
                 bakgrunnsinformasjon = :bakgrunnsinformasjon,
                 innhold              = :innhold,
+                kilde                = :kilde,
                 modified_at          = current_timestamp
             """.trimIndent()
 
@@ -115,6 +118,7 @@ class DeltakerRepository {
             "deltakelsesprosent" to deltaker.deltakelsesprosent,
             "bakgrunnsinformasjon" to deltaker.bakgrunnsinformasjon,
             "innhold" to toPGObject(deltaker.deltakelsesinnhold),
+            "kilde" to deltaker.kilde.name,
         )
 
         session.transaction { tx ->
@@ -386,6 +390,7 @@ class DeltakerRepository {
                    d.bakgrunnsinformasjon as "d.bakgrunnsinformasjon",
                    d.innhold as "d.innhold",
                    d.modified_at as "d.modified_at",
+                   d.kilde as "d.kilde",
                    nb.personident as "nb.personident",
                    nb.fornavn as "nb.fornavn",
                    nb.mellomnavn as "nb.mellomnavn",

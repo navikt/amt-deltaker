@@ -57,7 +57,7 @@ class DeltakerV2MapperService(
             navVeileder = deltaker.navBruker.navVeilederId?.let { navAnsattService.hentEllerOpprettNavAnsatt(it) }
                 ?.toDeltakerNavVeilederDto(),
             deltarPaKurs = deltaker.deltarPaKurs(),
-            kilde = DeltakerV2Dto.Kilde.KOMET,
+            kilde = deltaker.kilde,
             innhold = deltaker.deltakelsesinnhold,
             historikk = deltakerhistorikk,
             sistEndret = deltaker.sistEndret,

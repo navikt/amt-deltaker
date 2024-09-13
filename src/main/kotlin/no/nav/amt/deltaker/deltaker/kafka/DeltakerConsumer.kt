@@ -4,6 +4,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
+import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.lib.kafka.Consumer
 import no.nav.amt.lib.kafka.ManagedKafkaConsumer
 import no.nav.amt.lib.kafka.config.KafkaConfig
@@ -41,7 +42,7 @@ class DeltakerConsumer(
     }
 
     private fun processDeltaker(deltaker: DeltakerV2Dto) {
-        if (deltaker.kilde != DeltakerV2Dto.Kilde.KOMET) return
+        if (deltaker.kilde != Kilde.KOMET) return
 
         val prewDeltaker = repository.getUtenInnhold(deltaker.id)
         prewDeltaker
