@@ -47,6 +47,7 @@ class ArrangorMeldingConsumer(
         if (!forslagService.kanLagres(melding.deltakerId)) {
             if (isDev) {
                 log.error("Mottatt melding ${melding.id} på deltaker som ikke finnes, deltakerid ${melding.deltakerId}, ignorerer")
+                return
             } else {
                 throw RuntimeException("Mottatt melding ${melding.id} på deltaker som ikke finnes, deltakerid ${melding.deltakerId}")
             }
