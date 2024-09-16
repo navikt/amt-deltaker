@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.deltaker.kafka
 import no.nav.amt.deltaker.deltaker.model.Deltakelsesinnhold
 import no.nav.amt.deltaker.deltaker.model.DeltakerHistorikk
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
+import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.deltaker.navansatt.NavAnsatt
 import no.nav.amt.deltaker.navbruker.model.Adresse
 import no.nav.amt.deltaker.navbruker.model.Adressebeskyttelse
@@ -33,11 +34,6 @@ data class DeltakerV2Dto(
     val sistEndret: LocalDateTime?,
     val forcedUpdate: Boolean? = false,
 ) {
-    enum class Kilde {
-        KOMET,
-        ARENA,
-    }
-
     data class DeltakerPersonaliaDto(
         val personId: UUID?,
         val personident: String,

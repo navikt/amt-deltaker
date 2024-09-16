@@ -8,6 +8,7 @@ import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.DeltakerEndring
 import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.deltaker.model.Innsatsgruppe
+import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.deltaker.deltaker.model.Vedtak
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlisteDto
@@ -228,6 +229,7 @@ object TestData {
         status: DeltakerStatus = lagDeltakerStatus(type = DeltakerStatus.Type.HAR_SLUTTET),
         vedtaksinformasjon: Deltaker.Vedtaksinformasjon? = null,
         sistEndret: LocalDateTime = LocalDateTime.now(),
+        kilde: Kilde = Kilde.KOMET,
     ) = Deltaker(
         id,
         navBruker,
@@ -241,6 +243,7 @@ object TestData {
         status,
         vedtaksinformasjon,
         sistEndret,
+        kilde,
     )
 
     fun lagDeltakerStatus(
