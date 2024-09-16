@@ -1,0 +1,21 @@
+name: Deploy unleash-apitoken
+on:
+  push:
+    paths:
+      - ".nais/unleash-apitoken-dev.yaml"
+
+jobs:
+  deploy-dev:
+    name: Deploy unleash-apitoken to dev
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: "write"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Deploy unleash-apitoken
+        uses: nais/deploy/actions/deploy@v2
+        env:
+          CLUSTER: dev-gcp
+          RESOURCE: .nais/unleash-apitoken-dev.yaml
+          PRINT_PAYLOAD: true
