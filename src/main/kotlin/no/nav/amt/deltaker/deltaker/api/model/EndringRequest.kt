@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.deltaker.api.model
 
-import no.nav.amt.deltaker.deltaker.model.Deltakelsesinnhold
-import no.nav.amt.deltaker.deltaker.model.DeltakerEndring
+import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
+import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import java.time.LocalDate
 import java.util.UUID
 

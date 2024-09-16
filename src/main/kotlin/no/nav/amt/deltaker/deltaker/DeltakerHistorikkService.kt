@@ -4,8 +4,8 @@ import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
-import no.nav.amt.deltaker.deltaker.model.DeltakerHistorikk
-import no.nav.amt.deltaker.deltaker.model.skalInkluderesIHistorikk
+import no.nav.amt.lib.models.arrangor.melding.Forslag
+import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import java.time.LocalDate
 import java.util.UUID
 
@@ -49,4 +49,15 @@ class DeltakerHistorikkService(
 
         return forsteVedtak?.fattet?.toLocalDate()
     }
+}
+
+fun Forslag.skalInkluderesIHistorikk() = when (this.status) {
+    is Forslag.Status.Avvist,
+    is Forslag.Status.Erstattet,
+    is Forslag.Status.Tilbakekalt,
+    -> true
+
+    is Forslag.Status.Godkjent,
+    Forslag.Status.VenterPaSvar,
+    -> false
 }

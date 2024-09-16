@@ -1,8 +1,8 @@
 package no.nav.amt.deltaker.hendelse.model
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import no.nav.amt.deltaker.deltaker.model.DeltakerEndring
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
+import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import java.time.LocalDate
 import java.time.ZonedDateTime
 
@@ -116,7 +116,7 @@ data class InnholdDto(
     val beskrivelse: String?,
 )
 
-fun DeltakerEndring.toHendelseEndring(utkast: UtkastDto? = null) = when (endring) {
+fun DeltakerEndring.toHendelseEndring(utkast: UtkastDto? = null) = when (val endring = this.endring) {
     is DeltakerEndring.Endring.AvsluttDeltakelse -> HendelseType.AvsluttDeltakelse(
         aarsak = endring.aarsak,
         sluttdato = endring.sluttdato,
