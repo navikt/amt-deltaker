@@ -1,56 +1,6 @@
 package no.nav.amt.deltaker.deltaker.model
 
-import java.time.LocalDateTime
-import java.util.UUID
-
-data class DeltakerStatus(
-    val id: UUID,
-    val type: Type,
-    val aarsak: Aarsak?,
-    val gyldigFra: LocalDateTime,
-    val gyldigTil: LocalDateTime?,
-    val opprettet: LocalDateTime,
-) {
-    data class Aarsak(
-        val type: Type,
-        val beskrivelse: String?,
-    ) {
-        init {
-            if (beskrivelse != null && type != Type.ANNET) {
-                error("Aarsak $type skal ikke ha beskrivelse")
-            }
-        }
-
-        enum class Type {
-            SYK,
-            FATT_JOBB,
-            TRENGER_ANNEN_STOTTE,
-            FIKK_IKKE_PLASS,
-            IKKE_MOTT,
-            ANNET,
-            AVLYST_KONTRAKT,
-            UTDANNING,
-            SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT,
-        }
-    }
-
-    enum class Type {
-        KLADD,
-        UTKAST_TIL_PAMELDING,
-        AVBRUTT_UTKAST,
-        VENTER_PA_OPPSTART,
-        DELTAR,
-        HAR_SLUTTET,
-        IKKE_AKTUELL,
-        FEILREGISTRERT,
-        SOKT_INN,
-        VURDERES,
-        VENTELISTE,
-        AVBRUTT,
-        FULLFORT,
-        PABEGYNT_REGISTRERING,
-    }
-}
+import no.nav.amt.lib.models.deltaker.DeltakerStatus
 
 val AVSLUTTENDE_STATUSER = listOf(
     DeltakerStatus.Type.HAR_SLUTTET,
@@ -66,13 +16,6 @@ val VENTER_PAA_PLASS_STATUSER = listOf(
     DeltakerStatus.Type.VURDERES,
     DeltakerStatus.Type.VENTELISTE,
     DeltakerStatus.Type.PABEGYNT_REGISTRERING,
-)
-
-val STATUSER_SOM_KAN_SKJULES = listOf(
-    DeltakerStatus.Type.IKKE_AKTUELL,
-    DeltakerStatus.Type.HAR_SLUTTET,
-    DeltakerStatus.Type.AVBRUTT,
-    DeltakerStatus.Type.FULLFORT,
 )
 
 val HAR_IKKE_STARTET_STATUSER = listOf(DeltakerStatus.Type.VENTER_PA_OPPSTART).plus(VENTER_PAA_PLASS_STATUSER)

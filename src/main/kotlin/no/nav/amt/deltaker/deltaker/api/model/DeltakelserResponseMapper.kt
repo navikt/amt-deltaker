@@ -3,10 +3,10 @@ package no.nav.amt.deltaker.deltaker.api.model
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.model.Deltaker
-import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.deltaker.utils.toTitleCase
+import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import java.time.LocalDate
 
 class DeltakelserResponseMapper(
@@ -103,14 +103,16 @@ class DeltakelserResponseMapper(
     }
 
     private fun Deltaker.getArsak(): String? {
-        return if (status.type in skalViseArsakStatuser && status.aarsak != null) {
-            status.aarsak.getVisningsnavn()
+        val aarsak = this.status.aarsak
+        return if (status.type in skalViseArsakStatuser && aarsak != null) {
+            aarsak.getVisningsnavn()
         } else {
             return null
         }
     }
 
     private fun DeltakerStatus.Aarsak.getVisningsnavn(): String {
+        val beskrivelse = this.beskrivelse
         if (beskrivelse != null) {
             return beskrivelse
         }

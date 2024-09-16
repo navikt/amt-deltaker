@@ -2,9 +2,9 @@ package no.nav.amt.deltaker.deltaker.endring.fra.arrangor
 
 import no.nav.amt.deltaker.deltaker.getStatusEndretStartOgSluttdato
 import no.nav.amt.deltaker.deltaker.model.Deltaker
-import no.nav.amt.deltaker.deltaker.model.DeltakerStatus
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
+import no.nav.amt.lib.models.deltaker.DeltakerStatus
 
 class EndringFraArrangorService(
     private val endringFraArrangorRepository: EndringFraArrangorRepository,

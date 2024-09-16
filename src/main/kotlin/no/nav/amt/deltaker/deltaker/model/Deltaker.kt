@@ -2,6 +2,9 @@ package no.nav.amt.deltaker.deltaker.model
 
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.navbruker.model.NavBruker
+import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
+import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.DeltakerVedVedtak
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID

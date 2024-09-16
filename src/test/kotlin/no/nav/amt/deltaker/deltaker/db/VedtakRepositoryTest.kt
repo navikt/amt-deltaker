@@ -1,10 +1,10 @@
 package no.nav.amt.deltaker.deltaker.db
 
 import io.kotest.matchers.shouldBe
-import no.nav.amt.deltaker.deltaker.model.DeltakerVedVedtak
-import no.nav.amt.deltaker.deltaker.model.Vedtak
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
+import no.nav.amt.lib.models.deltaker.DeltakerVedVedtak
+import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.testing.SingletonPostgres16Container
 import no.nav.amt.lib.testing.shouldBeCloseTo
 import org.junit.Before

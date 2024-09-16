@@ -1,6 +1,6 @@
 package no.nav.amt.deltaker.deltaker.db
 
-import no.nav.amt.deltaker.deltaker.model.Deltakelsesinnhold
+import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import java.time.LocalDate
 import java.util.UUID
 
