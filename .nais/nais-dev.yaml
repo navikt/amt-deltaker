@@ -35,6 +35,8 @@ spec:
     requests:
       cpu: 250m
       memory: 512Mi
+  envFrom:
+    - secret: amt-deltaker-unleash-api-token
   azure:
     application:
       enabled: true
@@ -52,6 +54,8 @@ spec:
         - application: amt-arrangor
         - application: poao-tilgang
           namespace: poao
+      external:
+        - host: amt-unleash-api.nav.cloud.nais.io
   secureLogs:
     enabled: true
   leaderElection: true
