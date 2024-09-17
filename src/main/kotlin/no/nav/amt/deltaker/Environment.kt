@@ -25,6 +25,9 @@ data class Environment(
     val electorPath: String = getEnvVar(ELECTOR_PATH),
     val poaoTilgangUrl: String = getEnvVar(POAO_TILGANG_URL_KEY),
     val poaoTilgangScope: String = getEnvVar(POAO_TILGANG_SCOPE_KEY),
+    val appName: String = "amt-deltaker",
+    val unleashUrl: String = getEnvVar(UNLEASH_SERVER_API_URL),
+    val unleashApiToken: String = getEnvVar(UNLEASH_API_TOKEN),
 ) {
     companion object {
         const val DB_USERNAME_KEY = "DB_USERNAME"
@@ -54,6 +57,8 @@ data class Environment(
         const val AZURE_OPENID_CONFIG_JWKS_URI_KEY = "AZURE_OPENID_CONFIG_JWKS_URI"
         const val AZURE_OPENID_CONFIG_ISSUER_KEY = "AZURE_OPENID_CONFIG_ISSUER"
         const val AZURE_APP_PRE_AUTHORIZED_APPS = "AZURE_APP_PRE_AUTHORIZED_APPS"
+        const val UNLEASH_SERVER_API_URL = "UNLEASH_SERVER_API_URL"
+        const val UNLEASH_API_TOKEN = "UNLEASH_API_TOKEN"
 
         const val POAO_TILGANG_URL_KEY = "POAO_TILGANG_URL"
         const val POAO_TILGANG_SCOPE_KEY = "POAO_TILGANG_SCOPE"

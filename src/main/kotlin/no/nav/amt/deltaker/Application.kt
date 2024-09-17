@@ -1,5 +1,7 @@
 package no.nav.amt.deltaker
 
+import io.getunleash.DefaultUnleash
+import io.getunleash.util.UnleashConfig
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache.Apache
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -57,6 +59,7 @@ import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
 import no.nav.amt.deltaker.navbruker.NavBrukerConsumer
 import no.nav.amt.deltaker.navbruker.NavBrukerRepository
 import no.nav.amt.deltaker.navbruker.NavBrukerService
+import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.lib.utils.database.Database
 import no.nav.poao_tilgang.client.PoaoTilgangCachedClient
 import no.nav.poao_tilgang.client.PoaoTilgangHttpClient
@@ -165,7 +168,15 @@ fun Application.module() {
     val deltakelserResponseMapper = DeltakelserResponseMapper(deltakerHistorikkService, arrangorService)
 
     val endringFraArrangorService = EndringFraArrangorService(endringFraArrangorRepository, hendelseService)
-
+    val unleash = DefaultUnleash(
+        UnleashConfig.builder()
+            .appName(environment.appName)
+            .instanceId(environment.appName)
+            .unleashAPI("${environment.unleashUrl}/api")
+            .apiKey(environment.unleashApiToken)
+            .build(),
+    )
+    val unleashToggle = UnleashToggle(unleash)
     val vedtakService = VedtakService(vedtakRepository, hendelseService)
     val deltakerService = DeltakerService(
         deltakerRepository = deltakerRepository,
@@ -192,7 +203,7 @@ fun Application.module() {
         NavBrukerConsumer(navBrukerRepository, navEnhetService, deltakerService),
         TiltakstypeConsumer(tiltakstypeRepository),
         DeltakerlisteConsumer(deltakerlisteRepository, tiltakstypeRepository, arrangorService, deltakerStatusOppdateringService),
-        DeltakerConsumer(deltakerRepository),
+        DeltakerConsumer(deltakerRepository, deltakerlisteRepository, navBrukerService, unleashToggle),
         ArrangorMeldingConsumer(forslagService, deltakerService),
     )
     consumers.forEach { it.run() }
