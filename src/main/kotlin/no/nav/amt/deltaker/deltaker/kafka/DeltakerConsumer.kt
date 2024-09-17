@@ -8,6 +8,7 @@ import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
+import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.deltaker.navbruker.NavBrukerService
 import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.lib.kafka.Consumer
@@ -57,15 +58,18 @@ class DeltakerConsumer(
             log.info("Hopper over komet deltaker på deltaker-v2. deltakerId: $deltakerV2.id")
             return
         }
-        if (unleashToggle.erKometMasterForTiltakstype(deltakerliste.tiltakstype.arenaKode)) {
+        if (deltakerliste.tiltakstype.arenaKode == Tiltakstype.ArenaKode.ARBFORB &&
+            !unleashToggle.erKometMasterForTiltakstype(Tiltakstype.ArenaKode.ARBFORB)
+        ) {
+            // Vi skal lese inn AFT deltakere selv om vi ikke er master
             // Her kommer også amt-deltakers endringer på arenadeltakere
             // Hvordan håndtere at vi får inn alle siste endringer fra arena men ikke leser våre egne endringer?
             val prewDeltaker = deltakerRepository.get(deltakerV2.id).getOrNull()
             val deltaker = deltakerV2.toDeltaker(deltakerliste, prewDeltaker)
 
             deltakerRepository.upsert(deltaker)
-        } else {
-            return
+
+            log.info("Ingester arenadeltaker deltaker med id ${deltaker.id}")
         }
     }
 
