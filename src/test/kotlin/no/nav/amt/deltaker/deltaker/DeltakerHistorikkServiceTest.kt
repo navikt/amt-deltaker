@@ -183,5 +183,12 @@ fun sammenlignHistorikk(a: DeltakerHistorikk, b: DeltakerHistorikk) {
             a.endringFraArrangor.opprettetAvArrangorAnsattId shouldBe b.endringFraArrangor.opprettetAvArrangorAnsattId
             a.endringFraArrangor.endring shouldBe b.endringFraArrangor.endring
         }
+
+        is DeltakerHistorikk.ImportertFraArena -> {
+            b as DeltakerHistorikk.ImportertFraArena
+            a.importertFraArena.deltakerId shouldBe b.importertFraArena.deltakerId
+            a.importertFraArena.importertDato shouldBeCloseTo b.importertFraArena.importertDato
+            a.importertFraArena.deltakerVedImport shouldBe b.importertFraArena.deltakerVedImport
+        }
     }
 }

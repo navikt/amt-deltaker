@@ -21,6 +21,7 @@ class DeltakerHistorikkService(
         val forslag = forslagRepository.getForDeltaker(id).filter { it.skalInkluderesIHistorikk() }.map { DeltakerHistorikk.Forslag(it) }
         val endringerFraArrangor = endringFraArrangorRepository.getForDeltaker(id).map { DeltakerHistorikk.EndringFraArrangor(it) }
 
+        // TODO: Her må vi også hente importertFraArena
         val historikk = deltakerHistorikk
             .plus(vedtak)
             .plus(forslag)
@@ -31,6 +32,7 @@ class DeltakerHistorikkService(
                     is DeltakerHistorikk.Vedtak -> it.vedtak.sistEndret
                     is DeltakerHistorikk.Forslag -> it.forslag.sistEndret
                     is DeltakerHistorikk.EndringFraArrangor -> it.endringFraArrangor.opprettet
+                    is DeltakerHistorikk.ImportertFraArena -> it.importertFraArena.importertDato
                 }
             }
 

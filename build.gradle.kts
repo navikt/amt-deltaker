@@ -37,7 +37,7 @@ val postgresVersion = "42.7.4"
 val caffeineVersion = "3.1.8"
 val mockkVersion = "1.13.12"
 val nimbusVersion = "9.41.1"
-val amtLibVersion = "1.2024.09.16_08.05-1712428fdb0a"
+val amtLibVersion = "1.2024.09.17_12.50-2c9264ee9bd1"
 val unleashVersion = "9.2.4"
 
 dependencies {

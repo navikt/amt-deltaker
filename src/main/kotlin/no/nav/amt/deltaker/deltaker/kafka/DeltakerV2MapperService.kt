@@ -76,7 +76,10 @@ class DeltakerV2MapperService(
     }
 
     private fun getSisteEndring(deltakerhistorikk: List<DeltakerHistorikk>): DeltakerHistorikk {
-        return deltakerhistorikk.filterNot { it is DeltakerHistorikk.Forslag || it is DeltakerHistorikk.EndringFraArrangor }.firstOrNull()
+        return deltakerhistorikk.filterNot {
+            it is DeltakerHistorikk.Forslag ||
+                it is DeltakerHistorikk.EndringFraArrangor || it is DeltakerHistorikk.ImportertFraArena
+        }.firstOrNull()
             ?: throw IllegalStateException("Deltaker må ha minst et vedtak for å produseres til topic")
     }
 
@@ -86,6 +89,7 @@ class DeltakerV2MapperService(
             is DeltakerHistorikk.Endring -> deltakerhistorikk.endring.endretAv
             is DeltakerHistorikk.Forslag,
             is DeltakerHistorikk.EndringFraArrangor,
+            is DeltakerHistorikk.ImportertFraArena,
             -> throw IllegalStateException("Siste endring kan ikke være et forslag eller endring fra arrangør")
         }
     }
@@ -96,6 +100,7 @@ class DeltakerV2MapperService(
             is DeltakerHistorikk.Endring -> deltakerhistorikk.endring.endretAvEnhet
             is DeltakerHistorikk.Forslag,
             is DeltakerHistorikk.EndringFraArrangor,
+            is DeltakerHistorikk.ImportertFraArena,
             -> throw IllegalStateException("Siste endring kan ikke være et forslag eller endring fra arrangør")
         }
     }

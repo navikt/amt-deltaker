@@ -68,6 +68,7 @@ class DeltakerConsumer(
             val deltaker = deltakerV2.toDeltaker(deltakerliste, prewDeltaker)
 
             deltakerRepository.upsert(deltaker)
+            // opprett og lagre importertfraarena-objekt
 
             log.info("Ingester arenadeltaker deltaker med id ${deltaker.id}")
         }
