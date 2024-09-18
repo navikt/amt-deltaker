@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.deltaker.kafka
 
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
@@ -21,7 +22,7 @@ import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype
 import no.nav.amt.deltaker.utils.data.TestData.toDeltakerV2
 import no.nav.amt.deltaker.utils.data.TestRepository
-import no.nav.amt.lib.testing.SingletonPostgresContainer
+import no.nav.amt.lib.testing.SingletonPostgres16Container
 import org.awaitility.Awaitility
 import org.junit.Before
 import org.junit.BeforeClass
@@ -44,7 +45,7 @@ class DeltakerConsumerTest {
         @JvmStatic
         @BeforeClass
         fun setup() {
-            SingletonPostgresContainer.start()
+            SingletonPostgres16Container
             deltakerRepository = DeltakerRepository()
             importertFraArenaRepository = ImportertFraArenaRepository()
             deltakerlisteRepository = DeltakerlisteRepository()
@@ -71,33 +72,40 @@ class DeltakerConsumerTest {
 
     @Test
     fun `consumeDeltaker - ny KOMET deltaker - lagrer ikke deltaker`(): Unit = runBlocking {
-        val deltaker = TestData.lagDeltaker(kilde = Kilde.KOMET)
-        TestRepository.insert(deltaker.deltakerliste)
+        val deltakerliste = lagDeltakerliste(
+            tiltakstype = lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
+        )
+        TestRepository.insert(deltakerliste)
+        val deltaker = TestData.lagDeltaker(kilde = Kilde.KOMET, deltakerliste = deltakerliste)
 
         val deltakerV2Dto = deltaker.toDeltakerV2()
 
         consumer.consume(deltaker.id, objectMapper.writeValueAsString(deltakerV2Dto))
-        Awaitility.await().atLeast(20, TimeUnit.SECONDS)
+        Awaitility.await().atLeast(5, TimeUnit.SECONDS)
         deltakerRepository.get(deltaker.id).getOrNull() shouldBe null
+        importertFraArenaRepository.getForDeltaker(deltaker.id) shouldBe null
     }
 
     @Test
     fun `consumeDeltaker - ny ARENA deltaker - lagrer deltaker`(): Unit = runBlocking {
+        val deltakerliste = lagDeltakerliste(
+            tiltakstype = lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
+        )
+        TestRepository.insert(deltakerliste)
         val deltaker = TestData.lagDeltaker(
             kilde = Kilde.ARENA,
-            deltakerliste = lagDeltakerliste(tiltakstype = lagTiltakstype(arenaKode = Tiltakstype.ArenaKode.ARBFORB)),
+            deltakerliste = deltakerliste,
             innhold = null,
         )
 
         every { unleashToggle.erKometMasterForTiltakstype(Tiltakstype.ArenaKode.ARBFORB) } returns false
 
         TestRepository.insert(deltaker.navBruker)
-        TestRepository.insert(deltaker.deltakerliste)
 
         val deltakerV2Dto = deltaker.toDeltakerV2()
         consumer.consume(deltaker.id, objectMapper.writeValueAsString(deltakerV2Dto))
 
-        Awaitility.await().atMost(20, TimeUnit.SECONDS).until {
+        Awaitility.await().atMost(5, TimeUnit.SECONDS).until {
             deltakerRepository.get(deltaker.id).getOrNull() != null
         }
         val insertedDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
@@ -109,5 +117,6 @@ class DeltakerConsumerTest {
         )
 
         insertedDeltaker shouldBe expectedDeltaker
+        importertFraArenaRepository.getForDeltaker(deltaker.id) shouldNotBe null
     }
 }
