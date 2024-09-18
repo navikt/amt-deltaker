@@ -1,7 +1,6 @@
 package no.nav.amt.deltaker.deltaker.kafka
 
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
@@ -27,6 +26,7 @@ import org.awaitility.Awaitility
 import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test
+import java.time.LocalDate
 import java.util.concurrent.TimeUnit
 
 class DeltakerConsumerTest {
@@ -121,6 +121,14 @@ class DeltakerConsumerTest {
         insertedDeltaker.vedtaksinformasjon shouldBe null
         insertedDeltaker.kilde shouldBe Kilde.ARENA
 
-        importertFraArenaRepository.getForDeltaker(deltaker.id) shouldNotBe null
+        val importertFraArena = importertFraArenaRepository.getForDeltaker(deltaker.id)
+            ?: throw RuntimeException("Fant ikke importert fra arena")
+        importertFraArena.importertDato.toLocalDate() shouldBe LocalDate.now()
+        importertFraArena.deltakerVedImport.innsoktDato shouldBe deltakerV2Dto.innsoktDato
+        importertFraArena.deltakerVedImport.startdato shouldBe deltakerV2Dto.oppstartsdato
+        importertFraArena.deltakerVedImport.sluttdato shouldBe deltakerV2Dto.sluttdato
+        importertFraArena.deltakerVedImport.dagerPerUke shouldBe deltakerV2Dto.dagerPerUke
+        importertFraArena.deltakerVedImport.deltakelsesprosent shouldBe deltakerV2Dto.prosentStilling?.toFloat()
+        importertFraArena.deltakerVedImport.status.type shouldBe deltakerV2Dto.status.type
     }
 }

@@ -27,6 +27,7 @@ import no.nav.amt.lib.testing.shouldBeCloseTo
 import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -183,6 +184,59 @@ class DeltakerV2MapperServiceTest {
         deltakerV2Dto.sistEndret shouldBeCloseTo deltaker.sistEndret
         deltakerV2Dto.sistEndretAv shouldBe veileder.id
         deltakerV2Dto.sistEndretAvEnhet shouldBe brukersEnhet.id
+    }
+
+    @Test
+    fun `tilDeltakerV2Dto - importert fra arena - returnerer riktig DeltakerV2Dto`(): Unit = runBlocking {
+        val veileder = TestData.lagNavAnsatt()
+        val brukersEnhet = TestData.lagNavEnhet()
+        TestRepository.insert(veileder)
+        TestRepository.insert(brukersEnhet)
+        val navBruker = TestData.lagNavBruker(navVeilederId = veileder.id, navEnhetId = brukersEnhet.id)
+        TestRepository.insert(navBruker)
+        val deltaker = TestData.lagDeltaker(
+            navBruker = navBruker,
+            bakgrunnsinformasjon = null,
+            innhold = null,
+            status = TestData.lagDeltakerStatus(
+                type = DeltakerStatus.Type.HAR_SLUTTET,
+                aarsak = DeltakerStatus.Aarsak.Type.ANNET,
+                beskrivelse = "Flyttet",
+            ),
+            kilde = Kilde.ARENA,
+        )
+        TestRepository.insert(deltaker)
+        val innsoktDato = LocalDate.now().minusMonths(5)
+        val importertFraArena = TestData.lagImportertFraArena(
+            deltakerId = deltaker.id,
+            importertDato = LocalDateTime.now().minusWeeks(2),
+            deltakerVedImport = deltaker.toDeltakerVedImport(innsoktDato),
+        )
+        TestRepository.insert(importertFraArena)
+
+        val deltakerV2Dto = deltakerV2MapperService.tilDeltakerV2Dto(deltaker)
+
+        deltakerV2Dto.id shouldBe deltaker.id
+        deltakerV2Dto.deltakerlisteId shouldBe deltaker.deltakerliste.id
+        sammenlignPersonalia(deltakerV2Dto.personalia, navBruker)
+        sammenlignStatus(deltakerV2Dto.status, deltaker.status)
+        deltakerV2Dto.dagerPerUke shouldBe deltaker.dagerPerUke
+        deltakerV2Dto.prosentStilling shouldBe deltaker.deltakelsesprosent?.toDouble()
+        deltakerV2Dto.oppstartsdato shouldBe deltaker.startdato
+        deltakerV2Dto.sluttdato shouldBe deltaker.sluttdato
+        deltakerV2Dto.innsoktDato shouldBe innsoktDato
+        deltakerV2Dto.forsteVedtakFattet shouldBe innsoktDato
+        deltakerV2Dto.bestillingTekst shouldBe deltaker.bakgrunnsinformasjon
+        deltakerV2Dto.navKontor shouldBe brukersEnhet.navn
+        deltakerV2Dto.navVeileder shouldBe veileder.toDeltakerNavVeilederDto()
+        deltakerV2Dto.deltarPaKurs shouldBe deltaker.deltarPaKurs()
+        deltakerV2Dto.kilde shouldBe Kilde.ARENA
+        deltakerV2Dto.innhold shouldBe deltaker.deltakelsesinnhold
+        deltakerV2Dto.historikk?.size shouldBe 1
+        sammenlignHistorikk(deltakerV2Dto.historikk?.get(0)!!, DeltakerHistorikk.ImportertFraArena(importertFraArena))
+        deltakerV2Dto.sistEndret shouldBeCloseTo deltaker.sistEndret
+        deltakerV2Dto.sistEndretAv shouldBe null
+        deltakerV2Dto.sistEndretAvEnhet shouldBe null
     }
 }
 
