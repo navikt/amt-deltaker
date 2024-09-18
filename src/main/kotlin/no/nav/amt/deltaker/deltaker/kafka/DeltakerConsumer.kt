@@ -3,8 +3,8 @@ package no.nav.amt.deltaker.deltaker.kafka
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.application.plugins.objectMapper
-import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
+import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
@@ -18,9 +18,11 @@ import no.nav.amt.lib.kafka.config.KafkaConfig
 import no.nav.amt.lib.kafka.config.KafkaConfigImpl
 import no.nav.amt.lib.kafka.config.LocalKafkaConfig
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.UUIDDeserializer
 import org.slf4j.LoggerFactory
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -28,7 +30,7 @@ class DeltakerConsumer(
     private val deltakerRepository: DeltakerRepository,
     private val deltakerlisteRepository: DeltakerlisteRepository,
     private val navBrukerService: NavBrukerService,
-    private val deltakerHistorikkService: DeltakerHistorikkService,
+    private val importertFraArenaRepository: ImportertFraArenaRepository,
     private val unleashToggle: UnleashToggle,
     kafkaConfig: KafkaConfig = if (Environment.isLocal()) LocalKafkaConfig() else KafkaConfigImpl("earliest"),
 ) : Consumer<UUID, String?> {
@@ -72,10 +74,19 @@ class DeltakerConsumer(
             val deltaker = deltakerV2.toDeltaker(deltakerliste, prewDeltaker)
 
             deltakerRepository.upsert(deltaker)
-            deltakerHistorikkService.handleImportertDeltaker(deltaker, prewDeltaker != null, deltakerV2.innsoktDato)
+            handleImportertDeltaker(deltaker, deltakerV2.innsoktDato)
 
             log.info("Arenadeltaker med id ${deltaker.id} er ingest ferdig")
         }
+    }
+
+    private fun handleImportertDeltaker(deltaker: Deltaker, innsoktDato: LocalDate) {
+        val historikkElement = ImportertFraArena(
+            deltakerId = deltaker.id,
+            importertDato = LocalDateTime.now(),
+            deltakerVedImport = deltaker.toDeltakerVedImport(innsoktDato),
+        )
+        importertFraArenaRepository.upsert(historikkElement)
     }
 
     override fun run() = consumer.run()

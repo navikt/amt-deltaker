@@ -206,7 +206,7 @@ fun Application.module() {
         NavBrukerConsumer(navBrukerRepository, navEnhetService, deltakerService),
         TiltakstypeConsumer(tiltakstypeRepository),
         DeltakerlisteConsumer(deltakerlisteRepository, tiltakstypeRepository, arrangorService, deltakerStatusOppdateringService),
-        DeltakerConsumer(deltakerRepository, deltakerlisteRepository, navBrukerService, deltakerHistorikkService, unleashToggle),
+        DeltakerConsumer(deltakerRepository, deltakerlisteRepository, navBrukerService, importertFraArenaRepository, unleashToggle),
         ArrangorMeldingConsumer(forslagService, deltakerService),
     )
     consumers.forEach { it.run() }

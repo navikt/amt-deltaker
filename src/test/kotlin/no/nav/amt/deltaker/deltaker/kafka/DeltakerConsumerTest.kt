@@ -6,12 +6,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.amtperson.AmtPersonServiceClient
 import no.nav.amt.deltaker.application.plugins.objectMapper
-import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
-import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
-import no.nav.amt.deltaker.deltaker.db.VedtakRepository
-import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
-import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
@@ -36,12 +31,7 @@ import java.util.concurrent.TimeUnit
 class DeltakerConsumerTest {
     companion object {
         lateinit var deltakerRepository: DeltakerRepository
-        lateinit var deltakerEndringRepository: DeltakerEndringRepository
-        lateinit var vedtakRepository: VedtakRepository
-        lateinit var forslagRepository: ForslagRepository
-        lateinit var endringFraArrangorRepository: EndringFraArrangorRepository
         lateinit var importertFraArenaRepository: ImportertFraArenaRepository
-        lateinit var deltakerHistorikkService: DeltakerHistorikkService
         lateinit var deltakerlisteRepository: DeltakerlisteRepository
         lateinit var navBrukerService: NavBrukerService
         lateinit var navBrukerRepository: NavBrukerRepository
@@ -56,18 +46,7 @@ class DeltakerConsumerTest {
         fun setup() {
             SingletonPostgresContainer.start()
             deltakerRepository = DeltakerRepository()
-            deltakerEndringRepository = mockk()
-            vedtakRepository = mockk()
-            forslagRepository = mockk()
-            endringFraArrangorRepository = mockk()
             importertFraArenaRepository = ImportertFraArenaRepository()
-            deltakerHistorikkService = DeltakerHistorikkService(
-                deltakerEndringRepository,
-                vedtakRepository,
-                forslagRepository,
-                endringFraArrangorRepository,
-                importertFraArenaRepository,
-            )
             deltakerlisteRepository = DeltakerlisteRepository()
             navBrukerRepository = NavBrukerRepository()
             amtPersonServiceClient = mockk()
@@ -79,7 +58,7 @@ class DeltakerConsumerTest {
                 deltakerRepository,
                 deltakerlisteRepository,
                 navBrukerService,
-                deltakerHistorikkService,
+                importertFraArenaRepository,
                 unleashToggle,
             )
         }

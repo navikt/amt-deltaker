@@ -23,7 +23,7 @@ class ImportertFraArenaRepository {
         }
     }
 
-    fun insert(importertFraArena: ImportertFraArena) = Database.query {
+    fun upsert(importertFraArena: ImportertFraArena) = Database.query {
         val sql =
             """
             INSERT INTO importert_fra_arena(
@@ -32,7 +32,10 @@ class ImportertFraArenaRepository {
                 deltaker_ved_import)
             VALUES (:deltaker_id,
                     :importert_dato,
-            		:deltaker_ved_import)
+            		    :deltaker_ved_import)
+            ON CONFLICT (deltaker_id) DO UPDATE SET
+              importert_dato      = :importertDato,
+              deltaker_ved_import = :deltaker_ved_import
             """.trimIndent()
 
         it.update(

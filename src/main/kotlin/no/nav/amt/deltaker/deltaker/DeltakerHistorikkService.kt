@@ -5,12 +5,9 @@ import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
-import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
-import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.util.UUID
 
 class DeltakerHistorikkService(
@@ -47,32 +44,27 @@ class DeltakerHistorikkService(
         return historikk
     }
 
-    // TODO: Disse fungerer ikke for importerte deltakere
     fun getInnsoktDato(deltakerhistorikk: List<DeltakerHistorikk>): LocalDate? {
+        getInnsoktDatoFraImportertDeltaker(deltakerhistorikk)?.let { return it }
+
         val vedtak = deltakerhistorikk.filterIsInstance<DeltakerHistorikk.Vedtak>().map { it.vedtak }
         return vedtak.minByOrNull { it.opprettet }?.opprettet?.toLocalDate()
     }
 
     fun getForsteVedtakFattet(deltakerId: UUID): LocalDate? {
         val deltakerhistorikk = getForDeltaker(deltakerId)
+        getInnsoktDatoFraImportertDeltaker(deltakerhistorikk)?.let { return it }
+
         val vedtak = deltakerhistorikk.filterIsInstance<DeltakerHistorikk.Vedtak>().map { it.vedtak }
         val forsteVedtak = vedtak.minByOrNull { it.opprettet }
 
         return forsteVedtak?.fattet?.toLocalDate()
     }
 
-    fun handleImportertDeltaker(
-        deltaker: Deltaker,
-        importertTidligere: Boolean,
-        innsoktDato: LocalDate,
-    ) {
-        if (importertTidligere) return
-        val historikkElement = ImportertFraArena(
-            deltakerId = deltaker.id,
-            importertDato = LocalDateTime.now(),
-            deltakerVedImport = deltaker.toDeltakerVedImport(innsoktDato),
-        )
-        importertFraArenaRepository.insert(historikkElement)
+    fun getInnsoktDatoFraImportertDeltaker(deltakerhistorikk: List<DeltakerHistorikk>): LocalDate? {
+        deltakerhistorikk.filterIsInstance<DeltakerHistorikk.ImportertFraArena>().firstOrNull()
+            ?.let { return it.importertFraArena.deltakerVedImport.innsoktDato }
+        return null
     }
 }
 

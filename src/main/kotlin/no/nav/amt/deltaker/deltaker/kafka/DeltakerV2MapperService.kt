@@ -68,6 +68,8 @@ class DeltakerV2MapperService(
     }
 
     private fun getForsteVedtakFattet(deltakerhistorikk: List<DeltakerHistorikk>): LocalDate? {
+        deltakerHistorikkService.getInnsoktDatoFraImportertDeltaker(deltakerhistorikk)?.let { return it }
+
         val vedtak = deltakerhistorikk.filterIsInstance<DeltakerHistorikk.Vedtak>().map { it.vedtak }
         val forsteVedtak = vedtak.minByOrNull { it.opprettet }
             ?: throw IllegalStateException("Skal ikke produsere deltaker som mangler vedtak til topic")
