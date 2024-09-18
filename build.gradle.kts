@@ -39,6 +39,7 @@ val mockkVersion = "1.13.12"
 val nimbusVersion = "9.41.1"
 val amtLibVersion = "1.2024.09.17_12.50-2c9264ee9bd1"
 val unleashVersion = "9.2.4"
+val awaitilityVersion = "4.2.2"
 
 dependencies {
     implementation("io.ktor:ktor-server-content-negotiation-jvm")
@@ -87,6 +88,7 @@ dependencies {
     testImplementation("io.mockk:mockk:$mockkVersion")
     testImplementation("com.nimbusds:nimbus-jose-jwt:$nimbusVersion")
     testImplementation("no.nav.amt.lib:testing:$amtLibVersion")
+    testImplementation("org.awaitility:awaitility:$awaitilityVersion")
 }
 
 kotlin {

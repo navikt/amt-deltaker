@@ -141,6 +141,22 @@ class DeltakerHistorikkServiceTest {
 
         service.getInnsoktDato(deltakerhistorikk) shouldBe LocalDate.now().minusMonths(1)
     }
+/*
+    @Test
+    fun `getInnsoktDato - importert arenadeltaker - returnerer riktig dato`() {
+        val deltakerhistorikk = listOf(
+            DeltakerHistorikk.Endring(TestData.lagDeltakerEndring()),
+            DeltakerHistorikk.ImportertFraArena(
+                importertFraArena = ImportertFraArena(
+                    UUID.randomUUID(),
+                    LocalDateTime.now(),
+                    TestData.lagDeltaker().toDeltakerVedImport(LocalDate.now().minusDays(1))
+                ),
+            ),
+        )
+
+        service.getInnsoktDato(deltakerhistorikk) shouldBe LocalDate.now().minusMonths(1)
+    }*/
 }
 
 fun sammenlignHistorikk(a: DeltakerHistorikk, b: DeltakerHistorikk) {
