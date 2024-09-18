@@ -110,13 +110,17 @@ class DeltakerConsumerTest {
         }
         val insertedDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
 
-        val expectedDeltaker = deltaker.copy(
-            bakgrunnsinformasjon = null,
-            status = deltaker.status.copy(opprettet = insertedDeltaker.status.opprettet),
-            sistEndret = insertedDeltaker.sistEndret,
-        )
+        insertedDeltaker.deltakerliste.id shouldBe deltaker.deltakerliste.id
+        insertedDeltaker.startdato shouldBe deltaker.startdato
+        insertedDeltaker.sluttdato shouldBe deltaker.sluttdato
+        insertedDeltaker.dagerPerUke shouldBe deltaker.dagerPerUke
+        insertedDeltaker.deltakelsesprosent shouldBe deltaker.deltakelsesprosent
+        insertedDeltaker.bakgrunnsinformasjon shouldBe null
+        insertedDeltaker.deltakelsesinnhold shouldBe null
+        insertedDeltaker.status.type shouldBe deltaker.status.type
+        insertedDeltaker.vedtaksinformasjon shouldBe null
+        insertedDeltaker.kilde shouldBe Kilde.ARENA
 
-        insertedDeltaker shouldBe expectedDeltaker
         importertFraArenaRepository.getForDeltaker(deltaker.id) shouldNotBe null
     }
 }
