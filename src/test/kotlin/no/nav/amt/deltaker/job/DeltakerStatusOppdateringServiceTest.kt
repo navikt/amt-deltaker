@@ -16,6 +16,7 @@ import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepos
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorService
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagService
+import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerV2MapperService
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
@@ -51,8 +52,15 @@ class DeltakerStatusOppdateringServiceTest {
         private val vedtakRepository = VedtakRepository()
         private val forslagRepository = ForslagRepository()
         private val endringFraArrangorRepository = EndringFraArrangorRepository()
+        private val importertFraArenaRepository = ImportertFraArenaRepository()
         private val deltakerHistorikkService =
-            DeltakerHistorikkService(deltakerEndringRepository, vedtakRepository, forslagRepository, endringFraArrangorRepository)
+            DeltakerHistorikkService(
+                deltakerEndringRepository,
+                vedtakRepository,
+                forslagRepository,
+                endringFraArrangorRepository,
+                importertFraArenaRepository,
+            )
         private val deltakerV2MapperService = DeltakerV2MapperService(navAnsattService, navEnhetService, deltakerHistorikkService)
         private val deltakerProducer = DeltakerProducer(LocalKafkaConfig(SingletonKafkaProvider.getHost()), deltakerV2MapperService)
         private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())

@@ -76,11 +76,10 @@ class DeltakerV2MapperService(
     }
 
     private fun getSisteEndring(deltakerhistorikk: List<DeltakerHistorikk>): DeltakerHistorikk {
-        return deltakerhistorikk.filterNot {
-            it is DeltakerHistorikk.Forslag ||
-                it is DeltakerHistorikk.EndringFraArrangor || it is DeltakerHistorikk.ImportertFraArena
-        }.firstOrNull()
-            ?: throw IllegalStateException("Deltaker må ha minst et vedtak for å produseres til topic")
+        return deltakerhistorikk.firstOrNull {
+            it is DeltakerHistorikk.Vedtak ||
+                it is DeltakerHistorikk.Endring
+        } ?: throw IllegalStateException("Deltaker må ha minst et vedtak for å produseres til topic")
     }
 
     private fun getSistEndretAv(deltakerhistorikk: DeltakerHistorikk): UUID {

@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.deltaker.kafka
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.application.plugins.objectMapper
+import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.Kilde
@@ -27,6 +28,7 @@ class DeltakerConsumer(
     private val deltakerRepository: DeltakerRepository,
     private val deltakerlisteRepository: DeltakerlisteRepository,
     private val navBrukerService: NavBrukerService,
+    private val deltakerHistorikkService: DeltakerHistorikkService,
     private val unleashToggle: UnleashToggle,
     kafkaConfig: KafkaConfig = if (Environment.isLocal()) LocalKafkaConfig() else KafkaConfigImpl("earliest"),
 ) : Consumer<UUID, String?> {
@@ -61,16 +63,18 @@ class DeltakerConsumer(
         if (deltakerliste.tiltakstype.arenaKode == Tiltakstype.ArenaKode.ARBFORB &&
             !unleashToggle.erKometMasterForTiltakstype(Tiltakstype.ArenaKode.ARBFORB)
         ) {
-            // Vi skal lese inn AFT deltakere selv om vi ikke er master
+            log.info("Ingester arenadeltaker med id ${deltakerV2.id}")
+
+            // Vi skal lese inn arena AFT deltakere før vi blir master, når vi er master skal de kun endres hos oss
             // Her kommer også amt-deltakers endringer på arenadeltakere
             // Hvordan håndtere at vi får inn alle siste endringer fra arena men ikke leser våre egne endringer?
             val prewDeltaker = deltakerRepository.get(deltakerV2.id).getOrNull()
             val deltaker = deltakerV2.toDeltaker(deltakerliste, prewDeltaker)
 
             deltakerRepository.upsert(deltaker)
-            // opprett og lagre importertfraarena-objekt
+            deltakerHistorikkService.handleImportertDeltaker(deltaker, prewDeltaker != null, deltakerV2.innsoktDato)
 
-            log.info("Ingester arenadeltaker deltaker med id ${deltaker.id}")
+            log.info("Arenadeltaker med id ${deltaker.id} er ingest ferdig")
         }
     }
 
@@ -87,7 +91,7 @@ class DeltakerConsumer(
         // Hvis det er første gang vi får deltakeren fra arena så skal bakgrunnsinfo settes til null
         // https://trello.com/c/Rotq74xz/1751-vise-bestillingstekst-fra-arena-innhold-og-bakgrunnsinfo-i-en-overgangsfase
         bakgrunnsinformasjon = prewDeltaker?.let { bestillingTekst },
-        deltakelsesinnhold = prewDeltaker?.deltakelsesinnhold,
+        deltakelsesinnhold = innhold,
         status = status.toDeltakerStatus(id),
         vedtaksinformasjon = null,
         kilde = kilde ?: Kilde.ARENA,
@@ -101,5 +105,5 @@ fun DeltakerV2Dto.DeltakerStatusDto.toDeltakerStatus(deltakerId: UUID) = Deltake
     aarsak = aarsak?.let { DeltakerStatus.Aarsak(it, aarsaksbeskrivelse) },
     gyldigFra = gyldigFra,
     gyldigTil = null,
-    opprettet = gyldigFra,
+    opprettet = opprettetDato,
 )

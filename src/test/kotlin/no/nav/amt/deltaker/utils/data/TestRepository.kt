@@ -30,6 +30,7 @@ object TestRepository {
             "forslag",
             "endring_fra_arrangor",
             "vedtak",
+            "importert_fra_arena",
             "deltaker_status",
             "deltaker",
             "nav_bruker",

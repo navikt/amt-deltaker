@@ -23,7 +23,7 @@ class ImportertFraArenaRepository {
         }
     }
 
-    fun upsert(importertFraArena: ImportertFraArena) = Database.query {
+    fun insert(importertFraArena: ImportertFraArena) = Database.query {
         val sql =
             """
             INSERT INTO importert_fra_arena(

@@ -39,6 +39,7 @@ import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.deltaker.forslag.kafka.ArrangorMeldingConsumer
 import no.nav.amt.deltaker.deltaker.forslag.kafka.ArrangorMeldingProducer
+import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerConsumer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerV2MapperService
@@ -128,6 +129,7 @@ fun Application.module() {
     val vedtakRepository = VedtakRepository()
     val forslagRepository = ForslagRepository()
     val endringFraArrangorRepository = EndringFraArrangorRepository()
+    val importertFraArenaRepository = ImportertFraArenaRepository()
 
     val poaoTilgangCachedClient = PoaoTilgangCachedClient.createDefaultCacheClient(
         PoaoTilgangHttpClient(
@@ -153,6 +155,7 @@ fun Application.module() {
         vedtakRepository,
         forslagRepository,
         endringFraArrangorRepository,
+        importertFraArenaRepository,
     )
 
     val hendelseProducer = HendelseProducer()
@@ -203,7 +206,7 @@ fun Application.module() {
         NavBrukerConsumer(navBrukerRepository, navEnhetService, deltakerService),
         TiltakstypeConsumer(tiltakstypeRepository),
         DeltakerlisteConsumer(deltakerlisteRepository, tiltakstypeRepository, arrangorService, deltakerStatusOppdateringService),
-        DeltakerConsumer(deltakerRepository, deltakerlisteRepository, navBrukerService, unleashToggle),
+        DeltakerConsumer(deltakerRepository, deltakerlisteRepository, navBrukerService, deltakerHistorikkService, unleashToggle),
         ArrangorMeldingConsumer(forslagService, deltakerService),
     )
     consumers.forEach { it.run() }
