@@ -15,6 +15,7 @@ import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.utils.database.Database
 import org.slf4j.LoggerFactory
@@ -402,6 +403,31 @@ object TestRepository {
         )
     }
 
+    fun insert(importertFraArena: ImportertFraArena) = Database.query {
+        val sql =
+            """
+            INSERT INTO importert_fra_arena(
+                deltaker_id, 
+                importert_dato, 
+                deltaker_ved_import)
+            VALUES (:deltaker_id,
+                    :importert_dato,
+            		    :deltaker_ved_import)
+            ON CONFLICT (deltaker_id) DO NOTHING
+            """.trimIndent()
+
+        it.update(
+            queryOf(
+                sql,
+                mapOf(
+                    "deltaker_id" to importertFraArena.deltakerId,
+                    "importert_dato" to importertFraArena.importertDato,
+                    "deltaker_ved_import" to toPGObject(importertFraArena.deltakerVedImport),
+                ),
+            ),
+        )
+    }
+
     fun <T> insertAll(vararg values: T) {
         values.forEach {
             when (it) {
@@ -416,6 +442,7 @@ object TestRepository {
                 is Forslag -> insert(it)
                 is DeltakerEndring -> insert(it)
                 is EndringFraArrangor -> insert(it)
+                is ImportertFraArena -> insert(it)
                 else -> NotImplementedError("insertAll for type ${it!!::class} er ikke implementert")
             }
         }

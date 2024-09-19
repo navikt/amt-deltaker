@@ -28,6 +28,8 @@ import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.DeltakerVedImport
+import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltaker.Vedtak
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -324,6 +326,16 @@ object TestData {
         sistEndret,
         sistEndretAv.id,
         sistEndretAvEnhet.id,
+    )
+
+    fun lagImportertFraArena(
+        deltakerId: UUID = UUID.randomUUID(),
+        importertDato: LocalDateTime = LocalDateTime.now(),
+        deltakerVedImport: DeltakerVedImport = lagDeltaker(id = deltakerId).toDeltakerVedImport(LocalDate.now()),
+    ) = ImportertFraArena(
+        deltakerId,
+        importertDato,
+        deltakerVedImport,
     )
 
     fun Deltaker.toDeltakerV2(

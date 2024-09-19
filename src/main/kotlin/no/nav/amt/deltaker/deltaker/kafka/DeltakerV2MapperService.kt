@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.deltaker.kafka
 
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.model.Deltaker
+import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
@@ -16,7 +17,11 @@ class DeltakerV2MapperService(
     suspend fun tilDeltakerV2Dto(deltaker: Deltaker, forcedUpdate: Boolean? = false): DeltakerV2Dto {
         val deltakerhistorikk = deltakerHistorikkService.getForDeltaker(deltaker.id)
 
-        val sisteEndring = getSisteEndring(deltakerhistorikk)
+        val sisteEndring = if (deltaker.kilde == Kilde.KOMET) {
+            getSisteEndring(deltakerhistorikk)
+        } else {
+            null
+        }
 
         return DeltakerV2Dto(
             id = deltaker.id,
@@ -61,8 +66,8 @@ class DeltakerV2MapperService(
             innhold = deltaker.deltakelsesinnhold,
             historikk = deltakerhistorikk,
             sistEndret = deltaker.sistEndret,
-            sistEndretAv = getSistEndretAv(sisteEndring),
-            sistEndretAvEnhet = getSistEndretAvEnhet(sisteEndring),
+            sistEndretAv = sisteEndring?.let { getSistEndretAv(it) },
+            sistEndretAvEnhet = sisteEndring?.let { getSistEndretAvEnhet(it) },
             forcedUpdate = forcedUpdate,
         )
     }
