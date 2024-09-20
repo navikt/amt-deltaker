@@ -25,6 +25,7 @@ import no.nav.amt.deltaker.deltaker.api.registerHentDeltakelserApi
 import no.nav.amt.deltaker.deltaker.api.registerPameldingApi
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
 import no.nav.amt.deltaker.internal.registerInternalApi
+import no.nav.amt.deltaker.unleash.UnleashToggle
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -35,6 +36,7 @@ fun Application.configureRouting(
     tilgangskontrollService: TilgangskontrollService,
     deltakelserResponseMapper: DeltakelserResponseMapper,
     deltakerProducer: DeltakerProducer,
+    unleashToggle: UnleashToggle,
 ) {
     install(StatusPages) {
         exception<IllegalArgumentException> { call, cause ->
@@ -63,7 +65,7 @@ fun Application.configureRouting(
 
         registerPameldingApi(pameldingService, deltakerHistorikkService)
         registerDeltakerApi(deltakerService, deltakerHistorikkService)
-        registerHentDeltakelserApi(tilgangskontrollService, deltakerService, deltakelserResponseMapper)
+        registerHentDeltakelserApi(tilgangskontrollService, deltakerService, deltakelserResponseMapper, unleashToggle)
         registerInternalApi(deltakerService, deltakerProducer)
 
         val catchAllRoute = "{...}"
