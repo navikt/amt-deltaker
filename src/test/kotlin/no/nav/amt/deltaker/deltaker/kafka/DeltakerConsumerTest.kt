@@ -16,6 +16,7 @@ import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaReposit
 import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype
+import no.nav.amt.deltaker.kafka.utils.assertOnProducedDeltaker
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
 import no.nav.amt.deltaker.navbruker.NavBrukerRepository
@@ -28,6 +29,8 @@ import no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype
 import no.nav.amt.deltaker.utils.data.TestData.toDeltakerV2
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.kafka.config.LocalKafkaConfig
+import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
+import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.testing.SingletonKafkaProvider
 import no.nav.amt.lib.testing.SingletonPostgres16Container
 import org.awaitility.Awaitility
@@ -35,6 +38,7 @@ import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
 
 class DeltakerConsumerTest {
@@ -137,11 +141,27 @@ class DeltakerConsumerTest {
         every { endringFraArrangorRepository.getForDeltaker(deltaker.id) } returns emptyList()
 
         val deltakerV2Dto = deltaker.toDeltakerV2()
+
         consumer.consume(deltaker.id, objectMapper.writeValueAsString(deltakerV2Dto))
-        // Her burde det være en sjekk på at riktig melding ligger på deltaker-v2
         Awaitility.await().atMost(5, TimeUnit.SECONDS).until {
             deltakerRepository.get(deltaker.id).getOrNull() != null
         }
+        val expectedHistorikk = DeltakerHistorikk.ImportertFraArena(
+            importertFraArena = ImportertFraArena(
+                deltakerId = deltaker.id,
+                importertDato = LocalDateTime.now(),
+                deltakerVedImport = deltaker.toDeltakerVedImport(deltakerV2Dto.innsoktDato),
+            ),
+        )
+
+        val expectedProducedDeltaker = deltakerV2Dto.copy(
+            historikk = listOf(expectedHistorikk),
+            bestillingTekst = null,
+            forsteVedtakFattet = expectedHistorikk.importertFraArena.deltakerVedImport.innsoktDato,
+        )
+
+        assertOnProducedDeltaker(expectedProducedDeltaker)
+
         val insertedDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
 
         insertedDeltaker.deltakerliste.id shouldBe deltaker.deltakerliste.id
