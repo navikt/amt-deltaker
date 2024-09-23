@@ -12,6 +12,7 @@ import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
+import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.testing.SingletonPostgres16Container
 import no.nav.amt.lib.testing.shouldBeCloseTo
 import org.junit.Before
@@ -141,22 +142,23 @@ class DeltakerHistorikkServiceTest {
 
         service.getInnsoktDato(deltakerhistorikk) shouldBe LocalDate.now().minusMonths(1)
     }
-/*
+
     @Test
     fun `getInnsoktDato - importert arenadeltaker - returnerer riktig dato`() {
+        val innsoktDato = LocalDate.now().minusMonths(1)
         val deltakerhistorikk = listOf(
             DeltakerHistorikk.Endring(TestData.lagDeltakerEndring()),
             DeltakerHistorikk.ImportertFraArena(
                 importertFraArena = ImportertFraArena(
-                    UUID.randomUUID(),
-                    LocalDateTime.now(),
-                    TestData.lagDeltaker().toDeltakerVedImport(LocalDate.now().minusDays(1))
+                    deltakerId = UUID.randomUUID(),
+                    importertDato = LocalDateTime.now(),
+                    deltakerVedImport = TestData.lagDeltaker().toDeltakerVedImport(innsoktDato = innsoktDato)
                 ),
             ),
         )
 
-        service.getInnsoktDato(deltakerhistorikk) shouldBe LocalDate.now().minusMonths(1)
-    }*/
+        service.getInnsoktDato(deltakerhistorikk) shouldBe innsoktDato
+    }
 }
 
 fun sammenlignHistorikk(a: DeltakerHistorikk, b: DeltakerHistorikk) {
