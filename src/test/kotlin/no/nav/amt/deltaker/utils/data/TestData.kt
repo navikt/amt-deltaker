@@ -341,7 +341,7 @@ object TestData {
     fun Deltaker.toDeltakerV2(
         innsoktDato: LocalDate = LocalDate.now(),
         forsteVedtakFattet: LocalDate? = null,
-        deltakerhistorikk: List<DeltakerHistorikk> = emptyList(),
+        deltakerhistorikk: List<DeltakerHistorikk>? = null,
     ) = DeltakerV2Dto(
         id = id,
         deltakerlisteId = deltakerliste.id,

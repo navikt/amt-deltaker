@@ -6,7 +6,12 @@ import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.amtperson.AmtPersonServiceClient
 import no.nav.amt.deltaker.application.plugins.objectMapper
+import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
+import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
+import no.nav.amt.deltaker.deltaker.db.VedtakRepository
+import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
+import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
@@ -18,9 +23,12 @@ import no.nav.amt.deltaker.navbruker.NavBrukerService
 import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
+import no.nav.amt.deltaker.utils.data.TestData.lagNavBruker
 import no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype
 import no.nav.amt.deltaker.utils.data.TestData.toDeltakerV2
 import no.nav.amt.deltaker.utils.data.TestRepository
+import no.nav.amt.lib.kafka.config.LocalKafkaConfig
+import no.nav.amt.lib.testing.SingletonKafkaProvider
 import no.nav.amt.lib.testing.SingletonPostgres16Container
 import org.awaitility.Awaitility
 import org.junit.Before
@@ -41,6 +49,13 @@ class DeltakerConsumerTest {
         lateinit var navAnsattService: NavAnsattService
         lateinit var unleashToggle: UnleashToggle
         lateinit var consumer: DeltakerConsumer
+        lateinit var deltakerProducer: DeltakerProducer
+        lateinit var deltakerV2MapperService: DeltakerV2MapperService
+        lateinit var deltakerHistorikkService: DeltakerHistorikkService
+        lateinit var deltakerEndringRepository: DeltakerEndringRepository
+        lateinit var vedtakRepository: VedtakRepository
+        lateinit var forslagRepository: ForslagRepository
+        lateinit var endringFraArrangorRepository: EndringFraArrangorRepository
 
         @JvmStatic
         @BeforeClass
@@ -55,12 +70,28 @@ class DeltakerConsumerTest {
             navAnsattService = NavAnsattService(mockk(), amtPersonServiceClient)
             navBrukerService = NavBrukerService(navBrukerRepository, amtPersonServiceClient, navEnhetService, navAnsattService)
             unleashToggle = mockk()
+            deltakerEndringRepository = mockk()
+            vedtakRepository = mockk()
+            forslagRepository = mockk()
+            endringFraArrangorRepository = mockk()
+            deltakerHistorikkService = DeltakerHistorikkService(
+                deltakerEndringRepository,
+                vedtakRepository,
+                forslagRepository,
+                endringFraArrangorRepository,
+                importertFraArenaRepository,
+            )
+            deltakerV2MapperService = DeltakerV2MapperService(navAnsattService, navEnhetService, deltakerHistorikkService)
+            deltakerProducer = DeltakerProducer(
+                LocalKafkaConfig(SingletonKafkaProvider.getHost()),
+                deltakerV2MapperService = deltakerV2MapperService,
+            )
             consumer = DeltakerConsumer(
                 deltakerRepository,
                 deltakerlisteRepository,
                 navBrukerService,
                 importertFraArenaRepository,
-                unleashToggle,
+                deltakerProducer,
             )
         }
     }
@@ -96,15 +127,18 @@ class DeltakerConsumerTest {
             kilde = Kilde.ARENA,
             deltakerliste = deltakerliste,
             innhold = null,
+            navBruker = lagNavBruker(navEnhetId = null, navVeilederId = null),
         )
 
-        every { unleashToggle.erKometMasterForTiltakstype(Tiltakstype.ArenaKode.ARBFORB) } returns false
-
         TestRepository.insert(deltaker.navBruker)
+        every { deltakerEndringRepository.getForDeltaker(deltaker.id) } returns emptyList()
+        every { vedtakRepository.getForDeltaker(deltaker.id) } returns emptyList()
+        every { forslagRepository.getForDeltaker(deltaker.id) } returns emptyList()
+        every { endringFraArrangorRepository.getForDeltaker(deltaker.id) } returns emptyList()
 
         val deltakerV2Dto = deltaker.toDeltakerV2()
         consumer.consume(deltaker.id, objectMapper.writeValueAsString(deltakerV2Dto))
-
+        // Her burde det være en sjekk på at riktig melding ligger på deltaker-v2
         Awaitility.await().atMost(5, TimeUnit.SECONDS).until {
             deltakerRepository.get(deltaker.id).getOrNull() != null
         }

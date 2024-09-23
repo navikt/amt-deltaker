@@ -11,7 +11,6 @@ import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.deltaker.navbruker.NavBrukerService
-import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.lib.kafka.Consumer
 import no.nav.amt.lib.kafka.ManagedKafkaConsumer
 import no.nav.amt.lib.kafka.config.KafkaConfig
@@ -31,7 +30,7 @@ class DeltakerConsumer(
     private val deltakerlisteRepository: DeltakerlisteRepository,
     private val navBrukerService: NavBrukerService,
     private val importertFraArenaRepository: ImportertFraArenaRepository,
-    private val unleashToggle: UnleashToggle,
+    private val deltakerProducer: DeltakerProducer,
     kafkaConfig: KafkaConfig = if (Environment.isLocal()) LocalKafkaConfig() else KafkaConfigImpl("earliest"),
 ) : Consumer<UUID, String?> {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -59,37 +58,40 @@ class DeltakerConsumer(
     private suspend fun processDeltaker(deltakerV2: DeltakerV2Dto) {
         val deltakerliste = deltakerlisteRepository.get(deltakerV2.deltakerlisteId).getOrThrow()
         if (deltakerV2.kilde == Kilde.KOMET) {
-            log.info("Hopper over komet deltaker på deltaker-v2. deltakerId: $deltakerV2.id")
+            log.info("Hopper over komet deltaker på deltaker-v2. deltakerId: ${deltakerV2.id}")
             return
         }
-        if (deltakerliste.tiltakstype.arenaKode == Tiltakstype.ArenaKode.ARBFORB &&
-            !unleashToggle.erKometMasterForTiltakstype(Tiltakstype.ArenaKode.ARBFORB)
-        ) {
+
+        if (deltakerV2.historikk != null) {
+            log.info("Hopper over deltaker med id ${deltakerV2.id} fordi deltakeren er allerede bearbeidet")
+            return
+        }
+
+        if (deltakerliste.tiltakstype.arenaKode == Tiltakstype.ArenaKode.ARBFORB) {
             log.info("Ingester arenadeltaker med id ${deltakerV2.id}")
 
-            // Vi skal lese inn arena AFT deltakere før vi blir master, når vi er master skal de kun endres hos oss
-            // Her kommer også amt-deltakers endringer på arenadeltakere
-            // Hvordan håndtere at vi får inn alle siste endringer fra arena men ikke leser våre egne endringer?
             val prewDeltaker = deltakerRepository.get(deltakerV2.id).getOrNull()
             val deltaker = deltakerV2.toDeltaker(deltakerliste, prewDeltaker)
 
-            deltakerRepository.upsert(deltaker)
-            handleImportertDeltaker(deltaker, deltakerV2.innsoktDato)
+            upsertImportertDeltaker(deltaker, deltakerV2.innsoktDato)
+            log.info("Ingest for arenadeltaker med id ${deltaker.id} er ferdig")
 
-            log.info("Arenadeltaker med id ${deltaker.id} er ingest ferdig")
+            deltakerProducer.produce(deltaker)
         }
     }
 
-    private fun handleImportertDeltaker(deltaker: Deltaker, innsoktDato: LocalDate) {
+    override fun run() = consumer.run()
+
+    private fun upsertImportertDeltaker(deltaker: Deltaker, innsoktDato: LocalDate) {
+        deltakerRepository.upsert(deltaker)
         val historikkElement = ImportertFraArena(
             deltakerId = deltaker.id,
             importertDato = LocalDateTime.now(),
             deltakerVedImport = deltaker.toDeltakerVedImport(innsoktDato),
         )
+
         importertFraArenaRepository.upsert(historikkElement)
     }
-
-    override fun run() = consumer.run()
 
     suspend fun DeltakerV2Dto.toDeltaker(deltakerliste: Deltakerliste, prewDeltaker: Deltaker?) = Deltaker(
         id = id,
