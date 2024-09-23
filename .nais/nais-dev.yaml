@@ -79,7 +79,7 @@ spec:
     sqlInstances:
       - name: amt-deltaker
         collation: nb_NO.UTF8
-        tier: db-f1-micro
+        tier: db-custom-1-3840
         type: POSTGRES_16
         databases:
           - name: amt-deltaker
