@@ -152,7 +152,7 @@ class DeltakerHistorikkServiceTest {
                 importertFraArena = ImportertFraArena(
                     deltakerId = UUID.randomUUID(),
                     importertDato = LocalDateTime.now(),
-                    deltakerVedImport = TestData.lagDeltaker().toDeltakerVedImport(innsoktDato = innsoktDato)
+                    deltakerVedImport = TestData.lagDeltaker().toDeltakerVedImport(innsoktDato = innsoktDato),
                 ),
             ),
         )
