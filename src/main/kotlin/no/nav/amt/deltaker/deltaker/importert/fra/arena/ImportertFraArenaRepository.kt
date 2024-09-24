@@ -32,9 +32,9 @@ class ImportertFraArenaRepository {
                 deltaker_ved_import)
             VALUES (:deltaker_id,
                     :importert_dato,
-            		    :deltaker_ved_import)
+                    :deltaker_ved_import)
             ON CONFLICT (deltaker_id) DO UPDATE SET
-              importert_dato      = :importertDato,
+              importert_dato      = :importert_dato,
               deltaker_ved_import = :deltaker_ved_import
             """.trimIndent()
 
