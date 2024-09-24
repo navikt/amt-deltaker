@@ -6,11 +6,13 @@ import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.db.sammenlignDeltakereVedVedtak
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
+import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.kafka.utils.sammenlignForslagStatus
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
+import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.testing.SingletonPostgres16Container
 import no.nav.amt.lib.testing.shouldBeCloseTo
 import org.junit.Before
@@ -27,6 +29,7 @@ class DeltakerHistorikkServiceTest {
             VedtakRepository(),
             ForslagRepository(),
             EndringFraArrangorRepository(),
+            ImportertFraArenaRepository(),
         )
 
         @BeforeClass
@@ -139,6 +142,23 @@ class DeltakerHistorikkServiceTest {
 
         service.getInnsoktDato(deltakerhistorikk) shouldBe LocalDate.now().minusMonths(1)
     }
+
+    @Test
+    fun `getInnsoktDato - importert arenadeltaker - returnerer riktig dato`() {
+        val innsoktDato = LocalDate.now().minusMonths(1)
+        val deltakerhistorikk = listOf(
+            DeltakerHistorikk.Endring(TestData.lagDeltakerEndring()),
+            DeltakerHistorikk.ImportertFraArena(
+                importertFraArena = ImportertFraArena(
+                    deltakerId = UUID.randomUUID(),
+                    importertDato = LocalDateTime.now(),
+                    deltakerVedImport = TestData.lagDeltaker().toDeltakerVedImport(innsoktDato = innsoktDato),
+                ),
+            ),
+        )
+
+        service.getInnsoktDato(deltakerhistorikk) shouldBe innsoktDato
+    }
 }
 
 fun sammenlignHistorikk(a: DeltakerHistorikk, b: DeltakerHistorikk) {
@@ -182,6 +202,13 @@ fun sammenlignHistorikk(a: DeltakerHistorikk, b: DeltakerHistorikk) {
             a.endringFraArrangor.opprettet shouldBeCloseTo b.endringFraArrangor.opprettet
             a.endringFraArrangor.opprettetAvArrangorAnsattId shouldBe b.endringFraArrangor.opprettetAvArrangorAnsattId
             a.endringFraArrangor.endring shouldBe b.endringFraArrangor.endring
+        }
+
+        is DeltakerHistorikk.ImportertFraArena -> {
+            b as DeltakerHistorikk.ImportertFraArena
+            a.importertFraArena.deltakerId shouldBe b.importertFraArena.deltakerId
+            a.importertFraArena.importertDato shouldBeCloseTo b.importertFraArena.importertDato
+            a.importertFraArena.deltakerVedImport shouldBe b.importertFraArena.deltakerVedImport
         }
     }
 }

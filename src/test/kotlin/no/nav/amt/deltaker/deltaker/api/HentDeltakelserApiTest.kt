@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.deltaker.api
 
+import io.getunleash.FakeUnleash
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -26,6 +27,7 @@ import no.nav.amt.deltaker.deltaker.api.model.Periode
 import no.nav.amt.deltaker.deltaker.api.utils.postVeilederRequest
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype
+import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.deltaker.utils.configureEnvForAuthentication
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
@@ -45,10 +47,13 @@ class HentDeltakelserApiTest {
     private val arrangorService = mockk<ArrangorService>()
     private val deltakelserResponseMapper = DeltakelserResponseMapper(deltakerHistorikkService, arrangorService)
     private val deltakerProducer = mockk<DeltakerProducer>()
+    private val unleashClient = FakeUnleash()
+    private val unleashToggle = UnleashToggle(unleashClient)
 
     @Before
     fun setup() {
         configureEnvForAuthentication()
+        unleashClient.enableAll()
     }
 
     @Test
@@ -249,6 +254,7 @@ class HentDeltakelserApiTest {
                 tilgangskontrollService,
                 deltakelserResponseMapper,
                 deltakerProducer,
+                unleashToggle,
             )
         }
     }

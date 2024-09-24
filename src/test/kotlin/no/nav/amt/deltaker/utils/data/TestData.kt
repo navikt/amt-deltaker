@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.utils.data
 import no.nav.amt.deltaker.amtperson.dto.NavBrukerDto
 import no.nav.amt.deltaker.amtperson.dto.NavEnhetDto
 import no.nav.amt.deltaker.arrangor.Arrangor
+import no.nav.amt.deltaker.deltaker.kafka.DeltakerV2Dto
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.Innsatsgruppe
 import no.nav.amt.deltaker.deltaker.model.Kilde
@@ -25,7 +26,10 @@ import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
+import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.DeltakerVedImport
+import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltaker.Vedtak
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -225,7 +229,7 @@ object TestData {
         dagerPerUke: Float? = 5F,
         deltakelsesprosent: Float? = 100F,
         bakgrunnsinformasjon: String? = "Søkes inn fordi...",
-        innhold: Deltakelsesinnhold = Deltakelsesinnhold("ledetekst", emptyList()),
+        innhold: Deltakelsesinnhold? = Deltakelsesinnhold("ledetekst", emptyList()),
         status: DeltakerStatus = lagDeltakerStatus(type = DeltakerStatus.Type.HAR_SLUTTET),
         vedtaksinformasjon: Deltaker.Vedtaksinformasjon? = null,
         sistEndret: LocalDateTime = LocalDateTime.now(),
@@ -253,7 +257,7 @@ object TestData {
         beskrivelse: String? = null,
         gyldigFra: LocalDateTime = LocalDateTime.now(),
         gyldigTil: LocalDateTime? = null,
-        opprettet: LocalDateTime = gyldigFra,
+        opprettet: LocalDateTime = LocalDateTime.now(),
     ) = DeltakerStatus(
         id,
         type,
@@ -322,6 +326,66 @@ object TestData {
         sistEndret,
         sistEndretAv.id,
         sistEndretAvEnhet.id,
+    )
+
+    fun lagImportertFraArena(
+        deltakerId: UUID = UUID.randomUUID(),
+        importertDato: LocalDateTime = LocalDateTime.now(),
+        deltakerVedImport: DeltakerVedImport = lagDeltaker(id = deltakerId).toDeltakerVedImport(LocalDate.now()),
+    ) = ImportertFraArena(
+        deltakerId,
+        importertDato,
+        deltakerVedImport,
+    )
+
+    fun Deltaker.toDeltakerV2(
+        innsoktDato: LocalDate = LocalDate.now(),
+        forsteVedtakFattet: LocalDate? = null,
+        deltakerhistorikk: List<DeltakerHistorikk>? = null,
+    ) = DeltakerV2Dto(
+        id = id,
+        deltakerlisteId = deltakerliste.id,
+        personalia = DeltakerV2Dto.DeltakerPersonaliaDto(
+            personId = navBruker.personId,
+            personident = navBruker.personident,
+            navn = DeltakerV2Dto.Navn(
+                fornavn = navBruker.fornavn,
+                mellomnavn = navBruker.mellomnavn,
+                etternavn = navBruker.etternavn,
+            ),
+            kontaktinformasjon = DeltakerV2Dto.DeltakerKontaktinformasjonDto(
+                telefonnummer = navBruker.telefon,
+                epost = navBruker.epost,
+            ),
+            skjermet = navBruker.erSkjermet,
+            adresse = navBruker.adresse,
+            adressebeskyttelse = navBruker.adressebeskyttelse,
+        ),
+        status = DeltakerV2Dto.DeltakerStatusDto(
+            id = status.id,
+            type = status.type,
+            aarsak = status.aarsak?.type,
+            aarsaksbeskrivelse = status.aarsak?.beskrivelse,
+            gyldigFra = status.gyldigFra,
+            opprettetDato = status.opprettet,
+        ),
+        dagerPerUke = dagerPerUke,
+        prosentStilling = deltakelsesprosent?.toDouble(),
+        oppstartsdato = startdato,
+        sluttdato = sluttdato,
+        innsoktDato = innsoktDato,
+        forsteVedtakFattet = forsteVedtakFattet,
+        bestillingTekst = bakgrunnsinformasjon,
+        navKontor = null,
+        navVeileder = null,
+        deltarPaKurs = deltarPaKurs(),
+        kilde = kilde,
+        innhold = deltakelsesinnhold,
+        historikk = deltakerhistorikk,
+        sistEndret = sistEndret,
+        sistEndretAv = null,
+        sistEndretAvEnhet = null,
+        forcedUpdate = null,
     )
 
     private fun finnOppstartstype(type: Tiltakstype.ArenaKode) = when (type) {
