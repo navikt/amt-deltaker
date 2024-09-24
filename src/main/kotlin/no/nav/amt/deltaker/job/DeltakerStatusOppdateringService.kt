@@ -3,7 +3,9 @@ package no.nav.amt.deltaker.job
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.model.Deltaker
+import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.deltaker.deltaker.model.harIkkeStartet
+import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
@@ -13,6 +15,7 @@ import java.util.UUID
 class DeltakerStatusOppdateringService(
     private val deltakerRepository: DeltakerRepository,
     private val deltakerService: DeltakerService,
+    private val unleashToggle: UnleashToggle,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -30,7 +33,9 @@ class DeltakerStatusOppdateringService(
 
     private suspend fun oppdaterTilAvsluttendeStatus() {
         val deltakereSomSkalHaAvsluttendeStatus =
-            deltakerRepository.skalHaAvsluttendeStatus().plus(deltakerRepository.deltarPaAvsluttetDeltakerliste())
+            deltakerRepository.skalHaAvsluttendeStatus()
+                .plus(deltakerRepository.deltarPaAvsluttetDeltakerliste())
+                .filter { it.kilde == Kilde.KOMET || unleashToggle.erKometMasterForTiltakstype(it.deltakerliste.tiltakstype.arenaKode) }
                 .distinct()
         oppdaterTilAvsluttendeStatus(deltakereSomSkalHaAvsluttendeStatus)
     }
@@ -121,20 +126,22 @@ class DeltakerStatusOppdateringService(
     private suspend fun oppdaterStatusTilDeltar() {
         val deltakere = deltakerRepository.skalHaStatusDeltar().distinct()
 
-        deltakere.forEach {
-            oppdaterDeltaker(
-                it.copy(
-                    status = DeltakerStatus(
-                        id = UUID.randomUUID(),
-                        type = DeltakerStatus.Type.DELTAR,
-                        aarsak = null,
-                        gyldigFra = LocalDateTime.now(),
-                        gyldigTil = null,
-                        opprettet = LocalDateTime.now(),
+        deltakere
+            .filter { it.kilde == Kilde.KOMET || unleashToggle.erKometMasterForTiltakstype(it.deltakerliste.tiltakstype.arenaKode) }
+            .forEach {
+                oppdaterDeltaker(
+                    it.copy(
+                        status = DeltakerStatus(
+                            id = UUID.randomUUID(),
+                            type = DeltakerStatus.Type.DELTAR,
+                            aarsak = null,
+                            gyldigFra = LocalDateTime.now(),
+                            gyldigTil = null,
+                            opprettet = LocalDateTime.now(),
+                        ),
                     ),
-                ),
-            )
-        }
+                )
+            }
         log.info("Endret status til DELTAR for ${deltakere.size}")
     }
 

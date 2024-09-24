@@ -198,7 +198,7 @@ fun Application.module() {
         vedtakService = vedtakService,
     )
 
-    val deltakerStatusOppdateringService = DeltakerStatusOppdateringService(deltakerRepository, deltakerService)
+    val deltakerStatusOppdateringService = DeltakerStatusOppdateringService(deltakerRepository, deltakerService, unleashToggle)
 
     val consumers = listOf(
         ArrangorConsumer(arrangorRepository),
