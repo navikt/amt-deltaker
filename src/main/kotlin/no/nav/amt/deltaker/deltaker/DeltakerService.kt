@@ -3,7 +3,7 @@ package no.nav.amt.deltaker.deltaker
 import no.nav.amt.deltaker.deltaker.api.model.EndringRequest
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorService
-import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
+import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
@@ -16,7 +16,7 @@ import java.util.UUID
 class DeltakerService(
     private val deltakerRepository: DeltakerRepository,
     private val deltakerEndringService: DeltakerEndringService,
-    private val deltakerProducer: DeltakerProducer,
+    private val deltakerProducerService: DeltakerProducerService,
     private val vedtakService: VedtakService,
     private val hendelseService: HendelseService,
     private val endringFraArrangorService: EndringFraArrangorService,
@@ -37,7 +37,7 @@ class DeltakerService(
         val oppdatertDeltaker = get(deltaker.id).getOrThrow()
 
         if (oppdatertDeltaker.status.type != DeltakerStatus.Type.KLADD) {
-            deltakerProducer.produce(oppdatertDeltaker)
+            deltakerProducerService.produce(oppdatertDeltaker)
         }
 
         log.info("Oppdatert deltaker med id ${deltaker.id}")
@@ -92,7 +92,7 @@ class DeltakerService(
 
     suspend fun produserDeltakereForPerson(personident: String) {
         getDeltakelser(personident).forEach {
-            deltakerProducer.produce(it)
+            deltakerProducerService.produce(it)
         }
     }
 

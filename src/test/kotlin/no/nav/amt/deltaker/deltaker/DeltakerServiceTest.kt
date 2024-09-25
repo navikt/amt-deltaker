@@ -2,6 +2,8 @@ package no.nav.amt.deltaker.deltaker
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.mockk.every
+import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
@@ -18,17 +20,21 @@ import no.nav.amt.deltaker.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.deltaker.forslag.kafka.ArrangorMeldingProducer
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
+import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
+import no.nav.amt.deltaker.deltaker.kafka.DeltakerV1Producer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerV2MapperService
 import no.nav.amt.deltaker.hendelse.HendelseProducer
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.hendelse.model.HendelseType
 import no.nav.amt.deltaker.kafka.utils.assertProduced
+import no.nav.amt.deltaker.kafka.utils.assertProducedDeltakerV1
 import no.nav.amt.deltaker.kafka.utils.assertProducedFeilregistrert
 import no.nav.amt.deltaker.kafka.utils.assertProducedHendelse
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
+import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.utils.mockAmtArrangorClient
@@ -73,17 +79,22 @@ class DeltakerServiceTest {
             arrangorService,
             deltakerHistorikkService,
         )
+        private val unleashToggle = mockk<UnleashToggle>()
         private val deltakerV2MapperService =
             DeltakerV2MapperService(navAnsattService, navEnhetService, deltakerHistorikkService)
         private val deltakerProducer = DeltakerProducer(
             LocalKafkaConfig(SingletonKafkaProvider.getHost()),
-            deltakerV2MapperService,
         )
+        private val deltakerV1Producer = DeltakerV1Producer(
+            LocalKafkaConfig(SingletonKafkaProvider.getHost()),
+        )
+        private val deltakerProducerService =
+            DeltakerProducerService(deltakerV2MapperService, deltakerProducer, deltakerV1Producer, unleashToggle)
         private val forslagService = ForslagService(
             forslagRepository,
             ArrangorMeldingProducer(LocalKafkaConfig(SingletonKafkaProvider.getHost())),
             deltakerRepository,
-            deltakerProducer,
+            deltakerProducerService,
         )
         private val vedtakService = VedtakService(vedtakRepository, hendelseService)
         private val deltakerEndringService =
@@ -92,7 +103,7 @@ class DeltakerServiceTest {
 
         private val deltakerService = DeltakerService(
             deltakerRepository = deltakerRepository,
-            deltakerProducer = deltakerProducer,
+            deltakerProducerService = deltakerProducerService,
             deltakerEndringService = deltakerEndringService,
             vedtakService = vedtakService,
             hendelseService = hendelseService,
@@ -109,6 +120,7 @@ class DeltakerServiceTest {
     @Before
     fun cleanDatabase() {
         TestRepository.cleanDatabase()
+        every { unleashToggle.erKometMasterForTiltakstype(any()) } returns true
     }
 
     @Test
@@ -143,6 +155,7 @@ class DeltakerServiceTest {
             deltakerFraDb.vedtaksinformasjon?.opprettetAv shouldBe vedtak.opprettetAv
 
             assertProduced(deltaker.id)
+            assertProducedDeltakerV1(deltaker.id)
         }
     }
 
@@ -310,6 +323,7 @@ class DeltakerServiceTest {
             deltakerService.produserDeltakereForPerson(deltaker.navBruker.personident)
 
             assertProduced(deltaker.id)
+            assertProducedDeltakerV1(deltaker.id)
         }
     }
 
@@ -328,6 +342,7 @@ class DeltakerServiceTest {
         }
 
         assertProduced(deltaker.id)
+        assertProducedDeltakerV1(deltaker.id)
         assertProducedHendelse(deltaker.id, HendelseType.InnbyggerGodkjennUtkast::class)
 
         val oppdatertDeltaker = deltakerService.get(deltaker.id).getOrThrow()
@@ -351,6 +366,7 @@ class DeltakerServiceTest {
         }
 
         assertProduced(deltaker.id)
+        assertProducedDeltakerV1(deltaker.id)
         assertProducedHendelse(deltaker.id, HendelseType.InnbyggerGodkjennUtkast::class)
         val oppdatertDeltaker = deltakerService.get(deltaker.id).getOrThrow()
 
@@ -421,6 +437,7 @@ class DeltakerServiceTest {
             deltakerFraDb.deltakelsesinnhold shouldBe null
 
             assertProducedFeilregistrert(deltaker.id)
+            assertProducedDeltakerV1(deltaker.id)
         }
     }
 }

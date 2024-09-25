@@ -42,6 +42,8 @@ import no.nav.amt.deltaker.deltaker.forslag.kafka.ArrangorMeldingProducer
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerConsumer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
+import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
+import no.nav.amt.deltaker.deltaker.kafka.DeltakerV1Producer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerV2MapperService
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlisteConsumer
@@ -161,16 +163,6 @@ fun Application.module() {
     val hendelseProducer = HendelseProducer()
     val hendelseService = HendelseService(hendelseProducer, navAnsattService, navEnhetService, arrangorService, deltakerHistorikkService)
 
-    val deltakerV2MapperService = DeltakerV2MapperService(navAnsattService, navEnhetService, deltakerHistorikkService)
-    val deltakerProducer = DeltakerProducer(deltakerV2MapperService = deltakerV2MapperService)
-
-    val forslagService = ForslagService(forslagRepository, ArrangorMeldingProducer(), deltakerRepository, deltakerProducer)
-
-    val deltakerEndringService =
-        DeltakerEndringService(deltakerEndringRepository, navAnsattService, navEnhetService, hendelseService, forslagService)
-    val deltakelserResponseMapper = DeltakelserResponseMapper(deltakerHistorikkService, arrangorService)
-
-    val endringFraArrangorService = EndringFraArrangorService(endringFraArrangorRepository, hendelseService)
     val unleash = DefaultUnleash(
         UnleashConfig.builder()
             .appName(environment.appName)
@@ -180,11 +172,24 @@ fun Application.module() {
             .build(),
     )
     val unleashToggle = UnleashToggle(unleash)
+
+    val deltakerV2MapperService = DeltakerV2MapperService(navAnsattService, navEnhetService, deltakerHistorikkService)
+    val deltakerProducer = DeltakerProducer()
+    val deltakerV1Producer = DeltakerV1Producer()
+    val deltakerProducerService = DeltakerProducerService(deltakerV2MapperService, deltakerProducer, deltakerV1Producer, unleashToggle)
+
+    val forslagService = ForslagService(forslagRepository, ArrangorMeldingProducer(), deltakerRepository, deltakerProducerService)
+
+    val deltakerEndringService =
+        DeltakerEndringService(deltakerEndringRepository, navAnsattService, navEnhetService, hendelseService, forslagService)
+    val deltakelserResponseMapper = DeltakelserResponseMapper(deltakerHistorikkService, arrangorService)
+
+    val endringFraArrangorService = EndringFraArrangorService(endringFraArrangorRepository, hendelseService)
     val vedtakService = VedtakService(vedtakRepository, hendelseService)
     val deltakerService = DeltakerService(
         deltakerRepository = deltakerRepository,
         deltakerEndringService = deltakerEndringService,
-        deltakerProducer = deltakerProducer,
+        deltakerProducerService = deltakerProducerService,
         vedtakService = vedtakService,
         hendelseService = hendelseService,
         endringFraArrangorService = endringFraArrangorService,
@@ -198,7 +203,7 @@ fun Application.module() {
         vedtakService = vedtakService,
     )
 
-    val deltakerStatusOppdateringService = DeltakerStatusOppdateringService(deltakerRepository, deltakerService)
+    val deltakerStatusOppdateringService = DeltakerStatusOppdateringService(deltakerRepository, deltakerService, unleashToggle)
 
     val consumers = listOf(
         ArrangorConsumer(arrangorRepository),
@@ -206,7 +211,13 @@ fun Application.module() {
         NavBrukerConsumer(navBrukerRepository, navEnhetService, deltakerService),
         TiltakstypeConsumer(tiltakstypeRepository),
         DeltakerlisteConsumer(deltakerlisteRepository, tiltakstypeRepository, arrangorService, deltakerStatusOppdateringService),
-        DeltakerConsumer(deltakerRepository, deltakerlisteRepository, navBrukerService, importertFraArenaRepository, deltakerProducer),
+        DeltakerConsumer(
+            deltakerRepository,
+            deltakerlisteRepository,
+            navBrukerService,
+            importertFraArenaRepository,
+            deltakerProducerService,
+        ),
         ArrangorMeldingConsumer(forslagService, deltakerService),
     )
     consumers.forEach { it.run() }
@@ -218,7 +229,7 @@ fun Application.module() {
         deltakerHistorikkService,
         tilgangskontrollService,
         deltakelserResponseMapper,
-        deltakerProducer,
+        deltakerProducerService,
         unleashToggle,
     )
     configureMonitoring()

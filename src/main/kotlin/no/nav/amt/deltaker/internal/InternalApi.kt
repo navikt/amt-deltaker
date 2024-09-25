@@ -7,12 +7,12 @@ import io.ktor.server.routing.Routing
 import io.ktor.server.routing.post
 import no.nav.amt.deltaker.auth.AuthorizationException
 import no.nav.amt.deltaker.deltaker.DeltakerService
-import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
+import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
-fun Routing.registerInternalApi(deltakerService: DeltakerService, deltakerProducer: DeltakerProducer) {
+fun Routing.registerInternalApi(deltakerService: DeltakerService, deltakerProducerService: DeltakerProducerService) {
     val log: Logger = LoggerFactory.getLogger(javaClass)
 
     post("/internal/feilregistrer/{deltakerId}") {
@@ -30,7 +30,7 @@ fun Routing.registerInternalApi(deltakerService: DeltakerService, deltakerProduc
             val deltakerId = UUID.fromString(call.parameters["deltakerId"])
             val deltaker = deltakerService.get(deltakerId)
             log.info("Relaster deltaker $deltakerId på deltaker-v2")
-            deltakerProducer.produce(deltaker.getOrThrow())
+            deltakerProducerService.produce(deltaker.getOrThrow(), publiserTilDeltakerV1 = false)
             log.info("Relastet deltaker $deltakerId på deltaker-v2")
             call.respond(HttpStatusCode.OK)
         } else {

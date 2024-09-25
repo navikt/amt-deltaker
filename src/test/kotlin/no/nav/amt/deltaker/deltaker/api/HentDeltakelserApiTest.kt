@@ -25,7 +25,7 @@ import no.nav.amt.deltaker.deltaker.api.model.DeltakelserResponseMapper
 import no.nav.amt.deltaker.deltaker.api.model.DeltakerKort
 import no.nav.amt.deltaker.deltaker.api.model.Periode
 import no.nav.amt.deltaker.deltaker.api.utils.postVeilederRequest
-import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
+import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.deltaker.utils.configureEnvForAuthentication
@@ -46,7 +46,7 @@ class HentDeltakelserApiTest {
     private val deltakerHistorikkService = mockk<DeltakerHistorikkService>()
     private val arrangorService = mockk<ArrangorService>()
     private val deltakelserResponseMapper = DeltakelserResponseMapper(deltakerHistorikkService, arrangorService)
-    private val deltakerProducer = mockk<DeltakerProducer>()
+    private val deltakerProducerService = mockk<DeltakerProducerService>()
     private val unleashClient = FakeUnleash()
     private val unleashToggle = UnleashToggle(unleashClient)
 
@@ -253,7 +253,7 @@ class HentDeltakelserApiTest {
                 deltakerHistorikkService,
                 tilgangskontrollService,
                 deltakelserResponseMapper,
-                deltakerProducer,
+                deltakerProducerService,
                 unleashToggle,
             )
         }

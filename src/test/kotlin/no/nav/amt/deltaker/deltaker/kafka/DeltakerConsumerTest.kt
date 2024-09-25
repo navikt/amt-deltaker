@@ -1,8 +1,10 @@
 package no.nav.amt.deltaker.deltaker.kafka
 
 import io.kotest.matchers.shouldBe
+import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.amtperson.AmtPersonServiceClient
 import no.nav.amt.deltaker.application.plugins.objectMapper
@@ -54,7 +56,9 @@ class DeltakerConsumerTest {
         lateinit var unleashToggle: UnleashToggle
         lateinit var consumer: DeltakerConsumer
         lateinit var deltakerProducer: DeltakerProducer
+        lateinit var deltakerV1Producer: DeltakerV1Producer
         lateinit var deltakerV2MapperService: DeltakerV2MapperService
+        lateinit var deltakerProducerService: DeltakerProducerService
         lateinit var deltakerHistorikkService: DeltakerHistorikkService
         lateinit var deltakerEndringRepository: DeltakerEndringRepository
         lateinit var vedtakRepository: VedtakRepository
@@ -88,14 +92,15 @@ class DeltakerConsumerTest {
             deltakerV2MapperService = DeltakerV2MapperService(navAnsattService, navEnhetService, deltakerHistorikkService)
             deltakerProducer = DeltakerProducer(
                 LocalKafkaConfig(SingletonKafkaProvider.getHost()),
-                deltakerV2MapperService = deltakerV2MapperService,
             )
+            deltakerV1Producer = mockk(relaxed = true)
+            deltakerProducerService = DeltakerProducerService(deltakerV2MapperService, deltakerProducer, deltakerV1Producer, unleashToggle)
             consumer = DeltakerConsumer(
                 deltakerRepository,
                 deltakerlisteRepository,
                 navBrukerService,
                 importertFraArenaRepository,
-                deltakerProducer,
+                deltakerProducerService,
             )
         }
     }
@@ -103,6 +108,7 @@ class DeltakerConsumerTest {
     @Before
     fun cleanDatabase() {
         TestRepository.cleanDatabase()
+        clearMocks(deltakerV1Producer)
     }
 
     @Test
@@ -161,6 +167,7 @@ class DeltakerConsumerTest {
         )
 
         assertOnProducedDeltaker(expectedProducedDeltaker)
+        verify(exactly = 0) { deltakerV1Producer.produce(any()) }
 
         val insertedDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
 
