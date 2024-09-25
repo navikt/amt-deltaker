@@ -30,7 +30,7 @@ class DeltakerConsumer(
     private val deltakerlisteRepository: DeltakerlisteRepository,
     private val navBrukerService: NavBrukerService,
     private val importertFraArenaRepository: ImportertFraArenaRepository,
-    private val deltakerProducer: DeltakerProducer,
+    private val deltakerProducerService: DeltakerProducerService,
     kafkaConfig: KafkaConfig = if (Environment.isLocal()) LocalKafkaConfig() else KafkaConfigImpl("earliest"),
 ) : Consumer<UUID, String?> {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -76,7 +76,7 @@ class DeltakerConsumer(
             upsertImportertDeltaker(deltaker, deltakerV2.innsoktDato)
             log.info("Ingest for arenadeltaker med id ${deltaker.id} er ferdig")
 
-            deltakerProducer.produce(deltaker)
+            deltakerProducerService.produce(deltaker, publiserTilDeltakerV1 = false)
         }
     }
 

@@ -19,6 +19,8 @@ import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
+import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
+import no.nav.amt.deltaker.deltaker.kafka.DeltakerV1Producer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerV2MapperService
 import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
@@ -64,8 +66,12 @@ class DeltakerStatusOppdateringServiceTest {
                 endringFraArrangorRepository,
                 importertFraArenaRepository,
             )
+        private val unleashToggle = mockk<UnleashToggle>()
         private val deltakerV2MapperService = DeltakerV2MapperService(navAnsattService, navEnhetService, deltakerHistorikkService)
-        private val deltakerProducer = DeltakerProducer(LocalKafkaConfig(SingletonKafkaProvider.getHost()), deltakerV2MapperService)
+        private val deltakerProducer = DeltakerProducer(LocalKafkaConfig(SingletonKafkaProvider.getHost()))
+        private val deltakerV1Producer = DeltakerV1Producer(LocalKafkaConfig(SingletonKafkaProvider.getHost()))
+        private val deltakerProducerService =
+            DeltakerProducerService(deltakerV2MapperService, deltakerProducer, deltakerV1Producer, unleashToggle)
         private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
         private val hendelseService = HendelseService(
             HendelseProducer(LocalKafkaConfig(SingletonKafkaProvider.getHost())),
@@ -74,8 +80,7 @@ class DeltakerStatusOppdateringServiceTest {
             arrangorService,
             deltakerHistorikkService,
         )
-        private val forslagService = ForslagService(forslagRepository, mockk(), deltakerRepository, deltakerProducer)
-        private val unleash = mockk<UnleashToggle>()
+        private val forslagService = ForslagService(forslagRepository, mockk(), deltakerRepository, deltakerProducerService)
 
         private val deltakerEndringService = DeltakerEndringService(
             repository = deltakerEndringRepository,
@@ -94,18 +99,19 @@ class DeltakerStatusOppdateringServiceTest {
             deltakerService = DeltakerService(
                 deltakerRepository,
                 deltakerEndringService,
-                deltakerProducer,
+                deltakerProducerService,
                 vedtakService,
                 hendelseService,
                 endringFraArrangorService,
             )
-            deltakerStatusOppdateringService = DeltakerStatusOppdateringService(deltakerRepository, deltakerService, unleash)
+            deltakerStatusOppdateringService = DeltakerStatusOppdateringService(deltakerRepository, deltakerService, unleashToggle)
         }
     }
 
     @Before
     fun cleanDatabase() {
         TestRepository.cleanDatabase()
+        every { unleashToggle.erKometMasterForTiltakstype(any()) } returns true
     }
 
     @Test
@@ -158,7 +164,7 @@ class DeltakerStatusOppdateringServiceTest {
         )
         TestRepository.insert(deltaker, vedtak)
 
-        every { unleash.erKometMasterForTiltakstype(any()) } returns false
+        every { unleashToggle.erKometMasterForTiltakstype(any()) } returns false
 
         runBlocking {
             deltakerStatusOppdateringService.oppdaterDeltakerStatuser()

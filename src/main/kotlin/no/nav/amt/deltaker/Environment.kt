@@ -43,6 +43,7 @@ data class Environment(
         const val AMT_NAV_BRUKER_TOPIC = "amt.nav-bruker-personalia-v1"
         const val TILTAKSTYPE_TOPIC = "team-mulighetsrommet.siste-tiltakstyper-v2"
         const val DELTAKER_V2_TOPIC = "amt.deltaker-v2"
+        const val DELTAKER_V1_TOPIC = "amt.deltaker-v1"
         const val DELTAKER_HENDELSE_TOPIC = "amt.deltaker-hendelse-v1"
         const val ARRANGOR_MELDING_TOPIC = "amt.arrangor-melding-v1"
 
