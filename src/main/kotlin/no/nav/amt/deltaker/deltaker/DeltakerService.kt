@@ -5,6 +5,7 @@ import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.model.Deltaker
+import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -30,6 +31,8 @@ class DeltakerService(
     fun getDeltakelser(personident: String) = deltakerRepository.getMany(personident)
 
     fun getDeltakereForDeltakerliste(deltakerlisteId: UUID) = deltakerRepository.getDeltakereForDeltakerliste(deltakerlisteId)
+
+    fun getDeltakereForTiltakstype(tiltakstype: Tiltakstype.ArenaKode) = deltakerRepository.getDeltakereForTiltakstype(tiltakstype)
 
     suspend fun upsertDeltaker(deltaker: Deltaker): Deltaker {
         deltakerRepository.upsert(deltaker)

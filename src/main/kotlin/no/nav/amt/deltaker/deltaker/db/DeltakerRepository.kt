@@ -11,6 +11,7 @@ import no.nav.amt.deltaker.deltaker.model.Innsatsgruppe
 import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
+import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.deltaker.navbruker.model.Adressebeskyttelse
 import no.nav.amt.deltaker.navbruker.model.NavBruker
 import no.nav.amt.deltaker.utils.toPGObject
@@ -172,6 +173,23 @@ class DeltakerRepository {
             sql,
             mapOf(
                 "deltakerliste_id" to deltakerlisteId,
+            ),
+        ).map(::rowMapper).asList
+        it.run(query)
+    }
+
+    fun getDeltakereForTiltakstype(tiltakstype: Tiltakstype.ArenaKode) = Database.query {
+        val sql = getDeltakerSql(
+            """ where t.type = :tiltakstype 
+                    and ds.gyldig_til is null
+                    and ds.gyldig_fra < CURRENT_TIMESTAMP
+            """.trimMargin(),
+        )
+
+        val query = queryOf(
+            sql,
+            mapOf(
+                "tiltakstype" to tiltakstype,
             ),
         ).map(::rowMapper).asList
         it.run(query)
