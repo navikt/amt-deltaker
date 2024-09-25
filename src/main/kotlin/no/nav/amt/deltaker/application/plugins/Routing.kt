@@ -23,7 +23,7 @@ import no.nav.amt.deltaker.deltaker.api.model.DeltakelserResponseMapper
 import no.nav.amt.deltaker.deltaker.api.registerDeltakerApi
 import no.nav.amt.deltaker.deltaker.api.registerHentDeltakelserApi
 import no.nav.amt.deltaker.deltaker.api.registerPameldingApi
-import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
+import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.internal.registerInternalApi
 import no.nav.amt.deltaker.unleash.UnleashToggle
 import org.slf4j.Logger
@@ -35,7 +35,7 @@ fun Application.configureRouting(
     deltakerHistorikkService: DeltakerHistorikkService,
     tilgangskontrollService: TilgangskontrollService,
     deltakelserResponseMapper: DeltakelserResponseMapper,
-    deltakerProducer: DeltakerProducer,
+    deltakerProducerService: DeltakerProducerService,
     unleashToggle: UnleashToggle,
 ) {
     install(StatusPages) {
@@ -66,7 +66,7 @@ fun Application.configureRouting(
         registerPameldingApi(pameldingService, deltakerHistorikkService)
         registerDeltakerApi(deltakerService, deltakerHistorikkService)
         registerHentDeltakelserApi(tilgangskontrollService, deltakerService, deltakelserResponseMapper, unleashToggle)
-        registerInternalApi(deltakerService, deltakerProducer)
+        registerInternalApi(deltakerService, deltakerProducerService)
 
         val catchAllRoute = "{...}"
         route(catchAllRoute) {

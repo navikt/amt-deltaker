@@ -2,7 +2,7 @@ package no.nav.amt.deltaker.deltaker.forslag
 
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.forslag.kafka.ArrangorMeldingProducer
-import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
+import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
@@ -12,7 +12,7 @@ class ForslagService(
     private val forslagRepository: ForslagRepository,
     private val arrangorMeldingProducer: ArrangorMeldingProducer,
     private val deltakerRepository: DeltakerRepository,
-    private val deltakerProducer: DeltakerProducer,
+    private val deltakerProducerService: DeltakerProducerService,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -31,7 +31,7 @@ class ForslagService(
             is Forslag.Status.Tilbakekalt,
             -> {
                 val deltaker = deltakerRepository.get(forslag.deltakerId).getOrThrow()
-                deltakerProducer.produce(deltaker)
+                deltakerProducerService.produce(deltaker, publiserTilDeltakerV1 = false)
             }
         }
         log.info("Lagret forslag ${forslag.id}")

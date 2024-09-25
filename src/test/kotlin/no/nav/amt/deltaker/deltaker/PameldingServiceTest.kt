@@ -80,7 +80,7 @@ class PameldingServiceTest {
 
         private val deltakerService = DeltakerService(
             deltakerRepository = deltakerRepository,
-            deltakerProducer = mockk(relaxed = true),
+            deltakerProducerService = mockk(relaxed = true),
             deltakerEndringService = DeltakerEndringService(
                 deltakerEndringRepository,
                 navAnsattService,

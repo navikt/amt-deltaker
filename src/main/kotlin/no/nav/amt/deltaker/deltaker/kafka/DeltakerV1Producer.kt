@@ -9,15 +9,15 @@ import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.slf4j.LoggerFactory
 
-class DeltakerProducer(
+class DeltakerV1Producer(
     private val kafkaConfig: KafkaConfig = if (Environment.isLocal()) LocalKafkaConfig() else KafkaConfigImpl(),
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun produce(deltakerV2Dto: DeltakerV2Dto) {
-        val key = deltakerV2Dto.id.toString()
-        val value = objectMapper.writeValueAsString(deltakerV2Dto)
-        val record = ProducerRecord(Environment.DELTAKER_V2_TOPIC, key, value)
+    fun produce(deltakerV1Dto: DeltakerV1Dto) {
+        val key = deltakerV1Dto.id.toString()
+        val value = objectMapper.writeValueAsString(deltakerV1Dto)
+        val record = ProducerRecord(Environment.DELTAKER_V1_TOPIC, key, value)
 
         KafkaProducer<String, String>(kafkaConfig.producerConfig()).use {
             val metadata = it.send(record).get()
