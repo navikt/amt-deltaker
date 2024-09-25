@@ -22,6 +22,7 @@ import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerV1Producer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerV2MapperService
+import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.hendelse.HendelseProducer
 import no.nav.amt.deltaker.hendelse.HendelseService
@@ -103,7 +104,7 @@ class DeltakerStatusOppdateringServiceTest {
                 hendelseService,
                 endringFraArrangorService,
             )
-            deltakerStatusOppdateringService = DeltakerStatusOppdateringService(deltakerRepository, deltakerService)
+            deltakerStatusOppdateringService = DeltakerStatusOppdateringService(deltakerRepository, deltakerService, unleashToggle)
         }
     }
 
@@ -139,6 +140,37 @@ class DeltakerStatusOppdateringServiceTest {
             val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
             deltakerFraDb.status.type shouldBe DeltakerStatus.Type.DELTAR
             deltakerFraDb.sluttdato shouldBe deltaker.sluttdato
+        }
+    }
+
+    @Test
+    fun `oppdaterDeltakerStatuser - startdato er passert men komet er ikke master - setter ikke status til DELTAR`() {
+        val sistEndretAv = TestData.lagNavAnsatt()
+        val sistEndretAvEnhet = TestData.lagNavEnhet()
+        TestRepository.insert(sistEndretAv)
+        TestRepository.insert(sistEndretAvEnhet)
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
+            startdato = LocalDate.now().minusDays(1),
+            sluttdato = LocalDate.now().plusWeeks(2),
+            kilde = Kilde.ARENA,
+        )
+        val vedtak = TestData.lagVedtak(
+            deltakerId = deltaker.id,
+            deltakerVedVedtak = deltaker,
+            opprettetAv = sistEndretAv,
+            opprettetAvEnhet = sistEndretAvEnhet,
+            fattet = LocalDateTime.now(),
+        )
+        TestRepository.insert(deltaker, vedtak)
+
+        every { unleashToggle.erKometMasterForTiltakstype(any()) } returns false
+
+        runBlocking {
+            deltakerStatusOppdateringService.oppdaterDeltakerStatuser()
+
+            val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
+            deltakerFraDb.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
         }
     }
 
