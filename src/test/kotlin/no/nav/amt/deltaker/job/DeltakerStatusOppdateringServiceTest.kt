@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.job
 
 import io.kotest.matchers.shouldBe
+import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
@@ -19,6 +20,7 @@ import no.nav.amt.deltaker.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerV2MapperService
+import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.hendelse.HendelseProducer
 import no.nav.amt.deltaker.hendelse.HendelseService
@@ -26,6 +28,7 @@ import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
+import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.utils.mockAmtArrangorClient
@@ -72,6 +75,7 @@ class DeltakerStatusOppdateringServiceTest {
             deltakerHistorikkService,
         )
         private val forslagService = ForslagService(forslagRepository, mockk(), deltakerRepository, deltakerProducer)
+        private val unleash = mockk<UnleashToggle>()
 
         private val deltakerEndringService = DeltakerEndringService(
             repository = deltakerEndringRepository,
@@ -95,7 +99,7 @@ class DeltakerStatusOppdateringServiceTest {
                 hendelseService,
                 endringFraArrangorService,
             )
-            deltakerStatusOppdateringService = DeltakerStatusOppdateringService(deltakerRepository, deltakerService)
+            deltakerStatusOppdateringService = DeltakerStatusOppdateringService(deltakerRepository, deltakerService, unleash)
         }
     }
 
@@ -130,6 +134,37 @@ class DeltakerStatusOppdateringServiceTest {
             val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
             deltakerFraDb.status.type shouldBe DeltakerStatus.Type.DELTAR
             deltakerFraDb.sluttdato shouldBe deltaker.sluttdato
+        }
+    }
+
+    @Test
+    fun `oppdaterDeltakerStatuser - startdato er passert men komet er ikke master - setter ikke status til DELTAR`() {
+        val sistEndretAv = TestData.lagNavAnsatt()
+        val sistEndretAvEnhet = TestData.lagNavEnhet()
+        TestRepository.insert(sistEndretAv)
+        TestRepository.insert(sistEndretAvEnhet)
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
+            startdato = LocalDate.now().minusDays(1),
+            sluttdato = LocalDate.now().plusWeeks(2),
+            kilde = Kilde.ARENA,
+        )
+        val vedtak = TestData.lagVedtak(
+            deltakerId = deltaker.id,
+            deltakerVedVedtak = deltaker,
+            opprettetAv = sistEndretAv,
+            opprettetAvEnhet = sistEndretAvEnhet,
+            fattet = LocalDateTime.now(),
+        )
+        TestRepository.insert(deltaker, vedtak)
+
+        every { unleash.erKometMasterForTiltakstype(any()) } returns false
+
+        runBlocking {
+            deltakerStatusOppdateringService.oppdaterDeltakerStatuser()
+
+            val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
+            deltakerFraDb.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
         }
     }
 
