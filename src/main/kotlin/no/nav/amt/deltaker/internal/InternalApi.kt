@@ -8,6 +8,7 @@ import io.ktor.server.routing.post
 import no.nav.amt.deltaker.auth.AuthorizationException
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
+import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.UUID
@@ -32,6 +33,21 @@ fun Routing.registerInternalApi(deltakerService: DeltakerService, deltakerProduc
             log.info("Relaster deltaker $deltakerId på deltaker-v2")
             deltakerProducerService.produce(deltaker.getOrThrow(), publiserTilDeltakerV1 = false)
             log.info("Relastet deltaker $deltakerId på deltaker-v2")
+            call.respond(HttpStatusCode.OK)
+        } else {
+            throw AuthorizationException("Ikke tilgang til api")
+        }
+    }
+
+    post("/internal/relast/tiltakstype/{tiltakstype}") {
+        if (isInternal(call.request.local.remoteAddress)) {
+            val tiltakstype = Tiltakstype.ArenaKode.valueOf(call.parameters["tiltakstype"]!!)
+            log.info("Relaster deltakere for tiltakstype ${tiltakstype.name} på deltaker-v2")
+            val deltakere = deltakerService.getDeltakereForTiltakstype(tiltakstype)
+            deltakere.forEach {
+                deltakerProducerService.produce(it, publiserTilDeltakerV1 = false)
+            }
+            log.info("Relastet deltakere for tiltakstype ${tiltakstype.name} på deltaker-v2")
             call.respond(HttpStatusCode.OK)
         } else {
             throw AuthorizationException("Ikke tilgang til api")
