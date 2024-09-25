@@ -15,6 +15,7 @@ import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepos
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorService
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagService
+import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.model.Innsatsgruppe
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
@@ -56,8 +57,15 @@ class PameldingServiceTest {
         private val deltakerEndringRepository = DeltakerEndringRepository()
         private val endringFraArrangorRepository = EndringFraArrangorRepository()
         private val vedtakRepository = VedtakRepository()
+        private val importertFraArenaRepository = ImportertFraArenaRepository()
         private val deltakerHistorikkService =
-            DeltakerHistorikkService(deltakerEndringRepository, vedtakRepository, forslagRepository, endringFraArrangorRepository)
+            DeltakerHistorikkService(
+                deltakerEndringRepository,
+                vedtakRepository,
+                forslagRepository,
+                endringFraArrangorRepository,
+                importertFraArenaRepository,
+            )
         private val hendelseService = HendelseService(
             HendelseProducer(LocalKafkaConfig(SingletonKafkaProvider.getHost())),
             navAnsattService,

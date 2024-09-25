@@ -22,6 +22,7 @@ import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepos
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.deltaker.forslag.kafka.ArrangorMeldingProducer
+import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.hendelse.HendelseProducer
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.hendelse.model.HendelseType
@@ -61,6 +62,7 @@ class DeltakerEndringServiceTest {
         VedtakRepository(),
         forslagRepository,
         EndringFraArrangorRepository(),
+        ImportertFraArenaRepository(),
     )
     private val hendelseService = HendelseService(
         HendelseProducer(LocalKafkaConfig(SingletonKafkaProvider.getHost())),

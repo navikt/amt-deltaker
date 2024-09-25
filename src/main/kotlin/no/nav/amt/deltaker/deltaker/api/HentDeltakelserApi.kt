@@ -11,21 +11,21 @@ import no.nav.amt.deltaker.auth.TilgangskontrollService
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.api.model.DeltakelserRequest
 import no.nav.amt.deltaker.deltaker.api.model.DeltakelserResponseMapper
-import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype
+import no.nav.amt.deltaker.unleash.UnleashToggle
 
 fun Routing.registerHentDeltakelserApi(
     tilgangskontrollService: TilgangskontrollService,
     deltakerService: DeltakerService,
     deltakelserResponseMapper: DeltakelserResponseMapper,
+    unleashToggle: UnleashToggle,
 ) {
     authenticate("VEILEDER") {
         post("/deltakelser") {
             val request = call.receive<DeltakelserRequest>()
             tilgangskontrollService.verifiserLesetilgang(getNavAnsattAzureId(), request.norskIdent)
 
-            // filtrerer bort deltakelser som ikke er AFT for å få dev til å se mest mulig prodlik ut
             val deltakelser = deltakerService.getDeltakelser(request.norskIdent)
-                .filter { it.deltakerliste.tiltakstype.tiltakskode == Tiltakstype.Tiltakskode.ARBEIDSFORBEREDENDE_TRENING }
+                .filter { unleashToggle.erKometMasterForTiltakstype(it.deltakerliste.tiltakstype.arenaKode) }
 
             call.respond(deltakelserResponseMapper.toDeltakelserResponse(deltakelser))
         }

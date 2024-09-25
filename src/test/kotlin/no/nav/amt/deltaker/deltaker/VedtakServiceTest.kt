@@ -9,6 +9,7 @@ import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
+import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.hendelse.HendelseProducer
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.hendelse.model.HendelseType
@@ -39,7 +40,13 @@ class VedtakServiceTest {
     private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonClient())
     private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
     private val deltakerHistorikkService =
-        DeltakerHistorikkService(DeltakerEndringRepository(), VedtakRepository(), ForslagRepository(), EndringFraArrangorRepository())
+        DeltakerHistorikkService(
+            DeltakerEndringRepository(),
+            VedtakRepository(),
+            ForslagRepository(),
+            EndringFraArrangorRepository(),
+            ImportertFraArenaRepository(),
+        )
     private val hendelseService = HendelseService(
         HendelseProducer(LocalKafkaConfig(SingletonKafkaProvider.getHost())),
         navAnsattService,
