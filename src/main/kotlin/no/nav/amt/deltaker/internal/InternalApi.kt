@@ -45,7 +45,7 @@ fun Routing.registerInternalApi(deltakerService: DeltakerService, deltakerProduc
             log.info("Relaster deltakere for tiltakstype ${tiltakstype.name} på deltaker-v2")
             val deltakere = deltakerService.getDeltakereForTiltakstype(tiltakstype)
             deltakere.forEach {
-                deltakerProducerService.produce(it, publiserTilDeltakerV1 = false)
+                deltakerProducerService.produce(it, forcedUpdate = true, publiserTilDeltakerV1 = false)
             }
             log.info("Relastet deltakere for tiltakstype ${tiltakstype.name} på deltaker-v2")
             call.respond(HttpStatusCode.OK)
