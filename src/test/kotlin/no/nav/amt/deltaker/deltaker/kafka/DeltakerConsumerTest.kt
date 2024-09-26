@@ -136,12 +136,14 @@ class DeltakerConsumerTest {
         )
         TestRepository.insert(deltakerliste)
         val statusOpprettet = LocalDateTime.now().minusWeeks(1)
+        val sistEndret = LocalDateTime.now().minusDays(1)
         val deltaker = TestData.lagDeltaker(
             kilde = Kilde.ARENA,
             deltakerliste = deltakerliste,
             innhold = null,
             navBruker = lagNavBruker(navEnhetId = null, navVeilederId = null),
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR, opprettet = statusOpprettet),
+            sistEndret = sistEndret,
         )
 
         TestRepository.insert(deltaker.navBruker)
@@ -186,6 +188,7 @@ class DeltakerConsumerTest {
         insertedDeltaker.status.opprettet shouldBeCloseTo statusOpprettet
         insertedDeltaker.vedtaksinformasjon shouldBe null
         insertedDeltaker.kilde shouldBe Kilde.ARENA
+        insertedDeltaker.sistEndret shouldBeCloseTo sistEndret
 
         val importertFraArena = importertFraArenaRepository.getForDeltaker(deltaker.id)
             ?: throw RuntimeException("Fant ikke importert fra arena")

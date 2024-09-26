@@ -35,7 +35,7 @@ class DeltakerService(
     fun getDeltakerIderForTiltakstype(tiltakstype: Tiltakstype.ArenaKode) = deltakerRepository.getDeltakerIderForTiltakstype(tiltakstype)
 
     suspend fun upsertDeltaker(deltaker: Deltaker): Deltaker {
-        deltakerRepository.upsert(deltaker)
+        deltakerRepository.upsert(deltaker.copy(sistEndret = LocalDateTime.now()))
 
         val oppdatertDeltaker = get(deltaker.id).getOrThrow()
 
