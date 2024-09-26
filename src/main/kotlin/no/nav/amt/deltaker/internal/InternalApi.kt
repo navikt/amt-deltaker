@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.internal
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
+import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.post
@@ -42,10 +43,15 @@ fun Routing.registerInternalApi(deltakerService: DeltakerService, deltakerProduc
     post("/internal/relast/tiltakstype/{tiltakstype}") {
         if (isInternal(call.request.local.remoteAddress)) {
             val tiltakstype = Tiltakstype.ArenaKode.valueOf(call.parameters["tiltakstype"]!!)
+            val request = call.receive<RepubliserRequest>()
             log.info("Relaster deltakere for tiltakstype ${tiltakstype.name} på deltaker-v2")
             val deltakere = deltakerService.getDeltakereForTiltakstype(tiltakstype)
             deltakere.forEach {
-                deltakerProducerService.produce(it, forcedUpdate = true, publiserTilDeltakerV1 = false)
+                deltakerProducerService.produce(
+                    it,
+                    forcedUpdate = request.forcedUpdate,
+                    publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
+                )
             }
             log.info("Relastet deltakere for tiltakstype ${tiltakstype.name} på deltaker-v2")
             call.respond(HttpStatusCode.OK)
@@ -54,6 +60,11 @@ fun Routing.registerInternalApi(deltakerService: DeltakerService, deltakerProduc
         }
     }
 }
+
+data class RepubliserRequest(
+    val forcedUpdate: Boolean,
+    val publiserTilDeltakerV1: Boolean,
+)
 
 fun isInternal(remoteAdress: String): Boolean {
     return remoteAdress == "127.0.0.1"
