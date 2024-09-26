@@ -179,15 +179,14 @@ class DeltakerRepository {
     }
 
     fun getDeltakerIderForTiltakstype(tiltakstype: Tiltakstype.ArenaKode) = Database.query { session ->
-        val sql = getDeltakerSql(
+        val sql =
             """ 
                 select d.id as "d.id"
                 from deltaker d
                     join deltakerliste dl on d.deltakerliste_id = dl.id
                     join tiltakstype t on t.id = dl.tiltakstype_id
                 where t.type = :tiltakstype;
-            """.trimMargin(),
-        )
+            """.trimMargin()
 
         val query = queryOf(
             sql,
