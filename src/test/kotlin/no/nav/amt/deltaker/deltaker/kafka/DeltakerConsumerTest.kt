@@ -32,9 +32,11 @@ import no.nav.amt.deltaker.utils.data.TestData.toDeltakerV2
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.kafka.config.LocalKafkaConfig
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
+import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.testing.SingletonKafkaProvider
 import no.nav.amt.lib.testing.SingletonPostgres16Container
+import no.nav.amt.lib.testing.shouldBeCloseTo
 import org.awaitility.Awaitility
 import org.junit.Before
 import org.junit.BeforeClass
@@ -133,11 +135,15 @@ class DeltakerConsumerTest {
             tiltakstype = lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
         )
         TestRepository.insert(deltakerliste)
+        val statusOpprettet = LocalDateTime.now().minusWeeks(1)
+        val sistEndret = LocalDateTime.now().minusDays(1)
         val deltaker = TestData.lagDeltaker(
             kilde = Kilde.ARENA,
             deltakerliste = deltakerliste,
             innhold = null,
             navBruker = lagNavBruker(navEnhetId = null, navVeilederId = null),
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR, opprettet = statusOpprettet),
+            sistEndret = sistEndret,
         )
 
         TestRepository.insert(deltaker.navBruker)
@@ -179,8 +185,10 @@ class DeltakerConsumerTest {
         insertedDeltaker.bakgrunnsinformasjon shouldBe null
         insertedDeltaker.deltakelsesinnhold shouldBe null
         insertedDeltaker.status.type shouldBe deltaker.status.type
+        insertedDeltaker.status.opprettet shouldBeCloseTo statusOpprettet
         insertedDeltaker.vedtaksinformasjon shouldBe null
         insertedDeltaker.kilde shouldBe Kilde.ARENA
+        insertedDeltaker.sistEndret shouldBeCloseTo sistEndret
 
         val importertFraArena = importertFraArenaRepository.getForDeltaker(deltaker.id)
             ?: throw RuntimeException("Fant ikke importert fra arena")

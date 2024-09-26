@@ -91,11 +91,11 @@ class DeltakerRepository {
             """
             insert into deltaker(
                 id, person_id, deltakerliste_id, startdato, sluttdato, dager_per_uke, 
-                deltakelsesprosent, bakgrunnsinformasjon, innhold, kilde
+                deltakelsesprosent, bakgrunnsinformasjon, innhold, kilde, modified_at
             )
             values (
                 :id, :person_id, :deltakerlisteId, :startdato, :sluttdato, :dagerPerUke, 
-                :deltakelsesprosent, :bakgrunnsinformasjon, :innhold, :kilde
+                :deltakelsesprosent, :bakgrunnsinformasjon, :innhold, :kilde, :modified_at
             )
             on conflict (id) do update set 
                 person_id          = :person_id,
@@ -106,7 +106,7 @@ class DeltakerRepository {
                 bakgrunnsinformasjon = :bakgrunnsinformasjon,
                 innhold              = :innhold,
                 kilde                = :kilde,
-                modified_at          = current_timestamp
+                modified_at          = :modified_at
             """.trimIndent()
 
         val parameters = mapOf(
@@ -120,6 +120,7 @@ class DeltakerRepository {
             "bakgrunnsinformasjon" to deltaker.bakgrunnsinformasjon,
             "innhold" to toPGObject(deltaker.deltakelsesinnhold),
             "kilde" to deltaker.kilde.name,
+            "modified_at" to deltaker.sistEndret,
         )
 
         session.transaction { tx ->
@@ -340,8 +341,8 @@ class DeltakerRepository {
     private fun insertStatusQuery(status: DeltakerStatus, deltakerId: UUID): Query {
         val sql =
             """
-            insert into deltaker_status(id, deltaker_id, type, aarsak, gyldig_fra) 
-            values (:id, :deltaker_id, :type, :aarsak, :gyldig_fra) 
+            insert into deltaker_status(id, deltaker_id, type, aarsak, gyldig_fra, created_at) 
+            values (:id, :deltaker_id, :type, :aarsak, :gyldig_fra, :created_at) 
             on conflict (id) do nothing;
             """.trimIndent()
 
@@ -351,6 +352,7 @@ class DeltakerRepository {
             "type" to status.type.name,
             "aarsak" to toPGObject(status.aarsak),
             "gyldig_fra" to status.gyldigFra,
+            "created_at" to status.opprettet,
         )
 
         return queryOf(sql, params)
