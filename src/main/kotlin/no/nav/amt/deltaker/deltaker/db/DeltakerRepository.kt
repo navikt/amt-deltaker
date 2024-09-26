@@ -340,8 +340,8 @@ class DeltakerRepository {
     private fun insertStatusQuery(status: DeltakerStatus, deltakerId: UUID): Query {
         val sql =
             """
-            insert into deltaker_status(id, deltaker_id, type, aarsak, gyldig_fra) 
-            values (:id, :deltaker_id, :type, :aarsak, :gyldig_fra) 
+            insert into deltaker_status(id, deltaker_id, type, aarsak, gyldig_fra, created_at) 
+            values (:id, :deltaker_id, :type, :aarsak, :gyldig_fra, :created_at) 
             on conflict (id) do nothing;
             """.trimIndent()
 
@@ -351,6 +351,7 @@ class DeltakerRepository {
             "type" to status.type.name,
             "aarsak" to toPGObject(status.aarsak),
             "gyldig_fra" to status.gyldigFra,
+            "created_at" to status.opprettet,
         )
 
         return queryOf(sql, params)
