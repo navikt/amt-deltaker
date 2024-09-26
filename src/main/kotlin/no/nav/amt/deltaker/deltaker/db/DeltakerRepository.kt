@@ -189,7 +189,7 @@ class DeltakerRepository {
         val query = queryOf(
             sql,
             mapOf(
-                "tiltakstype" to tiltakstype,
+                "tiltakstype" to tiltakstype.name,
             ),
         ).map(::rowMapper).asList
         it.run(query)
