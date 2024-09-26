@@ -195,7 +195,7 @@ class DeltakerRepository {
                 "tiltakstype" to tiltakstype.name,
             ),
         ).map {
-            it.uuid("id")
+            it.uuid("d.id")
         }.asList
         session.run(query)
     }
