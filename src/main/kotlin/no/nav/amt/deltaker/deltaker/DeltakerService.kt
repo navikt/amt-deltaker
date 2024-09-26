@@ -32,7 +32,7 @@ class DeltakerService(
 
     fun getDeltakereForDeltakerliste(deltakerlisteId: UUID) = deltakerRepository.getDeltakereForDeltakerliste(deltakerlisteId)
 
-    fun getDeltakereForTiltakstype(tiltakstype: Tiltakstype.ArenaKode) = deltakerRepository.getDeltakereForTiltakstype(tiltakstype)
+    fun getDeltakerIderForTiltakstype(tiltakstype: Tiltakstype.ArenaKode) = deltakerRepository.getDeltakerIderForTiltakstype(tiltakstype)
 
     suspend fun upsertDeltaker(deltaker: Deltaker): Deltaker {
         deltakerRepository.upsert(deltaker)

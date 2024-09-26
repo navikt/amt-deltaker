@@ -178,21 +178,25 @@ class DeltakerRepository {
         it.run(query)
     }
 
-    fun getDeltakereForTiltakstype(tiltakstype: Tiltakstype.ArenaKode) = Database.query {
-        val sql = getDeltakerSql(
-            """ where t.type = :tiltakstype 
-                    and ds.gyldig_til is null
-                    and ds.gyldig_fra < CURRENT_TIMESTAMP
-            """.trimMargin(),
-        )
+    fun getDeltakerIderForTiltakstype(tiltakstype: Tiltakstype.ArenaKode) = Database.query { session ->
+        val sql =
+            """ 
+                select d.id as "d.id"
+                from deltaker d
+                    join deltakerliste dl on d.deltakerliste_id = dl.id
+                    join tiltakstype t on t.id = dl.tiltakstype_id
+                where t.type = :tiltakstype;
+            """.trimMargin()
 
         val query = queryOf(
             sql,
             mapOf(
                 "tiltakstype" to tiltakstype.name,
             ),
-        ).map(::rowMapper).asList
-        it.run(query)
+        ).map {
+            it.uuid("d.id")
+        }.asList
+        session.run(query)
     }
 
     fun getMany(personIdent: String) = Database.query {

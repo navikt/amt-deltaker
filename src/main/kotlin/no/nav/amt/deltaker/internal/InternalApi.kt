@@ -6,6 +6,9 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.post
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import no.nav.amt.deltaker.auth.AuthorizationException
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
@@ -15,6 +18,8 @@ import org.slf4j.LoggerFactory
 import java.util.UUID
 
 fun Routing.registerInternalApi(deltakerService: DeltakerService, deltakerProducerService: DeltakerProducerService) {
+    val scope = CoroutineScope(Dispatchers.IO)
+
     val log: Logger = LoggerFactory.getLogger(javaClass)
 
     post("/internal/feilregistrer/{deltakerId}") {
@@ -44,16 +49,18 @@ fun Routing.registerInternalApi(deltakerService: DeltakerService, deltakerProduc
         if (isInternal(call.request.local.remoteAddress)) {
             val tiltakstype = Tiltakstype.ArenaKode.valueOf(call.parameters["tiltakstype"]!!)
             val request = call.receive<RepubliserRequest>()
-            log.info("Relaster deltakere for tiltakstype ${tiltakstype.name} på deltaker-v2")
-            val deltakere = deltakerService.getDeltakereForTiltakstype(tiltakstype)
-            deltakere.forEach {
-                deltakerProducerService.produce(
-                    it,
-                    forcedUpdate = request.forcedUpdate,
-                    publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
-                )
+            scope.launch {
+                log.info("Relaster deltakere for tiltakstype ${tiltakstype.name} på deltaker-v2")
+                val deltakerIder = deltakerService.getDeltakerIderForTiltakstype(tiltakstype)
+                deltakerIder.forEach {
+                    deltakerProducerService.produce(
+                        deltakerService.get(it).getOrThrow(),
+                        forcedUpdate = request.forcedUpdate,
+                        publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
+                    )
+                }
+                log.info("Relastet deltakere for tiltakstype ${tiltakstype.name} på deltaker-v2")
             }
-            log.info("Relastet deltakere for tiltakstype ${tiltakstype.name} på deltaker-v2")
             call.respond(HttpStatusCode.OK)
         } else {
             throw AuthorizationException("Ikke tilgang til api")
