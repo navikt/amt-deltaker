@@ -310,6 +310,28 @@ class DeltakerRepository {
         session.run(query)
     }
 
+    fun getDeltakereMedStatus(statusType: DeltakerStatus.Type) = Database.query { session ->
+        val sql =
+            """
+                select d.id as "d.id"
+                from deltaker d
+                    join deltaker_status ds on d.id = ds.deltaker_id
+                where ds.type = :status_type
+                and ds.gyldig_til is null
+                and ds.gyldig_fra < CURRENT_TIMESTAMP
+            """.trimMargin()
+
+        val query = queryOf(
+            sql,
+            mapOf(
+                "status_type" to statusType.name,
+            ),
+        ).map {
+            it.uuid("d.id")
+        }.asList
+        session.run(query)
+    }
+
     private fun slettStatus(deltakerId: UUID): Query {
         val sql =
             """
