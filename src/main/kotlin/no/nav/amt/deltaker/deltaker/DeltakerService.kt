@@ -117,6 +117,8 @@ class DeltakerService(
         val deltaker = get(deltakerId).getOrThrow()
         hendelseService.hendelseForSistBesokt(deltaker, sistBesokt)
     }
+
+    fun getDeltakereMedStatus(statusType: DeltakerStatus.Type) = deltakerRepository.getDeltakereMedStatus(statusType)
 }
 
 fun nyDeltakerStatus(

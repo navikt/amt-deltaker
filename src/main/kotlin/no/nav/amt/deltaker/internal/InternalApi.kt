@@ -13,14 +13,46 @@ import no.nav.amt.deltaker.auth.AuthorizationException
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype
+import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.time.LocalDateTime
 import java.util.UUID
 
 fun Routing.registerInternalApi(deltakerService: DeltakerService, deltakerProducerService: DeltakerProducerService) {
     val scope = CoroutineScope(Dispatchers.IO)
 
     val log: Logger = LoggerFactory.getLogger(javaClass)
+
+    post("/internal/endre-sokt-inn") {
+        if (isInternal(call.request.local.remoteAddress)) {
+            scope.launch {
+                log.info("Mottatt forespørsel for å endre SOKT_INN til IKKE_AKTUELL.")
+                val deltakerIder = deltakerService.getDeltakereMedStatus(DeltakerStatus.Type.SOKT_INN)
+
+                deltakerIder.forEach {
+                    val deltaker = deltakerService.get(it).getOrThrow()
+                    deltakerService.upsertDeltaker(
+                        deltaker.copy(
+                            status = DeltakerStatus(
+                                id = UUID.randomUUID(),
+                                type = DeltakerStatus.Type.IKKE_AKTUELL,
+                                aarsak = null,
+                                gyldigFra = LocalDateTime.now(),
+                                gyldigTil = null,
+                                opprettet = LocalDateTime.now(),
+                            ),
+                        ),
+                    )
+                }
+
+                log.info("Oppdatert status til IKKE_AKTUELL for ${deltakerIder.size} deltakere med status SOKT_INN.")
+            }
+            call.respond(HttpStatusCode.OK)
+        } else {
+            throw AuthorizationException("Ikke tilgang til api")
+        }
+    }
 
     post("/internal/feilregistrer/{deltakerId}") {
         if (isInternal(call.request.local.remoteAddress)) {
