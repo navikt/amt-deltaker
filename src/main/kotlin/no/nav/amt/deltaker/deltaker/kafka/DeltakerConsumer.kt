@@ -115,8 +115,17 @@ class DeltakerConsumer(
 fun DeltakerV2Dto.DeltakerStatusDto.toDeltakerStatus(deltakerId: UUID) = DeltakerStatus(
     id = id ?: throw IllegalStateException("Deltakerstatus mangler id. deltakerId: $deltakerId"),
     type = type,
-    aarsak = aarsak?.let { DeltakerStatus.Aarsak(it, aarsaksbeskrivelse) },
+    aarsak = aarsak?.let { DeltakerStatus.Aarsak(it.toDeltakerstatusArsak(), aarsaksbeskrivelse) },
     gyldigFra = gyldigFra,
     gyldigTil = null,
     opprettet = opprettetDato,
 )
+
+fun DeltakerStatus.Aarsak.Type.toDeltakerstatusArsak(): DeltakerStatus.Aarsak.Type {
+    // AVLYST_KONTRAKT er erstattet av SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT
+    return if (this == DeltakerStatus.Aarsak.Type.AVLYST_KONTRAKT) {
+        DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT
+    } else {
+        this
+    }
+}
