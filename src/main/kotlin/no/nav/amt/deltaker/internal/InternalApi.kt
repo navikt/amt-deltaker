@@ -67,9 +67,14 @@ fun Routing.registerInternalApi(deltakerService: DeltakerService, deltakerProduc
     post("/internal/relast/{deltakerId}") {
         if (isInternal(call.request.local.remoteAddress)) {
             val deltakerId = UUID.fromString(call.parameters["deltakerId"])
+            val request = call.receive<RepubliserRequest>()
             val deltaker = deltakerService.get(deltakerId)
             log.info("Relaster deltaker $deltakerId på deltaker-v2")
-            deltakerProducerService.produce(deltaker.getOrThrow(), publiserTilDeltakerV1 = false)
+            deltakerProducerService.produce(
+                deltaker.getOrThrow(),
+                forcedUpdate = request.forcedUpdate,
+                publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
+            )
             log.info("Relastet deltaker $deltakerId på deltaker-v2")
             call.respond(HttpStatusCode.OK)
         } else {
