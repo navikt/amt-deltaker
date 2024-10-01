@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.deltaker.kafka
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.application.plugins.objectMapper
+import no.nav.amt.deltaker.deltaker.DeltakerEndringService
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.model.Deltaker
@@ -16,6 +17,7 @@ import no.nav.amt.lib.kafka.ManagedKafkaConsumer
 import no.nav.amt.lib.kafka.config.KafkaConfig
 import no.nav.amt.lib.kafka.config.KafkaConfigImpl
 import no.nav.amt.lib.kafka.config.LocalKafkaConfig
+import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import org.apache.kafka.common.serialization.StringDeserializer
@@ -29,6 +31,7 @@ class DeltakerConsumer(
     private val deltakerRepository: DeltakerRepository,
     private val deltakerlisteRepository: DeltakerlisteRepository,
     private val navBrukerService: NavBrukerService,
+    private val deltakerEndringService: DeltakerEndringService,
     private val importertFraArenaRepository: ImportertFraArenaRepository,
     private val deltakerProducerService: DeltakerProducerService,
     kafkaConfig: KafkaConfig = if (Environment.isLocal()) LocalKafkaConfig() else KafkaConfigImpl("earliest"),
@@ -69,9 +72,7 @@ class DeltakerConsumer(
 
         if (deltakerliste.tiltakstype.arenaKode == Tiltakstype.ArenaKode.ARBFORB) {
             log.info("Ingester arenadeltaker med id ${deltakerV2.id}")
-
-            val prewDeltaker = deltakerRepository.get(deltakerV2.id).getOrNull()
-            val deltaker = deltakerV2.toDeltaker(deltakerliste, prewDeltaker)
+            val deltaker = deltakerV2.toDeltaker(deltakerliste)
 
             upsertImportertDeltaker(deltaker, deltakerV2.innsoktDato)
             log.info("Ingest for arenadeltaker med id ${deltaker.id} er ferdig")
@@ -93,7 +94,7 @@ class DeltakerConsumer(
         importertFraArenaRepository.upsert(historikkElement)
     }
 
-    suspend fun DeltakerV2Dto.toDeltaker(deltakerliste: Deltakerliste, prewDeltaker: Deltaker?) = Deltaker(
+    private suspend fun DeltakerV2Dto.toDeltaker(deltakerliste: Deltakerliste) = Deltaker(
         id = id,
         navBruker = navBrukerService.get(personalia.personident).getOrThrow(),
         deltakerliste = deltakerliste,
@@ -101,15 +102,19 @@ class DeltakerConsumer(
         sluttdato = sluttdato,
         dagerPerUke = dagerPerUke,
         deltakelsesprosent = prosentStilling?.toFloat(),
-        // Hvis det er første gang vi får deltakeren fra arena så skal bakgrunnsinfo settes til null
+        // Hvis bakgrunnsinfo ikke er oppdatert i ny løsning så skal den settes til null
         // https://trello.com/c/Rotq74xz/1751-vise-bestillingstekst-fra-arena-innhold-og-bakgrunnsinfo-i-en-overgangsfase
-        bakgrunnsinformasjon = prewDeltaker?.let { bestillingTekst },
+        bakgrunnsinformasjon = if (skalLagreBestillingstekst(id)) bestillingTekst else null,
         deltakelsesinnhold = innhold,
         status = status.toDeltakerStatus(id),
         vedtaksinformasjon = null,
         kilde = kilde ?: Kilde.ARENA,
         sistEndret = sistEndret ?: LocalDateTime.now(),
     )
+
+    private fun skalLagreBestillingstekst(deltakerId: UUID): Boolean {
+        return deltakerEndringService.getForDeltaker(deltakerId).any { it.endring is DeltakerEndring.Endring.EndreBakgrunnsinformasjon }
+    }
 }
 
 fun DeltakerV2Dto.DeltakerStatusDto.toDeltakerStatus(deltakerId: UUID) = DeltakerStatus(

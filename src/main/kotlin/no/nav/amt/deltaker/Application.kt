@@ -215,6 +215,7 @@ fun Application.module() {
             deltakerRepository,
             deltakerlisteRepository,
             navBrukerService,
+            deltakerEndringService,
             importertFraArenaRepository,
             deltakerProducerService,
         ),
