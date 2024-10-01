@@ -17,10 +17,10 @@ class DeltakerV2MapperService(
     suspend fun tilDeltakerV2Dto(deltaker: Deltaker, forcedUpdate: Boolean? = false): DeltakerV2Dto {
         val deltakerhistorikk = deltakerHistorikkService.getForDeltaker(deltaker.id)
 
-        val sisteEndring = if (deltaker.kilde == Kilde.KOMET) {
-            getSisteEndring(deltakerhistorikk)
-        } else {
-            null
+        val sisteEndring = deltakerhistorikk.getSisteEndring()
+
+        if (deltaker.kilde == Kilde.KOMET && sisteEndring == null) {
+            throw IllegalStateException("Deltaker med kilde ${Kilde.KOMET} må ha minst et vedtak for å produseres til topic")
         }
 
         return DeltakerV2Dto(
@@ -58,8 +58,11 @@ class DeltakerV2MapperService(
                 ?: throw IllegalStateException("Skal ikke produsere deltaker som mangler vedtak til topic"),
             forsteVedtakFattet = getForsteVedtakFattet(deltakerhistorikk),
             bestillingTekst = deltaker.bakgrunnsinformasjon,
-            navKontor = deltaker.navBruker.navEnhetId?.let { navEnhetService.hentEllerOpprettNavEnhet(it) }?.navn,
-            navVeileder = deltaker.navBruker.navVeilederId?.let { navAnsattService.hentEllerOpprettNavAnsatt(it) }
+            navKontor = deltaker.navBruker.navEnhetId
+                ?.let { navEnhetService.hentEllerOpprettNavEnhet(it) }
+                ?.navn,
+            navVeileder = deltaker.navBruker.navVeilederId
+                ?.let { navAnsattService.hentEllerOpprettNavAnsatt(it) }
                 ?.toDeltakerNavVeilederDto(),
             deltarPaKurs = deltaker.deltarPaKurs(),
             kilde = deltaker.kilde,
@@ -82,32 +85,25 @@ class DeltakerV2MapperService(
         return forsteVedtak.fattet?.toLocalDate()
     }
 
-    private fun getSisteEndring(deltakerhistorikk: List<DeltakerHistorikk>): DeltakerHistorikk {
-        return deltakerhistorikk.firstOrNull {
-            it is DeltakerHistorikk.Vedtak ||
-                it is DeltakerHistorikk.Endring
-        } ?: throw IllegalStateException("Deltaker må ha minst et vedtak for å produseres til topic")
+    private fun getSistEndretAv(deltakerhistorikk: DeltakerHistorikk): UUID = when (deltakerhistorikk) {
+        is DeltakerHistorikk.Vedtak -> deltakerhistorikk.vedtak.sistEndretAv
+        is DeltakerHistorikk.Endring -> deltakerhistorikk.endring.endretAv
+        is DeltakerHistorikk.Forslag,
+        is DeltakerHistorikk.EndringFraArrangor,
+        is DeltakerHistorikk.ImportertFraArena,
+        -> throw IllegalStateException("Siste endring kan ikke være et forslag eller endring fra arrangør")
     }
 
-    private fun getSistEndretAv(deltakerhistorikk: DeltakerHistorikk): UUID {
-        return when (deltakerhistorikk) {
-            is DeltakerHistorikk.Vedtak -> deltakerhistorikk.vedtak.sistEndretAv
-            is DeltakerHistorikk.Endring -> deltakerhistorikk.endring.endretAv
-            is DeltakerHistorikk.Forslag,
-            is DeltakerHistorikk.EndringFraArrangor,
-            is DeltakerHistorikk.ImportertFraArena,
-            -> throw IllegalStateException("Siste endring kan ikke være et forslag eller endring fra arrangør")
-        }
+    private fun getSistEndretAvEnhet(deltakerhistorikk: DeltakerHistorikk): UUID = when (deltakerhistorikk) {
+        is DeltakerHistorikk.Vedtak -> deltakerhistorikk.vedtak.sistEndretAvEnhet
+        is DeltakerHistorikk.Endring -> deltakerhistorikk.endring.endretAvEnhet
+        is DeltakerHistorikk.Forslag,
+        is DeltakerHistorikk.EndringFraArrangor,
+        is DeltakerHistorikk.ImportertFraArena,
+        -> throw IllegalStateException("Siste endring kan ikke være et forslag eller endring fra arrangør")
     }
+}
 
-    private fun getSistEndretAvEnhet(deltakerhistorikk: DeltakerHistorikk): UUID {
-        return when (deltakerhistorikk) {
-            is DeltakerHistorikk.Vedtak -> deltakerhistorikk.vedtak.sistEndretAvEnhet
-            is DeltakerHistorikk.Endring -> deltakerhistorikk.endring.endretAvEnhet
-            is DeltakerHistorikk.Forslag,
-            is DeltakerHistorikk.EndringFraArrangor,
-            is DeltakerHistorikk.ImportertFraArena,
-            -> throw IllegalStateException("Siste endring kan ikke være et forslag eller endring fra arrangør")
-        }
-    }
+private fun List<DeltakerHistorikk>.getSisteEndring() = this.firstOrNull {
+    it is DeltakerHistorikk.Vedtak || it is DeltakerHistorikk.Endring
 }
