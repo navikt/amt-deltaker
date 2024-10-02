@@ -91,6 +91,8 @@ class PameldingServiceTest {
             vedtakService = vedtakService,
             hendelseService = hendelseService,
             endringFraArrangorService = endringFraArrangorService,
+            forslagService = forslagService,
+            importertFraArenaRepository = importertFraArenaRepository,
         )
 
         private var pameldingService = PameldingService(

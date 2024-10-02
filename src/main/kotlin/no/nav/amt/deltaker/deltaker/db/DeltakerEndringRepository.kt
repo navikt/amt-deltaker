@@ -76,4 +76,15 @@ class DeltakerEndringRepository {
         )
         it.run(query.map(::rowMapper).asList)
     }
+
+    fun deleteForDeltaker(deltakerId: UUID) = Database.query {
+        val query = queryOf(
+            """
+            DELETE FROM deltaker_endring
+            WHERE deltaker_id = :deltaker_id;
+            """.trimIndent(),
+            mapOf("deltaker_id" to deltakerId),
+        )
+        it.update(query)
+    }
 }

@@ -108,6 +108,8 @@ class DeltakerServiceTest {
             vedtakService = vedtakService,
             hendelseService = hendelseService,
             endringFraArrangorService = endringFraArrangorService,
+            forslagService = forslagService,
+            importertFraArenaRepository = importertFraArenaRepository,
         )
 
         @JvmStatic

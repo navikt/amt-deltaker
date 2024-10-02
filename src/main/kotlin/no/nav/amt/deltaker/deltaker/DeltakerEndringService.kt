@@ -34,6 +34,8 @@ class DeltakerEndringService(
 ) {
     fun getForDeltaker(deltakerId: UUID) = repository.getForDeltaker(deltakerId)
 
+    fun deleteForDeltaker(deltakerId: UUID) = repository.deleteForDeltaker(deltakerId)
+
     suspend fun upsertEndring(deltaker: Deltaker, request: EndringRequest): Result<Deltaker> {
         val (endretDeltaker, endring) = when (request) {
             is BakgrunnsinformasjonRequest -> {

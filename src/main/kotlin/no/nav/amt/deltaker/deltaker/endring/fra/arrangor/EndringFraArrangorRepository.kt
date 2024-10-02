@@ -59,4 +59,15 @@ class EndringFraArrangorRepository {
 
         it.update(queryOf(sql, params))
     }
+
+    fun deleteForDeltaker(deltakerId: UUID) = Database.query {
+        val query = queryOf(
+            """
+            DELETE FROM endring_fra_arrangor
+            WHERE deltaker_id = :deltaker_id;
+            """.trimIndent(),
+            mapOf("deltaker_id" to deltakerId),
+        )
+        it.update(query)
+    }
 }

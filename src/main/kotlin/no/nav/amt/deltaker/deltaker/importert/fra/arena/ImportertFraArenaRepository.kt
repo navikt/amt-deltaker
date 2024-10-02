@@ -64,4 +64,15 @@ class ImportertFraArenaRepository {
         )
         it.run(query.map(Companion::rowMapper).asSingle)
     }
+
+    fun deleteForDeltaker(deltakerId: UUID) = Database.query {
+        val query = queryOf(
+            """
+            DELETE FROM importert_fra_arena
+            WHERE deltaker_id = :deltaker_id;
+            """.trimIndent(),
+            mapOf("deltaker_id" to deltakerId),
+        )
+        it.update(query)
+    }
 }

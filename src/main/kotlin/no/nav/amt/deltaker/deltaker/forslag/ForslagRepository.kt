@@ -118,6 +118,14 @@ class ForslagRepository {
         it.update(query)
     }
 
+    fun deleteForDeltaker(deltakerId: UUID) = Database.query {
+        val query = queryOf(
+            """delete from forslag where deltaker_id = :deltaker_id""",
+            mapOf("deltaker_id" to deltakerId),
+        )
+        it.update(query)
+    }
+
     fun kanLagres(deltakerId: UUID) = Database.query {
         val query = queryOf(
             """
