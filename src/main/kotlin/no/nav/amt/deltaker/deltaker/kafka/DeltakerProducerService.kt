@@ -4,6 +4,7 @@ import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import java.time.LocalDateTime
+import java.util.UUID
 
 class DeltakerProducerService(
     private val deltakerV2MapperService: DeltakerV2MapperService,
@@ -23,6 +24,11 @@ class DeltakerProducerService(
         if (publiserTilDeltakerV1 && unleashToggle.erKometMasterForTiltakstype(deltaker.deltakerliste.tiltakstype.arenaKode)) {
             deltakerV1Producer.produce(toDeltakerV1Dto(deltakerV2Dto))
         }
+    }
+
+    fun tombstone(deltakerId: UUID) {
+        deltakerProducer.produceTombstone(deltakerId)
+        deltakerV1Producer.produceTombstone(deltakerId)
     }
 
     private fun toDeltakerV1Dto(deltakerV2Dto: DeltakerV2Dto): DeltakerV1Dto {

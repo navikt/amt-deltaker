@@ -39,6 +39,8 @@ class ForslagService(
 
     fun delete(id: UUID) = forslagRepository.delete(id)
 
+    fun deleteForDeltaker(deltakerId: UUID) = forslagRepository.deleteForDeltaker(deltakerId)
+
     fun kanLagres(deltakerId: UUID) = forslagRepository.kanLagres(deltakerId)
 
     suspend fun godkjennForslag(

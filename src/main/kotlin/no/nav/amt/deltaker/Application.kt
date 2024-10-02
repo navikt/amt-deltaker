@@ -193,6 +193,8 @@ fun Application.module() {
         vedtakService = vedtakService,
         hendelseService = hendelseService,
         endringFraArrangorService = endringFraArrangorService,
+        forslagService = forslagService,
+        importertFraArenaRepository = importertFraArenaRepository,
     )
     val pameldingService = PameldingService(
         deltakerService = deltakerService,

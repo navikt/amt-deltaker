@@ -99,4 +99,12 @@ class VedtakRepository {
         )
         it.run(query.map(::rowMapper).asList)
     }
+
+    fun deleteForDeltaker(deltakerId: UUID) = Database.query {
+        val query = queryOf(
+            "delete from vedtak where deltaker_id = :deltaker_id",
+            mapOf("deltaker_id" to deltakerId),
+        )
+        it.update(query)
+    }
 }

@@ -103,11 +103,37 @@ fun Routing.registerInternalApi(deltakerService: DeltakerService, deltakerProduc
             throw AuthorizationException("Ikke tilgang til api")
         }
     }
+
+    post("/internal/slett") {
+        if (isInternal(call.request.local.remoteAddress)) {
+            val request = call.receive<DeleteRequest>()
+            scope.launch {
+                log.info("Sletter deltakelser for personid ${request.personId} på deltakerliste ${request.deltakerlisteId}")
+                val deltakerIder = deltakerService.getDeltakerIder(
+                    personId = request.personId,
+                    deltakerlisteId = request.deltakerlisteId,
+                )
+                deltakerIder.forEach {
+                    deltakerProducerService.tombstone(it)
+                    deltakerService.delete(it)
+                }
+                log.info("Slettet ${deltakerIder.size} deltakere")
+            }
+            call.respond(HttpStatusCode.OK)
+        } else {
+            throw AuthorizationException("Ikke tilgang til api")
+        }
+    }
 }
 
 data class RepubliserRequest(
     val forcedUpdate: Boolean,
     val publiserTilDeltakerV1: Boolean,
+)
+
+data class DeleteRequest(
+    val personId: UUID,
+    val deltakerlisteId: UUID,
 )
 
 fun isInternal(remoteAdress: String): Boolean {

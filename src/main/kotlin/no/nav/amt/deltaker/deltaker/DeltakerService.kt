@@ -3,6 +3,8 @@ package no.nav.amt.deltaker.deltaker
 import no.nav.amt.deltaker.deltaker.api.model.EndringRequest
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorService
+import no.nav.amt.deltaker.deltaker.forslag.ForslagService
+import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype
@@ -21,6 +23,8 @@ class DeltakerService(
     private val vedtakService: VedtakService,
     private val hendelseService: HendelseService,
     private val endringFraArrangorService: EndringFraArrangorService,
+    private val forslagService: ForslagService,
+    private val importertFraArenaRepository: ImportertFraArenaRepository,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -33,6 +37,9 @@ class DeltakerService(
     fun getDeltakereForDeltakerliste(deltakerlisteId: UUID) = deltakerRepository.getDeltakereForDeltakerliste(deltakerlisteId)
 
     fun getDeltakerIderForTiltakstype(tiltakstype: Tiltakstype.ArenaKode) = deltakerRepository.getDeltakerIderForTiltakstype(tiltakstype)
+
+    fun getDeltakerIder(personId: UUID, deltakerlisteId: UUID) =
+        deltakerRepository.getDeltakerIder(personId = personId, deltakerlisteId = deltakerlisteId)
 
     suspend fun upsertDeltaker(deltaker: Deltaker): Deltaker {
         deltakerRepository.upsert(deltaker.copy(sistEndret = LocalDateTime.now()))
@@ -48,6 +55,11 @@ class DeltakerService(
     }
 
     fun delete(deltakerId: UUID) {
+        importertFraArenaRepository.deleteForDeltaker(deltakerId)
+        vedtakService.deleteForDeltaker(deltakerId)
+        deltakerEndringService.deleteForDeltaker(deltakerId)
+        forslagService.deleteForDeltaker(deltakerId)
+        endringFraArrangorService.deleteForDeltaker(deltakerId)
         deltakerRepository.deleteDeltakerOgStatus(deltakerId)
     }
 

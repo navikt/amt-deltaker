@@ -85,6 +85,8 @@ class VedtakService(
         return fattetVedtak
     }
 
+    fun deleteForDeltaker(deltakerId: UUID) = repository.deleteForDeltaker(deltakerId)
+
     private fun opprettEllerOppdaterVedtak(
         original: Vedtak?,
         godkjentAvNav: Boolean,

@@ -103,6 +103,8 @@ class DeltakerStatusOppdateringServiceTest {
                 vedtakService,
                 hendelseService,
                 endringFraArrangorService,
+                forslagService,
+                importertFraArenaRepository,
             )
             deltakerStatusOppdateringService = DeltakerStatusOppdateringService(deltakerRepository, deltakerService, unleashToggle)
         }
