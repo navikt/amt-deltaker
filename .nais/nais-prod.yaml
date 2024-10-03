@@ -1,0 +1,99 @@
+kind: Application
+apiVersion: nais.io/v1alpha1
+metadata:
+  name: amt-deltaker
+  namespace: amt
+  labels:
+    team: amt
+spec:
+  image: {{image}}
+  port: 8080
+  ingresses:
+    - https://amt-deltaker.intern.nav.no
+  prometheus:
+    enabled: true
+    path: /internal/prometheus
+  readiness:
+    path: /internal/health/readiness
+    initialDelay: 20
+  liveness:
+    path: /internal/health/liveness
+    initialDelay: 20
+  startup:
+    path: /internal/health/liveness
+    initialDelay: 30
+    failureThreshold: 45
+    periodSeconds: 5
+  replicas:
+    min: 2
+    max: 4
+    cpuThresholdPercentage: 75
+  resources:
+    limits:
+      cpu: "1"
+      memory: 2048Mi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+  envFrom:
+    - secret: amt-deltaker-unleash-api-token
+  azure:
+    application:
+      enabled: true
+      allowAllUsers: true
+  accessPolicy:
+    inbound:
+      rules:
+        - application: amt-deltaker-bff
+        - application: amt-distribusjon
+        - application: mulighetsrommet-api
+          namespace: team-mulighetsrommet
+    outbound:
+      rules:
+        - application: amt-person-service
+        - application: amt-arrangor
+        - application: poao-tilgang
+          namespace: poao
+      external:
+        - host: amt-unleash-api.nav.cloud.nais.io
+  secureLogs:
+    enabled: true
+  leaderElection: true
+  kafka:
+    pool: nav-prod
+  env:
+    - name: AMT_PERSONSERVICE_SCOPE
+      value: api://prod-gcp.amt.amt-person-service/.default
+    - name: AMT_PERSONSERVICE_URL
+      value: http://amt-person-service
+    - name: AMT_ARRANGOR_SCOPE
+      value: api://prod-gcp.amt.amt-arrangor/.default
+    - name: AMT_ARRANGOR_URL
+      value: http://amt-arrangor
+    - name: POAO_TILGANG_SCOPE
+      value: api://prod-gcp.poao.poao-tilgang/.default
+    - name: POAO_TILGANG_URL
+      value: http://poao-tilgang.poao
+
+  gcp:
+    sqlInstances:
+      - name: amt-deltaker
+        collation: nb_NO.UTF8
+        tier: db-custom-2-5120
+        type: POSTGRES_16
+        databases:
+          - name: amt-deltaker
+            envVarPrefix: DB
+        diskAutoresize: true
+        highAvailability: true
+        insights:
+          enabled: true
+
+  observability:
+      autoInstrumentation:
+        enabled: true
+        runtime: java
+      logging:
+        destinations:
+          - id: elastic
+          - id: loki

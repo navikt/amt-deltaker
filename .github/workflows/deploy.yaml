@@ -57,3 +57,20 @@ jobs:
           RESOURCE: .nais/nais-dev.yaml
           VAR: image=${{ needs.test-build-and-push.outputs.image }}
           TELEMETRY: ${{ needs.test-build-and-push.outputs.telemetry }}
+
+  deploy-prod:
+    name: Deploy application to prod
+    needs: [ test-build-and-push, deploy-dev ]
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: "write"
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Deploy application
+        uses: nais/deploy/actions/deploy@v2
+        env:
+          CLUSTER: prod-gcp
+          RESOURCE: .nais/nais-prod.yaml
+          VAR: image=${{ needs.test-build-and-push.outputs.image }}
