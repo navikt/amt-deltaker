@@ -70,6 +70,11 @@ class DeltakerConsumer(
             return
         }
 
+        if (deltakerV2.status.id == null) {
+            log.warn("Deltaker ${deltakerV2.id} mangler statusid, ignorerer deltaker")
+            return
+        }
+
         if (deltakerliste.tiltakstype.arenaKode == Tiltakstype.ArenaKode.ARBFORB) {
             log.info("Ingester arenadeltaker med id ${deltakerV2.id}")
             val deltaker = deltakerV2.toDeltaker(deltakerliste)
