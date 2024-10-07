@@ -2,8 +2,8 @@ package no.nav.amt.deltaker.deltaker.forslag.kafka
 
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.application.plugins.objectMapper
+import no.nav.amt.deltaker.hendelse.FooKafkaConfig
 import no.nav.amt.lib.kafka.config.KafkaConfig
-import no.nav.amt.lib.kafka.config.KafkaConfigImpl
 import no.nav.amt.lib.kafka.config.LocalKafkaConfig
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -11,7 +11,7 @@ import org.apache.kafka.clients.producer.ProducerRecord
 import org.slf4j.LoggerFactory
 
 class ArrangorMeldingProducer(
-    private val kafkaConfig: KafkaConfig = if (Environment.isLocal()) LocalKafkaConfig() else KafkaConfigImpl(),
+    private val kafkaConfig: KafkaConfig = if (Environment.isLocal()) LocalKafkaConfig() else FooKafkaConfig(),
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
