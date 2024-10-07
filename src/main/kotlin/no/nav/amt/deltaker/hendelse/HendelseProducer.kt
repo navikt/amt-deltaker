@@ -27,7 +27,7 @@ class FooKafkaConfig : KafkaConfig {
     override fun producerConfig() = mapOf(
         ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
         ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
-        ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG to true,
+        ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG to false,
         ProducerConfig.ACKS_CONFIG to "1",
         ProducerConfig.RETRIES_CONFIG to Int.MAX_VALUE,
         ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION to 5,
