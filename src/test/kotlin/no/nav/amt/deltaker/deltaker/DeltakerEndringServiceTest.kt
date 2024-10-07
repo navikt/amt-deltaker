@@ -642,7 +642,7 @@ class DeltakerEndringServiceTest {
         val endretAvEnhet = TestData.lagNavEnhet()
         val forslag = TestData.lagForslag(
             deltakerId = deltaker.id,
-            endring = Forslag.AvsluttDeltakelse(LocalDate.now(), EndringAarsak.FattJobb),
+            endring = Forslag.AvsluttDeltakelse(LocalDate.now(), EndringAarsak.FattJobb, null),
         )
 
         TestRepository.insertAll(deltaker, endretAv, endretAvEnhet, forslag)
