@@ -21,13 +21,14 @@ class DeltakerV1Producer(
         val record = ProducerRecord(Environment.DELTAKER_V1_TOPIC, key, value)
 
         KafkaProducer<String, String>(kafkaConfig.producerConfig()).use {
-            val metadata = it.send(record).get()
-            log.info(
-                "Produserte melding til topic ${metadata.topic()}, " +
-                    "key=$key, " +
-                    "offset=${metadata.offset()}, " +
-                    "partition=${metadata.partition()}",
-            )
+            it.send(record) { metadata, _ ->
+                log.info(
+                    "Produserte melding til topic ${metadata.topic()}, " +
+                        "key=$key, " +
+                        "offset=${metadata.offset()}, " +
+                        "partition=${metadata.partition()}",
+                )
+            }
         }
     }
 
