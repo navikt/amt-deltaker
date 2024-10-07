@@ -38,21 +38,20 @@ class HendelseProducer(
     private val kafkaConfig: KafkaConfig = if (Environment.isLocal()) LocalKafkaConfig() else FooKafkaConfig(),
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
+    private val producer = KafkaProducer<String, String>(kafkaConfig.producerConfig())
 
     suspend fun produce(hendelse: Hendelse) {
         val key = hendelse.deltaker.id.toString()
         val value = objectMapper.writeValueAsString(hendelse)
         val record = ProducerRecord(Environment.DELTAKER_HENDELSE_TOPIC, key, value)
 
-        KafkaProducer<String, String>(kafkaConfig.producerConfig()).use {
-            it.send(record) { metadata, _ ->
-                log.info(
-                    "Produserte melding til topic ${metadata.topic()}, " +
-                        "key=$key, " +
-                        "offset=${metadata.offset()}, " +
-                        "partition=${metadata.partition()}",
-                )
-            }
+        producer.send(record) { metadata, _ ->
+            log.info(
+                "Produserte melding til topic ${metadata.topic()}, " +
+                    "key=$key, " +
+                    "offset=${metadata.offset()}, " +
+                    "partition=${metadata.partition()}",
+            )
         }
     }
 }

@@ -14,22 +14,14 @@ class DeltakerProducer(
     private val kafkaConfig: KafkaConfig = if (Environment.isLocal()) LocalKafkaConfig() else FooKafkaConfig(),
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
+    private val producer = KafkaProducer<String, String>(kafkaConfig.producerConfig())
 
     fun produce(deltakerV2Dto: DeltakerV2Dto) {
         val key = deltakerV2Dto.id.toString()
         val value = objectMapper.writeValueAsString(deltakerV2Dto)
         val record = ProducerRecord(Environment.DELTAKER_V2_TOPIC, key, value)
 
-        KafkaProducer<String, String>(kafkaConfig.producerConfig()).use {
-            it.send(record) { metadata, _ ->
-                log.info(
-                    "Produserte melding til topic ${metadata.topic()}, " +
-                        "key=$key, " +
-                        "offset=${metadata.offset()}, " +
-                        "partition=${metadata.partition()}",
-                )
-            }
-        }
+        producer.send(record)
     }
 
     fun produceTombstone(deltakerId: UUID) {

@@ -14,21 +14,20 @@ class ArrangorMeldingProducer(
     private val kafkaConfig: KafkaConfig = if (Environment.isLocal()) LocalKafkaConfig() else FooKafkaConfig(),
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
+    private val producer = KafkaProducer<String, String>(kafkaConfig.producerConfig())
 
     fun produce(forslag: Forslag) {
         val key = forslag.id.toString()
         val value = objectMapper.writeValueAsString(forslag)
         val record = ProducerRecord(Environment.ARRANGOR_MELDING_TOPIC, key, value)
 
-        KafkaProducer<String, String>(kafkaConfig.producerConfig()).use {
-            it.send(record) { metadata, _ ->
-                log.info(
-                    "Produserte melding til topic ${metadata.topic()}, " +
-                        "key=$key, " +
-                        "offset=${metadata.offset()}, " +
-                        "partition=${metadata.partition()}",
-                )
-            }
+        producer.send(record) { metadata, _ ->
+            log.info(
+                "Produserte melding til topic ${metadata.topic()}, " +
+                    "key=$key, " +
+                    "offset=${metadata.offset()}, " +
+                    "partition=${metadata.partition()}",
+            )
         }
     }
 }
