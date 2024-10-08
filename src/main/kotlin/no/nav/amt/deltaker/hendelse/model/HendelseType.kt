@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.hendelse.model
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
+import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import java.time.LocalDate
 import java.time.ZonedDateTime
@@ -11,6 +12,7 @@ sealed interface HendelseType {
     sealed interface HendelseMedForslag : HendelseType {
         val begrunnelseFraNav: String?
         val begrunnelseFraArrangor: String?
+        val endringFraForslag: Forslag.Endring?
     }
 
     data class OpprettUtkast(
@@ -46,6 +48,7 @@ sealed interface HendelseType {
         val dagerPerUke: Float?,
         override val begrunnelseFraNav: String?,
         override val begrunnelseFraArrangor: String?,
+        override val endringFraForslag: Forslag.Endring?,
     ) : HendelseMedForslag
 
     data class EndreStartdato(
@@ -53,24 +56,28 @@ sealed interface HendelseType {
         val sluttdato: LocalDate? = null,
         override val begrunnelseFraNav: String?,
         override val begrunnelseFraArrangor: String?,
+        override val endringFraForslag: Forslag.Endring?,
     ) : HendelseMedForslag
 
     data class EndreSluttdato(
         val sluttdato: LocalDate,
         override val begrunnelseFraNav: String?,
         override val begrunnelseFraArrangor: String?,
+        override val endringFraForslag: Forslag.Endring?,
     ) : HendelseMedForslag
 
     data class ForlengDeltakelse(
         val sluttdato: LocalDate,
         override val begrunnelseFraNav: String?,
         override val begrunnelseFraArrangor: String?,
+        override val endringFraForslag: Forslag.Endring?,
     ) : HendelseMedForslag
 
     data class IkkeAktuell(
         val aarsak: DeltakerEndring.Aarsak,
         override val begrunnelseFraNav: String?,
         override val begrunnelseFraArrangor: String?,
+        override val endringFraForslag: Forslag.Endring?,
     ) : HendelseMedForslag
 
     data class AvsluttDeltakelse(
@@ -78,12 +85,14 @@ sealed interface HendelseType {
         val sluttdato: LocalDate,
         override val begrunnelseFraNav: String?,
         override val begrunnelseFraArrangor: String?,
+        override val endringFraForslag: Forslag.Endring?,
     ) : HendelseMedForslag
 
     data class EndreSluttarsak(
         val aarsak: DeltakerEndring.Aarsak,
         override val begrunnelseFraNav: String?,
         override val begrunnelseFraArrangor: String?,
+        override val endringFraForslag: Forslag.Endring?,
     ) : HendelseMedForslag
 
     data class DeltakerSistBesokt(
@@ -122,6 +131,7 @@ fun DeltakerEndring.toHendelseEndring(utkast: UtkastDto? = null) = when (val end
         sluttdato = endring.sluttdato,
         begrunnelseFraNav = endring.begrunnelse,
         begrunnelseFraArrangor = forslag?.begrunnelse,
+        endringFraForslag = forslag?.endring,
     )
 
     is DeltakerEndring.Endring.EndreBakgrunnsinformasjon -> HendelseType.EndreBakgrunnsinformasjon(
@@ -133,6 +143,7 @@ fun DeltakerEndring.toHendelseEndring(utkast: UtkastDto? = null) = when (val end
         endring.dagerPerUke,
         begrunnelseFraNav = endring.begrunnelse,
         begrunnelseFraArrangor = forslag?.begrunnelse,
+        endringFraForslag = forslag?.endring,
     )
 
     is DeltakerEndring.Endring.EndreInnhold -> HendelseType.EndreInnhold(
@@ -143,12 +154,14 @@ fun DeltakerEndring.toHendelseEndring(utkast: UtkastDto? = null) = when (val end
         endring.aarsak,
         begrunnelseFraNav = endring.begrunnelse,
         begrunnelseFraArrangor = forslag?.begrunnelse,
+        endringFraForslag = forslag?.endring,
     )
 
     is DeltakerEndring.Endring.EndreSluttdato -> HendelseType.EndreSluttdato(
         endring.sluttdato,
         begrunnelseFraNav = endring.begrunnelse,
         begrunnelseFraArrangor = forslag?.begrunnelse,
+        endringFraForslag = forslag?.endring,
     )
 
     is DeltakerEndring.Endring.EndreStartdato -> HendelseType.EndreStartdato(
@@ -156,18 +169,21 @@ fun DeltakerEndring.toHendelseEndring(utkast: UtkastDto? = null) = when (val end
         endring.sluttdato,
         begrunnelseFraNav = endring.begrunnelse,
         begrunnelseFraArrangor = forslag?.begrunnelse,
+        endringFraForslag = forslag?.endring,
     )
 
     is DeltakerEndring.Endring.ForlengDeltakelse -> HendelseType.ForlengDeltakelse(
         sluttdato = endring.sluttdato,
         begrunnelseFraNav = endring.begrunnelse,
         begrunnelseFraArrangor = forslag?.begrunnelse,
+        endringFraForslag = forslag?.endring,
     )
 
     is DeltakerEndring.Endring.IkkeAktuell -> HendelseType.IkkeAktuell(
         aarsak = endring.aarsak,
         begrunnelseFraNav = endring.begrunnelse,
         begrunnelseFraArrangor = forslag?.begrunnelse,
+        endringFraForslag = forslag?.endring,
     )
 
     is DeltakerEndring.Endring.ReaktiverDeltakelse -> utkast?.let {
