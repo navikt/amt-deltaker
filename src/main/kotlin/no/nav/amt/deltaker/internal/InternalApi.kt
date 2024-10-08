@@ -24,11 +24,12 @@ fun Routing.registerInternalApi(deltakerService: DeltakerService, deltakerProduc
 
     val log: Logger = LoggerFactory.getLogger(javaClass)
 
-    post("/internal/endre-sokt-inn") {
+    post("/internal/sett-ikke-aktuell/{fra-status}") {
         if (isInternal(call.request.local.remoteAddress)) {
             scope.launch {
-                log.info("Mottatt forespørsel for å endre SOKT_INN til IKKE_AKTUELL.")
-                val deltakerIder = deltakerService.getDeltakereMedStatus(DeltakerStatus.Type.SOKT_INN)
+                val fraStatus = DeltakerStatus.Type.valueOf(call.parameters["fra-status"]!!)
+                log.info("Mottatt forespørsel for å endre deltakere med status $fraStatus til IKKE_AKTUELL.")
+                val deltakerIder = deltakerService.getDeltakereMedStatus(fraStatus)
 
                 deltakerIder.forEach {
                     val deltaker = deltakerService.get(it).getOrThrow()
@@ -46,7 +47,7 @@ fun Routing.registerInternalApi(deltakerService: DeltakerService, deltakerProduc
                     )
                 }
 
-                log.info("Oppdatert status til IKKE_AKTUELL for ${deltakerIder.size} deltakere med status SOKT_INN.")
+                log.info("Oppdatert status til IKKE_AKTUELL for ${deltakerIder.size} deltakere med status $fraStatus.")
             }
             call.respond(HttpStatusCode.OK)
         } else {
