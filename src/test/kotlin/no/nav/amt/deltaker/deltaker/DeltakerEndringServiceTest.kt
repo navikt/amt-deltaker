@@ -36,6 +36,7 @@ import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.utils.mockAmtArrangorClient
 import no.nav.amt.deltaker.utils.mockAmtPersonClient
+import no.nav.amt.lib.kafka.Producer
 import no.nav.amt.lib.kafka.config.LocalKafkaConfig
 import no.nav.amt.lib.models.arrangor.melding.EndringAarsak
 import no.nav.amt.lib.models.arrangor.melding.Forslag
@@ -57,6 +58,7 @@ class DeltakerEndringServiceTest {
     private val navEnhetService = NavEnhetService(NavEnhetRepository(), amtPersonClient)
     private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
     private val forslagRepository = ForslagRepository()
+    private val kafkaProducer = Producer<String, String>(LocalKafkaConfig(SingletonKafkaProvider.getHost()))
     private val deltakerHistorikkService = DeltakerHistorikkService(
         DeltakerEndringRepository(),
         VedtakRepository(),
@@ -65,7 +67,7 @@ class DeltakerEndringServiceTest {
         ImportertFraArenaRepository(),
     )
     private val hendelseService = HendelseService(
-        HendelseProducer(LocalKafkaConfig(SingletonKafkaProvider.getHost())),
+        HendelseProducer(kafkaProducer),
         navAnsattService,
         navEnhetService,
         arrangorService,
@@ -73,7 +75,7 @@ class DeltakerEndringServiceTest {
     )
     private val forslagService = ForslagService(
         forslagRepository,
-        ArrangorMeldingProducer(LocalKafkaConfig(SingletonKafkaProvider.getHost())),
+        ArrangorMeldingProducer(kafkaProducer),
         DeltakerRepository(),
         mockk(),
     )

@@ -31,6 +31,7 @@ import no.nav.amt.deltaker.utils.data.TestData.lagNavBruker
 import no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype
 import no.nav.amt.deltaker.utils.data.TestData.toDeltakerV2
 import no.nav.amt.deltaker.utils.data.TestRepository
+import no.nav.amt.lib.kafka.Producer
 import no.nav.amt.lib.kafka.config.LocalKafkaConfig
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -73,6 +74,7 @@ class DeltakerConsumerTest {
         @BeforeClass
         fun setup() {
             SingletonPostgres16Container
+            val kafkaProducer = Producer<String, String>(LocalKafkaConfig(SingletonKafkaProvider.getHost()))
             deltakerRepository = DeltakerRepository()
             importertFraArenaRepository = ImportertFraArenaRepository()
             deltakerlisteRepository = DeltakerlisteRepository()
@@ -95,9 +97,7 @@ class DeltakerConsumerTest {
             )
             deltakerEndringService = mockk()
             deltakerV2MapperService = DeltakerV2MapperService(navAnsattService, navEnhetService, deltakerHistorikkService)
-            deltakerProducer = DeltakerProducer(
-                LocalKafkaConfig(SingletonKafkaProvider.getHost()),
-            )
+            deltakerProducer = DeltakerProducer(kafkaProducer)
             deltakerV1Producer = mockk(relaxed = true)
             deltakerProducerService = DeltakerProducerService(deltakerV2MapperService, deltakerProducer, deltakerV1Producer, unleashToggle)
             consumer = DeltakerConsumer(

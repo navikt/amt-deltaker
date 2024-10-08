@@ -39,6 +39,7 @@ import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.utils.mockAmtArrangorClient
 import no.nav.amt.deltaker.utils.mockAmtPersonClient
+import no.nav.amt.lib.kafka.Producer
 import no.nav.amt.lib.kafka.config.LocalKafkaConfig
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -64,6 +65,7 @@ class DeltakerServiceTest {
         private val endringFraArrangorRepository = EndringFraArrangorRepository()
         private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
         private val importertFraArenaRepository = ImportertFraArenaRepository()
+        private val kafkaProducer = Producer<String, String>(LocalKafkaConfig(SingletonKafkaProvider.getHost()))
         private val deltakerHistorikkService =
             DeltakerHistorikkService(
                 deltakerEndringRepository,
@@ -73,7 +75,7 @@ class DeltakerServiceTest {
                 importertFraArenaRepository,
             )
         private val hendelseService = HendelseService(
-            HendelseProducer(LocalKafkaConfig(SingletonKafkaProvider.getHost())),
+            HendelseProducer(kafkaProducer),
             navAnsattService,
             navEnhetService,
             arrangorService,
@@ -83,16 +85,16 @@ class DeltakerServiceTest {
         private val deltakerV2MapperService =
             DeltakerV2MapperService(navAnsattService, navEnhetService, deltakerHistorikkService)
         private val deltakerProducer = DeltakerProducer(
-            LocalKafkaConfig(SingletonKafkaProvider.getHost()),
+            kafkaProducer,
         )
         private val deltakerV1Producer = DeltakerV1Producer(
-            LocalKafkaConfig(SingletonKafkaProvider.getHost()),
+            kafkaProducer,
         )
         private val deltakerProducerService =
             DeltakerProducerService(deltakerV2MapperService, deltakerProducer, deltakerV1Producer, unleashToggle)
         private val forslagService = ForslagService(
             forslagRepository,
-            ArrangorMeldingProducer(LocalKafkaConfig(SingletonKafkaProvider.getHost())),
+            ArrangorMeldingProducer(kafkaProducer),
             deltakerRepository,
             deltakerProducerService,
         )
