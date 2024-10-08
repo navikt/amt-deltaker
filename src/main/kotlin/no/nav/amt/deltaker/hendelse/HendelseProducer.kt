@@ -15,7 +15,7 @@ class HendelseProducer(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    suspend fun produce(hendelse: Hendelse) {
+    fun produce(hendelse: Hendelse) {
         val key = hendelse.deltaker.id.toString()
         val value = objectMapper.writeValueAsString(hendelse)
         val record = ProducerRecord(Environment.DELTAKER_HENDELSE_TOPIC, key, value)

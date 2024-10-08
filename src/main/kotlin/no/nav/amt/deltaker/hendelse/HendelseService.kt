@@ -29,7 +29,7 @@ class HendelseService(
     private val arrangorService: ArrangorService,
     private val deltakerHistorikkService: DeltakerHistorikkService,
 ) {
-    suspend fun hendelseForDeltakerEndring(
+    fun hendelseForDeltakerEndring(
         deltakerEndring: DeltakerEndring,
         deltaker: Deltaker,
         navAnsatt: NavAnsatt,
@@ -65,7 +65,7 @@ class HendelseService(
         hendelseProducer.produce(nyHendelse(deltaker, navAnsatt, navEnhet, endring))
     }
 
-    suspend fun hendelseForVedtak(
+    fun hendelseForVedtak(
         deltaker: Deltaker,
         navAnsatt: NavAnsatt,
         enhet: NavEnhet,
@@ -98,7 +98,7 @@ class HendelseService(
         )
     }
 
-    suspend fun hendelseForSistBesokt(deltaker: Deltaker, sistBesokt: ZonedDateTime) {
+    fun hendelseForSistBesokt(deltaker: Deltaker, sistBesokt: ZonedDateTime) {
         val overordnetArrangor = deltaker.deltakerliste.arrangor.overordnetArrangorId?.let { arrangorService.hentArrangor(it) }
         val forsteVedtakFattet = deltakerHistorikkService.getForsteVedtakFattet(deltaker.id)
 
