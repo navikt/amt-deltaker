@@ -22,6 +22,7 @@ import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.utils.mockAmtArrangorClient
 import no.nav.amt.deltaker.utils.mockAmtPersonClient
+import no.nav.amt.lib.kafka.Producer
 import no.nav.amt.lib.kafka.config.LocalKafkaConfig
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -48,8 +49,9 @@ class EndringFraArrangorServiceTest {
         endringFraArrangorRepository,
         ImportertFraArenaRepository(),
     )
+    private val kafkaProducer = Producer<String, String>(LocalKafkaConfig(SingletonKafkaProvider.getHost()))
     private val hendelseService = HendelseService(
-        HendelseProducer(LocalKafkaConfig(SingletonKafkaProvider.getHost())),
+        HendelseProducer(kafkaProducer),
         navAnsattService,
         navEnhetService,
         arrangorService,

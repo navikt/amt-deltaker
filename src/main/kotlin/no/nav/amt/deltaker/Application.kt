@@ -63,6 +63,9 @@ import no.nav.amt.deltaker.navbruker.NavBrukerConsumer
 import no.nav.amt.deltaker.navbruker.NavBrukerRepository
 import no.nav.amt.deltaker.navbruker.NavBrukerService
 import no.nav.amt.deltaker.unleash.UnleashToggle
+import no.nav.amt.lib.kafka.Producer
+import no.nav.amt.lib.kafka.config.KafkaConfigImpl
+import no.nav.amt.lib.kafka.config.LocalKafkaConfig
 import no.nav.amt.lib.utils.database.Database
 import no.nav.poao_tilgang.client.PoaoTilgangCachedClient
 import no.nav.poao_tilgang.client.PoaoTilgangHttpClient
@@ -120,6 +123,8 @@ fun Application.module() {
         azureAdTokenClient = azureAdTokenClient,
     )
 
+    val kafkaProducer = Producer<String, String>(if (Environment.isLocal()) LocalKafkaConfig() else KafkaConfigImpl())
+
     val arrangorRepository = ArrangorRepository()
     val navAnsattRepository = NavAnsattRepository()
     val navEnhetRepository = NavEnhetRepository()
@@ -160,11 +165,12 @@ fun Application.module() {
         importertFraArenaRepository,
     )
 
-    val hendelseProducer = HendelseProducer()
+    val hendelseProducer = HendelseProducer(kafkaProducer)
     val hendelseService = HendelseService(hendelseProducer, navAnsattService, navEnhetService, arrangorService, deltakerHistorikkService)
 
     val unleash = DefaultUnleash(
-        UnleashConfig.builder()
+        UnleashConfig
+            .builder()
             .appName(environment.appName)
             .instanceId(environment.appName)
             .unleashAPI("${environment.unleashUrl}/api")
@@ -174,11 +180,12 @@ fun Application.module() {
     val unleashToggle = UnleashToggle(unleash)
 
     val deltakerV2MapperService = DeltakerV2MapperService(navAnsattService, navEnhetService, deltakerHistorikkService)
-    val deltakerProducer = DeltakerProducer()
-    val deltakerV1Producer = DeltakerV1Producer()
+    val deltakerProducer = DeltakerProducer(kafkaProducer)
+    val deltakerV1Producer = DeltakerV1Producer(kafkaProducer)
     val deltakerProducerService = DeltakerProducerService(deltakerV2MapperService, deltakerProducer, deltakerV1Producer, unleashToggle)
 
-    val forslagService = ForslagService(forslagRepository, ArrangorMeldingProducer(), deltakerRepository, deltakerProducerService)
+    val forslagService =
+        ForslagService(forslagRepository, ArrangorMeldingProducer(kafkaProducer), deltakerRepository, deltakerProducerService)
 
     val deltakerEndringService =
         DeltakerEndringService(deltakerEndringRepository, navAnsattService, navEnhetService, hendelseService, forslagService)
