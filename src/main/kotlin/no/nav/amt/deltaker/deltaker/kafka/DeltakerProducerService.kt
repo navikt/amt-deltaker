@@ -1,7 +1,10 @@
 package no.nav.amt.deltaker.deltaker.kafka
 
 import no.nav.amt.deltaker.deltaker.model.Deltaker
+import no.nav.amt.deltaker.deltaker.model.getStatustekst
+import no.nav.amt.deltaker.deltaker.model.getVisningsnavn
 import no.nav.amt.deltaker.unleash.UnleashToggle
+import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import java.time.LocalDateTime
 import java.util.UUID
@@ -40,7 +43,11 @@ class DeltakerProducerService(
             sluttDato = deltakerV2Dto.sluttdato,
             status = DeltakerV1Dto.DeltakerStatusDto(
                 type = deltakerV2Dto.status.type,
+                statusTekst = deltakerV2Dto.status.type.getStatustekst(),
                 aarsak = deltakerV2Dto.status.aarsak,
+                aarsakTekst = deltakerV2Dto.status.aarsak?.let {
+                    DeltakerStatus.Aarsak(type = it, beskrivelse = deltakerV2Dto.status.aarsaksbeskrivelse).getVisningsnavn()
+                },
                 opprettetDato = deltakerV2Dto.status.opprettetDato,
             ),
             registrertDato = deltakerV2Dto.innsoktDato.atStartOfDay(),
@@ -48,6 +55,17 @@ class DeltakerProducerService(
             prosentStilling = deltakerV2Dto.prosentStilling?.toFloat(),
             endretDato = deltakerV2Dto.sistEndret ?: LocalDateTime.now(),
             kilde = deltakerV2Dto.kilde,
+            innhold = deltakerV2Dto.innhold?.toDeltakelsesinnholdDto(),
         )
     }
+
+    private fun Deltakelsesinnhold.toDeltakelsesinnholdDto() = DeltakerV1Dto.DeltakelsesinnholdDto(
+        ledetekst = ledetekst,
+        innhold = innhold.filter { it.valgt }.map {
+            DeltakerV1Dto.InnholdDto(
+                tekst = it.tekst,
+                innholdskode = it.innholdskode,
+            )
+        },
+    )
 }
