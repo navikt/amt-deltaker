@@ -65,7 +65,6 @@ class DeltakerProducerService(
             DeltakerV1Dto.InnholdDto(
                 tekst = it.tekst,
                 innholdskode = it.innholdskode,
-                beskrivelse = it.beskrivelse,
             )
         },
     )

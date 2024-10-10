@@ -36,6 +36,5 @@ data class DeltakerV1Dto(
     data class InnholdDto(
         val tekst: String,
         val innholdskode: String,
-        val beskrivelse: String?,
     )
 }
