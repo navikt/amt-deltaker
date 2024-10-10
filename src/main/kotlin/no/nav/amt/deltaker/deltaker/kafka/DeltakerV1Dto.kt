@@ -18,11 +18,23 @@ data class DeltakerV1Dto(
     val prosentStilling: Float?,
     val endretDato: LocalDateTime,
     val kilde: Kilde?,
+    val innhold: DeltakelsesinnholdDto?,
 ) {
     data class DeltakerStatusDto(
         val type: DeltakerStatus.Type,
         val aarsak: DeltakerStatus.Aarsak.Type?,
         val aarsakTekst: String?,
         val opprettetDato: LocalDateTime,
+    )
+
+    data class DeltakelsesinnholdDto(
+        val ledetekst: String?,
+        val innhold: List<InnholdDto>,
+    )
+
+    data class InnholdDto(
+        val tekst: String,
+        val innholdskode: String,
+        val beskrivelse: String?,
     )
 }

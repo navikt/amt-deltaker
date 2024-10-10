@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.deltaker.kafka
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.getVisningsnavn
 import no.nav.amt.deltaker.unleash.UnleashToggle
+import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import java.time.LocalDateTime
 import java.util.UUID
@@ -52,6 +53,18 @@ class DeltakerProducerService(
             prosentStilling = deltakerV2Dto.prosentStilling?.toFloat(),
             endretDato = deltakerV2Dto.sistEndret ?: LocalDateTime.now(),
             kilde = deltakerV2Dto.kilde,
+            innhold = deltakerV2Dto.innhold?.toDeltakelsesinnholdDto(),
         )
     }
+
+    private fun Deltakelsesinnhold.toDeltakelsesinnholdDto() = DeltakerV1Dto.DeltakelsesinnholdDto(
+        ledetekst = ledetekst,
+        innhold = innhold.filter { it.valgt }.map {
+            DeltakerV1Dto.InnholdDto(
+                tekst = it.tekst,
+                innholdskode = it.innholdskode,
+                beskrivelse = it.beskrivelse,
+            )
+        },
+    )
 }
