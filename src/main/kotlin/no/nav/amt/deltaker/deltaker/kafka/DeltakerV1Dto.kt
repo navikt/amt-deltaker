@@ -22,6 +22,7 @@ data class DeltakerV1Dto(
 ) {
     data class DeltakerStatusDto(
         val type: DeltakerStatus.Type,
+        val statusTekst: String,
         val aarsak: DeltakerStatus.Aarsak.Type?,
         val aarsakTekst: String?,
         val opprettetDato: LocalDateTime,

@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.deltaker.kafka
 
 import no.nav.amt.deltaker.deltaker.model.Deltaker
+import no.nav.amt.deltaker.deltaker.model.getStatustekst
 import no.nav.amt.deltaker.deltaker.model.getVisningsnavn
 import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
@@ -42,6 +43,7 @@ class DeltakerProducerService(
             sluttDato = deltakerV2Dto.sluttdato,
             status = DeltakerV1Dto.DeltakerStatusDto(
                 type = deltakerV2Dto.status.type,
+                statusTekst = deltakerV2Dto.status.type.getStatustekst(),
                 aarsak = deltakerV2Dto.status.aarsak,
                 aarsakTekst = deltakerV2Dto.status.aarsak?.let {
                     DeltakerStatus.Aarsak(type = it, beskrivelse = deltakerV2Dto.status.aarsaksbeskrivelse).getVisningsnavn()

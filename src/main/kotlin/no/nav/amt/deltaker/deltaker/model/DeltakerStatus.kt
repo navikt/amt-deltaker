@@ -41,3 +41,22 @@ fun DeltakerStatus.Aarsak.getVisningsnavn(): String {
         DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT -> "Samarbeidet med arrangøren er avbrutt"
     }
 }
+
+fun DeltakerStatus.Type.getStatustekst(): String {
+    return when (this) {
+        DeltakerStatus.Type.KLADD -> "Kladden er ikke delt"
+        DeltakerStatus.Type.UTKAST_TIL_PAMELDING -> "Utkastet er delt og venter på godkjenning"
+        DeltakerStatus.Type.AVBRUTT_UTKAST -> "Avbrutt utkast"
+        DeltakerStatus.Type.VENTER_PA_OPPSTART -> "Venter på oppstart"
+        DeltakerStatus.Type.DELTAR -> "Deltar"
+        DeltakerStatus.Type.HAR_SLUTTET -> "Har sluttet"
+        DeltakerStatus.Type.IKKE_AKTUELL -> "Ikke aktuell"
+        DeltakerStatus.Type.SOKT_INN -> "Søkt om plass"
+        DeltakerStatus.Type.VURDERES -> "Vurderes"
+        DeltakerStatus.Type.VENTELISTE -> "På venteliste"
+        DeltakerStatus.Type.AVBRUTT -> "Avbrutt"
+        DeltakerStatus.Type.FULLFORT -> "Fullført"
+        DeltakerStatus.Type.FEILREGISTRERT -> "Feilregistrert"
+        DeltakerStatus.Type.PABEGYNT_REGISTRERING -> "Påbegynt registrering"
+    }
+}

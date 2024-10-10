@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.deltaker.api.model
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.model.Deltaker
+import no.nav.amt.deltaker.deltaker.model.getStatustekst
 import no.nav.amt.deltaker.deltaker.model.getVisningsnavn
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype
@@ -98,7 +99,7 @@ class DeltakelserResponseMapper(
     private fun Deltaker.getStatus(): DeltakerKort.Status {
         return DeltakerKort.Status(
             type = status.type,
-            visningstekst = status.type.getStatustekst(),
+            visningstekst = status.type.getVisningsnavn(),
             aarsak = getArsak(),
         )
     }
@@ -112,22 +113,10 @@ class DeltakelserResponseMapper(
         }
     }
 
-    private fun DeltakerStatus.Type.getStatustekst(): String {
+    private fun DeltakerStatus.Type.getVisningsnavn(): String {
         return when (this) {
-            DeltakerStatus.Type.KLADD -> "Kladden er ikke delt"
-            DeltakerStatus.Type.UTKAST_TIL_PAMELDING -> "Utkastet er delt og venter på godkjenning"
-            DeltakerStatus.Type.AVBRUTT_UTKAST -> "Avbrutt utkast"
-            DeltakerStatus.Type.VENTER_PA_OPPSTART -> "Venter på oppstart"
-            DeltakerStatus.Type.DELTAR -> "Deltar"
-            DeltakerStatus.Type.HAR_SLUTTET -> "Har sluttet"
-            DeltakerStatus.Type.IKKE_AKTUELL -> "Ikke aktuell"
-            DeltakerStatus.Type.SOKT_INN -> "Søkt om plass"
-            DeltakerStatus.Type.VURDERES -> "Vurderes"
-            DeltakerStatus.Type.VENTELISTE -> "På venteliste"
-            DeltakerStatus.Type.AVBRUTT -> "Avbrutt"
-            DeltakerStatus.Type.FULLFORT -> "Fullført"
-            DeltakerStatus.Type.FEILREGISTRERT -> "Feilregistrert"
-            else -> throw IllegalStateException("Skal ikke vise status ${this.name}")
+            DeltakerStatus.Type.PABEGYNT_REGISTRERING -> throw IllegalStateException("Skal ikke vise status ${this.name}")
+            else -> this.getStatustekst()
         }
     }
 
