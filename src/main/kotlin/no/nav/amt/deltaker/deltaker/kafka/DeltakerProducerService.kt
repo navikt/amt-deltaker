@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.deltaker.kafka
 
 import no.nav.amt.deltaker.deltaker.model.Deltaker
+import no.nav.amt.deltaker.deltaker.model.getVisningsnavn
 import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import java.time.LocalDateTime
@@ -41,6 +42,9 @@ class DeltakerProducerService(
             status = DeltakerV1Dto.DeltakerStatusDto(
                 type = deltakerV2Dto.status.type,
                 aarsak = deltakerV2Dto.status.aarsak,
+                aarsakTekst = deltakerV2Dto.status.aarsak?.let {
+                    DeltakerStatus.Aarsak(type = it, beskrivelse = deltakerV2Dto.status.aarsaksbeskrivelse).getVisningsnavn()
+                },
                 opprettetDato = deltakerV2Dto.status.opprettetDato,
             ),
             registrertDato = deltakerV2Dto.innsoktDato.atStartOfDay(),
