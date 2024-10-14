@@ -88,6 +88,11 @@ spec:
         highAvailability: true
         insights:
           enabled: true
+        users:
+          - name: datastream
+        flags:
+          - name: cloudsql.logical_decoding
+            value: "on"
 
   observability:
       autoInstrumentation:
