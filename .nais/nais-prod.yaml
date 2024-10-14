@@ -84,15 +84,15 @@ spec:
         databases:
           - name: amt-deltaker
             envVarPrefix: DB
+            users:
+              - name: datastream
+        flags:
+          - name: cloudsql.logical_decoding
+            value: "on"
         diskAutoresize: true
         highAvailability: true
         insights:
           enabled: true
-        users:
-          - name: datastream
-        flags:
-          - name: cloudsql.logical_decoding
-            value: "on"
 
   observability:
       autoInstrumentation:

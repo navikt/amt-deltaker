@@ -84,8 +84,8 @@ spec:
         databases:
           - name: amt-deltaker
             envVarPrefix: DB
-        users:
-          - name: datastream
+            users:
+              - name: datastream
         flags:
           - name: cloudsql.logical_decoding
             value: "on"
