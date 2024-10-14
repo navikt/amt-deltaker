@@ -8,6 +8,7 @@ $$
         END IF;
     END
 $$;
+END;
 
 DO
 $$
@@ -22,6 +23,7 @@ $$
         END IF;
     END
 $$;
+END;
 
 DO
 $$
@@ -33,6 +35,7 @@ $$
         end if;
     end;
 $$;
+END;
 
 DO
 $$
@@ -44,3 +47,4 @@ $$
         end if;
     end;
 $$;
+END;
