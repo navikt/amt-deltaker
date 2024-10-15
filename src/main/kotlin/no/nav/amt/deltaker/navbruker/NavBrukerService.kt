@@ -16,7 +16,13 @@ class NavBrukerService(
 
     suspend fun get(personident: String): Result<NavBruker> {
         val brukerResult = repository.get(personident)
-        if (brukerResult.isSuccess) return brukerResult
+        if (brukerResult.isSuccess) {
+            // workaround for deltakere som ikke har fått lastet innsatsgruppe ennå
+            val bruker = brukerResult.getOrThrow()
+            if (bruker.innsatsgruppe != null) {
+                return brukerResult
+            }
+        }
 
         val bruker = amtPersonServiceClient.hentNavBruker(personident)
         bruker.navEnhetId?.let { navEnhetService.hentEllerOpprettNavEnhet(it) }
