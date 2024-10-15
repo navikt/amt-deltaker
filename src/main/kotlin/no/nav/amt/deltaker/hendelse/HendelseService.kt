@@ -18,6 +18,8 @@ import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltaker.Vedtak
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import java.util.UUID
@@ -29,6 +31,8 @@ class HendelseService(
     private val arrangorService: ArrangorService,
     private val deltakerHistorikkService: DeltakerHistorikkService,
 ) {
+    val log: Logger = LoggerFactory.getLogger(javaClass)
+
     fun hendelseForDeltakerEndring(
         deltakerEndring: DeltakerEndring,
         deltaker: Deltaker,
@@ -45,15 +49,37 @@ class HendelseService(
     }
 
     suspend fun hendelseForEndringFraArrangor(endringFraArrangor: EndringFraArrangor, deltaker: Deltaker) {
+        val navAnsatt = getNavAnsatt(deltaker)
+        val navEnhet = getNavEnhet(deltaker)
+
+        val endring = endringFraArrangor.toHendelseEndring()
+
+        hendelseProducer.produce(nyHendelse(deltaker, navAnsatt, navEnhet, endring))
+    }
+
+    private suspend fun getNavAnsatt(deltaker: Deltaker): NavAnsatt {
         if (deltaker.vedtaksinformasjon != null) {
-            val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(deltaker.vedtaksinformasjon.sistEndretAv)
-            val navEnhet = navEnhetService.hentEllerOpprettNavEnhet(deltaker.vedtaksinformasjon.sistEndretAvEnhet)
-
-            val endring = endringFraArrangor.toHendelseEndring()
-
-            hendelseProducer.produce(nyHendelse(deltaker, navAnsatt, navEnhet, endring))
+            return navAnsattService.hentEllerOpprettNavAnsatt(deltaker.vedtaksinformasjon.sistEndretAv)
+        } else if (deltaker.navBruker.navVeilederId != null) {
+            log.warn("Deltaker mangler vedtaksinformasjon, bruker veileder som avsender")
+            return navAnsattService.hentEllerOpprettNavAnsatt(deltaker.navBruker.navVeilederId)
         } else {
-            throw IllegalStateException("Kan ikke produsere hendelse for endring fra arrangør for deltaker uten vedtak, id ${deltaker.id}")
+            throw IllegalStateException(
+                "Kan ikke produsere hendelse for endring fra arrangør for deltaker uten vedtak og uten veileder, id ${deltaker.id}",
+            )
+        }
+    }
+
+    private suspend fun getNavEnhet(deltaker: Deltaker): NavEnhet {
+        if (deltaker.vedtaksinformasjon != null) {
+            return navEnhetService.hentEllerOpprettNavEnhet(deltaker.vedtaksinformasjon.sistEndretAvEnhet)
+        } else if (deltaker.navBruker.navEnhetId != null) {
+            log.warn("Deltaker mangler vedtaksinformasjon, bruker oppfølgingsenhet som avsender")
+            return navEnhetService.hentEllerOpprettNavEnhet(deltaker.navBruker.navEnhetId)
+        } else {
+            throw IllegalStateException(
+                "Kan ikke produsere hendelse for endring fra arrangør for deltaker uten vedtak og uten oppfølgingsenhet, id ${deltaker.id}",
+            )
         }
     }
 
