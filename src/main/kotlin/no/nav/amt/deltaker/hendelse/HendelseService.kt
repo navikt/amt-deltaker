@@ -49,25 +49,11 @@ class HendelseService(
     }
 
     suspend fun hendelseForEndringFraArrangor(endringFraArrangor: EndringFraArrangor, deltaker: Deltaker) {
-        val navAnsatt = getNavAnsatt(deltaker)
         val navEnhet = getNavEnhet(deltaker)
 
         val endring = endringFraArrangor.toHendelseEndring()
 
-        hendelseProducer.produce(nyHendelse(deltaker, navAnsatt, navEnhet, endring))
-    }
-
-    private suspend fun getNavAnsatt(deltaker: Deltaker): NavAnsatt {
-        if (deltaker.vedtaksinformasjon != null) {
-            return navAnsattService.hentEllerOpprettNavAnsatt(deltaker.vedtaksinformasjon.sistEndretAv)
-        } else if (deltaker.navBruker.navVeilederId != null) {
-            log.warn("Deltaker mangler vedtaksinformasjon, bruker veileder som avsender")
-            return navAnsattService.hentEllerOpprettNavAnsatt(deltaker.navBruker.navVeilederId)
-        } else {
-            throw IllegalStateException(
-                "Kan ikke produsere hendelse for endring fra arrangør for deltaker uten vedtak og uten veileder, id ${deltaker.id}",
-            )
-        }
+        hendelseProducer.produce(nyHendelseForEndringFraArrangor(deltaker, navEnhet, endring))
     }
 
     private suspend fun getNavEnhet(deltaker: Deltaker): NavEnhet {
@@ -119,6 +105,25 @@ class HendelseService(
                 navIdent = navAnsatt.navIdent,
                 navn = navAnsatt.navn,
                 enhet = HendelseAnsvarlig.NavVeileder.Enhet(navEnhet.id, navEnhet.enhetsnummer),
+            ),
+            payload = endring,
+        )
+    }
+
+    private fun nyHendelseForEndringFraArrangor(
+        deltaker: Deltaker,
+        navEnhet: NavEnhet,
+        endring: HendelseType,
+    ): Hendelse {
+        val overordnetArrangor = deltaker.deltakerliste.arrangor.overordnetArrangorId?.let { arrangorService.hentArrangor(it) }
+        val forsteVedtakFattet = deltakerHistorikkService.getForsteVedtakFattet(deltaker.id)
+
+        return Hendelse(
+            id = UUID.randomUUID(),
+            opprettet = LocalDateTime.now(),
+            deltaker = deltaker.toHendelseDeltaker(overordnetArrangor, forsteVedtakFattet),
+            ansvarlig = HendelseAnsvarlig.Arrangor(
+                enhet = HendelseAnsvarlig.Arrangor.Enhet(navEnhet.id, navEnhet.enhetsnummer),
             ),
             payload = endring,
         )
