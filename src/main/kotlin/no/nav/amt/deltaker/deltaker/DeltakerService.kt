@@ -105,9 +105,9 @@ class DeltakerService(
         "Kan ikke oppdatere feilregistrert deltaker, id ${deltaker.id}"
     }
 
-    suspend fun produserDeltakereForPerson(personident: String) {
+    suspend fun produserDeltakereForPerson(personident: String, publiserTilDeltakerV1: Boolean = true) {
         getDeltakelser(personident).forEach {
-            deltakerProducerService.produce(it)
+            deltakerProducerService.produce(it, publiserTilDeltakerV1)
         }
     }
 
