@@ -1,6 +1,5 @@
 package no.nav.amt.deltaker.deltaker.api
 
-import io.ktor.server.application.call
 import io.ktor.server.auth.authenticate
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
@@ -22,7 +21,7 @@ fun Routing.registerHentDeltakelserApi(
     authenticate("VEILEDER") {
         post("/deltakelser") {
             val request = call.receive<DeltakelserRequest>()
-            tilgangskontrollService.verifiserLesetilgang(getNavAnsattAzureId(), request.norskIdent)
+            tilgangskontrollService.verifiserLesetilgang(call.getNavAnsattAzureId(), request.norskIdent)
 
             val deltakelser = deltakerService.getDeltakelser(request.norskIdent)
                 .filter { unleashToggle.erKometMasterForTiltakstype(it.deltakerliste.tiltakstype.arenaKode) }
