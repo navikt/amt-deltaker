@@ -7,7 +7,7 @@ plugins {
     val kotlinVersion = "2.0.21"
 
     kotlin("jvm") version kotlinVersion
-    id("io.ktor.plugin") version "2.3.12"
+    id("io.ktor.plugin") version "3.0.0"
     id("org.jetbrains.kotlin.plugin.serialization") version kotlinVersion
     id("org.jlleitschuh.gradle.ktlint") version "12.1.1"
     id("com.github.johnrengelman.shadow") version "8.1.1"
@@ -18,8 +18,8 @@ repositories {
     maven { setUrl("https://github-package-registry-mirror.gc.nav.no/cached/maven-release") }
 }
 
-val kotlinVersion = "2.0.20"
-val ktorVersion = "2.3.12"
+val kotlinVersion = "2.0.21"
+val ktorVersion = "3.0.0"
 val logbackVersion = "1.5.11"
 val prometeusVersion = "1.13.6"
 val ktlintVersion = "1.2.1"
@@ -37,7 +37,7 @@ val postgresVersion = "42.7.4"
 val caffeineVersion = "3.1.8"
 val mockkVersion = "1.13.13"
 val nimbusVersion = "9.41.2"
-val amtLibVersion = "1.2024.10.14_14.25-d825028376b6"
+val amtLibVersion = "1.2024.10.17_04.40-9b8969712fac"
 val unleashVersion = "9.2.4"
 val awaitilityVersion = "4.2.2"
 
@@ -80,7 +80,7 @@ dependencies {
     implementation("com.github.seratch:kotliquery:$kotliqueryVersion")
     implementation("io.getunleash:unleash-client-java:$unleashVersion")
 
-    testImplementation("io.ktor:ktor-server-tests-jvm")
+    testImplementation("io.ktor:ktor-server-test-host")
     testImplementation("io.ktor:ktor-client-mock:$ktorVersion")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion")
     testImplementation("io.kotest:kotest-assertions-core-jvm:$kotestVersion")
