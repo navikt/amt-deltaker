@@ -45,7 +45,12 @@ class NavBrukerConsumer(
         if (harEndredePersonopplysninger(lagretNavBruker, navBrukerDto)) {
             navBrukerDto.navEnhet?.let { navEnhetService.hentEllerOpprettNavEnhet(it.enhetId) }
             repository.upsert(navBrukerDto.tilNavBruker())
-            deltakerService.produserDeltakereForPerson(navBrukerDto.personident)
+            val harEndretPersonident = lagretNavBruker?.personident != navBrukerDto.personident
+
+            deltakerService.produserDeltakereForPerson(
+                navBrukerDto.personident,
+                publiserTilDeltakerV1 = harEndretPersonident,
+            )
         }
     }
 
