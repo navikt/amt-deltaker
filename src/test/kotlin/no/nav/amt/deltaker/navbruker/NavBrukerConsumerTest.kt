@@ -64,7 +64,36 @@ class NavBrukerConsumerTest {
     }
 
     @Test
-    fun `consumeNavBruker - oppdatert navBruker - upserter`() {
+    fun `consumeNavBruker - oppdatert navBruker - ulik personident - upserter - publiserer v1 og v2`() {
+        val navEnhet = TestData.lagNavEnhet()
+        TestRepository.insert(navEnhet)
+
+        val navAnsatt = TestData.lagNavAnsatt()
+        TestRepository.insert(navAnsatt)
+        val navBruker = TestData.lagNavBruker(navEnhetId = navEnhet.id, navVeilederId = navAnsatt.id)
+        navBrukerRepository.upsert(navBruker)
+
+        val oppdatertNavBruker = navBruker.copy(fornavn = "Oppdatert NavBruker", personident = TestData.randomIdent())
+
+        val navBrukerConsumer = NavBrukerConsumer(
+            navBrukerRepository,
+            NavEnhetService(navEnhetRepository, mockAmtPersonClient()),
+            deltakerService,
+        )
+
+        runBlocking {
+            navBrukerConsumer.consume(
+                navBruker.personId,
+                objectMapper.writeValueAsString(TestData.lagNavBrukerDto(oppdatertNavBruker, navEnhet)),
+            )
+        }
+
+        navBrukerRepository.get(navBruker.personId).getOrNull() shouldBe oppdatertNavBruker
+        coVerify { deltakerService.produserDeltakereForPerson(oppdatertNavBruker.personident, true) }
+    }
+
+    @Test
+    fun `consumeNavBruker - oppdatert navBruker - lik personident - upserter - publiserer kun v2`() {
         val navEnhet = TestData.lagNavEnhet()
         TestRepository.insert(navEnhet)
 
@@ -89,7 +118,7 @@ class NavBrukerConsumerTest {
         }
 
         navBrukerRepository.get(navBruker.personId).getOrNull() shouldBe oppdatertNavBruker
-        coVerify { deltakerService.produserDeltakereForPerson(navBruker.personident) }
+        coVerify { deltakerService.produserDeltakereForPerson(oppdatertNavBruker.personident, false) }
     }
 
     @Test
