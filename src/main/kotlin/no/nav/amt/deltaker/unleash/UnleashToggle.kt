@@ -17,13 +17,9 @@ class UnleashToggle(
         Tiltakstype.ArenaKode.ARBRRHDAG,
     )
 
-    fun erKometMasterForTiltakstype(tiltakstype: Tiltakstype.ArenaKode): Boolean {
-        return tiltakstype in tiltakstyperKometErMasterFor ||
-            (unleashClient.isEnabled("amt.enable-komet-deltakere") && tiltakstype in tiltakstyperKometKanskjeErMasterFor)
-    }
+    fun erKometMasterForTiltakstype(tiltakstype: Tiltakstype.ArenaKode): Boolean = tiltakstype in tiltakstyperKometErMasterFor ||
+        (unleashClient.isEnabled("amt.enable-komet-deltakere") && tiltakstype in tiltakstyperKometKanskjeErMasterFor)
 
-    fun skalLeseArenaDeltakereForTiltakstype(tiltakstype: Tiltakstype.ArenaKode): Boolean {
-        return tiltakstype in tiltakstyperKometErMasterFor ||
-            (unleashClient.isEnabled("amt.les-arena-deltakere") && tiltakstype in tiltakstyperKometKanskjeErMasterFor)
-    }
+    fun skalLeseArenaDeltakereForTiltakstype(tiltakstype: Tiltakstype.ArenaKode): Boolean =
+        unleashClient.isEnabled("amt.les-arena-deltakere") && tiltakstype in tiltakstyperKometKanskjeErMasterFor
 }
