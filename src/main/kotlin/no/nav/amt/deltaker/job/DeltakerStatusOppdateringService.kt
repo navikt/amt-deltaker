@@ -25,7 +25,8 @@ class DeltakerStatusOppdateringService(
     }
 
     suspend fun avsluttDeltakelserForAvbruttDeltakerliste(deltakerlisteId: UUID) {
-        val deltakerePaAvbruttDeltakerliste = deltakerService.getDeltakereForDeltakerliste(deltakerlisteId)
+        val deltakerePaAvbruttDeltakerliste = deltakerService
+            .getDeltakereForDeltakerliste(deltakerlisteId)
             .filter { it.status.type != DeltakerStatus.Type.KLADD }
 
         oppdaterTilAvsluttendeStatus(deltakerePaAvbruttDeltakerliste)

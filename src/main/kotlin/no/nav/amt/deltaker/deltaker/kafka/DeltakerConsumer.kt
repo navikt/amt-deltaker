@@ -10,8 +10,8 @@ import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
-import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.deltaker.navbruker.NavBrukerService
+import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.lib.kafka.Consumer
 import no.nav.amt.lib.kafka.ManagedKafkaConsumer
 import no.nav.amt.lib.kafka.config.KafkaConfig
@@ -34,6 +34,7 @@ class DeltakerConsumer(
     private val deltakerEndringService: DeltakerEndringService,
     private val importertFraArenaRepository: ImportertFraArenaRepository,
     private val deltakerProducerService: DeltakerProducerService,
+    private val unleashToggle: UnleashToggle,
     kafkaConfig: KafkaConfig = if (Environment.isLocal()) LocalKafkaConfig() else KafkaConfigImpl("earliest"),
 ) : Consumer<UUID, String?> {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -70,7 +71,7 @@ class DeltakerConsumer(
             return
         }
 
-        if (deltakerliste.tiltakstype.arenaKode == Tiltakstype.ArenaKode.ARBFORB) {
+        if (unleashToggle.skalLeseArenaDeltakereForTiltakstype(deltakerliste.tiltakstype.arenaKode)) {
             log.info("Ingester arenadeltaker med id ${deltakerV2.id}")
             val deltaker = deltakerV2.toDeltaker(deltakerliste)
 
