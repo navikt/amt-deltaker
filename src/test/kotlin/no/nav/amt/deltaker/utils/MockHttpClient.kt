@@ -19,12 +19,15 @@ import no.nav.amt.deltaker.arrangor.AmtArrangorClient
 import no.nav.amt.deltaker.arrangor.Arrangor
 import no.nav.amt.deltaker.arrangor.ArrangorDto
 import no.nav.amt.deltaker.auth.AzureAdTokenClient
+import no.nav.amt.deltaker.isoppfolgingstilfelle.IsOppfolgingstilfelleClient
+import no.nav.amt.deltaker.isoppfolgingstilfelle.OppfolgingstilfellePersonDTO
 import no.nav.amt.deltaker.navansatt.NavAnsatt
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhet
 import no.nav.amt.deltaker.navbruker.model.NavBruker
 import no.nav.amt.deltaker.utils.data.TestData
 
 const val AMT_PERSON_URL = "http://amt-person-service"
+const val ISOPPFOLGINGSTILFELLE_URL = "https://isoppfolgingstilfelle"
 
 fun mockHttpClient(defaultResponse: Any? = null): HttpClient {
     val mockEngine = MockEngine {
@@ -56,6 +59,15 @@ fun mockAmtArrangorClient(arrangor: Arrangor = TestData.lagArrangor()): AmtArran
         baseUrl = "https://amt-arrangor",
         scope = "amt.arrangor.scope",
         httpClient = mockHttpClient(objectMapper.writeValueAsString(response)),
+        azureAdTokenClient = mockAzureAdClient(),
+    )
+}
+
+fun mockIsOppfolgingstilfelleClient(): IsOppfolgingstilfelleClient {
+    return IsOppfolgingstilfelleClient(
+        baseUrl = ISOPPFOLGINGSTILFELLE_URL,
+        scope = "isoppfolgingstilfelle.scope",
+        httpClient = mockHttpClient(),
         azureAdTokenClient = mockAzureAdClient(),
     )
 }
@@ -116,5 +128,10 @@ object MockResponseHandler {
     fun addNavBrukerResponse(navBruker: NavBruker) {
         val url = "$AMT_PERSON_URL/api/nav-bruker"
         addResponse(url, HttpMethod.Post, navBruker)
+    }
+
+    fun addOppfolgingstilfelleRespons(oppfolgingstilfellePersonDTO: OppfolgingstilfellePersonDTO) {
+        val url = "$ISOPPFOLGINGSTILFELLE_URL/api/system/v1/oppfolgingstilfelle/personident"
+        addResponse(url, HttpMethod.Get, oppfolgingstilfellePersonDTO)
     }
 }
