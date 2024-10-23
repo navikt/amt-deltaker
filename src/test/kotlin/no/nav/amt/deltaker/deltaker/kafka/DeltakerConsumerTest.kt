@@ -107,6 +107,7 @@ class DeltakerConsumerTest {
                 deltakerEndringService,
                 importertFraArenaRepository,
                 deltakerProducerService,
+                unleashToggle,
             )
         }
     }
@@ -242,6 +243,7 @@ class DeltakerConsumerTest {
         every { vedtakRepository.getForDeltaker(deltaker.id) } returns emptyList()
         every { forslagRepository.getForDeltaker(deltaker.id) } returns emptyList()
         every { endringFraArrangorRepository.getForDeltaker(deltaker.id) } returns emptyList()
+        every { unleashToggle.skalLeseArenaDeltakereForTiltakstype(deltakerliste.tiltakstype.arenaKode) } returns true
 
         val deltakerV2Dto = oppdatertDeltaker.toDeltakerV2(innsoktDato = innsoktDato)
 

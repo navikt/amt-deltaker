@@ -18,6 +18,7 @@ fun Routing.registerHentDeltakelserApi(
     deltakelserResponseMapper: DeltakelserResponseMapper,
     unleashToggle: UnleashToggle,
 ) {
+    // API til valp hvor de henter ut alle deltakelser til person
     authenticate("VEILEDER") {
         post("/deltakelser") {
             val request = call.receive<DeltakelserRequest>()
