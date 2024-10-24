@@ -236,6 +236,7 @@ fun Application.module() {
             deltakerEndringService,
             importertFraArenaRepository,
             deltakerProducerService,
+            unleashToggle,
         ),
         ArrangorMeldingConsumer(forslagService, deltakerService),
     )
