@@ -5,9 +5,12 @@ import no.nav.amt.deltaker.deltaker.api.model.KladdResponse
 import no.nav.amt.deltaker.deltaker.api.model.UtkastRequest
 import no.nav.amt.deltaker.deltaker.api.model.toKladdResponse
 import no.nav.amt.deltaker.deltaker.model.Deltaker
+import no.nav.amt.deltaker.deltaker.model.Innsatsgruppe
 import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
+import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype
+import no.nav.amt.deltaker.isoppfolgingstilfelle.IsOppfolgingstilfelleClient
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
 import no.nav.amt.deltaker.navbruker.NavBrukerService
@@ -27,6 +30,7 @@ class PameldingService(
     private val navAnsattService: NavAnsattService,
     private val navEnhetService: NavEnhetService,
     private val vedtakService: VedtakService,
+    private val isOppfolgingstilfelleClient: IsOppfolgingstilfelleClient,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -47,7 +51,7 @@ class PameldingService(
         }
         val navBruker = navBrukerService.get(personident).getOrThrow()
 
-        if (navBruker.innsatsgruppe !in deltakerliste.tiltakstype.innsatsgrupper) {
+        if (!harRiktigInnsatsgruppe(navBruker, deltakerliste)) {
             log.warn("Bruker med id ${navBruker.personId} har ikke riktig innsatsgruppe")
             throw IllegalArgumentException("Bruker har ikke riktig innsatsgruppe")
         }
@@ -136,6 +140,19 @@ class PameldingService(
         deltakerService.upsertDeltaker(oppdatertDeltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksinformasjon()))
 
         log.info("Avbrutt utkast for deltaker med id $deltakerId")
+    }
+
+    private suspend fun harRiktigInnsatsgruppe(navBruker: NavBruker, deltakerliste: Deltakerliste): Boolean {
+        return if (navBruker.innsatsgruppe in deltakerliste.tiltakstype.innsatsgrupper) {
+            true
+        } else if (deltakerliste.tiltakstype.tiltakskode == Tiltakstype.Tiltakskode.ARBEIDSRETTET_REHABILITERING &&
+            navBruker.innsatsgruppe == Innsatsgruppe.SITUASJONSBESTEMT_INNSATS
+        ) {
+            log.info("Sjekker om bruker er sykmeldt med arbeidsgiver")
+            isOppfolgingstilfelleClient.erSykmeldtMedArbeidsgiver(navBruker.personident)
+        } else {
+            false
+        }
     }
 
     private fun kanUpserteUtkast(opprinneligDeltakerStatus: DeltakerStatus) = opprinneligDeltakerStatus.type in listOf(

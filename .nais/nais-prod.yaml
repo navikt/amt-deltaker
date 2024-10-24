@@ -54,6 +54,8 @@ spec:
         - application: amt-arrangor
         - application: poao-tilgang
           namespace: poao
+        - application: isoppfolgingstilfelle
+          namespace: teamsykefravr
       external:
         - host: amt-unleash-api.nav.cloud.nais.io
   secureLogs:
@@ -74,6 +76,10 @@ spec:
       value: api://prod-gcp.poao.poao-tilgang/.default
     - name: POAO_TILGANG_URL
       value: http://poao-tilgang.poao
+    - name: ISOPPFOLGINGSTILFELLE_SCOPE
+      value: api://prod-gcp.teamsykefravr.isoppfolgingstilfelle/.default
+    - name: ISOPPFOLGINGSTILFELLE_URL
+      value: http://isoppfolgingstilfelle.teamsykefravr
 
   gcp:
     sqlInstances:

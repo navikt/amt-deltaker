@@ -19,9 +19,12 @@ import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaReposit
 import no.nav.amt.deltaker.deltaker.model.Innsatsgruppe
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
+import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.deltaker.hendelse.HendelseProducer
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.hendelse.model.HendelseType
+import no.nav.amt.deltaker.isoppfolgingstilfelle.OppfolgingstilfelleDTO
+import no.nav.amt.deltaker.isoppfolgingstilfelle.OppfolgingstilfellePersonDTO
 import no.nav.amt.deltaker.kafka.utils.assertProducedHendelse
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
@@ -34,6 +37,7 @@ import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.utils.mockAmtArrangorClient
 import no.nav.amt.deltaker.utils.mockAmtPersonClient
+import no.nav.amt.deltaker.utils.mockIsOppfolgingstilfelleClient
 import no.nav.amt.lib.kafka.Producer
 import no.nav.amt.lib.kafka.config.LocalKafkaConfig
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
@@ -53,6 +57,7 @@ class PameldingServiceTest {
         private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonClient())
         private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonClient())
         private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
+        private val isOppfolgingstilfelleClient = mockIsOppfolgingstilfelleClient()
         private val forslagRepository = ForslagRepository()
         private val deltakerRepository = DeltakerRepository()
         private val deltakerEndringRepository = DeltakerEndringRepository()
@@ -109,6 +114,7 @@ class PameldingServiceTest {
             navAnsattService = navAnsattService,
             navEnhetService = navEnhetService,
             vedtakService = vedtakService,
+            isOppfolgingstilfelleClient = isOppfolgingstilfelleClient,
         )
 
         @JvmStatic
@@ -158,6 +164,7 @@ class PameldingServiceTest {
     @Test
     fun `opprettKladd - deltaker har feil innsatsgruppe ift tiltaket - kaster IllegalArgumentException`() {
         val tiltakstype = TestData.lagTiltakstype(
+            tiltakskode = Tiltakstype.Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
             innsatsgrupper = setOf(Innsatsgruppe.VARIG_TILPASSET_INNSATS, Innsatsgruppe.SPESIELT_TILPASSET_INNSATS),
         )
         val arrangor = TestData.lagArrangor()
@@ -182,6 +189,99 @@ class PameldingServiceTest {
                     personident = navBruker.personident,
                 )
             }
+        }
+    }
+
+    @Test
+    fun `opprettKladd - ARR, deltaker har feil innsatsgruppe og ikke sykmeldt - kaster IllegalArgumentException`() {
+        val tiltakstype = TestData.lagTiltakstype(
+            tiltakskode = Tiltakstype.Tiltakskode.ARBEIDSRETTET_REHABILITERING,
+            innsatsgrupper = setOf(Innsatsgruppe.VARIG_TILPASSET_INNSATS, Innsatsgruppe.SPESIELT_TILPASSET_INNSATS),
+        )
+        val arrangor = TestData.lagArrangor()
+        val deltakerliste = TestData.lagDeltakerliste(arrangor = arrangor, tiltakstype = tiltakstype)
+        val opprettetAv = TestData.lagNavAnsatt()
+        val opprettetAvEnhet = TestData.lagNavEnhet()
+        val navBruker = TestData.lagNavBruker(
+            navVeilederId = opprettetAv.id,
+            navEnhetId = opprettetAvEnhet.id,
+            innsatsgruppe = Innsatsgruppe.SITUASJONSBESTEMT_INNSATS,
+        )
+
+        MockResponseHandler.addNavEnhetResponse(opprettetAvEnhet)
+        MockResponseHandler.addNavAnsattResponse(opprettetAv)
+        MockResponseHandler.addNavBrukerResponse(navBruker)
+        MockResponseHandler.addOppfolgingstilfelleRespons(
+            OppfolgingstilfellePersonDTO(
+                listOf(
+                    OppfolgingstilfelleDTO(
+                        arbeidstakerAtTilfelleEnd = true,
+                        start = LocalDate.now().minusMonths(3),
+                        end = LocalDate.now().minusDays(1),
+                    ),
+                ),
+            ),
+        )
+        TestRepository.insert(deltakerliste)
+
+        runBlocking {
+            assertFailsWith<IllegalArgumentException> {
+                pameldingService.opprettKladd(
+                    deltakerlisteId = deltakerliste.id,
+                    personident = navBruker.personident,
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `opprettKladd - ARR, deltaker har situasjonsbetinget inns og sykmeldt - oppretter ny deltaker`() {
+        val tiltakstype = TestData.lagTiltakstype(
+            tiltakskode = Tiltakstype.Tiltakskode.ARBEIDSRETTET_REHABILITERING,
+            innsatsgrupper = setOf(Innsatsgruppe.VARIG_TILPASSET_INNSATS, Innsatsgruppe.SPESIELT_TILPASSET_INNSATS),
+        )
+        val arrangor = TestData.lagArrangor()
+        val deltakerliste = TestData.lagDeltakerliste(arrangor = arrangor, tiltakstype = tiltakstype)
+        val opprettetAv = TestData.lagNavAnsatt()
+        val opprettetAvEnhet = TestData.lagNavEnhet()
+        val navBruker = TestData.lagNavBruker(
+            navVeilederId = opprettetAv.id,
+            navEnhetId = opprettetAvEnhet.id,
+            innsatsgruppe = Innsatsgruppe.SITUASJONSBESTEMT_INNSATS,
+        )
+
+        MockResponseHandler.addNavEnhetResponse(opprettetAvEnhet)
+        MockResponseHandler.addNavAnsattResponse(opprettetAv)
+        MockResponseHandler.addNavBrukerResponse(navBruker)
+        MockResponseHandler.addOppfolgingstilfelleRespons(
+            OppfolgingstilfellePersonDTO(
+                listOf(
+                    OppfolgingstilfelleDTO(
+                        arbeidstakerAtTilfelleEnd = true,
+                        start = LocalDate.now().minusMonths(3),
+                        end = LocalDate.now().plusDays(1),
+                    ),
+                ),
+            ),
+        )
+        TestRepository.insert(deltakerliste)
+
+        runBlocking {
+            val deltaker = pameldingService.opprettKladd(
+                deltakerlisteId = deltakerliste.id,
+                personident = navBruker.personident,
+            )
+
+            deltaker.id shouldBe deltakerService.getDeltakelser(navBruker.personident, deltakerliste.id).first().id
+            deltaker.deltakerlisteId shouldBe deltakerliste.id
+            deltaker.status.type shouldBe DeltakerStatus.Type.KLADD
+            deltaker.startdato shouldBe null
+            deltaker.sluttdato shouldBe null
+            deltaker.dagerPerUke shouldBe null
+            deltaker.deltakelsesprosent shouldBe null
+            deltaker.bakgrunnsinformasjon shouldBe null
+            deltaker.deltakelsesinnhold.ledetekst shouldBe deltakerliste.tiltakstype.innhold!!.ledetekst
+            deltaker.deltakelsesinnhold.innhold shouldBe emptyList()
         }
     }
 
