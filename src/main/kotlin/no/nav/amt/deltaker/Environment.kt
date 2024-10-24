@@ -28,6 +28,8 @@ data class Environment(
     val appName: String = "amt-deltaker",
     val unleashUrl: String = getEnvVar(UNLEASH_SERVER_API_URL),
     val unleashApiToken: String = getEnvVar(UNLEASH_SERVER_API_TOKEN),
+    val isOppfolgingstilfelleUrl: String = getEnvVar(ISOPPFOLGINGSTILFELLE_URL_KEY),
+    val isOppfolgingstilfelleScope: String = getEnvVar(ISOPPFOLGINGSTILFELLE_SCOPE_KEY),
 ) {
     companion object {
         const val DB_USERNAME_KEY = "DB_USERNAME"
@@ -63,6 +65,8 @@ data class Environment(
 
         const val POAO_TILGANG_URL_KEY = "POAO_TILGANG_URL"
         const val POAO_TILGANG_SCOPE_KEY = "POAO_TILGANG_SCOPE"
+        const val ISOPPFOLGINGSTILFELLE_URL_KEY = "ISOPPFOLGINGSTILFELLE_URL"
+        const val ISOPPFOLGINGSTILFELLE_SCOPE_KEY = "ISOPPFOLGINGSTILFELLE_SCOPE"
 
         const val ELECTOR_PATH = "ELECTOR_PATH"
 

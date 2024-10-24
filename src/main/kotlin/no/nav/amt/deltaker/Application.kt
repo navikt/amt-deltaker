@@ -51,6 +51,7 @@ import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.kafka.TiltakstypeConsumer
 import no.nav.amt.deltaker.hendelse.HendelseProducer
 import no.nav.amt.deltaker.hendelse.HendelseService
+import no.nav.amt.deltaker.isoppfolgingstilfelle.IsOppfolgingstilfelleClient
 import no.nav.amt.deltaker.job.DeltakerStatusOppdateringService
 import no.nav.amt.deltaker.job.StatusUpdateJob
 import no.nav.amt.deltaker.job.leaderelection.LeaderElection
@@ -121,6 +122,13 @@ fun Application.module() {
         scope = environment.amtArrangorScope,
         httpClient = httpClient,
         azureAdTokenClient = azureAdTokenClient,
+    )
+
+    val isOppfolgingstilfelleClient = IsOppfolgingstilfelleClient(
+        baseUrl = environment.isOppfolgingstilfelleUrl,
+        scope = environment.isOppfolgingstilfelleScope,
+        azureAdTokenClient = azureAdTokenClient,
+        httpClient = httpClient,
     )
 
     val kafkaProducer = Producer<String, String>(if (Environment.isLocal()) LocalKafkaConfig() else KafkaConfigImpl())
@@ -210,6 +218,7 @@ fun Application.module() {
         navAnsattService = navAnsattService,
         navEnhetService = navEnhetService,
         vedtakService = vedtakService,
+        isOppfolgingstilfelleClient = isOppfolgingstilfelleClient,
     )
 
     val deltakerStatusOppdateringService = DeltakerStatusOppdateringService(deltakerRepository, deltakerService, unleashToggle)
