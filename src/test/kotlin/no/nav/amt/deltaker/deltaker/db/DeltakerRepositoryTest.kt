@@ -150,6 +150,53 @@ class DeltakerRepositoryTest {
     }
 
     @Test
+    fun `upsert - har fremtidig status, ny fremtidig status - insert ny fremtidig status, deaktiver gammel fremtidig status`() {
+        val opprinneligDeltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+            sluttdato = LocalDate.now().plusWeeks(2),
+        )
+        TestRepository.insert(opprinneligDeltaker)
+
+        val gyldigFra = LocalDateTime.now().plusDays(3)
+        val oppdatertDeltakerHarSluttet = opprinneligDeltaker.copy(
+            status = TestData.lagDeltakerStatus(
+                type = DeltakerStatus.Type.HAR_SLUTTET,
+                aarsak = DeltakerStatus.Aarsak.Type.FATT_JOBB,
+                gyldigFra = gyldigFra,
+            ),
+            sluttdato = LocalDate.now().plusDays(3),
+        )
+        repository.upsert(oppdatertDeltakerHarSluttet)
+
+        val oppdatertDeltakerHarSluttetNyArsak = opprinneligDeltaker.copy(
+            status = TestData.lagDeltakerStatus(
+                type = DeltakerStatus.Type.HAR_SLUTTET,
+                aarsak = DeltakerStatus.Aarsak.Type.UTDANNING,
+                gyldigFra = gyldigFra,
+            ),
+            sluttdato = LocalDate.now().plusDays(3),
+        )
+        repository.upsert(oppdatertDeltakerHarSluttetNyArsak)
+
+        sammenlignDeltakere(
+            repository.get(opprinneligDeltaker.id).getOrThrow(),
+            opprinneligDeltaker.copy(sluttdato = oppdatertDeltakerHarSluttetNyArsak.sluttdato),
+        )
+
+        val statuser = repository.getDeltakerStatuser(opprinneligDeltaker.id)
+        statuser.first { it.id == opprinneligDeltaker.status.id }.gyldigTil shouldBe null
+        statuser.first { it.id == opprinneligDeltaker.status.id }.type shouldBe DeltakerStatus.Type.DELTAR
+        statuser.first { it.id == oppdatertDeltakerHarSluttet.status.id }.gyldigTil shouldNotBe null
+        statuser.first { it.id == oppdatertDeltakerHarSluttet.status.id }.gyldigFra shouldBeCloseTo gyldigFra
+        statuser.first { it.id == oppdatertDeltakerHarSluttet.status.id }.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+        statuser.first { it.id == oppdatertDeltakerHarSluttet.status.id }.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
+        statuser.first { it.id == oppdatertDeltakerHarSluttetNyArsak.status.id }.gyldigTil shouldBe null
+        statuser.first { it.id == oppdatertDeltakerHarSluttetNyArsak.status.id }.gyldigFra shouldBeCloseTo gyldigFra
+        statuser.first { it.id == oppdatertDeltakerHarSluttetNyArsak.status.id }.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+        statuser.first { it.id == oppdatertDeltakerHarSluttetNyArsak.status.id }.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.UTDANNING
+    }
+
+    @Test
     fun `skalHaStatusDeltar - venter pa oppstart, startdato passer - returnerer deltaker`() {
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
