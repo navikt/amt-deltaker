@@ -194,6 +194,7 @@ class DeltakerEndringServiceTest {
             dagerPerUke = null,
             forslagId = null,
             begrunnelse = "begrunnelse",
+            gyldigFra = LocalDate.now(),
         )
 
         val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)

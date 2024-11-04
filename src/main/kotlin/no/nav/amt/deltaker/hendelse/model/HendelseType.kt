@@ -46,6 +46,7 @@ sealed interface HendelseType {
     data class EndreDeltakelsesmengde(
         val deltakelsesprosent: Float?,
         val dagerPerUke: Float?,
+        val gyldigFra: LocalDate?,
         override val begrunnelseFraNav: String?,
         override val begrunnelseFraArrangor: String?,
         override val endringFraForslag: Forslag.Endring?,
@@ -141,6 +142,7 @@ fun DeltakerEndring.toHendelseEndring(utkast: UtkastDto? = null) = when (val end
     is DeltakerEndring.Endring.EndreDeltakelsesmengde -> HendelseType.EndreDeltakelsesmengde(
         endring.deltakelsesprosent,
         endring.dagerPerUke,
+        endring.gyldigFra,
         begrunnelseFraNav = endring.begrunnelse,
         begrunnelseFraArrangor = forslag?.begrunnelse,
         endringFraForslag = forslag?.endring,
