@@ -132,7 +132,7 @@ class DeltakerRepository {
             ) {
                 tx.update(deaktiverTidligereStatuserQuery(deltaker.status, deltaker.id))
             } else {
-                tx.update(deaktiverTidligereFremtidigeStatuserQuery(deltaker.status, deltaker.id))
+                tx.update(slettTidligereFremtidigeStatuserQuery(deltaker.status, deltaker.id))
             }
         }
     }
@@ -416,11 +416,10 @@ class DeltakerRepository {
         return queryOf(sql, mapOf("id" to status.id, "deltaker_id" to deltakerId))
     }
 
-    private fun deaktiverTidligereFremtidigeStatuserQuery(status: DeltakerStatus, deltakerId: UUID): Query {
+    private fun slettTidligereFremtidigeStatuserQuery(status: DeltakerStatus, deltakerId: UUID): Query {
         val sql =
             """
-            update deltaker_status
-            set gyldig_til = current_timestamp
+            delete from deltaker_status
             where deltaker_id = :deltaker_id 
               and id != :id 
               and gyldig_til is null
