@@ -127,7 +127,7 @@ class DeltakerApiTest {
     fun `post deltakelsesmengde - har tilgang - returnerer 200`() = testApplication {
         setUpTestApplication()
 
-        val endring = DeltakerEndring.Endring.EndreDeltakelsesmengde(50F, 2F, "begrunnelse")
+        val endring = DeltakerEndring.Endring.EndreDeltakelsesmengde(50F, 2F, LocalDate.now(), "begrunnelse")
 
         val deltaker = TestData.lagDeltaker(
             deltakelsesprosent = endring.deltakelsesprosent,
@@ -148,6 +148,7 @@ class DeltakerApiTest {
                         endring.deltakelsesprosent?.toInt(),
                         endring.dagerPerUke?.toInt(),
                         endring.begrunnelse,
+                        LocalDate.now(),
                     ),
                 )
             }.apply {

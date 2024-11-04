@@ -53,6 +53,7 @@ class DeltakerEndringService(
                     deltakelsesprosent = request.deltakelsesprosent?.toFloat(),
                     dagerPerUke = request.dagerPerUke?.toFloat(),
                     begrunnelse = request.begrunnelse,
+                    gyldigFra = request.gyldigFra,
                 )
                 Pair(endretDeltaker(deltaker, endring), endring)
             }

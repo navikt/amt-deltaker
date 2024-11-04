@@ -33,6 +33,7 @@ data class DeltakelsesmengdeRequest(
     val deltakelsesprosent: Int?,
     val dagerPerUke: Int?,
     val begrunnelse: String?,
+    val gyldigFra: LocalDate?,
 ) : EndringForslagRequest
 
 data class StartdatoRequest(
