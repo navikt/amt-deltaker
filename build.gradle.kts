@@ -37,7 +37,7 @@ val postgresVersion = "42.7.4"
 val caffeineVersion = "3.1.8"
 val mockkVersion = "1.13.13"
 val nimbusVersion = "9.46"
-val amtLibVersion = "1.2024.11.01_10.23-dc688a94080d"
+val amtLibVersion = "1.2024.11.07_10.39-3f91b2e85249"
 val unleashVersion = "9.2.4"
 val awaitilityVersion = "4.2.2"
 

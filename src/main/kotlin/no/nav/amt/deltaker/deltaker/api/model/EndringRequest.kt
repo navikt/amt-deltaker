@@ -97,3 +97,40 @@ fun EndringRequest.getForslagId(): UUID? = if (this is EndringForslagRequest) {
 } else {
     null
 }
+
+fun EndringRequest.toDeltakerEndringEndring() = when (this) {
+    is SluttdatoRequest -> DeltakerEndring.Endring.EndreSluttdato(this.sluttdato, this.begrunnelse)
+    is SluttarsakRequest -> DeltakerEndring.Endring.EndreSluttarsak(this.aarsak, this.begrunnelse)
+    is ForlengDeltakelseRequest -> DeltakerEndring.Endring.ForlengDeltakelse(this.sluttdato, this.begrunnelse)
+    is IkkeAktuellRequest -> DeltakerEndring.Endring.IkkeAktuell(this.aarsak, this.begrunnelse)
+    is AvsluttDeltakelseRequest -> DeltakerEndring.Endring.AvsluttDeltakelse(
+        this.aarsak,
+        this.sluttdato,
+        this.begrunnelse,
+    )
+
+    is ReaktiverDeltakelseRequest -> DeltakerEndring.Endring.ReaktiverDeltakelse(
+        LocalDate.now(),
+        this.begrunnelse,
+    )
+
+    is BakgrunnsinformasjonRequest -> DeltakerEndring.Endring.EndreBakgrunnsinformasjon(this.bakgrunnsinformasjon)
+    is InnholdRequest -> DeltakerEndring.Endring.EndreInnhold(
+        this.deltakelsesinnhold.ledetekst,
+        this.deltakelsesinnhold.innhold,
+    )
+
+    is DeltakelsesmengdeRequest -> DeltakerEndring.Endring.EndreDeltakelsesmengde(
+        deltakelsesprosent = this.deltakelsesprosent?.toFloat(),
+        dagerPerUke = this.dagerPerUke?.toFloat(),
+        begrunnelse = this.begrunnelse,
+        gyldigFra = this.gyldigFra,
+    )
+
+    is StartdatoRequest ->
+        DeltakerEndring.Endring.EndreStartdato(
+            startdato = this.startdato,
+            sluttdato = this.sluttdato,
+            this.begrunnelse,
+        )
+}
