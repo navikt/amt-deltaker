@@ -41,13 +41,13 @@ class DeltakerService(
     fun getDeltakerIder(personId: UUID, deltakerlisteId: UUID) =
         deltakerRepository.getDeltakerIder(personId = personId, deltakerlisteId = deltakerlisteId)
 
-    suspend fun upsertDeltaker(deltaker: Deltaker): Deltaker {
+    suspend fun upsertDeltaker(deltaker: Deltaker, forcedUpdate: Boolean? = false): Deltaker {
         deltakerRepository.upsert(deltaker.copy(sistEndret = LocalDateTime.now()))
 
         val oppdatertDeltaker = get(deltaker.id).getOrThrow()
 
         if (oppdatertDeltaker.status.type != DeltakerStatus.Type.KLADD) {
-            deltakerProducerService.produce(oppdatertDeltaker)
+            deltakerProducerService.produce(oppdatertDeltaker, forcedUpdate = forcedUpdate)
         }
 
         log.info("Oppdatert deltaker med id ${deltaker.id}")

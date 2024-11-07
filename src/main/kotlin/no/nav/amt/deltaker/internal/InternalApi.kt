@@ -44,6 +44,7 @@ fun Routing.registerInternalApi(deltakerService: DeltakerService, deltakerProduc
                                 opprettet = LocalDateTime.now(),
                             ),
                         ),
+                        forcedUpdate = true,
                     )
                 }
 
