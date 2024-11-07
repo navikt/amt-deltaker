@@ -13,6 +13,9 @@ import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengde
+import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
+import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -25,6 +28,8 @@ class DeltakerEndringService(
     private val forslagService: ForslagService,
     private val deltakerHistorikkService: DeltakerHistorikkService,
 ) {
+    private val log = LoggerFactory.getLogger(javaClass)
+
     fun getForDeltaker(deltakerId: UUID) = repository.getForDeltaker(deltakerId)
 
     fun deleteForDeltaker(deltakerId: UUID) = repository.deleteForDeltaker(deltakerId)
@@ -32,9 +37,9 @@ class DeltakerEndringService(
     suspend fun upsertEndring(deltaker: Deltaker, request: EndringRequest): DeltakerEndringUtfall {
         val deltakerEndringHandler = DeltakerEndringHandler(deltaker, request.toDeltakerEndringEndring(), deltakerHistorikkService)
 
-        val endringsresultat = deltakerEndringHandler.endre()
+        val utfall = deltakerEndringHandler.endre()
 
-        endringsresultat.onVellykketEllerFremtidigEndring {
+        utfall.onVellykketEllerFremtidigEndring {
             val ansatt = navAnsattService.hentEllerOpprettNavAnsatt(request.endretAv)
             val enhet = navEnhetService.hentEllerOpprettNavEnhet(request.endretAvEnhet)
             val godkjentForslag = request.getForslagId()?.let { forslagId ->
@@ -55,12 +60,40 @@ class DeltakerEndringService(
                 forslag = godkjentForslag,
             )
 
-            repository.upsert(deltakerEndring)
+            val behandlet = if (utfall.erVellykket) LocalDateTime.now() else null
+
+            repository.upsert(deltakerEndring, behandlet)
             hendelseService.hendelseForDeltakerEndring(deltakerEndring, it, ansatt, enhet)
         }
 
-        return endringsresultat
+        return utfall
     }
+
+    fun behandleLagretDeltakelsesmengde(endring: DeltakerEndring, deltaker: Deltaker): DeltakerEndringUtfall {
+        val deltakelsesmengde = endring.toDeltakelsesmengde()
+            ?: throw IllegalStateException("Endring ${endring.id} er ikke en EndreDeltakelsesmengde")
+
+        val gyldigeDeltakelsesmengder = deltakerHistorikkService.getForDeltaker(deltaker.id).toDeltakelsesmengder()
+
+        val utfall = if (deltakelsesmengde == gyldigeDeltakelsesmengder.gjeldende) {
+            DeltakerEndringUtfall.VellykketEndring(
+                deltaker.copy(
+                    deltakelsesprosent = deltakelsesmengde.deltakelsesprosent,
+                    dagerPerUke = deltakelsesmengde.dagerPerUke,
+                ),
+            )
+        } else {
+            DeltakerEndringUtfall.UgyldigEndring(IllegalStateException())
+        }
+
+        log.info("Behandler endring: ${endring.id}, utfall: ${utfall::class.simpleName}, deltaker: ${deltaker.id}")
+
+        repository.upsert(endring, LocalDateTime.now())
+
+        return utfall
+    }
+
+    fun getUbehandledeDeltakelsesmengder(offset: Int) = repository.getUbehandletDeltakelsesmengder(offset)
 }
 
 fun Deltaker.getStatusEndretStartOgSluttdato(startdato: LocalDate?, sluttdato: LocalDate?): DeltakerStatus =

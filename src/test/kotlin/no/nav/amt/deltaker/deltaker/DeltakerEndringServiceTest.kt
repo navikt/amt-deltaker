@@ -18,6 +18,7 @@ import no.nav.amt.deltaker.deltaker.api.model.StartdatoRequest
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
+import no.nav.amt.deltaker.deltaker.db.sammenlignDeltakerEndring
 import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringService
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
@@ -52,6 +53,7 @@ import org.junit.BeforeClass
 import org.junit.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.UUID
 
 class DeltakerEndringServiceTest {
     private val amtPersonClient = mockAmtPersonClient()
@@ -60,8 +62,9 @@ class DeltakerEndringServiceTest {
     private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
     private val forslagRepository = ForslagRepository()
     private val kafkaProducer = Producer<String, String>(LocalKafkaConfig(SingletonKafkaProvider.getHost()))
+    private val deltakerEndringRepository = DeltakerEndringRepository()
     private val deltakerHistorikkService = DeltakerHistorikkService(
-        DeltakerEndringRepository(),
+        deltakerEndringRepository,
         VedtakRepository(),
         forslagRepository,
         EndringFraArrangorRepository(),
@@ -82,7 +85,7 @@ class DeltakerEndringServiceTest {
     )
 
     private val deltakerEndringService = DeltakerEndringService(
-        repository = DeltakerEndringRepository(),
+        repository = deltakerEndringRepository,
         navAnsattService = navAnsattService,
         navEnhetService = navEnhetService,
         hendelseService = hendelseService,
@@ -806,5 +809,100 @@ class DeltakerEndringServiceTest {
             .begrunnelse shouldBe endringsrequest.begrunnelse
 
         assertProducedHendelse(deltaker.id, HendelseType.ReaktiverDeltakelse::class)
+    }
+
+    @Test
+    fun `behandleLagretEndring - ubehandlet gyldig endring - oppdaterer deltaker og upserter endring med behandlet`() {
+        val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR))
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+
+        TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
+
+        val deltakelsesprosent = 50F
+        val dagerPerUke = 3F
+        val id = UUID.randomUUID()
+
+        val ubehandletEndring = TestData.lagDeltakerEndring(
+            id = id,
+            deltakerId = deltaker.id,
+            endretAv = endretAv.id,
+            endretAvEnhet = endretAvEnhet.id,
+            endring = DeltakerEndring.Endring.EndreDeltakelsesmengde(
+                deltakelsesprosent = deltakelsesprosent,
+                dagerPerUke = dagerPerUke,
+                gyldigFra = LocalDate.now(),
+                begrunnelse = "begrunnelse",
+            ),
+            endret = LocalDateTime.now().minusDays(1),
+        )
+
+        deltakerEndringRepository.upsert(
+            deltakerEndring = ubehandletEndring,
+            behandlet = null,
+        )
+
+        val resultat = deltakerEndringService.behandleLagretDeltakelsesmengde(ubehandletEndring, deltaker)
+
+        resultat.erVellykket shouldBe true
+        val oppdatertDeltaker = resultat.getOrThrow()
+        oppdatertDeltaker.deltakelsesprosent shouldBe deltakelsesprosent
+        oppdatertDeltaker.dagerPerUke shouldBe dagerPerUke
+
+        val ubehandlete = deltakerEndringRepository.getUbehandletDeltakelsesmengder()
+        ubehandlete.size shouldBe 0
+    }
+
+    @Test
+    fun `behandleLagretEndring - ubehandlet ugyldig endring - oppdaterer ikke deltaker og upserter endring med behandlet`() {
+        val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR))
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+        val vedtak = TestData.lagVedtak(
+            deltakerVedVedtak = deltaker,
+            opprettetAv = endretAv,
+            opprettetAvEnhet = endretAvEnhet,
+            fattet = LocalDateTime.now().minusHours(1),
+        )
+
+        TestRepository.insertAll(deltaker, endretAv, endretAvEnhet, vedtak)
+
+        val ugyldigEndring = TestData.lagDeltakerEndring(
+            deltakerId = deltaker.id,
+            endretAv = endretAv.id,
+            endretAvEnhet = endretAvEnhet.id,
+            endring = DeltakerEndring.Endring.EndreDeltakelsesmengde(
+                deltakelsesprosent = 90F,
+                dagerPerUke = null,
+                gyldigFra = LocalDate.now(),
+                begrunnelse = "begrunnelse",
+            ),
+            endret = LocalDateTime.now().minusSeconds(2),
+        )
+
+        val gyldigEndring = TestData.lagDeltakerEndring(
+            deltakerId = deltaker.id,
+            endretAv = endretAv.id,
+            endretAvEnhet = endretAvEnhet.id,
+            endring = DeltakerEndring.Endring.EndreDeltakelsesmengde(
+                deltakelsesprosent = 80F,
+                dagerPerUke = null,
+                gyldigFra = LocalDate.now(),
+                begrunnelse = "begrunnelse",
+            ),
+            endret = LocalDateTime.now().minusSeconds(1),
+        )
+
+        deltakerEndringRepository.upsert(ugyldigEndring, null)
+        deltakerEndringRepository.upsert(gyldigEndring, null)
+
+        val resultat = deltakerEndringService.behandleLagretDeltakelsesmengde(ugyldigEndring, deltaker)
+
+        resultat.erUgyldig shouldBe true
+
+        val ubehandlete = deltakerEndringRepository.getUbehandletDeltakelsesmengder()
+
+        ubehandlete.size shouldBe 1
+        sammenlignDeltakerEndring(ubehandlete.first(), gyldigEndring)
     }
 }

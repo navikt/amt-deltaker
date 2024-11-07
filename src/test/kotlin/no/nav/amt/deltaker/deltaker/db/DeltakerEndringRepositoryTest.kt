@@ -11,6 +11,7 @@ import no.nav.amt.lib.testing.shouldBeCloseTo
 import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test
+import java.time.LocalDate
 
 class DeltakerEndringRepositoryTest {
     companion object {
@@ -103,12 +104,67 @@ class DeltakerEndringRepositoryTest {
         endringFraDb.size shouldBe 0
     }
 
-    private fun sammenlignDeltakerEndring(a: DeltakerEndring, b: DeltakerEndring) {
-        a.id shouldBe b.id
-        a.deltakerId shouldBe b.deltakerId
-        a.endring shouldBe b.endring
-        a.endretAv shouldBe b.endretAv
-        a.endretAvEnhet shouldBe b.endretAvEnhet
-        a.endret shouldBeCloseTo b.endret
+    @Test
+    fun `getUbehandletDeltakelsesmengder - returnerer endringer som skal behandles i dag`() {
+        val navAnsatt = TestData.lagNavAnsatt()
+        val navEnhet = TestData.lagNavEnhet()
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+        )
+        TestRepository.insertAll(navEnhet, navAnsatt, deltaker)
+
+        val behandlet = TestData.lagDeltakerEndring(
+            deltakerId = deltaker.id,
+            endretAv = navAnsatt.id,
+            endretAvEnhet = navEnhet.id,
+            endring = DeltakerEndring.Endring.EndreDeltakelsesmengde(
+                deltakelsesprosent = 100F,
+                dagerPerUke = null,
+                gyldigFra = LocalDate.now().plusMonths(1),
+                begrunnelse = null,
+            ),
+        )
+
+        val skalBehandles = TestData.lagDeltakerEndring(
+            deltakerId = deltaker.id,
+            endretAv = navAnsatt.id,
+            endretAvEnhet = navEnhet.id,
+            endring = DeltakerEndring.Endring.EndreDeltakelsesmengde(
+                deltakelsesprosent = 42F,
+                dagerPerUke = null,
+                gyldigFra = LocalDate.now(),
+                begrunnelse = null,
+            ),
+        )
+
+        val skalBehandlesSenere = TestData.lagDeltakerEndring(
+            deltakerId = deltaker.id,
+            endretAv = navAnsatt.id,
+            endretAvEnhet = navEnhet.id,
+            endring = DeltakerEndring.Endring.EndreDeltakelsesmengde(
+                deltakelsesprosent = 100F,
+                dagerPerUke = null,
+                gyldigFra = LocalDate.now().plusMonths(1),
+                begrunnelse = null,
+            ),
+        )
+
+        repository.upsert(behandlet)
+        repository.upsert(skalBehandles, null)
+        repository.upsert(skalBehandlesSenere, null)
+
+        val endringer = repository.getUbehandletDeltakelsesmengder()
+
+        endringer.size shouldBe 1
+        sammenlignDeltakerEndring(endringer.first(), skalBehandles)
     }
+}
+
+fun sammenlignDeltakerEndring(a: DeltakerEndring, b: DeltakerEndring) {
+    a.id shouldBe b.id
+    a.deltakerId shouldBe b.deltakerId
+    a.endring shouldBe b.endring
+    a.endretAv shouldBe b.endretAv
+    a.endretAvEnhet shouldBe b.endretAvEnhet
+    a.endret shouldBeCloseTo b.endret
 }
