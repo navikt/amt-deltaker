@@ -823,23 +823,21 @@ class DeltakerEndringServiceTest {
         val dagerPerUke = 3F
         val id = UUID.randomUUID()
 
-        val ubehandletEndring = TestData.lagDeltakerEndring(
-            id = id,
-            deltakerId = deltaker.id,
-            endretAv = endretAv.id,
-            endretAvEnhet = endretAvEnhet.id,
-            endring = DeltakerEndring.Endring.EndreDeltakelsesmengde(
-                deltakelsesprosent = deltakelsesprosent,
-                dagerPerUke = dagerPerUke,
-                gyldigFra = LocalDate.now(),
-                begrunnelse = "begrunnelse",
+        val ubehandletEndring = upsertEndring(
+            TestData.lagDeltakerEndring(
+                id = id,
+                deltakerId = deltaker.id,
+                endretAv = endretAv.id,
+                endretAvEnhet = endretAvEnhet.id,
+                endring = DeltakerEndring.Endring.EndreDeltakelsesmengde(
+                    deltakelsesprosent = deltakelsesprosent,
+                    dagerPerUke = dagerPerUke,
+                    gyldigFra = LocalDate.now(),
+                    begrunnelse = "begrunnelse",
+                ),
+                endret = LocalDateTime.now().minusDays(1),
             ),
-            endret = LocalDateTime.now().minusDays(1),
-        )
-
-        deltakerEndringRepository.upsert(
-            deltakerEndring = ubehandletEndring,
-            behandlet = null,
+            null,
         )
 
         val resultat = deltakerEndringService.behandleLagretDeltakelsesmengde(ubehandletEndring, deltaker)
@@ -867,34 +865,37 @@ class DeltakerEndringServiceTest {
 
         TestRepository.insertAll(deltaker, endretAv, endretAvEnhet, vedtak)
 
-        val ugyldigEndring = TestData.lagDeltakerEndring(
-            deltakerId = deltaker.id,
-            endretAv = endretAv.id,
-            endretAvEnhet = endretAvEnhet.id,
-            endring = DeltakerEndring.Endring.EndreDeltakelsesmengde(
-                deltakelsesprosent = 90F,
-                dagerPerUke = null,
-                gyldigFra = LocalDate.now(),
-                begrunnelse = "begrunnelse",
+        val ugyldigEndring = upsertEndring(
+            TestData.lagDeltakerEndring(
+                deltakerId = deltaker.id,
+                endretAv = endretAv.id,
+                endretAvEnhet = endretAvEnhet.id,
+                endring = DeltakerEndring.Endring.EndreDeltakelsesmengde(
+                    deltakelsesprosent = 90F,
+                    dagerPerUke = null,
+                    gyldigFra = LocalDate.now(),
+                    begrunnelse = "begrunnelse",
+                ),
+                endret = LocalDateTime.now().minusSeconds(2),
             ),
-            endret = LocalDateTime.now().minusSeconds(2),
+            null,
         )
 
-        val gyldigEndring = TestData.lagDeltakerEndring(
-            deltakerId = deltaker.id,
-            endretAv = endretAv.id,
-            endretAvEnhet = endretAvEnhet.id,
-            endring = DeltakerEndring.Endring.EndreDeltakelsesmengde(
-                deltakelsesprosent = 80F,
-                dagerPerUke = null,
-                gyldigFra = LocalDate.now(),
-                begrunnelse = "begrunnelse",
+        val gyldigEndring = upsertEndring(
+            TestData.lagDeltakerEndring(
+                deltakerId = deltaker.id,
+                endretAv = endretAv.id,
+                endretAvEnhet = endretAvEnhet.id,
+                endring = DeltakerEndring.Endring.EndreDeltakelsesmengde(
+                    deltakelsesprosent = 80F,
+                    dagerPerUke = null,
+                    gyldigFra = LocalDate.now(),
+                    begrunnelse = "begrunnelse",
+                ),
+                endret = LocalDateTime.now().minusSeconds(1),
             ),
-            endret = LocalDateTime.now().minusSeconds(1),
+            null,
         )
-
-        deltakerEndringRepository.upsert(ugyldigEndring, null)
-        deltakerEndringRepository.upsert(gyldigEndring, null)
 
         val resultat = deltakerEndringService.behandleLagretDeltakelsesmengde(ugyldigEndring, deltaker)
 
@@ -904,5 +905,13 @@ class DeltakerEndringServiceTest {
 
         ubehandlete.size shouldBe 1
         sammenlignDeltakerEndring(ubehandlete.first(), gyldigEndring)
+    }
+
+    private fun upsertEndring(endring: DeltakerEndring, behandlet: LocalDateTime? = null): DeltakerEndring {
+        deltakerEndringRepository.upsert(
+            deltakerEndring = endring,
+            behandlet = behandlet,
+        )
+        return deltakerEndringRepository.get(endring.id).getOrThrow()
     }
 }
