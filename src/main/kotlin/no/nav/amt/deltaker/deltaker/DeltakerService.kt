@@ -47,7 +47,11 @@ class DeltakerService(
 
     private suspend fun upsertDeltakerMedFremtidigEndring(deltaker: Deltaker): Deltaker = upsert(deltaker, true)
 
-    private suspend fun upsert(deltaker: Deltaker, erFremtidigEndring: Boolean, forcedUpdate: Boolean? = false): Deltaker {
+    private suspend fun upsert(
+        deltaker: Deltaker,
+        erFremtidigEndring: Boolean,
+        forcedUpdate: Boolean? = false,
+    ): Deltaker {
         deltakerRepository.upsert(deltaker.copy(sistEndret = LocalDateTime.now()))
 
         val oppdatertDeltaker = get(deltaker.id).getOrThrow()
