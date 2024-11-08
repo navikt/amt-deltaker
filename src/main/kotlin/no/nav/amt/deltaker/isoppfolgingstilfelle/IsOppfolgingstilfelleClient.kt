@@ -21,7 +21,7 @@ class IsOppfolgingstilfelleClient(
     private val azureAdTokenClient: AzureAdTokenClient,
 ) {
     val log: Logger = LoggerFactory.getLogger(javaClass)
-    private val personIdentHeader = "NAV_PERSONIDENT_HEADER"
+    private val personIdentHeader = "nav-personident"
 
     suspend fun erSykmeldtMedArbeidsgiver(personident: String): Boolean {
         val oppfolgingstilfeller = hentOppfolgingstilfeller(personident).oppfolgingstilfelleList
