@@ -57,7 +57,6 @@ class DeltakerService(
         val oppdatertDeltaker = get(deltaker.id).getOrThrow()
 
         if (oppdatertDeltaker.status.type != DeltakerStatus.Type.KLADD) {
-            deltakerProducerService.produce(oppdatertDeltaker)
             deltakerProducerService.produce(oppdatertDeltaker, forcedUpdate = forcedUpdate, publiserTilDeltakerV1 = !erFremtidigEndring)
         }
 
