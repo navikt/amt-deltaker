@@ -37,7 +37,7 @@ class DeltakerEndringService(
     suspend fun upsertEndring(deltaker: Deltaker, request: EndringRequest): DeltakerEndringUtfall {
         val deltakerEndringHandler = DeltakerEndringHandler(deltaker, request.toDeltakerEndringEndring(), deltakerHistorikkService)
 
-        val utfall = deltakerEndringHandler.endre()
+        val utfall = deltakerEndringHandler.handle()
 
         utfall.onVellykketEllerFremtidigEndring {
             val ansatt = navAnsattService.hentEllerOpprettNavAnsatt(request.endretAv)
@@ -83,7 +83,7 @@ class DeltakerEndringService(
                 ),
             )
         } else {
-            DeltakerEndringUtfall.UgyldigEndring(IllegalStateException())
+            DeltakerEndringUtfall.UgyldigEndring(IllegalStateException("Endringen er ikke lenger gyldig"))
         }
 
         log.info("Behandler endring: ${endring.id}, utfall: ${utfall::class.simpleName}, deltaker: ${deltaker.id}")

@@ -16,7 +16,7 @@ class DeltakerEndringHandler(
     val endring: DeltakerEndring.Endring,
     private val deltakerHistorikkService: DeltakerHistorikkService,
 ) {
-    fun endre(): DeltakerEndringUtfall = when (endring) {
+    fun handle(): DeltakerEndringUtfall = when (endring) {
         is DeltakerEndring.Endring.AvsluttDeltakelse -> avsluttDeltakelses(endring)
         is DeltakerEndring.Endring.EndreBakgrunnsinformasjon -> endreBakgrunnsinformasjon(endring)
         is DeltakerEndring.Endring.EndreDeltakelsesmengde -> endreDeltakelsesmengde(endring)

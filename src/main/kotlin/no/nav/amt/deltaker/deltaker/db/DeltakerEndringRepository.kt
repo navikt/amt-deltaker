@@ -7,6 +7,7 @@ import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.utils.toPGObject
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
+import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.utils.database.Database
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -76,7 +77,7 @@ class DeltakerEndringRepository {
             selectDeltakerEndring(
                 """
                 de.behandlet is null 
-                and ds.type in ('VENTER_PA_OPPSTART', 'DELTAR')
+                and ds.type in ('${DeltakerStatus.Type.VENTER_PA_OPPSTART.name}', '${DeltakerStatus.Type.DELTAR.name}')
                 and de.endring->>'type' = :type
                 and de.endring->>'gyldigFra' <= :now
                 """.trimIndent(),
