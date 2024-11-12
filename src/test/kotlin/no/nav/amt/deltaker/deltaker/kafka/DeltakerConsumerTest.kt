@@ -116,6 +116,7 @@ class DeltakerConsumerTest {
     fun cleanDatabase() {
         TestRepository.cleanDatabase()
         clearMocks(deltakerV1Producer, deltakerEndringService)
+        every { unleashToggle.erKometMasterForTiltakstype(Tiltakstype.ArenaKode.ARBFORB) } returns true
     }
 
     @Test
