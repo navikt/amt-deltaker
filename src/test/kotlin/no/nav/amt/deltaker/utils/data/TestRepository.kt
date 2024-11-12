@@ -336,11 +336,11 @@ object TestRepository {
         it.update(queryOf(sql, params))
     }
 
-    fun insert(deltakerEndring: DeltakerEndring) = Database.query {
+    fun insert(deltakerEndring: DeltakerEndring, behandlet: LocalDateTime? = LocalDateTime.now()) = Database.query {
         val sql =
             """
-            insert into deltaker_endring (id, deltaker_id, endring, endret_av, endret_av_enhet, modified_at, forslag_id)
-            values (:id, :deltaker_id, :endring, :endret_av, :endret_av_enhet, :endret, :forslag_id)
+            insert into deltaker_endring (id, deltaker_id, endring, endret, endret_av, endret_av_enhet, modified_at, forslag_id, behandlet)
+            values (:id, :deltaker_id, :endring, :endret, :endret_av, :endret_av_enhet, current_timestamp, :forslag_id, :behandlet)
             on conflict (id) do nothing;
             """.trimIndent()
 
@@ -348,10 +348,12 @@ object TestRepository {
             "id" to deltakerEndring.id,
             "deltaker_id" to deltakerEndring.deltakerId,
             "endring" to toPGObject(deltakerEndring.endring),
+            "endret" to deltakerEndring.endret,
             "endret_av" to deltakerEndring.endretAv,
             "endret_av_enhet" to deltakerEndring.endretAvEnhet,
             "endret" to deltakerEndring.endret,
             "forslag_id" to deltakerEndring.forslag?.id,
+            "behandlet" to behandlet,
         )
 
         it.update(queryOf(sql, params))

@@ -1,6 +1,6 @@
 package no.nav.amt.deltaker.deltaker.endring.fra.arrangor
 
-import no.nav.amt.deltaker.deltaker.getStatusEndretStartOgSluttdato
+import no.nav.amt.deltaker.deltaker.endring.getStatusEndretStartOgSluttdato
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor

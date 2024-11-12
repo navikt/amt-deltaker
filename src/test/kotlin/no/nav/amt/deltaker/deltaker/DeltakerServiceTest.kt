@@ -13,6 +13,7 @@ import no.nav.amt.deltaker.deltaker.api.model.ForlengDeltakelseRequest
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
+import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringService
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorService
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
@@ -100,7 +101,14 @@ class DeltakerServiceTest {
         )
         private val vedtakService = VedtakService(vedtakRepository, hendelseService)
         private val deltakerEndringService =
-            DeltakerEndringService(deltakerEndringRepository, navAnsattService, navEnhetService, hendelseService, forslagService)
+            DeltakerEndringService(
+                deltakerEndringRepository,
+                navAnsattService,
+                navEnhetService,
+                hendelseService,
+                forslagService,
+                deltakerHistorikkService,
+            )
         private val endringFraArrangorService = EndringFraArrangorService(endringFraArrangorRepository, hendelseService)
 
         private val deltakerService = DeltakerService(

@@ -8,11 +8,11 @@ import io.mockk.verify
 import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.amtperson.AmtPersonServiceClient
 import no.nav.amt.deltaker.application.plugins.objectMapper
-import no.nav.amt.deltaker.deltaker.DeltakerEndringService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
+import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringService
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository

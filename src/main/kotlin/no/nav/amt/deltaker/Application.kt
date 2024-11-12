@@ -24,7 +24,6 @@ import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.auth.AzureAdTokenClient
 import no.nav.amt.deltaker.auth.TilgangskontrollService
-import no.nav.amt.deltaker.deltaker.DeltakerEndringService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.PameldingService
@@ -33,6 +32,8 @@ import no.nav.amt.deltaker.deltaker.api.model.DeltakelserResponseMapper
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
+import no.nav.amt.deltaker.deltaker.endring.DeltakelsesmengdeUpdateJob
+import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringService
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorService
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
@@ -196,7 +197,14 @@ fun Application.module() {
         ForslagService(forslagRepository, ArrangorMeldingProducer(kafkaProducer), deltakerRepository, deltakerProducerService)
 
     val deltakerEndringService =
-        DeltakerEndringService(deltakerEndringRepository, navAnsattService, navEnhetService, hendelseService, forslagService)
+        DeltakerEndringService(
+            deltakerEndringRepository,
+            navAnsattService,
+            navEnhetService,
+            hendelseService,
+            forslagService,
+            deltakerHistorikkService,
+        )
     val deltakelserResponseMapper = DeltakelserResponseMapper(deltakerHistorikkService, arrangorService)
 
     val endringFraArrangorService = EndringFraArrangorService(endringFraArrangorRepository, hendelseService)
@@ -256,6 +264,9 @@ fun Application.module() {
 
     val statusUpdateJob = StatusUpdateJob(leaderElection, attributes, deltakerStatusOppdateringService)
     statusUpdateJob.startJob()
+
+    val deltakelsesmengdeUpdateJob = DeltakelsesmengdeUpdateJob(leaderElection, attributes, deltakerEndringService, deltakerService)
+    deltakelsesmengdeUpdateJob.startJob()
 
     attributes.put(isReadyKey, true)
 }
