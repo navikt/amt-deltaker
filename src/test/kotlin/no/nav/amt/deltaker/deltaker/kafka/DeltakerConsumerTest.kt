@@ -4,7 +4,6 @@ import io.kotest.matchers.shouldBe
 import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.verify
 import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.amtperson.AmtPersonServiceClient
 import no.nav.amt.deltaker.application.plugins.objectMapper
@@ -17,9 +16,9 @@ import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepos
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.model.Kilde
+import no.nav.amt.deltaker.deltaker.sammenlignHistorikk
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype
-import no.nav.amt.deltaker.kafka.utils.assertOnProducedDeltaker
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
 import no.nav.amt.deltaker.navbruker.NavBrukerRepository
@@ -31,12 +30,9 @@ import no.nav.amt.deltaker.utils.data.TestData.lagNavBruker
 import no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype
 import no.nav.amt.deltaker.utils.data.TestData.toDeltakerV2
 import no.nav.amt.deltaker.utils.data.TestRepository
-import no.nav.amt.lib.kafka.Producer
-import no.nav.amt.lib.kafka.config.LocalKafkaConfig
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
-import no.nav.amt.lib.testing.SingletonKafkaProvider
 import no.nav.amt.lib.testing.SingletonPostgres16Container
 import no.nav.amt.lib.testing.shouldBeCloseTo
 import org.awaitility.Awaitility
@@ -59,11 +55,7 @@ class DeltakerConsumerTest {
         lateinit var navAnsattService: NavAnsattService
         lateinit var unleashToggle: UnleashToggle
         lateinit var consumer: DeltakerConsumer
-        lateinit var deltakerProducer: DeltakerProducer
-        lateinit var deltakerV1Producer: DeltakerV1Producer
         lateinit var deltakerEndringService: DeltakerEndringService
-        lateinit var deltakerV2MapperService: DeltakerV2MapperService
-        lateinit var deltakerProducerService: DeltakerProducerService
         lateinit var deltakerHistorikkService: DeltakerHistorikkService
         lateinit var deltakerEndringRepository: DeltakerEndringRepository
         lateinit var vedtakRepository: VedtakRepository
@@ -74,7 +66,6 @@ class DeltakerConsumerTest {
         @BeforeClass
         fun setup() {
             SingletonPostgres16Container
-            val kafkaProducer = Producer<String, String>(LocalKafkaConfig(SingletonKafkaProvider.getHost()))
             deltakerRepository = DeltakerRepository()
             importertFraArenaRepository = ImportertFraArenaRepository()
             deltakerlisteRepository = DeltakerlisteRepository()
@@ -96,17 +87,12 @@ class DeltakerConsumerTest {
                 importertFraArenaRepository,
             )
             deltakerEndringService = mockk()
-            deltakerV2MapperService = DeltakerV2MapperService(navAnsattService, navEnhetService, deltakerHistorikkService)
-            deltakerProducer = DeltakerProducer(kafkaProducer)
-            deltakerV1Producer = mockk(relaxed = true)
-            deltakerProducerService = DeltakerProducerService(deltakerV2MapperService, deltakerProducer, deltakerV1Producer, unleashToggle)
             consumer = DeltakerConsumer(
                 deltakerRepository,
                 deltakerlisteRepository,
                 navBrukerService,
                 deltakerEndringService,
                 importertFraArenaRepository,
-                deltakerProducerService,
                 unleashToggle,
             )
         }
@@ -115,8 +101,7 @@ class DeltakerConsumerTest {
     @Before
     fun cleanDatabase() {
         TestRepository.cleanDatabase()
-        clearMocks(deltakerV1Producer, deltakerEndringService)
-        every { unleashToggle.erKometMasterForTiltakstype(Tiltakstype.ArenaKode.ARBFORB) } returns true
+        clearMocks(deltakerEndringService)
     }
 
     @Test
@@ -173,15 +158,6 @@ class DeltakerConsumerTest {
             ),
         )
 
-        val expectedProducedDeltaker = deltakerV2Dto.copy(
-            historikk = listOf(expectedHistorikk),
-            bestillingTekst = null,
-            forsteVedtakFattet = expectedHistorikk.importertFraArena.deltakerVedImport.innsoktDato,
-        )
-
-        assertOnProducedDeltaker(expectedProducedDeltaker)
-        verify(exactly = 0) { deltakerV1Producer.produce(any()) }
-
         val insertedDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
 
         insertedDeltaker.deltakerliste.id shouldBe deltaker.deltakerliste.id
@@ -206,6 +182,9 @@ class DeltakerConsumerTest {
         importertFraArena.deltakerVedImport.dagerPerUke shouldBe deltakerV2Dto.dagerPerUke
         importertFraArena.deltakerVedImport.deltakelsesprosent shouldBe deltakerV2Dto.prosentStilling?.toFloat()
         importertFraArena.deltakerVedImport.status.type shouldBe deltakerV2Dto.status.type
+
+        val historikk = deltakerHistorikkService.getForDeltaker(deltaker.id)
+        sammenlignHistorikk(historikk.first(), expectedHistorikk)
     }
 
     @Test
@@ -260,15 +239,6 @@ class DeltakerConsumerTest {
             ),
         )
 
-        val expectedProducedDeltaker = deltakerV2Dto.copy(
-            historikk = listOf(expectedHistorikk),
-            bestillingTekst = null,
-            forsteVedtakFattet = expectedHistorikk.importertFraArena.deltakerVedImport.innsoktDato,
-        )
-
-        assertOnProducedDeltaker(expectedProducedDeltaker)
-        verify(exactly = 0) { deltakerV1Producer.produce(any()) }
-
         val insertedDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
 
         insertedDeltaker.deltakerliste.id shouldBe oppdatertDeltaker.deltakerliste.id
@@ -293,5 +263,8 @@ class DeltakerConsumerTest {
         importertFraArena.deltakerVedImport.dagerPerUke shouldBe deltakerV2Dto.dagerPerUke
         importertFraArena.deltakerVedImport.deltakelsesprosent shouldBe deltakerV2Dto.prosentStilling?.toFloat()
         importertFraArena.deltakerVedImport.status.type shouldBe deltakerV2Dto.status.type
+
+        val historikk = deltakerHistorikkService.getForDeltaker(deltaker.id)
+        sammenlignHistorikk(historikk.first(), expectedHistorikk)
     }
 }
