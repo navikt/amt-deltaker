@@ -23,9 +23,11 @@ class DeltakerProducerService(
         if (deltaker.status.type == DeltakerStatus.Type.KLADD) return
         val deltakerV2Dto = deltakerV2MapperService.tilDeltakerV2Dto(deltaker, forcedUpdate)
 
-        deltakerProducer.produce(deltakerV2Dto)
-        if (publiserTilDeltakerV1 && unleashToggle.erKometMasterForTiltakstype(deltaker.deltakerliste.tiltakstype.arenaKode)) {
-            deltakerV1Producer.produce(toDeltakerV1Dto(deltakerV2Dto))
+        if (unleashToggle.erKometMasterForTiltakstype(deltaker.deltakerliste.tiltakstype.arenaKode)) {
+            deltakerProducer.produce(deltakerV2Dto)
+            if (publiserTilDeltakerV1) {
+                deltakerV1Producer.produce(toDeltakerV1Dto(deltakerV2Dto))
+            }
         }
     }
 
