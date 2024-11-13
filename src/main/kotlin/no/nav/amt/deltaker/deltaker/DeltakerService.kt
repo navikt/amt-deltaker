@@ -2,6 +2,8 @@ package no.nav.amt.deltaker.deltaker
 
 import no.nav.amt.deltaker.deltaker.api.model.EndringRequest
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
+import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringService
+import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringUtfall
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorService
 import no.nav.amt.deltaker.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
@@ -41,13 +43,21 @@ class DeltakerService(
     fun getDeltakerIder(personId: UUID, deltakerlisteId: UUID) =
         deltakerRepository.getDeltakerIder(personId = personId, deltakerlisteId = deltakerlisteId)
 
-    suspend fun upsertDeltaker(deltaker: Deltaker, forcedUpdate: Boolean? = false): Deltaker {
+    suspend fun upsertDeltaker(deltaker: Deltaker, forcedUpdate: Boolean? = false): Deltaker = upsert(deltaker, false, forcedUpdate)
+
+    private suspend fun upsertDeltakerMedFremtidigEndring(deltaker: Deltaker): Deltaker = upsert(deltaker, true)
+
+    private suspend fun upsert(
+        deltaker: Deltaker,
+        erFremtidigEndring: Boolean,
+        forcedUpdate: Boolean? = false,
+    ): Deltaker {
         deltakerRepository.upsert(deltaker.copy(sistEndret = LocalDateTime.now()))
 
         val oppdatertDeltaker = get(deltaker.id).getOrThrow()
 
         if (oppdatertDeltaker.status.type != DeltakerStatus.Type.KLADD) {
-            deltakerProducerService.produce(oppdatertDeltaker, forcedUpdate = forcedUpdate)
+            deltakerProducerService.produce(oppdatertDeltaker, forcedUpdate = forcedUpdate, publiserTilDeltakerV1 = !erFremtidigEndring)
         }
 
         log.info("Oppdatert deltaker med id ${deltaker.id}")
@@ -77,14 +87,11 @@ class DeltakerService(
         val deltaker = get(deltakerId).getOrThrow()
         validerIkkeFeilregistrert(deltaker)
 
-        return deltakerEndringService.upsertEndring(deltaker, request).fold(
-            onSuccess = { endretDeltaker ->
-                return@fold upsertDeltaker(endretDeltaker)
-            },
-            onFailure = {
-                return@fold deltaker
-            },
-        )
+        return when (val resultat = deltakerEndringService.upsertEndring(deltaker, request)) {
+            is DeltakerEndringUtfall.VellykketEndring -> upsertDeltaker(resultat.deltaker)
+            is DeltakerEndringUtfall.FremtidigEndring -> upsertDeltakerMedFremtidigEndring(resultat.deltaker)
+            is DeltakerEndringUtfall.UgyldigEndring -> deltaker
+        }
     }
 
     suspend fun upsertEndretDeltaker(endring: EndringFraArrangor): Deltaker {

@@ -18,6 +18,8 @@ import no.nav.amt.deltaker.deltaker.api.model.StartdatoRequest
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
+import no.nav.amt.deltaker.deltaker.db.sammenlignDeltakerEndring
+import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringService
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagService
@@ -51,6 +53,7 @@ import org.junit.BeforeClass
 import org.junit.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.UUID
 
 class DeltakerEndringServiceTest {
     private val amtPersonClient = mockAmtPersonClient()
@@ -59,8 +62,9 @@ class DeltakerEndringServiceTest {
     private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
     private val forslagRepository = ForslagRepository()
     private val kafkaProducer = Producer<String, String>(LocalKafkaConfig(SingletonKafkaProvider.getHost()))
+    private val deltakerEndringRepository = DeltakerEndringRepository()
     private val deltakerHistorikkService = DeltakerHistorikkService(
-        DeltakerEndringRepository(),
+        deltakerEndringRepository,
         VedtakRepository(),
         forslagRepository,
         EndringFraArrangorRepository(),
@@ -81,11 +85,12 @@ class DeltakerEndringServiceTest {
     )
 
     private val deltakerEndringService = DeltakerEndringService(
-        repository = DeltakerEndringRepository(),
+        repository = deltakerEndringRepository,
         navAnsattService = navAnsattService,
         navEnhetService = navEnhetService,
         hendelseService = hendelseService,
         forslagService = forslagService,
+        deltakerHistorikkService = deltakerHistorikkService,
     )
 
     companion object {
@@ -117,7 +122,7 @@ class DeltakerEndringServiceTest {
 
         val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)
 
-        resultat.isSuccess shouldBe true
+        resultat.erVellykket shouldBe true
         resultat.getOrThrow().bakgrunnsinformasjon shouldBe endringsrequest.bakgrunnsinformasjon
 
         val endring = deltakerEndringService.getForDeltaker(deltaker.id).first()
@@ -146,7 +151,7 @@ class DeltakerEndringServiceTest {
 
         val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)
 
-        resultat.isFailure shouldBe true
+        resultat.erUgyldig shouldBe true
 
         deltakerEndringService.getForDeltaker(deltaker.id).isEmpty() shouldBe true
     }
@@ -167,7 +172,7 @@ class DeltakerEndringServiceTest {
 
         val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)
 
-        resultat.isSuccess shouldBe true
+        resultat.erVellykket shouldBe true
         resultat.getOrThrow().deltakelsesinnhold shouldBe endringsrequest.deltakelsesinnhold
 
         val endring = deltakerEndringService.getForDeltaker(deltaker.id).first()
@@ -199,10 +204,47 @@ class DeltakerEndringServiceTest {
 
         val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)
 
-        resultat.isSuccess shouldBe true
+        resultat.erVellykket shouldBe true
         val oppdatertDeltaker = resultat.getOrThrow()
         oppdatertDeltaker.deltakelsesprosent shouldBe endringsrequest.deltakelsesprosent?.toFloat()
         oppdatertDeltaker.dagerPerUke shouldBe null
+
+        val endring = deltakerEndringService.getForDeltaker(deltaker.id).first()
+        endring.endretAv shouldBe endretAv.id
+        endring.endretAvEnhet shouldBe endretAvEnhet.id
+
+        (endring.endring as DeltakerEndring.Endring.EndreDeltakelsesmengde)
+            .deltakelsesprosent shouldBe endringsrequest.deltakelsesprosent
+        (endring.endring as DeltakerEndring.Endring.EndreDeltakelsesmengde)
+            .dagerPerUke shouldBe endringsrequest.dagerPerUke
+
+        assertProducedHendelse(deltaker.id, HendelseType.EndreDeltakelsesmengde::class)
+    }
+
+    @Test
+    fun `upsertEndring - fremtidig deltakelsesmengde - upserter endring, endrer ikke deltaker`(): Unit = runBlocking {
+        val deltaker = TestData.lagDeltaker()
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+
+        TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
+
+        val endringsrequest = DeltakelsesmengdeRequest(
+            endretAv = endretAv.navIdent,
+            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            deltakelsesprosent = 50,
+            dagerPerUke = null,
+            forslagId = null,
+            begrunnelse = "begrunnelse",
+            gyldigFra = LocalDate.now().plusDays(1),
+        )
+
+        val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)
+
+        resultat.erFremtidig shouldBe true
+        val oppdatertDeltaker = resultat.getOrThrow()
+        oppdatertDeltaker.deltakelsesprosent shouldBe deltaker.deltakelsesprosent
+        oppdatertDeltaker.dagerPerUke shouldBe deltaker.dagerPerUke
 
         val endring = deltakerEndringService.getForDeltaker(deltaker.id).first()
         endring.endretAv shouldBe endretAv.id
@@ -235,7 +277,7 @@ class DeltakerEndringServiceTest {
 
         val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)
 
-        resultat.isSuccess shouldBe true
+        resultat.erVellykket shouldBe true
         val deltakerFraDb = resultat.getOrThrow()
         deltakerFraDb.status.type shouldBe DeltakerStatus.Type.DELTAR
         deltakerFraDb.startdato shouldBe endringsrequest.startdato
@@ -272,7 +314,7 @@ class DeltakerEndringServiceTest {
 
         val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)
 
-        resultat.isSuccess shouldBe true
+        resultat.erVellykket shouldBe true
         val deltakerFraDb = resultat.getOrThrow()
         deltakerFraDb.status.type shouldBe DeltakerStatus.Type.DELTAR
         deltakerFraDb.startdato shouldBe endringsrequest.startdato
@@ -309,7 +351,7 @@ class DeltakerEndringServiceTest {
 
         val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)
 
-        resultat.isSuccess shouldBe true
+        resultat.erVellykket shouldBe true
         val deltakerFraDb = resultat.getOrThrow()
         deltakerFraDb.status.type shouldBe DeltakerStatus.Type.IKKE_AKTUELL
         deltakerFraDb.startdato shouldBe null
@@ -344,7 +386,7 @@ class DeltakerEndringServiceTest {
 
         val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)
 
-        resultat.isSuccess shouldBe true
+        resultat.erVellykket shouldBe true
         val deltakerFraDb = resultat.getOrThrow()
         deltakerFraDb.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
         deltakerFraDb.startdato shouldBe endringsrequest.startdato
@@ -379,7 +421,7 @@ class DeltakerEndringServiceTest {
 
         val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)
 
-        resultat.isSuccess shouldBe true
+        resultat.erVellykket shouldBe true
         val deltakerFraDb = resultat.getOrThrow()
         deltakerFraDb.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
         deltakerFraDb.startdato shouldBe endringsrequest.startdato
@@ -418,7 +460,7 @@ class DeltakerEndringServiceTest {
 
         val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)
 
-        resultat.isSuccess shouldBe true
+        resultat.erVellykket shouldBe true
         val deltakerFraDb = resultat.getOrThrow()
         deltakerFraDb.status.type shouldBe DeltakerStatus.Type.DELTAR
         deltakerFraDb.startdato shouldBe endringsrequest.startdato
@@ -452,7 +494,7 @@ class DeltakerEndringServiceTest {
 
         val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)
 
-        resultat.isSuccess shouldBe true
+        resultat.erVellykket shouldBe true
         val oppdatertDeltaker = resultat.getOrThrow()
         oppdatertDeltaker.sluttdato shouldBe endringsrequest.sluttdato
         oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
@@ -483,7 +525,7 @@ class DeltakerEndringServiceTest {
 
         val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)
 
-        resultat.isSuccess shouldBe true
+        resultat.erVellykket shouldBe true
         val oppdatertDeltaker = resultat.getOrThrow()
         oppdatertDeltaker.sluttdato shouldBe endringsrequest.sluttdato
         oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.DELTAR
@@ -518,7 +560,7 @@ class DeltakerEndringServiceTest {
 
         val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)
 
-        resultat.isSuccess shouldBe true
+        resultat.erVellykket shouldBe true
         val deltakerFraDb = resultat.getOrThrow()
         deltakerFraDb.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
         deltakerFraDb.status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
@@ -552,7 +594,7 @@ class DeltakerEndringServiceTest {
 
         val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)
 
-        resultat.isSuccess shouldBe true
+        resultat.erVellykket shouldBe true
         val deltakerFraDb = resultat.getOrThrow()
         deltakerFraDb.sluttdato shouldBe endringsrequest.sluttdato
         deltakerFraDb.status.type shouldBe DeltakerStatus.Type.DELTAR
@@ -602,7 +644,7 @@ class DeltakerEndringServiceTest {
 
         val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)
 
-        resultat.isSuccess shouldBe true
+        resultat.erVellykket shouldBe true
         val deltakerFraDb = resultat.getOrThrow()
         deltakerFraDb.status.type shouldBe DeltakerStatus.Type.IKKE_AKTUELL
         deltakerFraDb.status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
@@ -661,7 +703,7 @@ class DeltakerEndringServiceTest {
 
         val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)
 
-        resultat.isSuccess shouldBe true
+        resultat.erVellykket shouldBe true
         val deltakerFraDb = resultat.getOrThrow()
         deltakerFraDb.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
         deltakerFraDb.status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
@@ -717,7 +759,7 @@ class DeltakerEndringServiceTest {
 
         val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)
 
-        resultat.isSuccess shouldBe true
+        resultat.erVellykket shouldBe true
         val deltakerFraDb = resultat.getOrThrow()
         deltakerFraDb.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
         deltakerFraDb.status.gyldigFra.toLocalDate() shouldBe endringsrequest.sluttdato.plusDays(1)
@@ -751,7 +793,7 @@ class DeltakerEndringServiceTest {
 
         val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)
 
-        resultat.isSuccess shouldBe true
+        resultat.erVellykket shouldBe true
         val deltakerFraDb = resultat.getOrThrow()
         deltakerFraDb.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
         deltakerFraDb.startdato shouldBe null
@@ -767,5 +809,109 @@ class DeltakerEndringServiceTest {
             .begrunnelse shouldBe endringsrequest.begrunnelse
 
         assertProducedHendelse(deltaker.id, HendelseType.ReaktiverDeltakelse::class)
+    }
+
+    @Test
+    fun `behandleLagretEndring - ubehandlet gyldig endring - oppdaterer deltaker og upserter endring med behandlet`() {
+        val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR))
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+
+        TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
+
+        val deltakelsesprosent = 50F
+        val dagerPerUke = 3F
+        val id = UUID.randomUUID()
+
+        val ubehandletEndring = upsertEndring(
+            TestData.lagDeltakerEndring(
+                id = id,
+                deltakerId = deltaker.id,
+                endretAv = endretAv.id,
+                endretAvEnhet = endretAvEnhet.id,
+                endring = DeltakerEndring.Endring.EndreDeltakelsesmengde(
+                    deltakelsesprosent = deltakelsesprosent,
+                    dagerPerUke = dagerPerUke,
+                    gyldigFra = LocalDate.now(),
+                    begrunnelse = "begrunnelse",
+                ),
+                endret = LocalDateTime.now().minusDays(1),
+            ),
+            null,
+        )
+
+        val resultat = deltakerEndringService.behandleLagretDeltakelsesmengde(ubehandletEndring, deltaker)
+
+        resultat.erVellykket shouldBe true
+        val oppdatertDeltaker = resultat.getOrThrow()
+        oppdatertDeltaker.deltakelsesprosent shouldBe deltakelsesprosent
+        oppdatertDeltaker.dagerPerUke shouldBe dagerPerUke
+
+        val ubehandlete = deltakerEndringRepository.getUbehandletDeltakelsesmengder()
+        ubehandlete.size shouldBe 0
+    }
+
+    @Test
+    fun `behandleLagretEndring - ubehandlet ugyldig endring - oppdaterer ikke deltaker og upserter endring med behandlet`() {
+        val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR))
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+        val vedtak = TestData.lagVedtak(
+            deltakerVedVedtak = deltaker,
+            opprettetAv = endretAv,
+            opprettetAvEnhet = endretAvEnhet,
+            fattet = LocalDateTime.now().minusHours(1),
+        )
+
+        TestRepository.insertAll(deltaker, endretAv, endretAvEnhet, vedtak)
+
+        val ugyldigEndring = upsertEndring(
+            TestData.lagDeltakerEndring(
+                deltakerId = deltaker.id,
+                endretAv = endretAv.id,
+                endretAvEnhet = endretAvEnhet.id,
+                endring = DeltakerEndring.Endring.EndreDeltakelsesmengde(
+                    deltakelsesprosent = 90F,
+                    dagerPerUke = null,
+                    gyldigFra = LocalDate.now(),
+                    begrunnelse = "begrunnelse",
+                ),
+                endret = LocalDateTime.now().minusSeconds(2),
+            ),
+            null,
+        )
+
+        val gyldigEndring = upsertEndring(
+            TestData.lagDeltakerEndring(
+                deltakerId = deltaker.id,
+                endretAv = endretAv.id,
+                endretAvEnhet = endretAvEnhet.id,
+                endring = DeltakerEndring.Endring.EndreDeltakelsesmengde(
+                    deltakelsesprosent = 80F,
+                    dagerPerUke = null,
+                    gyldigFra = LocalDate.now(),
+                    begrunnelse = "begrunnelse",
+                ),
+                endret = LocalDateTime.now().minusSeconds(1),
+            ),
+            null,
+        )
+
+        val resultat = deltakerEndringService.behandleLagretDeltakelsesmengde(ugyldigEndring, deltaker)
+
+        resultat.erUgyldig shouldBe true
+
+        val ubehandlete = deltakerEndringRepository.getUbehandletDeltakelsesmengder()
+
+        ubehandlete.size shouldBe 1
+        sammenlignDeltakerEndring(ubehandlete.first(), gyldigEndring)
+    }
+
+    private fun upsertEndring(endring: DeltakerEndring, behandlet: LocalDateTime? = null): DeltakerEndring {
+        deltakerEndringRepository.upsert(
+            deltakerEndring = endring,
+            behandlet = behandlet,
+        )
+        return deltakerEndringRepository.get(endring.id).getOrThrow()
     }
 }

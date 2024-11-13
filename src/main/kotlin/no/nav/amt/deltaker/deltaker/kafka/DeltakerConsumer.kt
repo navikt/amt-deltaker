@@ -3,8 +3,8 @@ package no.nav.amt.deltaker.deltaker.kafka
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.application.plugins.objectMapper
-import no.nav.amt.deltaker.deltaker.DeltakerEndringService
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
+import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringService
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.Kilde
@@ -113,8 +113,8 @@ class DeltakerConsumer(
         sistEndret = sistEndret ?: LocalDateTime.now(),
     )
 
-    private fun skalLagreBestillingstekst(deltakerId: UUID): Boolean {
-        return deltakerEndringService.getForDeltaker(deltakerId).any { it.endring is DeltakerEndring.Endring.EndreBakgrunnsinformasjon }
+    private fun skalLagreBestillingstekst(deltakerId: UUID): Boolean = deltakerEndringService.getForDeltaker(deltakerId).any {
+        it.endring is DeltakerEndring.Endring.EndreBakgrunnsinformasjon
     }
 }
 
