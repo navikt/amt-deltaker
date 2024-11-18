@@ -123,7 +123,6 @@ class DeltakelserResponseMapper(
     private fun lagTittel(deltaker: Deltaker): String {
         val arrangorNavn = deltaker.deltakerliste.getArrangorNavn()
         return when (deltaker.deltakerliste.tiltakstype.arenaKode) {
-            Tiltakstype.ArenaKode.DIGIOPPARB -> "Digitalt jobbsøkerkurs hos $arrangorNavn"
             Tiltakstype.ArenaKode.JOBBK -> "Jobbsøkerkurs hos $arrangorNavn"
             Tiltakstype.ArenaKode.GRUPPEAMO -> if (deltaker.deltarPaKurs()) {
                 "Kurs: ${deltaker.deltakerliste.navn}"
