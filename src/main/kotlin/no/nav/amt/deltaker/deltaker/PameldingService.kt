@@ -49,6 +49,10 @@ class PameldingService(
             log.warn("Deltakerliste med id $deltakerlisteId er avsluttet")
             throw IllegalArgumentException("Deltakerliste er avsluttet")
         }
+        if (!deltakerliste.apentForPamelding) {
+            log.warn("Deltakerliste med id $deltakerlisteId er ikke åpen for påmelding")
+            throw IllegalArgumentException("Deltakerliste er ikke åpen for påmelding")
+        }
         val navBruker = navBrukerService.get(personident).getOrThrow()
 
         if (!harRiktigInnsatsgruppe(navBruker, deltakerliste)) {
