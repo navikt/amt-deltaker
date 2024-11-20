@@ -14,6 +14,7 @@ data class DeltakerlisteDto(
     val status: String,
     val virksomhetsnummer: String,
     val oppstart: Deltakerliste.Oppstartstype?,
+    val apentForPamelding: Boolean?,
 ) {
     data class Tiltakstype(
         val navn: String,
@@ -29,5 +30,6 @@ data class DeltakerlisteDto(
         sluttDato = this.sluttDato,
         oppstart = this.oppstart,
         arrangor = arrangor,
+        apentForPamelding = apentForPamelding ?: true,
     )
 }

@@ -214,8 +214,8 @@ object TestRepository {
         Database.query {
             val sql =
                 """
-                INSERT INTO deltakerliste( id, navn, status, arrangor_id, tiltakstype_id, start_dato, slutt_dato, oppstart)
-                VALUES (:id, :navn, :status, :arrangor_id, :tiltakstype_id, :start_dato, :slutt_dato, :oppstart) 
+                INSERT INTO deltakerliste( id, navn, status, arrangor_id, tiltakstype_id, start_dato, slutt_dato, oppstart, apent_for_pamelding)
+                VALUES (:id, :navn, :status, :arrangor_id, :tiltakstype_id, :start_dato, :slutt_dato, :oppstart, :apent_for_pamelding) 
                 """.trimIndent()
 
             it.update(
@@ -230,6 +230,7 @@ object TestRepository {
                         "start_dato" to deltakerliste.startDato,
                         "slutt_dato" to deltakerliste.sluttDato,
                         "oppstart" to deltakerliste.oppstart?.name,
+                        "apent_for_pamelding" to deltakerliste.apentForPamelding,
                     ),
                 ),
             )

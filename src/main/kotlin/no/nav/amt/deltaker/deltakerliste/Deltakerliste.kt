@@ -13,6 +13,7 @@ data class Deltakerliste(
     val startDato: LocalDate,
     val sluttDato: LocalDate? = null,
     val oppstart: Oppstartstype?,
+    val apentForPamelding: Boolean,
     val arrangor: Arrangor,
 ) {
     enum class Oppstartstype {

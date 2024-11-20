@@ -138,7 +138,8 @@ object TestData {
         startDato: LocalDate = LocalDate.now().minusMonths(1),
         sluttDato: LocalDate? = LocalDate.now().plusYears(1),
         oppstart: Deltakerliste.Oppstartstype? = finnOppstartstype(tiltakstype.arenaKode),
-    ) = Deltakerliste(id, tiltakstype, navn, status, startDato, sluttDato, oppstart, arrangor)
+        apentForPamelding: Boolean = true,
+    ) = Deltakerliste(id, tiltakstype, navn, status, startDato, sluttDato, oppstart, apentForPamelding, arrangor)
 
     fun lagDeltakerlisteDto(arrangor: Arrangor = lagArrangor(), deltakerliste: Deltakerliste = lagDeltakerliste(arrangor = arrangor)) =
         DeltakerlisteDto(
@@ -153,6 +154,7 @@ object TestData {
             status = deltakerliste.status.name,
             virksomhetsnummer = arrangor.organisasjonsnummer,
             oppstart = deltakerliste.oppstart,
+            apentForPamelding = deltakerliste.apentForPamelding,
         )
 
     fun lagNavBrukerDto(navBruker: NavBruker, navEnhet: NavEnhet) = NavBrukerDto(

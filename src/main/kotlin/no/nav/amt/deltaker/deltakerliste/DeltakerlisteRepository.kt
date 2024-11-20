@@ -24,6 +24,7 @@ class DeltakerlisteRepository {
                 startDato = row.localDate(col("start_dato")),
                 sluttDato = row.localDateOrNull(col("slutt_dato")),
                 oppstart = Deltakerliste.Oppstartstype.valueOf(row.string(col("oppstart"))),
+                apentForPamelding = row.boolean(col("apent_for_pamelding")),
                 arrangor = Arrangor(
                     id = row.uuid("a.id"),
                     navn = row.string("a.navn"),
@@ -45,7 +46,8 @@ class DeltakerlisteRepository {
                 tiltakstype_id, 
                 start_dato, 
                 slutt_dato, 
-                oppstart)
+                oppstart,
+                apent_for_pamelding)
             VALUES (:id,
             		:navn,
             		:status,
@@ -53,7 +55,8 @@ class DeltakerlisteRepository {
             		:tiltakstype_id,
             		:start_dato,
             		:slutt_dato,
-                    :oppstart)
+                    :oppstart,
+                    :apent_for_pamelding)
             ON CONFLICT (id) DO UPDATE SET
             		navn     				= :navn,
             		status					= :status,
@@ -62,6 +65,7 @@ class DeltakerlisteRepository {
             		start_dato				= :start_dato,
             		slutt_dato				= :slutt_dato,
                     oppstart                = :oppstart,
+                    apent_for_pamelding     = :apent_for_pamelding,
                     modified_at             = current_timestamp
             """.trimIndent()
 
@@ -77,6 +81,7 @@ class DeltakerlisteRepository {
                     "start_dato" to deltakerliste.startDato,
                     "slutt_dato" to deltakerliste.sluttDato,
                     "oppstart" to deltakerliste.oppstart?.name,
+                    "apent_for_pamelding" to deltakerliste.apentForPamelding,
                 ),
             ),
         )
@@ -104,6 +109,7 @@ class DeltakerlisteRepository {
                dl.start_dato as "dl.start_dato",
                dl.slutt_dato as "dl.slutt_dato",
                dl.oppstart as "dl.oppstart",
+               dl.apent_for_pamelding as "dl.apent_for_pamelding",
                a.id as "a.id",
                a.navn as "a.navn",
                a.organisasjonsnummer as "a.organisasjonsnummer",
