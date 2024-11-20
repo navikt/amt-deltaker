@@ -321,6 +321,29 @@ class PameldingServiceTest {
     }
 
     @Test
+    fun `opprettKladd - deltakerliste er ikke apen for pamelding - kaster IllegalArgumentException`() {
+        val arrangor = TestData.lagArrangor()
+        val deltakerliste = TestData.lagDeltakerliste(arrangor = arrangor, apentForPamelding = false)
+        val opprettetAv = TestData.lagNavAnsatt()
+        val opprettetAvEnhet = TestData.lagNavEnhet()
+        val navBruker = TestData.lagNavBruker(navVeilederId = opprettetAv.id, navEnhetId = opprettetAvEnhet.id)
+
+        MockResponseHandler.addNavEnhetResponse(opprettetAvEnhet)
+        MockResponseHandler.addNavAnsattResponse(opprettetAv)
+        MockResponseHandler.addNavBrukerResponse(navBruker)
+        TestRepository.insert(deltakerliste)
+
+        runBlocking {
+            assertFailsWith<IllegalArgumentException> {
+                pameldingService.opprettKladd(
+                    deltakerlisteId = deltakerliste.id,
+                    personident = navBruker.personident,
+                )
+            }
+        }
+    }
+
+    @Test
     fun `opprettKladd - deltaker finnes og deltar fortsatt - returnerer eksisterende deltaker`() {
         val deltaker = TestData.lagDeltaker(
             sluttdato = null,
