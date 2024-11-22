@@ -114,7 +114,7 @@ class DeltakerService(
 
     suspend fun produserDeltakereForPerson(personident: String, publiserTilDeltakerV1: Boolean = true) {
         getDeltakelser(personident).forEach {
-            deltakerProducerService.produce(it, publiserTilDeltakerV1)
+            deltakerProducerService.produce(it, publiserTilDeltakerV1 = publiserTilDeltakerV1)
         }
     }
 
