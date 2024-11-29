@@ -93,7 +93,11 @@ class DeltakerStatusOppdateringServiceTest {
             deltakerHistorikkService = deltakerHistorikkService,
         )
         private val vedtakService = VedtakService(vedtakRepository, hendelseService)
-        private val endringFraArrangorService = EndringFraArrangorService(endringFraArrangorRepository, hendelseService)
+        private val endringFraArrangorService = EndringFraArrangorService(
+            endringFraArrangorRepository = endringFraArrangorRepository,
+            hendelseService = hendelseService,
+            deltakerHistorikkService = deltakerHistorikkService,
+        )
 
         @JvmStatic
         @BeforeClass

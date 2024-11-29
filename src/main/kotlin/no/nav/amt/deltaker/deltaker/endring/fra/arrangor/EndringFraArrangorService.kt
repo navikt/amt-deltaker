@@ -1,16 +1,19 @@
 package no.nav.amt.deltaker.deltaker.endring.fra.arrangor
 
-import no.nav.amt.deltaker.deltaker.endring.getStatusEndretStartOgSluttdato
+import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
+import no.nav.amt.deltaker.deltaker.endring.endreDeltakersOppstart
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import org.slf4j.LoggerFactory
+import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
 import java.util.UUID
 
 class EndringFraArrangorService(
     private val endringFraArrangorRepository: EndringFraArrangorRepository,
     private val hendelseService: HendelseService,
+    private val deltakerHistorikkService: DeltakerHistorikkService,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -45,14 +48,11 @@ class EndringFraArrangorService(
         return when (endring) {
             is EndringFraArrangor.LeggTilOppstartsdato -> {
                 endreDeltaker(deltaker.startdato != endring.startdato) {
-                    val oppdatertStatus = deltaker.getStatusEndretStartOgSluttdato(
-                        startdato = endring.startdato,
-                        sluttdato = endring.sluttdato,
-                    )
-                    deltaker.copy(
-                        startdato = if (oppdatertStatus.type == DeltakerStatus.Type.IKKE_AKTUELL) null else endring.startdato,
-                        sluttdato = if (oppdatertStatus.type == DeltakerStatus.Type.IKKE_AKTUELL) null else endring.sluttdato,
-                        status = oppdatertStatus,
+                    endreDeltakersOppstart(
+                        deltaker,
+                        endring.startdato,
+                        endring.sluttdato,
+                        deltakerHistorikkService.getForDeltaker(deltaker.id).toDeltakelsesmengder(),
                     )
                 }
             }

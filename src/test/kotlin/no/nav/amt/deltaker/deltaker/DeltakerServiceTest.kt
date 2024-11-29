@@ -109,7 +109,11 @@ class DeltakerServiceTest {
                 forslagService,
                 deltakerHistorikkService,
             )
-        private val endringFraArrangorService = EndringFraArrangorService(endringFraArrangorRepository, hendelseService)
+        private val endringFraArrangorService = EndringFraArrangorService(
+            endringFraArrangorRepository = endringFraArrangorRepository,
+            hendelseService = hendelseService,
+            deltakerHistorikkService = deltakerHistorikkService,
+        )
 
         private val deltakerService = DeltakerService(
             deltakerRepository = deltakerRepository,

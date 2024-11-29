@@ -57,7 +57,11 @@ class EndringFraArrangorServiceTest {
         arrangorService,
         deltakerHistorikkService,
     )
-    private val endringFraArrangorService = EndringFraArrangorService(endringFraArrangorRepository, hendelseService)
+    private val endringFraArrangorService = EndringFraArrangorService(
+        endringFraArrangorRepository = endringFraArrangorRepository,
+        hendelseService = hendelseService,
+        deltakerHistorikkService = deltakerHistorikkService,
+    )
 
     companion object {
         @JvmStatic
