@@ -46,6 +46,7 @@ import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
+import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengde
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
 import no.nav.amt.lib.testing.SingletonKafkaProvider
 import no.nav.amt.lib.testing.SingletonPostgres16Container
@@ -936,23 +937,32 @@ class DeltakerEndringServiceTest {
 
         TestRepository.insertAll(deltaker, endretAv, endretAvEnhet, vedtak, startdatoEndring)
 
+        val fremtidigDeltakelsesprosent = 90F
+        val fremtidigDagerPerUke = null
+
         val fremtidigEndring = upsertEndring(
             TestData.lagDeltakerEndring(
                 deltakerId = deltaker.id,
                 endretAv = endretAv.id,
                 endretAvEnhet = endretAvEnhet.id,
                 endring = DeltakerEndring.Endring.EndreDeltakelsesmengde(
-                    deltakelsesprosent = 90F,
-                    dagerPerUke = null,
+                    deltakelsesprosent = fremtidigDeltakelsesprosent,
+                    dagerPerUke = fremtidigDagerPerUke,
                     gyldigFra = startdato,
                     begrunnelse = "begrunnelse",
                 ),
-                endret = LocalDateTime.now().minusSeconds(2),
+                endret = LocalDateTime.now().minusDays(2),
             ),
             null,
         )
 
-        val resultat = deltakerEndringService.behandleLagretDeltakelsesmengde(fremtidigEndring, deltaker)
+        val resultat = deltakerEndringService.behandleLagretDeltakelsesmengde(
+            fremtidigEndring,
+            deltaker.copy(
+                deltakelsesprosent = fremtidigDeltakelsesprosent,
+                dagerPerUke = fremtidigDagerPerUke,
+            ), // deltaker skal være oppdatert pga startdatoendringen...
+        )
         resultat.erUgyldig shouldBe true
 
         val ubehandlete = deltakerEndringRepository.getUbehandletDeltakelsesmengder()
@@ -960,8 +970,8 @@ class DeltakerEndringServiceTest {
 
         val deltakelsesmengder = deltakerHistorikkService.getForDeltaker(deltaker.id).toDeltakelsesmengder()
         deltakelsesmengder.size shouldBe 1
-        deltakelsesmengder.gjeldende shouldBe null
-        deltakelsesmengder.nesteGjeldende!!.gyldigFra shouldBe startdato
+        deltakelsesmengder.gjeldende shouldBe fremtidigEndring.toDeltakelsesmengde()
+        deltakelsesmengder.nesteGjeldende shouldBe null
     }
 
     private fun upsertEndring(endring: DeltakerEndring, behandlet: LocalDateTime? = null): DeltakerEndring {

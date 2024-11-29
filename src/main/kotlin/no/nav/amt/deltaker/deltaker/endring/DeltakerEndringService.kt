@@ -75,16 +75,20 @@ class DeltakerEndringService(
 
         val gyldigeDeltakelsesmengder = deltakerHistorikkService.getForDeltaker(deltaker.id).toDeltakelsesmengder()
 
-        val utfall = if (deltakelsesmengde == gyldigeDeltakelsesmengder.gjeldende) {
-            DeltakerEndringUtfall.VellykketEndring(
-                deltaker.copy(
-                    deltakelsesprosent = deltakelsesmengde.deltakelsesprosent,
-                    dagerPerUke = deltakelsesmengde.dagerPerUke,
-                ),
-            )
-        } else {
-            DeltakerEndringUtfall.UgyldigEndring(IllegalStateException("Endringen er ikke lenger gyldig"))
-        }
+        val endringenErIkkeUtfort = deltaker.deltakelsesprosent != deltakelsesmengde.deltakelsesprosent ||
+            deltaker.dagerPerUke != deltakelsesmengde.dagerPerUke
+
+        val utfall =
+            if (deltakelsesmengde == gyldigeDeltakelsesmengder.gjeldende && endringenErIkkeUtfort) {
+                DeltakerEndringUtfall.VellykketEndring(
+                    deltaker.copy(
+                        deltakelsesprosent = deltakelsesmengde.deltakelsesprosent,
+                        dagerPerUke = deltakelsesmengde.dagerPerUke,
+                    ),
+                )
+            } else {
+                DeltakerEndringUtfall.UgyldigEndring(IllegalStateException("Endringen er ikke lenger gyldig"))
+            }
 
         log.info("Behandler endring: ${endring.id}, utfall: ${utfall::class.simpleName}, deltaker: ${deltaker.id}")
 
