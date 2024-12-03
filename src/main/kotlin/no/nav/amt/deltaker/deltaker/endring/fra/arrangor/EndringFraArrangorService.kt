@@ -5,12 +5,15 @@ import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import org.slf4j.LoggerFactory
 import java.util.UUID
 
 class EndringFraArrangorService(
     private val endringFraArrangorRepository: EndringFraArrangorRepository,
     private val hendelseService: HendelseService,
 ) {
+    private val log = LoggerFactory.getLogger(javaClass)
+
     suspend fun insertEndring(deltaker: Deltaker, endring: EndringFraArrangor): Result<Deltaker> {
         val endretDeltaker = when (endring.endring) {
             is EndringFraArrangor.LeggTilOppstartsdato -> {
@@ -21,6 +24,10 @@ class EndringFraArrangorService(
         endretDeltaker.onSuccess {
             endringFraArrangorRepository.insert(endring)
             hendelseService.hendelseForEndringFraArrangor(endring, it)
+        }
+
+        endretDeltaker.onFailure {
+            log.warn("Endring fra arrangor for deltaker ${deltaker.id} medfører ingen endring")
         }
 
         return endretDeltaker
@@ -37,7 +44,7 @@ class EndringFraArrangorService(
 
         return when (endring) {
             is EndringFraArrangor.LeggTilOppstartsdato -> {
-                endreDeltaker(deltaker.startdato != endring.startdato && deltaker.sluttdato != endring.sluttdato) {
+                endreDeltaker(deltaker.startdato != endring.startdato) {
                     val oppdatertStatus = deltaker.getStatusEndretStartOgSluttdato(
                         startdato = endring.startdato,
                         sluttdato = endring.sluttdato,

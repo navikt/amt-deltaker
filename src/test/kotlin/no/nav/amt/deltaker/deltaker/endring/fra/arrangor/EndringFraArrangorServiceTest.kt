@@ -159,4 +159,48 @@ class EndringFraArrangorServiceTest {
 
         assertProducedHendelse(deltaker.id, HendelseType.LeggTilOppstartsdato::class)
     }
+
+    @Test
+    fun `insertEndring - legg til oppstartsdato uten sluttdato, dato passert - inserter endring og returnerer deltaker`(): Unit =
+        runBlocking {
+            val deltaker = TestData.lagDeltaker(
+                startdato = null,
+                sluttdato = null,
+                status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
+            )
+            val endretAv = TestData.lagNavAnsatt()
+            val endretAvEnhet = TestData.lagNavEnhet()
+
+            TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
+            val vedtak = TestData.lagVedtak(
+                deltakerVedVedtak = deltaker,
+                opprettetAv = endretAv,
+                opprettetAvEnhet = endretAvEnhet,
+                fattet = LocalDateTime.now(),
+            )
+            TestRepository.insert(vedtak)
+            val komplettDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
+
+            val startdato = LocalDate.now().minusDays(2)
+            val endringFraArrangor = TestData.lagEndringFraArrangor(
+                deltakerId = deltaker.id,
+                endring = EndringFraArrangor.LeggTilOppstartsdato(
+                    startdato = startdato,
+                    sluttdato = null,
+                ),
+            )
+
+            val resultat = endringFraArrangorService.insertEndring(komplettDeltaker, endringFraArrangor)
+
+            resultat.isSuccess shouldBe true
+            resultat.getOrThrow().startdato shouldBe startdato
+            resultat.getOrThrow().sluttdato shouldBe null
+            resultat.getOrThrow().status.type shouldBe DeltakerStatus.Type.DELTAR
+
+            val endring = endringFraArrangorRepository.getForDeltaker(deltaker.id).first()
+            endring.opprettetAvArrangorAnsattId shouldBe endringFraArrangor.opprettetAvArrangorAnsattId
+            endring.endring shouldBe endringFraArrangor.endring
+
+            assertProducedHendelse(deltaker.id, HendelseType.LeggTilOppstartsdato::class)
+        }
 }
