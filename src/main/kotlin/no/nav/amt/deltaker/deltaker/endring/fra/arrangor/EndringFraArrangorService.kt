@@ -5,9 +5,8 @@ import no.nav.amt.deltaker.deltaker.endring.endreDeltakersOppstart
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
-import no.nav.amt.lib.models.deltaker.DeltakerStatus
-import org.slf4j.LoggerFactory
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
+import org.slf4j.LoggerFactory
 import java.util.UUID
 
 class EndringFraArrangorService(
