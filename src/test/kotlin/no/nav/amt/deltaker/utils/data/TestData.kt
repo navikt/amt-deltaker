@@ -309,7 +309,7 @@ object TestData {
         fattet: LocalDateTime? = null,
         gyldigTil: LocalDateTime? = null,
         fattetAvNav: Boolean = false,
-        opprettet: LocalDateTime = LocalDateTime.now(),
+        opprettet: LocalDateTime = fattet ?: LocalDateTime.now(),
         opprettetAv: NavAnsatt = lagNavAnsatt(),
         opprettetAvEnhet: NavEnhet = lagNavEnhet(),
         sistEndret: LocalDateTime = opprettet,

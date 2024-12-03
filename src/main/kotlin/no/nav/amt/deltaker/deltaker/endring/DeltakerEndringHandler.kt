@@ -6,6 +6,7 @@ import no.nav.amt.deltaker.deltaker.nyDeltakerStatus
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengder
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengde
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
 import java.time.LocalDate
@@ -64,14 +65,11 @@ class DeltakerEndringHandler(
 
     private fun endreStartdato(endring: DeltakerEndring.Endring.EndreStartdato) =
         endreDeltaker(deltaker.startdato != endring.startdato || deltaker.sluttdato != endring.sluttdato) {
-            val oppdatertStatus = deltaker.getStatusEndretStartOgSluttdato(
-                startdato = endring.startdato,
-                sluttdato = endring.sluttdato,
-            )
-            deltaker.copy(
-                startdato = if (oppdatertStatus.type == DeltakerStatus.Type.IKKE_AKTUELL) null else endring.startdato,
-                sluttdato = if (oppdatertStatus.type == DeltakerStatus.Type.IKKE_AKTUELL) null else endring.sluttdato,
-                status = oppdatertStatus,
+            endreDeltakersOppstart(
+                deltaker,
+                endring.startdato,
+                endring.sluttdato,
+                deltakerHistorikkService.getForDeltaker(deltaker.id).toDeltakelsesmengder(),
             )
         }
 
@@ -146,4 +144,25 @@ class DeltakerEndringHandler(
         } else {
             status
         }
+}
+
+fun endreDeltakersOppstart(
+    deltaker: Deltaker,
+    startdato: LocalDate?,
+    sluttdato: LocalDate?,
+    deltakelsesmengder: Deltakelsesmengder,
+): Deltaker {
+    val oppdatertStatus = deltaker.getStatusEndretStartOgSluttdato(
+        startdato = startdato,
+        sluttdato = sluttdato,
+    )
+    val oppdatertDeltakelsmengde = deltakelsesmengder.avgrensPeriodeTilStartdato(startdato)
+
+    return deltaker.copy(
+        startdato = if (oppdatertStatus.type == DeltakerStatus.Type.IKKE_AKTUELL) null else startdato,
+        sluttdato = if (oppdatertStatus.type == DeltakerStatus.Type.IKKE_AKTUELL) null else sluttdato,
+        status = oppdatertStatus,
+        deltakelsesprosent = oppdatertDeltakelsmengde.gjeldende?.deltakelsesprosent,
+        dagerPerUke = oppdatertDeltakelsmengde.gjeldende?.dagerPerUke,
+    )
 }

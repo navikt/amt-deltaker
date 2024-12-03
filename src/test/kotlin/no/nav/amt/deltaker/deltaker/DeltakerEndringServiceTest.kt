@@ -46,6 +46,8 @@ import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
+import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengde
+import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
 import no.nav.amt.lib.testing.SingletonKafkaProvider
 import no.nav.amt.lib.testing.SingletonPostgres16Container
 import org.junit.Before
@@ -905,6 +907,71 @@ class DeltakerEndringServiceTest {
 
         ubehandlete.size shouldBe 1
         sammenlignDeltakerEndring(ubehandlete.first(), gyldigEndring)
+    }
+
+    @Test
+    fun `behandleLagretEndring - endringen er utført pga endret startdato - oppdaterer ikke deltaker og upserter endring med behandlet`() {
+        val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR))
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+        val vedtak = TestData.lagVedtak(
+            deltakerVedVedtak = deltaker,
+            opprettetAv = endretAv,
+            opprettetAvEnhet = endretAvEnhet,
+            fattet = LocalDateTime.now().minusWeeks(2),
+        )
+
+        val startdato = LocalDate.now().plusWeeks(1)
+
+        val startdatoEndring = TestData.lagDeltakerEndring(
+            deltakerId = deltaker.id,
+            endretAv = endretAv.id,
+            endretAvEnhet = endretAvEnhet.id,
+            endring = DeltakerEndring.Endring.EndreStartdato(
+                startdato = startdato,
+                sluttdato = null,
+                begrunnelse = null,
+            ),
+            endret = LocalDateTime.now().minusMinutes(2),
+        )
+
+        TestRepository.insertAll(deltaker, endretAv, endretAvEnhet, vedtak, startdatoEndring)
+
+        val fremtidigDeltakelsesprosent = 90F
+        val fremtidigDagerPerUke = null
+
+        val fremtidigEndring = upsertEndring(
+            TestData.lagDeltakerEndring(
+                deltakerId = deltaker.id,
+                endretAv = endretAv.id,
+                endretAvEnhet = endretAvEnhet.id,
+                endring = DeltakerEndring.Endring.EndreDeltakelsesmengde(
+                    deltakelsesprosent = fremtidigDeltakelsesprosent,
+                    dagerPerUke = fremtidigDagerPerUke,
+                    gyldigFra = startdato,
+                    begrunnelse = "begrunnelse",
+                ),
+                endret = LocalDateTime.now().minusDays(2),
+            ),
+            null,
+        )
+
+        val resultat = deltakerEndringService.behandleLagretDeltakelsesmengde(
+            fremtidigEndring,
+            deltaker.copy(
+                deltakelsesprosent = fremtidigDeltakelsesprosent,
+                dagerPerUke = fremtidigDagerPerUke,
+            ), // deltaker skal være oppdatert pga startdatoendringen...
+        )
+        resultat.erUgyldig shouldBe true
+
+        val ubehandlete = deltakerEndringRepository.getUbehandletDeltakelsesmengder()
+        ubehandlete.size shouldBe 0
+
+        val deltakelsesmengder = deltakerHistorikkService.getForDeltaker(deltaker.id).toDeltakelsesmengder()
+        deltakelsesmengder.size shouldBe 1
+        deltakelsesmengder.gjeldende shouldBe fremtidigEndring.toDeltakelsesmengde()
+        deltakelsesmengder.nesteGjeldende shouldBe null
     }
 
     private fun upsertEndring(endring: DeltakerEndring, behandlet: LocalDateTime? = null): DeltakerEndring {
