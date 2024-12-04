@@ -3,7 +3,7 @@ package no.nav.amt.deltaker.utils.data
 import no.nav.amt.deltaker.amtperson.dto.NavBrukerDto
 import no.nav.amt.deltaker.amtperson.dto.NavEnhetDto
 import no.nav.amt.deltaker.arrangor.Arrangor
-import no.nav.amt.deltaker.deltaker.kafka.DeltakerV2Dto
+import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerV2Dto
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.Innsatsgruppe
 import no.nav.amt.deltaker.deltaker.model.Kilde

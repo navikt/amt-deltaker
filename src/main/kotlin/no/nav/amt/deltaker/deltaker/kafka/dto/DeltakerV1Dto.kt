@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.deltaker.kafka
+package no.nav.amt.deltaker.deltaker.kafka.dto
 
 import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
