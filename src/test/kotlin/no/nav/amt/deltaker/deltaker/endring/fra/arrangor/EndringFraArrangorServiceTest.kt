@@ -207,4 +207,53 @@ class EndringFraArrangorServiceTest {
 
             assertProducedHendelse(deltaker.id, HendelseType.LeggTilOppstartsdato::class)
         }
+
+    @Test
+    fun `insertEndring - legg til oppstartsdato uten sluttdato - fjerner ikke eksisterende sluttdato`(): Unit = runBlocking {
+        val gammelsluttdato = LocalDate.now().plusDays(2)
+        val deltaker = TestData.lagDeltaker(
+            startdato = LocalDate.of(2021, 1, 1),
+            sluttdato = gammelsluttdato,
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+        )
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+
+        TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
+        val vedtak = TestData.lagVedtak(
+            deltakerVedVedtak = deltaker,
+            opprettetAv = endretAv,
+            opprettetAvEnhet = endretAvEnhet,
+            fattet = LocalDateTime.now(),
+        )
+        TestRepository.insert(vedtak)
+        val komplettDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
+
+        val startdato = LocalDate.of(2021, 1, 2)
+        val endringFraArrangor = TestData.lagEndringFraArrangor(
+            deltakerId = deltaker.id,
+            endring = EndringFraArrangor.LeggTilOppstartsdato(
+                startdato = startdato,
+                sluttdato = null,
+            ),
+        )
+
+        val resultat = endringFraArrangorService.insertEndring(komplettDeltaker, endringFraArrangor)
+
+        resultat.isSuccess shouldBe true
+        resultat.getOrThrow().startdato shouldBe startdato
+        resultat.getOrThrow().sluttdato shouldBe gammelsluttdato
+        resultat.getOrThrow().status.type shouldBe DeltakerStatus.Type.DELTAR
+
+        val endring = endringFraArrangorRepository.getForDeltaker(deltaker.id).first()
+        endring.opprettetAvArrangorAnsattId shouldBe endringFraArrangor.opprettetAvArrangorAnsattId
+        (endring.endring as EndringFraArrangor.LeggTilOppstartsdato).sluttdato shouldBe null
+
+        endring.endring shouldBe endringFraArrangor.endring
+
+        val deltakerEtterEndring = deltakerRepository.get(deltaker.id).getOrThrow()
+
+        deltakerEtterEndring.sluttdato shouldBe gammelsluttdato
+        assertProducedHendelse(deltaker.id, HendelseType.LeggTilOppstartsdato::class)
+    }
 }
