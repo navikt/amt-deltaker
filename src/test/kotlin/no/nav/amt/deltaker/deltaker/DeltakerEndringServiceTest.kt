@@ -20,6 +20,7 @@ import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.db.sammenlignDeltakerEndring
 import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringService
+import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringUtfall
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagService
@@ -766,6 +767,101 @@ class DeltakerEndringServiceTest {
         deltakerFraDb.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
         deltakerFraDb.status.gyldigFra.toLocalDate() shouldBe endringsrequest.sluttdato.plusDays(1)
         deltakerFraDb.sluttdato shouldBe endringsrequest.sluttdato
+
+        val endring = deltakerEndringService.getForDeltaker(deltaker.id).first()
+        endring.endretAv shouldBe endretAv.id
+        endring.endretAvEnhet shouldBe endretAvEnhet.id
+
+        (endring.endring as DeltakerEndring.Endring.AvsluttDeltakelse)
+            .aarsak shouldBe endringsrequest.aarsak
+        (endring.endring as DeltakerEndring.Endring.AvsluttDeltakelse)
+            .sluttdato shouldBe endringsrequest.sluttdato
+
+        assertProducedHendelse(deltaker.id, HendelseType.AvsluttDeltakelse::class)
+    }
+
+    @Test
+    fun `upsertEndring - har sluttet, avslutt deltakelse i fremtiden - returnerer deltaker med ny sluttdato, fremtidig status`(): Unit =
+        runBlocking {
+            val deltaker = TestData.lagDeltaker(
+                status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.HAR_SLUTTET),
+                sluttdato = LocalDate.now().minusWeeks(1),
+            )
+            val endretAv = TestData.lagNavAnsatt()
+            val endretAvEnhet = TestData.lagNavEnhet()
+
+            TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
+
+            val endringsrequest = AvsluttDeltakelseRequest(
+                endretAv = endretAv.navIdent,
+                endretAvEnhet = endretAvEnhet.enhetsnummer,
+                sluttdato = LocalDate.now().plusWeeks(1),
+                aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
+                begrunnelse = null,
+                forslagId = null,
+            )
+
+            val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)
+
+            resultat.erVellykket shouldBe true
+            resultat as DeltakerEndringUtfall.VellykketEndring
+            val deltakerFraDb = resultat.deltaker
+            val nesteStatus = resultat.nesteStatus
+
+            deltakerFraDb.status.type shouldBe DeltakerStatus.Type.DELTAR
+            deltakerFraDb.status.gyldigFra.toLocalDate() shouldBe LocalDate.now()
+            deltakerFraDb.sluttdato shouldBe endringsrequest.sluttdato
+
+            nesteStatus?.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+            nesteStatus?.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
+            nesteStatus?.gyldigFra?.toLocalDate() shouldBe endringsrequest.sluttdato.plusDays(1)
+            nesteStatus?.gyldigTil shouldBe null
+
+            val endring = deltakerEndringService.getForDeltaker(deltaker.id).first()
+            endring.endretAv shouldBe endretAv.id
+            endring.endretAvEnhet shouldBe endretAvEnhet.id
+
+            (endring.endring as DeltakerEndring.Endring.AvsluttDeltakelse)
+                .aarsak shouldBe endringsrequest.aarsak
+            (endring.endring as DeltakerEndring.Endring.AvsluttDeltakelse)
+                .sluttdato shouldBe endringsrequest.sluttdato
+
+            assertProducedHendelse(deltaker.id, HendelseType.AvsluttDeltakelse::class)
+        }
+
+    @Test
+    fun `upsertEndring - har sluttet, avslutt deltakelse i fortid - returnerer deltaker med ny sluttdato`(): Unit = runBlocking {
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.HAR_SLUTTET),
+            sluttdato = LocalDate.now().minusWeeks(1),
+        )
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+
+        TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
+
+        val endringsrequest = AvsluttDeltakelseRequest(
+            endretAv = endretAv.navIdent,
+            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            sluttdato = LocalDate.now().minusDays(1),
+            aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
+            begrunnelse = null,
+            forslagId = null,
+        )
+
+        val resultat = deltakerEndringService.upsertEndring(deltaker, endringsrequest)
+
+        resultat.erVellykket shouldBe true
+        resultat as DeltakerEndringUtfall.VellykketEndring
+        val deltakerFraDb = resultat.deltaker
+        val nesteStatus = resultat.nesteStatus
+
+        deltakerFraDb.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+        deltakerFraDb.status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
+        deltakerFraDb.status.gyldigFra.toLocalDate() shouldBe LocalDate.now()
+        deltakerFraDb.sluttdato shouldBe endringsrequest.sluttdato
+
+        nesteStatus shouldBe null
 
         val endring = deltakerEndringService.getForDeltaker(deltaker.id).first()
         endring.endretAv shouldBe endretAv.id

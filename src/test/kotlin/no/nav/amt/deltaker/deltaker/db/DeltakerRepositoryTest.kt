@@ -194,6 +194,48 @@ class DeltakerRepositoryTest {
     }
 
     @Test
+    fun `upsert - har sluttet til deltar, angitt neste status - oppdaterer status, insert neste fremtidige status`() {
+        val opprinneligDeltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.HAR_SLUTTET),
+            sluttdato = LocalDate.now().minusDays(2),
+        )
+        TestRepository.insert(opprinneligDeltaker)
+
+        val nySluttdato = LocalDateTime.now().plusDays(3)
+        val oppdatertDeltakerDeltar = opprinneligDeltaker.copy(
+            status = TestData.lagDeltakerStatus(
+                type = DeltakerStatus.Type.DELTAR,
+                gyldigFra = LocalDateTime.now(),
+            ),
+            sluttdato = nySluttdato.toLocalDate(),
+        )
+        val nesteStatus = TestData.lagDeltakerStatus(
+            type = DeltakerStatus.Type.HAR_SLUTTET,
+            aarsak = DeltakerStatus.Aarsak.Type.UTDANNING,
+            gyldigFra = nySluttdato,
+        )
+
+        repository.upsert(oppdatertDeltakerDeltar, nesteStatus)
+
+        sammenlignDeltakere(
+            repository.get(opprinneligDeltaker.id).getOrThrow(),
+            oppdatertDeltakerDeltar,
+        )
+
+        val statuser = repository.getDeltakerStatuser(opprinneligDeltaker.id)
+        statuser.size shouldBe 3
+        statuser.first { it.id == opprinneligDeltaker.status.id }.gyldigTil shouldBeCloseTo LocalDateTime.now()
+        statuser.first { it.id == opprinneligDeltaker.status.id }.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+        statuser.first { it.id == oppdatertDeltakerDeltar.status.id }.gyldigTil shouldBe null
+        statuser.first { it.id == oppdatertDeltakerDeltar.status.id }.gyldigFra shouldBeCloseTo LocalDateTime.now()
+        statuser.first { it.id == oppdatertDeltakerDeltar.status.id }.type shouldBe DeltakerStatus.Type.DELTAR
+        statuser.first { it.id == nesteStatus.id }.gyldigTil shouldBe null
+        statuser.first { it.id == nesteStatus.id }.gyldigFra shouldBeCloseTo nySluttdato
+        statuser.first { it.id == nesteStatus.id }.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+        statuser.first { it.id == nesteStatus.id }.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.UTDANNING
+    }
+
+    @Test
     fun `skalHaStatusDeltar - venter pa oppstart, startdato passer - returnerer deltaker`() {
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),

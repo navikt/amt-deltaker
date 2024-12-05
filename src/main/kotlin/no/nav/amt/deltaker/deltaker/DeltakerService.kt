@@ -43,16 +43,21 @@ class DeltakerService(
     fun getDeltakerIder(personId: UUID, deltakerlisteId: UUID) =
         deltakerRepository.getDeltakerIder(personId = personId, deltakerlisteId = deltakerlisteId)
 
-    suspend fun upsertDeltaker(deltaker: Deltaker, forcedUpdate: Boolean? = false): Deltaker = upsert(deltaker, false, forcedUpdate)
+    suspend fun upsertDeltaker(
+        deltaker: Deltaker,
+        forcedUpdate: Boolean? = false,
+        nesteStatus: DeltakerStatus? = null,
+    ): Deltaker = upsert(deltaker, erFremtidigEndring = false, forcedUpdate = forcedUpdate, nesteStatus = nesteStatus)
 
-    private suspend fun upsertDeltakerMedFremtidigEndring(deltaker: Deltaker): Deltaker = upsert(deltaker, true)
+    private suspend fun upsertDeltakerMedFremtidigEndring(deltaker: Deltaker): Deltaker = upsert(deltaker, erFremtidigEndring = true)
 
     private suspend fun upsert(
         deltaker: Deltaker,
         erFremtidigEndring: Boolean,
         forcedUpdate: Boolean? = false,
+        nesteStatus: DeltakerStatus? = null,
     ): Deltaker {
-        deltakerRepository.upsert(deltaker.copy(sistEndret = LocalDateTime.now()))
+        deltakerRepository.upsert(deltaker.copy(sistEndret = LocalDateTime.now()), nesteStatus = nesteStatus)
 
         val oppdatertDeltaker = get(deltaker.id).getOrThrow()
 
@@ -88,7 +93,7 @@ class DeltakerService(
         validerIkkeFeilregistrert(deltaker)
 
         return when (val resultat = deltakerEndringService.upsertEndring(deltaker, request)) {
-            is DeltakerEndringUtfall.VellykketEndring -> upsertDeltaker(resultat.deltaker)
+            is DeltakerEndringUtfall.VellykketEndring -> upsertDeltaker(resultat.deltaker, nesteStatus = resultat.nesteStatus)
             is DeltakerEndringUtfall.FremtidigEndring -> upsertDeltakerMedFremtidigEndring(resultat.deltaker)
             is DeltakerEndringUtfall.UgyldigEndring -> deltaker
         }

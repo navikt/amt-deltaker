@@ -86,7 +86,7 @@ class DeltakerRepository {
         }
     }
 
-    fun upsert(deltaker: Deltaker) = Database.query { session ->
+    fun upsert(deltaker: Deltaker, nesteStatus: DeltakerStatus? = null) = Database.query { session ->
         val sql =
             """
             insert into deltaker(
@@ -134,6 +134,7 @@ class DeltakerRepository {
             } else {
                 tx.update(slettTidligereFremtidigeStatuserQuery(deltaker.status, deltaker.id))
             }
+            nesteStatus?.let { tx.update(insertStatusQuery(it, deltaker.id)) }
         }
     }
 
