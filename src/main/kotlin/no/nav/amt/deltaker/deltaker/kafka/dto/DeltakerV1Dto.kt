@@ -19,6 +19,7 @@ data class DeltakerV1Dto(
     val endretDato: LocalDateTime,
     val kilde: Kilde?,
     val innhold: DeltakelsesinnholdDto?,
+    val deltakelsesmengder: List<DeltakelsesmengdeDto>,
 ) {
     data class DeltakerStatusDto(
         val type: DeltakerStatus.Type,
@@ -36,5 +37,12 @@ data class DeltakerV1Dto(
     data class InnholdDto(
         val tekst: String,
         val innholdskode: String,
+    )
+
+    data class DeltakelsesmengdeDto(
+        val deltakelsesprosent: Float,
+        val dagerPerUke: Float?,
+        val gyldigFra: LocalDate,
+        val opprettet: LocalDateTime,
     )
 }

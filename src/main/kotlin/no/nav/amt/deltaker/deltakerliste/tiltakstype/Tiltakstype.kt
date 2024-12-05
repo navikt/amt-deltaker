@@ -34,6 +34,8 @@ data class Tiltakstype(
         OPPFOLGING,
         VARIG_TILRETTELAGT_ARBEID_SKJERMET,
     }
+
+    val harDeltakelsesmengde = tiltakskode in setOf(Tiltakskode.ARBEIDSFORBEREDENDE_TRENING, Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET)
 }
 
 data class DeltakerRegistreringInnhold(

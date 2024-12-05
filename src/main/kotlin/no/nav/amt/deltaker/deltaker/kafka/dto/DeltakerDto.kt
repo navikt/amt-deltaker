@@ -10,6 +10,7 @@ import no.nav.amt.deltaker.navansatt.navenhet.NavEnhet
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
 import java.time.LocalDate
 import java.util.UUID
 
@@ -49,6 +50,7 @@ data class DeltakerDto(
             endretDato = deltaker.sistEndret,
             kilde = deltaker.kilde,
             innhold = deltaker.deltakelsesinnhold?.toDeltakelsesinnholdDto(),
+            deltakelsesmengder = deltakelsesmengderDto(deltaker, deltakerhistorikk),
         )
 
     val v2: DeltakerV2Dto
@@ -138,5 +140,23 @@ data class DeltakerDto(
 
     private fun List<DeltakerHistorikk>.getSisteEndring() = this.firstOrNull {
         it is DeltakerHistorikk.Vedtak || it is DeltakerHistorikk.Endring
+    }
+
+    private fun deltakelsesmengderDto(deltaker: Deltaker, historikk: List<DeltakerHistorikk>): List<DeltakerV1Dto.DeltakelsesmengdeDto> {
+        val deltakelsesmengder = if (deltaker.deltakerliste.tiltakstype.harDeltakelsesmengde) {
+            val mengder = historikk.toDeltakelsesmengder()
+            deltaker.startdato?.let { mengder.periode(deltaker.startdato, deltaker.sluttdato) } ?: mengder
+        } else {
+            emptyList()
+        }
+
+        return deltakelsesmengder.map {
+            DeltakerV1Dto.DeltakelsesmengdeDto(
+                it.deltakelsesprosent,
+                it.dagerPerUke,
+                it.gyldigFra,
+                it.opprettet,
+            )
+        }
     }
 }
