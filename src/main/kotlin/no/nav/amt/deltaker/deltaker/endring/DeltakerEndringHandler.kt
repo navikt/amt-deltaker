@@ -209,15 +209,16 @@ fun endreDeltakersOppstart(
     sluttdato: LocalDate?,
     deltakelsesmengder: Deltakelsesmengder,
 ): Deltaker {
+    val faktiskSluttdato = sluttdato ?: deltaker.sluttdato
     val oppdatertStatus = deltaker.getStatusEndretStartOgSluttdato(
         startdato = startdato,
-        sluttdato = sluttdato,
+        sluttdato = faktiskSluttdato,
     )
     val oppdatertDeltakelsmengde = deltakelsesmengder.avgrensPeriodeTilStartdato(startdato)
 
     return deltaker.copy(
         startdato = if (oppdatertStatus.type == DeltakerStatus.Type.IKKE_AKTUELL) null else startdato,
-        sluttdato = if (oppdatertStatus.type == DeltakerStatus.Type.IKKE_AKTUELL) null else sluttdato,
+        sluttdato = if (oppdatertStatus.type == DeltakerStatus.Type.IKKE_AKTUELL) null else faktiskSluttdato,
         status = oppdatertStatus,
         deltakelsesprosent = oppdatertDeltakelsmengde.gjeldende?.deltakelsesprosent,
         dagerPerUke = oppdatertDeltakelsmengde.gjeldende?.dagerPerUke,
