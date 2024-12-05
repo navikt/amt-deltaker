@@ -317,6 +317,60 @@ class DeltakerServiceTest {
     }
 
     @Test
+    fun `upsertEndretDeltaker - har sluttet, skal delta, avslutt i fremtiden - blir DELTAR, fremtidig HAR_SLUTTET`(): Unit = runBlocking {
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.HAR_SLUTTET),
+            sluttdato = LocalDate.now().minusWeeks(1),
+        )
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+
+        TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
+        val vedtak = TestData.lagVedtak(
+            deltakerId = deltaker.id,
+            deltakerVedVedtak = deltaker,
+            opprettetAv = endretAv,
+            opprettetAvEnhet = endretAvEnhet,
+            fattet = LocalDateTime.now(),
+        )
+        TestRepository.insert(vedtak)
+
+        val endringsrequest = AvsluttDeltakelseRequest(
+            endretAv = endretAv.navIdent,
+            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            sluttdato = LocalDate.now().plusWeeks(1),
+            aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
+            begrunnelse = null,
+            forslagId = null,
+        )
+
+        val deltakerrespons = deltakerService.upsertEndretDeltaker(deltaker.id, endringsrequest)
+
+        deltakerrespons.status.type shouldBe DeltakerStatus.Type.DELTAR
+        deltakerrespons.sluttdato shouldBe endringsrequest.sluttdato
+
+        val oppdatertDeltaker = deltakerService.get(deltaker.id).getOrThrow()
+
+        oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.DELTAR
+        oppdatertDeltaker.sluttdato shouldBe endringsrequest.sluttdato
+
+        val statuser = deltakerRepository.getDeltakerStatuser(deltaker.id)
+        statuser.size shouldBe 3
+        val opprinneligStatus = statuser.first { it.id == deltaker.status.id }
+        val currentStatus = statuser.first { it.id == oppdatertDeltaker.status.id }
+        val nesteStatus = statuser.first { it.id != opprinneligStatus.id && it.id != currentStatus.id }
+
+        opprinneligStatus.gyldigTil shouldBeCloseTo LocalDateTime.now()
+        opprinneligStatus.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+        currentStatus.gyldigTil shouldBe null
+        currentStatus.type shouldBe DeltakerStatus.Type.DELTAR
+        nesteStatus.gyldigTil shouldBe null
+        nesteStatus.gyldigFra.toLocalDate() shouldBe endringsrequest.sluttdato.plusDays(1)
+        nesteStatus.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+        nesteStatus.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
+    }
+
+    @Test
     fun `produserDeltakereForPerson - deltaker finnes - publiserer til kafka`() {
         val sistEndretAv = TestData.lagNavAnsatt()
         val sistEndretAvEnhet = TestData.lagNavEnhet()
