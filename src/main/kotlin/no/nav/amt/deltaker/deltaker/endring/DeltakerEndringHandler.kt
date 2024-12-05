@@ -46,7 +46,6 @@ class DeltakerEndringHandler(
                 startdato = null,
                 sluttdato = null,
             ),
-            null,
         )
     }
 
@@ -58,7 +57,6 @@ class DeltakerEndringHandler(
                     startdato = null,
                     sluttdato = null,
                 ),
-                null,
             )
         }
 
@@ -69,7 +67,6 @@ class DeltakerEndringHandler(
                     sluttdato = endring.sluttdato,
                     status = deltaker.getStatusEndretSluttdato(endring.sluttdato),
                 ),
-                null,
             )
         }
 
@@ -82,7 +79,6 @@ class DeltakerEndringHandler(
                     endring.sluttdato,
                     deltakerHistorikkService.getForDeltaker(deltaker.id).toDeltakelsesmengder(),
                 ),
-                null,
             )
         }
 
@@ -90,7 +86,6 @@ class DeltakerEndringHandler(
         endreDeltaker(deltaker.status.aarsak != endring.aarsak.toDeltakerStatusAarsak()) {
             EndreDeltakerResultat(
                 deltaker.copy(status = nyDeltakerStatus(deltaker.status.type, endring.aarsak.toDeltakerStatusAarsak())),
-                null,
             )
         }
 
@@ -100,7 +95,6 @@ class DeltakerEndringHandler(
                 sluttdato = endring.sluttdato,
                 status = deltaker.getStatusEndretSluttdato(endring.sluttdato),
             ),
-            null,
         )
     }
 
@@ -108,7 +102,6 @@ class DeltakerEndringHandler(
         endreDeltaker(deltaker.deltakelsesinnhold?.innhold != endring.innhold) {
             EndreDeltakerResultat(
                 deltaker.copy(deltakelsesinnhold = Deltakelsesinnhold(endring.ledetekst, endring.innhold)),
-                null,
             )
         }
 
@@ -126,7 +119,6 @@ class DeltakerEndringHandler(
                     deltakelsesprosent = endring.deltakelsesprosent,
                     dagerPerUke = endring.dagerPerUke,
                 ),
-                null,
             )
         } else {
             DeltakerEndringUtfall.FremtidigEndring(deltaker)
@@ -137,7 +129,6 @@ class DeltakerEndringHandler(
         endreDeltaker(deltaker.bakgrunnsinformasjon != endring.bakgrunnsinformasjon) {
             EndreDeltakerResultat(
                 deltaker.copy(bakgrunnsinformasjon = endring.bakgrunnsinformasjon),
-                null,
             )
         }
 
@@ -160,7 +151,6 @@ class DeltakerEndringHandler(
                         },
                     ),
                 ),
-                null,
             )
         } else {
             if (!endring.sluttdato.isBefore(LocalDate.now())) {
@@ -185,7 +175,6 @@ class DeltakerEndringHandler(
                             gyldigFra = LocalDateTime.now(),
                         ),
                     ),
-                    null,
                 )
             }
         }

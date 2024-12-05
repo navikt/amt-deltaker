@@ -5,5 +5,5 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 
 data class EndreDeltakerResultat(
     val deltaker: Deltaker,
-    val nesteStatus: DeltakerStatus?,
+    val nesteStatus: DeltakerStatus? = null,
 )

@@ -85,7 +85,6 @@ class DeltakerEndringService(
                         deltakelsesprosent = deltakelsesmengde.deltakelsesprosent,
                         dagerPerUke = deltakelsesmengde.dagerPerUke,
                     ),
-                    null,
                 )
             } else {
                 DeltakerEndringUtfall.UgyldigEndring(IllegalStateException("Endringen er ikke lenger gyldig"))

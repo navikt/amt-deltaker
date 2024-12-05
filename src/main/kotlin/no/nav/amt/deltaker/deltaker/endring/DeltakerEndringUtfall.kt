@@ -6,7 +6,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 sealed class DeltakerEndringUtfall {
     class VellykketEndring(
         val deltaker: Deltaker,
-        val nesteStatus: DeltakerStatus?,
+        val nesteStatus: DeltakerStatus? = null,
     ) : DeltakerEndringUtfall()
 
     class FremtidigEndring(
