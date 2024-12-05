@@ -137,48 +137,38 @@ class DeltakerEndringHandler(
             endring.sluttdato != deltaker.sluttdato ||
             deltaker.status.aarsak != endring.aarsak.toDeltakerStatusAarsak(),
     ) {
-        if (deltaker.status.type == DeltakerStatus.Type.DELTAR) {
+        if (deltaker.status.type == DeltakerStatus.Type.DELTAR || !endring.skalFortsattDelta()) {
             EndreDeltakerResultat(
                 deltaker.copy(
                     sluttdato = endring.sluttdato,
-                    status = nyDeltakerStatus(
-                        type = DeltakerStatus.Type.HAR_SLUTTET,
-                        aarsak = endring.aarsak.toDeltakerStatusAarsak(),
-                        gyldigFra = if (!endring.sluttdato.isBefore(LocalDate.now())) {
-                            endring.sluttdato.atStartOfDay().plusDays(1)
-                        } else {
-                            LocalDateTime.now()
-                        },
-                    ),
+                    status = endring.getAvsluttendeStatus(),
                 ),
             )
         } else {
-            if (!endring.sluttdato.isBefore(LocalDate.now())) {
-                EndreDeltakerResultat(
-                    deltaker.copy(
-                        sluttdato = endring.sluttdato,
-                        status = nyDeltakerStatus(DeltakerStatus.Type.DELTAR),
-                    ),
-                    nyDeltakerStatus(
-                        type = DeltakerStatus.Type.HAR_SLUTTET,
-                        aarsak = endring.aarsak.toDeltakerStatusAarsak(),
-                        gyldigFra = endring.sluttdato.atStartOfDay().plusDays(1),
-                    ),
-                )
-            } else {
-                EndreDeltakerResultat(
-                    deltaker.copy(
-                        sluttdato = endring.sluttdato,
-                        status = nyDeltakerStatus(
-                            type = DeltakerStatus.Type.HAR_SLUTTET,
-                            aarsak = endring.aarsak.toDeltakerStatusAarsak(),
-                            gyldigFra = LocalDateTime.now(),
-                        ),
-                    ),
-                )
-            }
+            EndreDeltakerResultat(
+                deltaker.copy(
+                    sluttdato = endring.sluttdato,
+                    status = nyDeltakerStatus(DeltakerStatus.Type.DELTAR),
+                ),
+                nesteStatus = endring.getAvsluttendeStatus(),
+            )
         }
     }
+
+    private fun DeltakerEndring.Endring.AvsluttDeltakelse.getAvsluttendeStatus(): DeltakerStatus {
+        val gyldigFra = if (skalFortsattDelta()) {
+            sluttdato.atStartOfDay().plusDays(1)
+        } else {
+            LocalDateTime.now()
+        }
+        return nyDeltakerStatus(
+            type = DeltakerStatus.Type.HAR_SLUTTET,
+            aarsak = aarsak.toDeltakerStatusAarsak(),
+            gyldigFra = gyldigFra,
+        )
+    }
+
+    private fun DeltakerEndring.Endring.AvsluttDeltakelse.skalFortsattDelta(): Boolean = !sluttdato.isBefore(LocalDate.now())
 
     private fun Deltaker.getStatusEndretSluttdato(sluttdato: LocalDate): DeltakerStatus =
         if (status.type == DeltakerStatus.Type.HAR_SLUTTET &&
