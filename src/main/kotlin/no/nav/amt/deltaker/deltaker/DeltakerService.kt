@@ -47,13 +47,10 @@ class DeltakerService(
         deltaker: Deltaker,
         forcedUpdate: Boolean? = false,
         nesteStatus: DeltakerStatus? = null,
-    ): Deltaker = upsert(deltaker, erFremtidigEndring = false, forcedUpdate = forcedUpdate, nesteStatus = nesteStatus)
-
-    private suspend fun upsertDeltakerMedFremtidigEndring(deltaker: Deltaker): Deltaker = upsert(deltaker, erFremtidigEndring = true)
+    ): Deltaker = upsert(deltaker, forcedUpdate = forcedUpdate, nesteStatus = nesteStatus)
 
     private suspend fun upsert(
         deltaker: Deltaker,
-        erFremtidigEndring: Boolean,
         forcedUpdate: Boolean? = false,
         nesteStatus: DeltakerStatus? = null,
     ): Deltaker {
@@ -62,7 +59,7 @@ class DeltakerService(
         val oppdatertDeltaker = get(deltaker.id).getOrThrow()
 
         if (oppdatertDeltaker.status.type != DeltakerStatus.Type.KLADD) {
-            deltakerProducerService.produce(oppdatertDeltaker, forcedUpdate = forcedUpdate, publiserTilDeltakerV1 = !erFremtidigEndring)
+            deltakerProducerService.produce(oppdatertDeltaker, forcedUpdate = forcedUpdate)
         }
 
         log.info("Oppdatert deltaker med id ${deltaker.id}")
@@ -94,7 +91,7 @@ class DeltakerService(
 
         return when (val resultat = deltakerEndringService.upsertEndring(deltaker, request)) {
             is DeltakerEndringUtfall.VellykketEndring -> upsertDeltaker(resultat.deltaker, nesteStatus = resultat.nesteStatus)
-            is DeltakerEndringUtfall.FremtidigEndring -> upsertDeltakerMedFremtidigEndring(resultat.deltaker)
+            is DeltakerEndringUtfall.FremtidigEndring -> upsertDeltaker(resultat.deltaker)
             is DeltakerEndringUtfall.UgyldigEndring -> deltaker
         }
     }
