@@ -1,6 +1,6 @@
 # Periodiserte deltakelsesmengder
 
-Deltakelsesmengder blir periodisert med en gyldig fra dato.
+Deltakelsesmengder blir periodisert med en gyldig fra dato, for deltakere på Arbeidsforberedende Trening (AFT), og Varig Tilrettelagt Arbeid Skjermet (VTA).
 
 Det betyr at en deltaker nå har en liste med deltakelsesmengder for hele deltakelsen, slik at man kan se hvor ofte en deltaker deltok på tiltaket på en gitt dato.
 
