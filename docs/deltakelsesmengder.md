@@ -202,7 +202,7 @@ Deltaker(
 )
 ```
 
-Vi velger å ikke bruke deltakelsesmengden med 90% her, fordi det er ikke veldig tydelig at en slik endring av startdato også vil endre deltakelsesmengden for den perioden.
+Deltakelsesmengden på 90% som deltakeren opprinnelig stod oppført med de første dagene blir ikke tatt med videre fordi det ikke er tydelig at en slik endring av startdato også vil endre deltakelsesmengden for den perioden.
 
 **02.01.2025: Fremtidig deltakelsesmengde legges til**
 
