@@ -96,6 +96,12 @@ sealed interface HendelseType {
         override val endringFraForslag: Forslag.Endring?,
     ) : HendelseMedForslag
 
+    data class FjernOppstartsdato(
+        override val begrunnelseFraNav: String?,
+        override val begrunnelseFraArrangor: String?,
+        override val endringFraForslag: Forslag.Endring?,
+    ) : HendelseMedForslag
+
     data class DeltakerSistBesokt(
         val sistBesokt: ZonedDateTime,
     ) : HendelseType
@@ -183,6 +189,12 @@ fun DeltakerEndring.toHendelseEndring(utkast: UtkastDto? = null) = when (val end
 
     is DeltakerEndring.Endring.IkkeAktuell -> HendelseType.IkkeAktuell(
         aarsak = endring.aarsak,
+        begrunnelseFraNav = endring.begrunnelse,
+        begrunnelseFraArrangor = forslag?.begrunnelse,
+        endringFraForslag = forslag?.endring,
+    )
+
+    is DeltakerEndring.Endring.FjernOppstartsdato -> HendelseType.FjernOppstartsdato(
         begrunnelseFraNav = endring.begrunnelse,
         begrunnelseFraArrangor = forslag?.begrunnelse,
         endringFraForslag = forslag?.endring,

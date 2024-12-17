@@ -19,6 +19,7 @@ import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.api.model.AvsluttDeltakelseRequest
 import no.nav.amt.deltaker.deltaker.api.model.BakgrunnsinformasjonRequest
 import no.nav.amt.deltaker.deltaker.api.model.DeltakelsesmengdeRequest
+import no.nav.amt.deltaker.deltaker.api.model.FjernOppstartsdatoRequest
 import no.nav.amt.deltaker.deltaker.api.model.ForlengDeltakelseRequest
 import no.nav.amt.deltaker.deltaker.api.model.IkkeAktuellRequest
 import no.nav.amt.deltaker.deltaker.api.model.InnholdRequest
@@ -62,6 +63,7 @@ class DeltakerApiTest {
         client.post("/deltaker/${UUID.randomUUID()}/ikke-aktuell") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
         client.post("/deltaker/${UUID.randomUUID()}/avslutt") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
         client.post("/deltaker/${UUID.randomUUID()}/reaktiver") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
+        client.post("/deltaker/${UUID.randomUUID()}/fjern-oppstartsdato") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
         client
             .post("/deltaker/${UUID.randomUUID()}/vedtak/${UUID.randomUUID()}/fatt") {
                 setBody("")
@@ -381,6 +383,40 @@ class DeltakerApiTest {
                     ReaktiverDeltakelseRequest(
                         TestData.randomIdent(),
                         TestData.randomEnhetsnummer(),
+                        endring.begrunnelse,
+                    ),
+                )
+            }.apply {
+                status shouldBe HttpStatusCode.OK
+                bodyAsText() shouldBe objectMapper.writeValueAsString(deltaker.toDeltakerEndringResponse(historikk))
+            }
+    }
+
+    @Test
+    fun `post fjern oppstartsdato - har tilgang - returnerer 200`() = testApplication {
+        setUpTestApplication()
+
+        val endring = DeltakerEndring.Endring.FjernOppstartsdato("begrunnelse")
+
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(
+                type = DeltakerStatus.Type.VENTER_PA_OPPSTART,
+            ),
+            startdato = null,
+            sluttdato = null,
+        )
+        val historikk = listOf(DeltakerHistorikk.Endring(TestData.lagDeltakerEndring(endring = endring)))
+
+        coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
+        coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
+
+        client
+            .post("/deltaker/${UUID.randomUUID()}/fjern-oppstartsdato") {
+                postRequest(
+                    FjernOppstartsdatoRequest(
+                        TestData.randomIdent(),
+                        TestData.randomEnhetsnummer(),
+                        null,
                         endring.begrunnelse,
                     ),
                 )

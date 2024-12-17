@@ -28,6 +28,7 @@ class DeltakerEndringHandler(
         is DeltakerEndring.Endring.ForlengDeltakelse -> forlengDeltakelse(endring)
         is DeltakerEndring.Endring.IkkeAktuell -> ikkeAktuell(endring)
         is DeltakerEndring.Endring.ReaktiverDeltakelse -> reaktiverDeltakelse()
+        is DeltakerEndring.Endring.FjernOppstartsdato -> fjernOppstartsdato()
     }
 
     private fun endreDeltaker(erEndret: Boolean, block: () -> DeltakerEndringUtfall.VellykketEndring) = if (erEndret) {
@@ -130,6 +131,15 @@ class DeltakerEndringHandler(
                 deltaker.copy(bakgrunnsinformasjon = endring.bakgrunnsinformasjon),
             )
         }
+
+    private fun fjernOppstartsdato() = endreDeltaker(deltaker.startdato != null) {
+        DeltakerEndringUtfall.VellykketEndring(
+            deltaker.copy(
+                startdato = null,
+                sluttdato = null,
+            ),
+        )
+    }
 
     private fun avsluttDeltakelses(endring: DeltakerEndring.Endring.AvsluttDeltakelse) = endreDeltaker(
         deltaker.status.type != DeltakerStatus.Type.HAR_SLUTTET ||
