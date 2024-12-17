@@ -86,6 +86,13 @@ data class AvsluttDeltakelseRequest(
     val begrunnelse: String?,
 ) : EndringForslagRequest
 
+data class FjernOppstartsdatoRequest(
+    override val endretAv: String,
+    override val endretAvEnhet: String,
+    override val forslagId: UUID?,
+    val begrunnelse: String?,
+) : EndringForslagRequest
+
 data class ReaktiverDeltakelseRequest(
     override val endretAv: String,
     override val endretAvEnhet: String,
@@ -133,4 +140,8 @@ fun EndringRequest.toDeltakerEndringEndring() = when (this) {
             sluttdato = this.sluttdato,
             this.begrunnelse,
         )
+
+    is FjernOppstartsdatoRequest -> DeltakerEndring.Endring.FjernOppstartsdato(
+        begrunnelse = this.begrunnelse,
+    )
 }
