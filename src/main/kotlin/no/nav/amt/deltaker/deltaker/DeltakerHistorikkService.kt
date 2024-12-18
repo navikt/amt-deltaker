@@ -22,7 +22,8 @@ class DeltakerHistorikkService(
         val vedtak = vedtakRepository.getForDeltaker(id).map { DeltakerHistorikk.Vedtak(it) }
         val forslag = forslagRepository.getForDeltaker(id).filter { it.skalInkluderesIHistorikk() }.map { DeltakerHistorikk.Forslag(it) }
         val endringerFraArrangor = endringFraArrangorRepository.getForDeltaker(id).map { DeltakerHistorikk.EndringFraArrangor(it) }
-        val importertFraArena = importertFraArenaRepository.getForDeltaker(id)
+        val importertFraArena = importertFraArenaRepository
+            .getForDeltaker(id)
             ?.let { listOf(DeltakerHistorikk.ImportertFraArena(it)) }
             ?: emptyList()
 
@@ -44,28 +45,29 @@ class DeltakerHistorikkService(
         return historikk
     }
 
-    fun getInnsoktDato(deltakerhistorikk: List<DeltakerHistorikk>): LocalDate? {
-        getInnsoktDatoFraImportertDeltaker(deltakerhistorikk)?.let { return it }
-
-        val vedtak = deltakerhistorikk.filterIsInstance<DeltakerHistorikk.Vedtak>().map { it.vedtak }
-        return vedtak.minByOrNull { it.opprettet }?.opprettet?.toLocalDate()
-    }
-
     fun getForsteVedtakFattet(deltakerId: UUID): LocalDate? {
         val deltakerhistorikk = getForDeltaker(deltakerId)
-        getInnsoktDatoFraImportertDeltaker(deltakerhistorikk)?.let { return it }
+        deltakerhistorikk.getInnsoktDatoFraImportertDeltaker()?.let { return it }
 
         val vedtak = deltakerhistorikk.filterIsInstance<DeltakerHistorikk.Vedtak>().map { it.vedtak }
         val forsteVedtak = vedtak.minByOrNull { it.opprettet }
 
         return forsteVedtak?.fattet?.toLocalDate()
     }
+}
 
-    fun getInnsoktDatoFraImportertDeltaker(deltakerhistorikk: List<DeltakerHistorikk>): LocalDate? {
-        deltakerhistorikk.filterIsInstance<DeltakerHistorikk.ImportertFraArena>().firstOrNull()
-            ?.let { return it.importertFraArena.deltakerVedImport.innsoktDato }
-        return null
-    }
+fun List<DeltakerHistorikk>.getInnsoktDato(): LocalDate? {
+    getInnsoktDatoFraImportertDeltaker()?.let { return it }
+
+    val vedtak = filterIsInstance<DeltakerHistorikk.Vedtak>().map { it.vedtak }
+    return vedtak.minByOrNull { it.opprettet }?.opprettet?.toLocalDate()
+}
+
+fun List<DeltakerHistorikk>.getInnsoktDatoFraImportertDeltaker(): LocalDate? {
+    filterIsInstance<DeltakerHistorikk.ImportertFraArena>()
+        .firstOrNull()
+        ?.let { return it.importertFraArena.deltakerVedImport.innsoktDato }
+    return null
 }
 
 fun Forslag.skalInkluderesIHistorikk() = when (this.status) {

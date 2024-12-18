@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.deltaker.kafka
 
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.application.plugins.objectMapper
+import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerV2Dto
 import no.nav.amt.lib.kafka.Producer
 import org.slf4j.LoggerFactory
 import java.util.UUID

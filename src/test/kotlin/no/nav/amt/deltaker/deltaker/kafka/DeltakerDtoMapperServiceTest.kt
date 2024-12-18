@@ -8,6 +8,9 @@ import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
+import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerDtoMapperService
+import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerV2Dto
+import no.nav.amt.deltaker.deltaker.kafka.dto.toDeltakerNavVeilederDto
 import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.deltaker.deltaker.sammenlignHistorikk
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
@@ -31,7 +34,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
-class DeltakerV2MapperServiceTest {
+class DeltakerDtoMapperServiceTest {
     companion object {
         private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonClient())
         private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonClient())
@@ -42,7 +45,7 @@ class DeltakerV2MapperServiceTest {
             EndringFraArrangorRepository(),
             ImportertFraArenaRepository(),
         )
-        private val deltakerV2MapperService = DeltakerV2MapperService(navAnsattService, navEnhetService, deltakerHistorikkService)
+        private val deltakerDtoMapperService = DeltakerDtoMapperService(navAnsattService, navEnhetService, deltakerHistorikkService)
 
         @BeforeClass
         @JvmStatic
@@ -82,7 +85,7 @@ class DeltakerV2MapperServiceTest {
         )
         TestRepository.insert(vedtak)
 
-        val deltakerV2Dto = deltakerV2MapperService.tilDeltakerV2Dto(deltaker)
+        val deltakerV2Dto = deltakerDtoMapperService.tilDeltakerDto(deltaker).v2
 
         deltakerV2Dto.id shouldBe deltaker.id
         deltakerV2Dto.deltakerlisteId shouldBe deltaker.deltakerliste.id
@@ -158,7 +161,7 @@ class DeltakerV2MapperServiceTest {
         )
         TestRepository.insert(endringFraArrangor)
 
-        val deltakerV2Dto = deltakerV2MapperService.tilDeltakerV2Dto(deltaker)
+        val deltakerV2Dto = deltakerDtoMapperService.tilDeltakerDto(deltaker).v2
 
         deltakerV2Dto.id shouldBe deltaker.id
         deltakerV2Dto.deltakerlisteId shouldBe deltaker.deltakerliste.id
@@ -214,7 +217,7 @@ class DeltakerV2MapperServiceTest {
         )
         TestRepository.insert(importertFraArena)
 
-        val deltakerV2Dto = deltakerV2MapperService.tilDeltakerV2Dto(deltaker)
+        val deltakerV2Dto = deltakerDtoMapperService.tilDeltakerDto(deltaker).v2
 
         deltakerV2Dto.id shouldBe deltaker.id
         deltakerV2Dto.deltakerlisteId shouldBe deltaker.deltakerliste.id
@@ -275,7 +278,7 @@ class DeltakerV2MapperServiceTest {
         )
         TestRepository.insert(endring)
 
-        val deltakerV2Dto = deltakerV2MapperService.tilDeltakerV2Dto(deltaker)
+        val deltakerV2Dto = deltakerDtoMapperService.tilDeltakerDto(deltaker).v2
 
         deltakerV2Dto.id shouldBe deltaker.id
         deltakerV2Dto.deltakerlisteId shouldBe deltaker.deltakerliste.id

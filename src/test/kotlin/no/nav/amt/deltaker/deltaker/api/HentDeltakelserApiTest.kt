@@ -98,7 +98,6 @@ class HentDeltakelserApiTest {
 
         coEvery { deltakerService.getDeltakelser(any()) } returns listOf(deltaker)
         coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
-        coEvery { deltakerHistorikkService.getInnsoktDato(any()) } returns innsoktDato
 
         val forventetRespons = DeltakelserResponse(
             aktive = listOf(
@@ -170,9 +169,7 @@ class HentDeltakelserApiTest {
 
         coEvery { deltakerService.getDeltakelser(any()) } returns listOf(deltakerKladd, avsluttetDeltaker)
         coEvery { deltakerHistorikkService.getForDeltaker(deltakerKladd.id) } returns emptyList()
-        coEvery { deltakerHistorikkService.getInnsoktDato(emptyList()) } returns null
         coEvery { deltakerHistorikkService.getForDeltaker(avsluttetDeltaker.id) } returns deltakerhistorikk
-        coEvery { deltakerHistorikkService.getInnsoktDato(match { it.isNotEmpty() }) } returns innsoktDato
 
         val forventetRespons = DeltakelserResponse(
             aktive = listOf(

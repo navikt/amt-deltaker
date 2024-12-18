@@ -25,13 +25,9 @@ data class Deltaker(
     val sistEndret: LocalDateTime,
     val kilde: Kilde,
 ) {
-    fun harSluttet(): Boolean {
-        return status.type in AVSLUTTENDE_STATUSER
-    }
+    fun harSluttet(): Boolean = status.type in AVSLUTTENDE_STATUSER
 
-    fun deltarPaKurs(): Boolean {
-        return deltakerliste.erKurs()
-    }
+    fun deltarPaKurs(): Boolean = deltakerliste.erKurs()
 
     fun toDeltakerVedVedtak(): DeltakerVedVedtak = DeltakerVedVedtak(
         id = id,

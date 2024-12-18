@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.deltaker.api.model
 
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
+import no.nav.amt.deltaker.deltaker.getInnsoktDato
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.getStatustekst
 import no.nav.amt.deltaker.deltaker.model.getVisningsnavn
@@ -44,65 +45,57 @@ class DeltakelserResponseMapper(
     )
 
     fun toDeltakelserResponse(deltakelser: List<Deltaker>): DeltakelserResponse {
-        val aktive = deltakelser.filter { it.status.type in AKTIVE_STATUSER }
+        val aktive = deltakelser
+            .filter { it.status.type in AKTIVE_STATUSER }
             .sortedByDescending { it.sistEndret }
             .map { toDeltakerKort(it) }
 
-        val historikk = deltakelser.filter { it.status.type in HISTORISKE_STATUSER }
+        val historikk = deltakelser
+            .filter { it.status.type in HISTORISKE_STATUSER }
             .sortedByDescending { it.sistEndret }
             .map { toDeltakerKort(it) }
 
         return DeltakelserResponse(aktive, historikk)
     }
 
-    private fun toDeltakerKort(deltaker: Deltaker): DeltakerKort {
-        return DeltakerKort(
-            deltakerId = deltaker.id,
-            deltakerlisteId = deltaker.deltakerliste.id,
-            tittel = lagTittel(deltaker),
-            tiltakstype = deltaker.deltakerliste.tiltakstype.toTiltakstypeRespons(),
-            status = deltaker.getStatus(),
-            innsoktDato = deltaker.getInnsoktDato(),
-            sistEndretDato = deltaker.getSistEndretDato(),
-            periode = deltaker.getPeriode(),
+    private fun toDeltakerKort(deltaker: Deltaker): DeltakerKort = DeltakerKort(
+        deltakerId = deltaker.id,
+        deltakerlisteId = deltaker.deltakerliste.id,
+        tittel = lagTittel(deltaker),
+        tiltakstype = deltaker.deltakerliste.tiltakstype.toTiltakstypeRespons(),
+        status = deltaker.getStatus(),
+        innsoktDato = deltaker.getInnsoktDato(),
+        sistEndretDato = deltaker.getSistEndretDato(),
+        periode = deltaker.getPeriode(),
+    )
+
+    private fun Deltaker.getInnsoktDato(): LocalDate? = if (status.type in skalViseInnsoktDatoStatuser) {
+        val deltakerhistorikk = deltakerHistorikkService.getForDeltaker(id)
+        deltakerhistorikk.getInnsoktDato()
+    } else {
+        null
+    }
+
+    private fun Deltaker.getSistEndretDato(): LocalDate? = if (status.type in skalViseSistEndretDatoStatuser) {
+        sistEndret.toLocalDate()
+    } else {
+        null
+    }
+
+    private fun Deltaker.getPeriode(): Periode? = if (status.type in skalVisePeriodeStatuser && startdato != null) {
+        Periode(
+            startdato = startdato,
+            sluttdato = sluttdato,
         )
+    } else {
+        null
     }
 
-    private fun Deltaker.getInnsoktDato(): LocalDate? {
-        return if (status.type in skalViseInnsoktDatoStatuser) {
-            val deltakerhistorikk = deltakerHistorikkService.getForDeltaker(id)
-            deltakerHistorikkService.getInnsoktDato(deltakerhistorikk)
-        } else {
-            null
-        }
-    }
-
-    private fun Deltaker.getSistEndretDato(): LocalDate? {
-        return if (status.type in skalViseSistEndretDatoStatuser) {
-            sistEndret.toLocalDate()
-        } else {
-            null
-        }
-    }
-
-    private fun Deltaker.getPeriode(): Periode? {
-        return if (status.type in skalVisePeriodeStatuser && startdato != null) {
-            Periode(
-                startdato = startdato,
-                sluttdato = sluttdato,
-            )
-        } else {
-            null
-        }
-    }
-
-    private fun Deltaker.getStatus(): DeltakerKort.Status {
-        return DeltakerKort.Status(
-            type = status.type,
-            visningstekst = status.type.getVisningsnavn(),
-            aarsak = getArsak(),
-        )
-    }
+    private fun Deltaker.getStatus(): DeltakerKort.Status = DeltakerKort.Status(
+        type = status.type,
+        visningstekst = status.type.getVisningsnavn(),
+        aarsak = getArsak(),
+    )
 
     private fun Deltaker.getArsak(): String? {
         val aarsak = this.status.aarsak
@@ -113,11 +106,9 @@ class DeltakelserResponseMapper(
         }
     }
 
-    private fun DeltakerStatus.Type.getVisningsnavn(): String {
-        return when (this) {
-            DeltakerStatus.Type.PABEGYNT_REGISTRERING -> throw IllegalStateException("Skal ikke vise status ${this.name}")
-            else -> this.getStatustekst()
-        }
+    private fun DeltakerStatus.Type.getVisningsnavn(): String = when (this) {
+        DeltakerStatus.Type.PABEGYNT_REGISTRERING -> throw IllegalStateException("Skal ikke vise status ${this.name}")
+        else -> this.getStatustekst()
     }
 
     private fun lagTittel(deltaker: Deltaker): String {

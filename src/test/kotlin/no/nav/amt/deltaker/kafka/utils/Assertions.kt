@@ -4,8 +4,8 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.application.plugins.objectMapper
-import no.nav.amt.deltaker.deltaker.kafka.DeltakerV1Dto
-import no.nav.amt.deltaker.deltaker.kafka.DeltakerV2Dto
+import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerV1Dto
+import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerV2Dto
 import no.nav.amt.deltaker.hendelse.model.Hendelse
 import no.nav.amt.deltaker.hendelse.model.HendelseType
 import no.nav.amt.lib.kafka.utils.stringStringConsumer

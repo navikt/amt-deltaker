@@ -6,6 +6,7 @@ import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringService
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
+import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerV2Dto
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste

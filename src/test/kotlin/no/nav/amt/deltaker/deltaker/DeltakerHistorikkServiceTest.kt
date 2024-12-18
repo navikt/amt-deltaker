@@ -121,7 +121,7 @@ class DeltakerHistorikkServiceTest {
     fun `getInnsoktDato - ingen vedtak - returnerer null`() {
         val deltakerhistorikk = listOf<DeltakerHistorikk>(DeltakerHistorikk.Endring(TestData.lagDeltakerEndring()))
 
-        service.getInnsoktDato(deltakerhistorikk) shouldBe null
+        deltakerhistorikk.getInnsoktDato() shouldBe null
     }
 
     @Test
@@ -140,7 +140,7 @@ class DeltakerHistorikkServiceTest {
             ),
         )
 
-        service.getInnsoktDato(deltakerhistorikk) shouldBe LocalDate.now().minusMonths(1)
+        deltakerhistorikk.getInnsoktDato() shouldBe LocalDate.now().minusMonths(1)
     }
 
     @Test
@@ -157,7 +157,7 @@ class DeltakerHistorikkServiceTest {
             ),
         )
 
-        service.getInnsoktDato(deltakerhistorikk) shouldBe innsoktDato
+        deltakerhistorikk.getInnsoktDato() shouldBe innsoktDato
     }
 }
 

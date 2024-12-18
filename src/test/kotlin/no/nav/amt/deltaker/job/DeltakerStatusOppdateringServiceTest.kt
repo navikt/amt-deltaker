@@ -21,7 +21,7 @@ import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaReposit
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerV1Producer
-import no.nav.amt.deltaker.deltaker.kafka.DeltakerV2MapperService
+import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerDtoMapperService
 import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.hendelse.HendelseProducer
@@ -69,11 +69,11 @@ class DeltakerStatusOppdateringServiceTest {
                 importertFraArenaRepository,
             )
         private val unleashToggle = mockk<UnleashToggle>()
-        private val deltakerV2MapperService = DeltakerV2MapperService(navAnsattService, navEnhetService, deltakerHistorikkService)
+        private val deltakerDtoMapperService = DeltakerDtoMapperService(navAnsattService, navEnhetService, deltakerHistorikkService)
         private val deltakerProducer = DeltakerProducer(kafkaProducer)
         private val deltakerV1Producer = DeltakerV1Producer(kafkaProducer)
         private val deltakerProducerService =
-            DeltakerProducerService(deltakerV2MapperService, deltakerProducer, deltakerV1Producer, unleashToggle)
+            DeltakerProducerService(deltakerDtoMapperService, deltakerProducer, deltakerV1Producer, unleashToggle)
         private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
         private val hendelseService = HendelseService(
             HendelseProducer(kafkaProducer),

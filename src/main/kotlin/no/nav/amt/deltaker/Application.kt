@@ -45,7 +45,7 @@ import no.nav.amt.deltaker.deltaker.kafka.DeltakerConsumer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerV1Producer
-import no.nav.amt.deltaker.deltaker.kafka.DeltakerV2MapperService
+import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerDtoMapperService
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlisteConsumer
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
@@ -188,10 +188,10 @@ fun Application.module() {
     )
     val unleashToggle = UnleashToggle(unleash)
 
-    val deltakerV2MapperService = DeltakerV2MapperService(navAnsattService, navEnhetService, deltakerHistorikkService)
+    val deltakerDtoMapperService = DeltakerDtoMapperService(navAnsattService, navEnhetService, deltakerHistorikkService)
     val deltakerProducer = DeltakerProducer(kafkaProducer)
     val deltakerV1Producer = DeltakerV1Producer(kafkaProducer)
-    val deltakerProducerService = DeltakerProducerService(deltakerV2MapperService, deltakerProducer, deltakerV1Producer, unleashToggle)
+    val deltakerProducerService = DeltakerProducerService(deltakerDtoMapperService, deltakerProducer, deltakerV1Producer, unleashToggle)
 
     val forslagService =
         ForslagService(forslagRepository, ArrangorMeldingProducer(kafkaProducer), deltakerRepository, deltakerProducerService)
