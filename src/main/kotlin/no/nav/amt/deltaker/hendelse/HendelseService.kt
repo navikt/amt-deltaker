@@ -60,7 +60,7 @@ class HendelseService(
         if (deltaker.vedtaksinformasjon != null) {
             return navEnhetService.hentEllerOpprettNavEnhet(deltaker.vedtaksinformasjon.sistEndretAvEnhet)
         } else if (deltaker.navBruker.navEnhetId != null) {
-            log.warn("Deltaker mangler vedtaksinformasjon, bruker oppfølgingsenhet som avsender")
+            log.info("Deltaker mangler vedtaksinformasjon, bruker oppfølgingsenhet som avsender")
             return navEnhetService.hentEllerOpprettNavEnhet(deltaker.navBruker.navEnhetId)
         } else {
             throw IllegalStateException(
