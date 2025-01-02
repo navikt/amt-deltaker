@@ -26,7 +26,6 @@ data class Deltakerliste(
         AVBRUTT,
         AVLYST,
         AVSLUTTET,
-        PLANLAGT,
         ;
 
         companion object {
@@ -35,7 +34,6 @@ data class Deltakerliste(
                 "AVBRUTT" -> AVBRUTT
                 "AVLYST" -> AVLYST
                 "AVSLUTTET" -> AVSLUTTET
-                "PLANLAGT", "APENT_FOR_INNSOK" -> PLANLAGT
                 else -> error("Ukjent deltakerlistestatus: $status")
             }
         }
@@ -50,10 +48,10 @@ data class Deltakerliste(
     }
 
     fun erKurs(): Boolean {
-        if (oppstart != null) {
-            return oppstart == Oppstartstype.FELLES
+        return if (oppstart != null) {
+            oppstart == Oppstartstype.FELLES
         } else {
-            return kursTiltak.contains(tiltakstype.arenaKode)
+            kursTiltak.contains(tiltakstype.arenaKode)
         }
     }
 
@@ -63,10 +61,3 @@ data class Deltakerliste(
         Tiltakstype.ArenaKode.GRUFAGYRKE,
     )
 }
-
-data class Innhold(
-    val visningstekst: String,
-    val type: String,
-    val valgt: Boolean,
-    val beskrivelse: String?,
-)
