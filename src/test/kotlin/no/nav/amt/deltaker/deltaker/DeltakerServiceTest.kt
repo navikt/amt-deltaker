@@ -9,7 +9,9 @@ import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.api.model.AvsluttDeltakelseRequest
 import no.nav.amt.deltaker.deltaker.api.model.BakgrunnsinformasjonRequest
+import no.nav.amt.deltaker.deltaker.api.model.DeltakelsesmengdeRequest
 import no.nav.amt.deltaker.deltaker.api.model.ForlengDeltakelseRequest
+import no.nav.amt.deltaker.deltaker.api.model.StartdatoRequest
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
@@ -124,6 +126,7 @@ class DeltakerServiceTest {
             endringFraArrangorService = endringFraArrangorService,
             forslagService = forslagService,
             importertFraArenaRepository = importertFraArenaRepository,
+            deltakerHistorikkService = deltakerHistorikkService,
         )
 
         @JvmStatic
@@ -215,6 +218,7 @@ class DeltakerServiceTest {
         deltakerService.upsertEndretDeltaker(deltaker.id, endringsrequest)
 
         deltakerService.get(deltaker.id).getOrThrow().sistEndret shouldBeCloseTo deltaker.sistEndret
+        deltakerEndringService.getForDeltaker(deltaker.id).isEmpty() shouldBe true
     }
 
     @Test
@@ -368,6 +372,178 @@ class DeltakerServiceTest {
         nesteStatus.gyldigFra.toLocalDate() shouldBe endringsrequest.sluttdato.plusDays(1)
         nesteStatus.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
         nesteStatus.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
+    }
+
+    @Test
+    fun `upsertEndretDeltaker - endret deltakelsesmengde - upserter endring`(): Unit = runBlocking {
+        val deltaker = TestData.lagDeltaker()
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+        val vedtak = TestData.lagVedtak(deltakerId = deltaker.id, opprettetAv = endretAv, opprettetAvEnhet = endretAvEnhet)
+
+        TestRepository.insertAll(deltaker, endretAv, endretAvEnhet, vedtak)
+
+        val endringsrequest = DeltakelsesmengdeRequest(
+            endretAv = endretAv.navIdent,
+            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            deltakelsesprosent = 50,
+            dagerPerUke = null,
+            forslagId = null,
+            begrunnelse = "begrunnelse",
+            gyldigFra = LocalDate.now(),
+        )
+
+        val resultat = deltakerService.upsertEndretDeltaker(deltaker.id, endringsrequest)
+
+        resultat.deltakelsesprosent shouldBe endringsrequest.deltakelsesprosent?.toFloat()
+        resultat.dagerPerUke shouldBe null
+
+        val oppdatertDeltaker = deltakerService.get(deltaker.id).getOrThrow()
+        oppdatertDeltaker.deltakelsesprosent shouldBe endringsrequest.deltakelsesprosent?.toFloat()
+        oppdatertDeltaker.dagerPerUke shouldBe null
+
+        val endring = deltakerEndringService.getForDeltaker(deltaker.id).first()
+        endring.endretAv shouldBe endretAv.id
+        endring.endretAvEnhet shouldBe endretAvEnhet.id
+
+        (endring.endring as DeltakerEndring.Endring.EndreDeltakelsesmengde)
+            .deltakelsesprosent shouldBe endringsrequest.deltakelsesprosent
+        (endring.endring as DeltakerEndring.Endring.EndreDeltakelsesmengde)
+            .dagerPerUke shouldBe endringsrequest.dagerPerUke
+
+        assertProducedHendelse(deltaker.id, HendelseType.EndreDeltakelsesmengde::class)
+        assertProduced(deltaker.id)
+        assertProducedDeltakerV1(deltaker.id)
+    }
+
+    @Test
+    fun `upsertEndretDeltaker - fremtidig deltakelsesmengde - upserter endring, endrer ikke deltaker`(): Unit = runBlocking {
+        val deltaker = TestData.lagDeltaker()
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+        val vedtak = TestData.lagVedtak(deltakerId = deltaker.id, opprettetAv = endretAv, opprettetAvEnhet = endretAvEnhet)
+
+        TestRepository.insertAll(deltaker, endretAv, endretAvEnhet, vedtak)
+
+        val endringsrequest = DeltakelsesmengdeRequest(
+            endretAv = endretAv.navIdent,
+            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            deltakelsesprosent = 50,
+            dagerPerUke = null,
+            forslagId = null,
+            begrunnelse = "begrunnelse",
+            gyldigFra = LocalDate.now().plusDays(1),
+        )
+
+        val resultat = deltakerService.upsertEndretDeltaker(deltaker.id, endringsrequest)
+        resultat.deltakelsesprosent shouldBe deltaker.deltakelsesprosent
+        resultat.dagerPerUke shouldBe deltaker.dagerPerUke
+
+        val oppdatertDeltaker = deltakerService.get(deltaker.id).getOrThrow()
+        oppdatertDeltaker.deltakelsesprosent shouldBe deltaker.deltakelsesprosent
+        oppdatertDeltaker.dagerPerUke shouldBe deltaker.dagerPerUke
+
+        val endring = deltakerEndringService.getForDeltaker(deltaker.id).first()
+        endring.endretAv shouldBe endretAv.id
+        endring.endretAvEnhet shouldBe endretAvEnhet.id
+
+        (endring.endring as DeltakerEndring.Endring.EndreDeltakelsesmengde)
+            .deltakelsesprosent shouldBe endringsrequest.deltakelsesprosent
+        (endring.endring as DeltakerEndring.Endring.EndreDeltakelsesmengde)
+            .dagerPerUke shouldBe endringsrequest.dagerPerUke
+
+        assertProducedHendelse(deltaker.id, HendelseType.EndreDeltakelsesmengde::class)
+        assertProduced(deltaker.id)
+        assertProducedDeltakerV1(deltaker.id)
+    }
+
+    @Test
+    fun `upsertEndretDeltaker - endret datoer - upserter endring`(): Unit = runBlocking {
+        val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR))
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+        val vedtak = TestData.lagVedtak(deltakerId = deltaker.id, opprettetAv = endretAv, opprettetAvEnhet = endretAvEnhet)
+
+        TestRepository.insertAll(deltaker, endretAv, endretAvEnhet, vedtak)
+
+        val endringsrequest = StartdatoRequest(
+            endretAv = endretAv.navIdent,
+            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            startdato = LocalDate.now().minusWeeks(1),
+            sluttdato = LocalDate.now().plusWeeks(4),
+            begrunnelse = null,
+            forslagId = null,
+        )
+
+        val resultat = deltakerService.upsertEndretDeltaker(deltaker.id, endringsrequest)
+        resultat.startdato shouldBe endringsrequest.startdato
+        resultat.sluttdato shouldBe endringsrequest.sluttdato
+        resultat.status.type shouldBe DeltakerStatus.Type.DELTAR
+
+        val oppdatertDeltaker = deltakerService.get(deltaker.id).getOrThrow()
+        oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.DELTAR
+        oppdatertDeltaker.startdato shouldBe endringsrequest.startdato
+        oppdatertDeltaker.sluttdato shouldBe endringsrequest.sluttdato
+
+        val endring = deltakerEndringService.getForDeltaker(deltaker.id).first()
+        endring.endretAv shouldBe endretAv.id
+        endring.endretAvEnhet shouldBe endretAvEnhet.id
+
+        (endring.endring as DeltakerEndring.Endring.EndreStartdato)
+            .startdato shouldBe endringsrequest.startdato
+        (endring.endring as DeltakerEndring.Endring.EndreStartdato)
+            .sluttdato shouldBe endringsrequest.sluttdato
+
+        assertProducedHendelse(deltaker.id, HendelseType.EndreStartdato::class)
+        assertProduced(deltaker.id)
+        assertProducedDeltakerV1(deltaker.id)
+    }
+
+    @Test
+    fun `upsertEndretDeltaker - endret startdato- upserter ny dato og status`(): Unit = runBlocking {
+        val deltakersSluttdato = LocalDate.now().plusWeeks(3)
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
+            startdato = LocalDate.now().plusDays(3),
+            sluttdato = deltakersSluttdato,
+        )
+
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+        val vedtak = TestData.lagVedtak(deltakerId = deltaker.id, opprettetAv = endretAv, opprettetAvEnhet = endretAvEnhet)
+        TestRepository.insertAll(deltaker, endretAv, endretAvEnhet, vedtak)
+
+        val endringsrequest = StartdatoRequest(
+            endretAv = endretAv.navIdent,
+            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            startdato = LocalDate.now().minusWeeks(2),
+            sluttdato = null,
+            begrunnelse = null,
+            forslagId = null,
+        )
+
+        val resultat = deltakerService.upsertEndretDeltaker(deltaker.id, endringsrequest)
+        resultat.startdato shouldBe endringsrequest.startdato
+        resultat.sluttdato shouldBe deltakersSluttdato
+        resultat.status.type shouldBe DeltakerStatus.Type.DELTAR
+
+        val oppdatertDeltaker = deltakerService.get(deltaker.id).getOrThrow()
+        oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.DELTAR
+        oppdatertDeltaker.startdato shouldBe endringsrequest.startdato
+        oppdatertDeltaker.sluttdato shouldBe deltakersSluttdato
+
+        val endring = deltakerEndringService.getForDeltaker(deltaker.id).first()
+        endring.endretAv shouldBe endretAv.id
+        endring.endretAvEnhet shouldBe endretAvEnhet.id
+
+        (endring.endring as DeltakerEndring.Endring.EndreStartdato)
+            .startdato shouldBe endringsrequest.startdato
+        (endring.endring as DeltakerEndring.Endring.EndreStartdato)
+            .sluttdato shouldBe endringsrequest.sluttdato
+
+        assertProducedHendelse(deltaker.id, HendelseType.EndreStartdato::class)
+        assertProduced(deltaker.id)
+        assertProducedDeltakerV1(deltaker.id)
     }
 
     @Test

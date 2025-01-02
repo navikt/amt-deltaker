@@ -218,6 +218,7 @@ fun Application.module() {
         endringFraArrangorService = endringFraArrangorService,
         forslagService = forslagService,
         importertFraArenaRepository = importertFraArenaRepository,
+        deltakerHistorikkService = deltakerHistorikkService,
     )
     val pameldingService = PameldingService(
         deltakerService = deltakerService,
