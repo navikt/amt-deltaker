@@ -1,7 +1,9 @@
 package no.nav.amt.deltaker.deltaker
 
 import no.nav.amt.deltaker.deltaker.api.model.EndringRequest
+import no.nav.amt.deltaker.deltaker.api.model.toDeltakerEndringEndring
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
+import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringHandler
 import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringService
 import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringUtfall
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorService
@@ -27,6 +29,7 @@ class DeltakerService(
     private val endringFraArrangorService: EndringFraArrangorService,
     private val forslagService: ForslagService,
     private val importertFraArenaRepository: ImportertFraArenaRepository,
+    private val deltakerHistorikkService: DeltakerHistorikkService,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -89,9 +92,18 @@ class DeltakerService(
         val deltaker = get(deltakerId).getOrThrow()
         validerIkkeFeilregistrert(deltaker)
 
-        return when (val resultat = deltakerEndringService.upsertEndring(deltaker, request)) {
-            is DeltakerEndringUtfall.VellykketEndring -> upsertDeltaker(resultat.deltaker, nesteStatus = resultat.nesteStatus)
-            is DeltakerEndringUtfall.FremtidigEndring -> upsertDeltaker(resultat.deltaker)
+        val endring = request.toDeltakerEndringEndring()
+        val deltakerEndringHandler = DeltakerEndringHandler(deltaker, endring, deltakerHistorikkService)
+
+        return when (val utfall = deltakerEndringHandler.sjekkUtfall()) {
+            is DeltakerEndringUtfall.VellykketEndring -> {
+                deltakerEndringService.upsertEndring(deltaker, endring, utfall, request)
+                upsertDeltaker(utfall.deltaker, nesteStatus = utfall.nesteStatus)
+            }
+            is DeltakerEndringUtfall.FremtidigEndring -> {
+                deltakerEndringService.upsertEndring(deltaker, endring, utfall, request)
+                upsertDeltaker(utfall.deltaker)
+            }
             is DeltakerEndringUtfall.UgyldigEndring -> deltaker
         }
     }

@@ -85,7 +85,7 @@ class DeltakerStatusOppdateringServiceTest {
         private val forslagService = ForslagService(forslagRepository, mockk(), deltakerRepository, deltakerProducerService)
 
         private val deltakerEndringService = DeltakerEndringService(
-            repository = deltakerEndringRepository,
+            deltakerEndringRepository = deltakerEndringRepository,
             navAnsattService = navAnsattService,
             navEnhetService = navEnhetService,
             hendelseService = hendelseService,
@@ -112,6 +112,7 @@ class DeltakerStatusOppdateringServiceTest {
                 endringFraArrangorService,
                 forslagService,
                 importertFraArenaRepository,
+                deltakerHistorikkService,
             )
             deltakerStatusOppdateringService = DeltakerStatusOppdateringService(deltakerRepository, deltakerService, unleashToggle)
         }
