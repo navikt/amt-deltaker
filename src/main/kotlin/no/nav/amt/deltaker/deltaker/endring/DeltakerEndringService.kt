@@ -100,8 +100,13 @@ class DeltakerEndringService(
 }
 
 fun Deltaker.getStatusEndretStartOgSluttdato(startdato: LocalDate?, sluttdato: LocalDate?): DeltakerStatus =
-    if (status.type == DeltakerStatus.Type.VENTER_PA_OPPSTART && (sluttdato != null && sluttdato.isBefore(LocalDate.now()))) {
-        nyDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL)
+    if (status.type == DeltakerStatus.Type.VENTER_PA_OPPSTART && (
+            startdato != null && sluttdato != null && sluttdato.isBefore(
+                LocalDate.now(),
+            )
+        )
+    ) {
+        nyDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET)
     } else if (status.type == DeltakerStatus.Type.VENTER_PA_OPPSTART && (startdato != null && !startdato.isAfter(LocalDate.now()))) {
         nyDeltakerStatus(DeltakerStatus.Type.DELTAR)
     } else if (status.type == DeltakerStatus.Type.DELTAR && (sluttdato != null && sluttdato.isBefore(LocalDate.now()))) {

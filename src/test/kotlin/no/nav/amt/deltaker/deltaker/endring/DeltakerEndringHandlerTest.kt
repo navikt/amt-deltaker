@@ -139,7 +139,7 @@ class DeltakerEndringHandlerTest {
     }
 
     @Test
-    fun `sjekkUtfall - endret start- og sluttdato i fortid, venter pa oppstart - deltaker blir ikke aktuell`(): Unit = runBlocking {
+    fun `sjekkUtfall - endret start- og sluttdato i fortid, venter pa oppstart - deltaker blir har sluttet`(): Unit = runBlocking {
         val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.VENTER_PA_OPPSTART))
         val endretAv = TestData.lagNavAnsatt()
         val endretAvEnhet = TestData.lagNavEnhet()
@@ -157,9 +157,9 @@ class DeltakerEndringHandlerTest {
 
         resultat.erVellykket shouldBe true
         val deltakerResult = resultat.getOrThrow()
-        deltakerResult.status.type shouldBe DeltakerStatus.Type.IKKE_AKTUELL
-        deltakerResult.startdato shouldBe null
-        deltakerResult.sluttdato shouldBe null
+        deltakerResult.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+        deltakerResult.startdato shouldBe endringsrequest.startdato
+        deltakerResult.sluttdato shouldBe endringsrequest.sluttdato
     }
 
     @Test
