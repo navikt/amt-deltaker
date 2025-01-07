@@ -292,7 +292,7 @@ class EndringFraArrangorServiceTest {
 
             resultat.isSuccess shouldBe true
             resultat.getOrThrow().startdato shouldBe startdato
-            // resultat.getOrThrow().sluttdato shouldBe sluttdato
+            resultat.getOrThrow().sluttdato shouldBe sluttdato
             resultat.getOrThrow().status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
 
             val endring = endringFraArrangorRepository.getForDeltaker(deltaker.id).first()
