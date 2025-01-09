@@ -13,6 +13,7 @@ import no.nav.amt.lib.kafka.config.LocalKafkaConfig
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.arrangor.melding.Melding
+import no.nav.amt.lib.models.arrangor.melding.Vurdering
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.UUIDDeserializer
 import org.slf4j.LoggerFactory
@@ -56,6 +57,7 @@ class ArrangorMeldingConsumer(
         when (melding) {
             is EndringFraArrangor -> deltakerService.upsertEndretDeltaker(melding)
             is Forslag -> forslagService.upsert(melding)
+            is Vurdering -> {}
         }
     }
 
