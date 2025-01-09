@@ -37,7 +37,7 @@ val caffeineVersion = "3.1.8"
 val mockkVersion = "1.13.14"
 val nimbusVersion = "10.0.1"
 val unleashVersion = "9.2.6"
-val amtLibVersion = "1.2024.12.18_08.42-6b6bf091f6d5"
+val amtLibVersion = "1.2025.01.09_06.01-9f86501854f1"
 val awaitilityVersion = "4.2.2"
 
 dependencies {
