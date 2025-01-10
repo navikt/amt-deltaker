@@ -45,7 +45,7 @@ class ArrangorMeldingConsumer(
         }
 
         val melding = objectMapper.readValue<Melding>(value)
-        if (!forslagService.kanLagres(melding.deltakerId)) {
+        if (!forslagService.kanLagres(melding.deltakerId) && melding !is Vurdering) {
             if (isDev) {
                 log.error("Mottatt melding ${melding.id} på deltaker som ikke finnes, deltakerid ${melding.deltakerId}, ignorerer")
                 return
