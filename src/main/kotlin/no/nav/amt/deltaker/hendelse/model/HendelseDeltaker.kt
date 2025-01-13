@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.hendelse.model
 import no.nav.amt.deltaker.arrangor.Arrangor
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype
+import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype.Tiltakskode
 import java.time.LocalDate
 import java.util.UUID
 
@@ -29,6 +30,7 @@ data class HendelseDeltaker(
             val navn: String,
             val type: Tiltakstype.ArenaKode,
             val ledetekst: String?,
+            val tiltakskode: Tiltakskode,
         )
     }
 }
@@ -44,6 +46,7 @@ fun Deltaker.toHendelseDeltaker(overordnetArrangor: Arrangor?, forsteVedtakFatte
             navn = deltakerliste.tiltakstype.navn,
             type = deltakerliste.tiltakstype.arenaKode,
             ledetekst = deltakerliste.tiltakstype.innhold?.ledetekst,
+            tiltakskode = deltakerliste.tiltakstype.tiltakskode,
         ),
     ),
     forsteVedtakFattet = forsteVedtakFattet,
