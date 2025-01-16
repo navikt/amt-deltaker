@@ -62,14 +62,14 @@ class DeltakerConsumer(
     private suspend fun processDeltaker(deltakerV2: DeltakerV2Dto) {
         val deltakerliste = deltakerlisteRepository.get(deltakerV2.deltakerlisteId).getOrThrow()
         val opprettetAvKomet = deltakerV2.kilde == Kilde.KOMET
-        val deltakerLestInnTidligere = deltakerV2.historikk != null
+        val deltakerPublisertAvDenneAppen = deltakerV2.historikk != null
 
         if (opprettetAvKomet) {
             log.info("Hopper over komet deltaker på deltaker-v2. deltakerId: ${deltakerV2.id}")
             return
         }
 
-        if (deltakerLestInnTidligere) {
+        if (deltakerPublisertAvDenneAppen) {
             log.info("Hopper over deltaker med id ${deltakerV2.id} fordi deltakeren er allerede bearbeidet")
             return
         }
