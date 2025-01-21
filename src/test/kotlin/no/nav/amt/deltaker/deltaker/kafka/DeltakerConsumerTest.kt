@@ -121,10 +121,11 @@ class DeltakerConsumerTest {
     }
 
     @Test
-    fun `consumeDeltaker - ny ARENA deltaker - lagrer deltaker`(): Unit = runBlocking {
+    fun `consumeDeltaker - ny kurs ARENA deltaker - lagrer deltaker`(): Unit = runBlocking {
         val deltakerliste = lagDeltakerliste(
-            tiltakstype = lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
+            tiltakstype = lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.JOBBKLUBB),
         )
+
         TestRepository.insert(deltakerliste)
         val statusOpprettet = LocalDateTime.now().minusWeeks(1)
         val sistEndret = LocalDateTime.now().minusDays(1)
@@ -136,6 +137,13 @@ class DeltakerConsumerTest {
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR, opprettet = statusOpprettet),
             sistEndret = sistEndret,
         )
+        val importertFraArena = DeltakerHistorikk.ImportertFraArena(
+            importertFraArena = ImportertFraArena(
+                deltakerId = deltaker.id,
+                importertDato = LocalDateTime.now(),
+                deltakerVedImport = deltaker.toDeltakerVedImport(LocalDate.now()),
+            ),
+        )
 
         TestRepository.insert(deltaker.navBruker)
         every { deltakerEndringService.getForDeltaker(deltaker.id) } returns emptyList()
@@ -143,8 +151,9 @@ class DeltakerConsumerTest {
         every { vedtakRepository.getForDeltaker(deltaker.id) } returns emptyList()
         every { forslagRepository.getForDeltaker(deltaker.id) } returns emptyList()
         every { endringFraArrangorRepository.getForDeltaker(deltaker.id) } returns emptyList()
+        every { unleashToggle.skalLeseArenaDeltakereForTiltakstype(Tiltakstype.ArenaKode.JOBBK) } returns true
 
-        val deltakerV2Dto = deltaker.toDeltakerV2()
+        val deltakerV2Dto = deltaker.toDeltakerV2(deltakerhistorikk = listOf(importertFraArena))
 
         consumer.consume(deltaker.id, objectMapper.writeValueAsString(deltakerV2Dto))
         Awaitility.await().atMost(5, TimeUnit.SECONDS).until {
@@ -173,24 +182,25 @@ class DeltakerConsumerTest {
         insertedDeltaker.kilde shouldBe Kilde.ARENA
         insertedDeltaker.sistEndret shouldBeCloseTo sistEndret
 
-        val importertFraArena = importertFraArenaRepository.getForDeltaker(deltaker.id)
+        val importertFraArenaResult = importertFraArenaRepository.getForDeltaker(deltaker.id)
             ?: throw RuntimeException("Fant ikke importert fra arena")
-        importertFraArena.importertDato.toLocalDate() shouldBe LocalDate.now()
-        importertFraArena.deltakerVedImport.innsoktDato shouldBe deltakerV2Dto.innsoktDato
-        importertFraArena.deltakerVedImport.startdato shouldBe deltakerV2Dto.oppstartsdato
-        importertFraArena.deltakerVedImport.sluttdato shouldBe deltakerV2Dto.sluttdato
-        importertFraArena.deltakerVedImport.dagerPerUke shouldBe deltakerV2Dto.dagerPerUke
-        importertFraArena.deltakerVedImport.deltakelsesprosent shouldBe deltakerV2Dto.prosentStilling?.toFloat()
-        importertFraArena.deltakerVedImport.status.type shouldBe deltakerV2Dto.status.type
+        val deltakerVedImport = importertFraArena.importertFraArena.deltakerVedImport
+        importertFraArenaResult.importertDato.toLocalDate() shouldBe LocalDate.now()
+        importertFraArenaResult.deltakerVedImport.innsoktDato shouldBe deltakerVedImport.innsoktDato
+        importertFraArenaResult.deltakerVedImport.startdato shouldBe deltakerVedImport.startdato
+        importertFraArenaResult.deltakerVedImport.sluttdato shouldBe deltakerVedImport.sluttdato
+        importertFraArenaResult.deltakerVedImport.dagerPerUke shouldBe deltakerVedImport.dagerPerUke
+        importertFraArenaResult.deltakerVedImport.deltakelsesprosent shouldBe deltakerVedImport.deltakelsesprosent
+        importertFraArenaResult.deltakerVedImport.status.type shouldBe deltakerVedImport.status.type
 
         val historikk = deltakerHistorikkService.getForDeltaker(deltaker.id)
         sammenlignHistorikk(historikk.first(), expectedHistorikk)
     }
 
     @Test
-    fun `consumeDeltaker - oppdatert ARENA deltaker - lagrer deltaker uten bakgrunnsinfo`(): Unit = runBlocking {
+    fun `consumeDeltaker - oppdatert ARENA kurs deltaker - lagrer deltaker uten bakgrunnsinfo`(): Unit = runBlocking {
         val deltakerliste = lagDeltakerliste(
-            tiltakstype = lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
+            tiltakstype = lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.JOBBKLUBB),
         )
         val statusOpprettet = LocalDateTime.now().minusWeeks(1)
         val sistEndret = LocalDateTime.now().minusDays(1)
@@ -208,14 +218,9 @@ class DeltakerConsumerTest {
         TestRepository.insert(
             ImportertFraArena(
                 deltakerId = deltaker.id,
-                importertDato = LocalDateTime.now(),
+                importertDato = LocalDateTime.now().minusMonths(3),
                 deltakerVedImport = deltaker.toDeltakerVedImport(innsoktDato),
             ),
-        )
-
-        val oppdatertDeltaker = deltaker.copy(
-            bakgrunnsinformasjon = "Test",
-            startdato = LocalDate.now().minusDays(2),
         )
 
         every { deltakerEndringService.getForDeltaker(deltaker.id) } returns emptyList()
@@ -223,21 +228,25 @@ class DeltakerConsumerTest {
         every { vedtakRepository.getForDeltaker(deltaker.id) } returns emptyList()
         every { forslagRepository.getForDeltaker(deltaker.id) } returns emptyList()
         every { endringFraArrangorRepository.getForDeltaker(deltaker.id) } returns emptyList()
-        every { unleashToggle.skalLeseArenaDeltakereForTiltakstype(deltakerliste.tiltakstype.arenaKode) } returns true
+        every { unleashToggle.skalLeseArenaDeltakereForTiltakstype(Tiltakstype.ArenaKode.JOBBK) } returns true
 
-        val deltakerV2Dto = oppdatertDeltaker.toDeltakerV2(innsoktDato = innsoktDato)
+        val oppdatertDeltaker = deltaker.copy(
+            bakgrunnsinformasjon = "Test",
+            startdato = LocalDate.now().minusDays(2),
+        )
+        val oppdatertHistorikk = DeltakerHistorikk.ImportertFraArena(
+            importertFraArena = ImportertFraArena(
+                deltakerId = deltaker.id,
+                importertDato = LocalDateTime.now(),
+                deltakerVedImport = deltaker.toDeltakerVedImport(innsoktDato),
+            ),
+        )
+        val deltakerV2Dto = oppdatertDeltaker.toDeltakerV2(innsoktDato = innsoktDato, deltakerhistorikk = listOf(oppdatertHistorikk))
 
         consumer.consume(deltaker.id, objectMapper.writeValueAsString(deltakerV2Dto))
         Awaitility.await().atMost(5, TimeUnit.SECONDS).until {
             deltakerRepository.get(deltaker.id).getOrNull() != null
         }
-        val expectedHistorikk = DeltakerHistorikk.ImportertFraArena(
-            importertFraArena = ImportertFraArena(
-                deltakerId = deltaker.id,
-                importertDato = LocalDateTime.now(),
-                deltakerVedImport = oppdatertDeltaker.toDeltakerVedImport(deltakerV2Dto.innsoktDato),
-            ),
-        )
 
         val insertedDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
 
@@ -256,15 +265,16 @@ class DeltakerConsumerTest {
 
         val importertFraArena = importertFraArenaRepository.getForDeltaker(deltaker.id)
             ?: throw RuntimeException("Fant ikke importert fra arena")
+        val deltakerVedImport = oppdatertHistorikk.importertFraArena.deltakerVedImport
         importertFraArena.importertDato.toLocalDate() shouldBe LocalDate.now()
-        importertFraArena.deltakerVedImport.innsoktDato shouldBe deltakerV2Dto.innsoktDato
-        importertFraArena.deltakerVedImport.startdato shouldBe deltakerV2Dto.oppstartsdato
-        importertFraArena.deltakerVedImport.sluttdato shouldBe deltakerV2Dto.sluttdato
-        importertFraArena.deltakerVedImport.dagerPerUke shouldBe deltakerV2Dto.dagerPerUke
-        importertFraArena.deltakerVedImport.deltakelsesprosent shouldBe deltakerV2Dto.prosentStilling?.toFloat()
-        importertFraArena.deltakerVedImport.status.type shouldBe deltakerV2Dto.status.type
+        importertFraArena.deltakerVedImport.innsoktDato shouldBe deltakerVedImport.innsoktDato
+        importertFraArena.deltakerVedImport.startdato shouldBe deltakerVedImport.startdato
+        importertFraArena.deltakerVedImport.sluttdato shouldBe deltakerVedImport.sluttdato
+        importertFraArena.deltakerVedImport.dagerPerUke shouldBe deltakerVedImport.dagerPerUke
+        importertFraArena.deltakerVedImport.deltakelsesprosent shouldBe deltakerVedImport.deltakelsesprosent
+        importertFraArena.deltakerVedImport.status.type shouldBe deltakerVedImport.status.type
 
         val historikk = deltakerHistorikkService.getForDeltaker(deltaker.id)
-        sammenlignHistorikk(historikk.first(), expectedHistorikk)
+        sammenlignHistorikk(historikk.first(), oppdatertHistorikk)
     }
 }

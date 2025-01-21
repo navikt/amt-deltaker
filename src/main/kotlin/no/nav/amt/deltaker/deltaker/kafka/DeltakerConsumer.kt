@@ -19,12 +19,12 @@ import no.nav.amt.lib.kafka.config.KafkaConfig
 import no.nav.amt.lib.kafka.config.KafkaConfigImpl
 import no.nav.amt.lib.kafka.config.LocalKafkaConfig
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
+import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.UUIDDeserializer
 import org.slf4j.LoggerFactory
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -62,38 +62,41 @@ class DeltakerConsumer(
     private suspend fun processDeltaker(deltakerV2: DeltakerV2Dto) {
         val deltakerliste = deltakerlisteRepository.get(deltakerV2.deltakerlisteId).getOrThrow()
         val opprettetAvKomet = deltakerV2.kilde == Kilde.KOMET
-        val deltakerLestInnTidligere = deltakerV2.historikk != null
+        val kanImporteres =
+            deltakerV2.historikk != null &&
+                deltakerV2.historikk.size == 1 &&
+                deltakerV2.historikk[0] is DeltakerHistorikk.ImportertFraArena
 
         if (opprettetAvKomet) {
             log.info("Hopper over komet deltaker på deltaker-v2. deltakerId: ${deltakerV2.id}")
             return
         }
 
-        if (deltakerLestInnTidligere) {
-            log.info("Hopper over deltaker med id ${deltakerV2.id} fordi deltakeren er allerede bearbeidet")
+        if (!kanImporteres) {
+            log.info(
+                "Hopper over deltaker med id ${deltakerV2.id} fordi " +
+                    "deltakeren har ikke blitt populert med data om importert fra arena " +
+                    "eller deltakeren har flere elementer i historikken som kan være generert av denne appen",
+            )
             return
         }
 
         if (unleashToggle.skalLeseArenaDeltakereForTiltakstype(deltakerliste.tiltakstype.arenaKode)) {
             log.info("Ingester arenadeltaker med id ${deltakerV2.id}")
             val deltaker = deltakerV2.toDeltaker(deltakerliste)
+            val historikk = deltakerV2.historikk?.get(0) as DeltakerHistorikk.ImportertFraArena
 
-            upsertImportertDeltaker(deltaker, deltakerV2.innsoktDato)
+            upsertImportertDeltaker(deltaker, historikk.importertFraArena)
+
             log.info("Ingest for arenadeltaker med id ${deltaker.id} er ferdig")
         }
     }
 
     override fun run() = consumer.run()
 
-    private fun upsertImportertDeltaker(deltaker: Deltaker, innsoktDato: LocalDate) {
+    private fun upsertImportertDeltaker(deltaker: Deltaker, historikk: ImportertFraArena) {
         deltakerRepository.upsert(deltaker)
-        val historikkElement = ImportertFraArena(
-            deltakerId = deltaker.id,
-            importertDato = LocalDateTime.now(),
-            deltakerVedImport = deltaker.toDeltakerVedImport(innsoktDato),
-        )
-
-        importertFraArenaRepository.upsert(historikkElement)
+        importertFraArenaRepository.upsert(historikk)
     }
 
     private suspend fun DeltakerV2Dto.toDeltaker(deltakerliste: Deltakerliste) = Deltaker(
