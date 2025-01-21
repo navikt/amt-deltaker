@@ -20,8 +20,10 @@ class UnleashToggle(
         Tiltakstype.ArenaKode.JOBBK,
         Tiltakstype.ArenaKode.GRUFAGYRKE,
     )
+    private val tiltakstyperKometKanskjeErMasterFor = tiltakstyperKometSkalLese
 
-    fun erKometMasterForTiltakstype(tiltakstype: Tiltakstype.ArenaKode): Boolean = tiltakstype in tiltakstyperKometErMasterFor
+    fun erKometMasterForTiltakstype(tiltakstype: Tiltakstype.ArenaKode): Boolean = tiltakstype in tiltakstyperKometErMasterFor ||
+        (unleashClient.isEnabled("amt.enable-komet-deltakere") && tiltakstype in tiltakstyperKometKanskjeErMasterFor)
 
     fun skalLeseArenaDeltakereForTiltakstype(tiltakstype: Tiltakstype.ArenaKode): Boolean =
         unleashClient.isEnabled("amt.les-arena-deltakere") && tiltakstype in tiltakstyperKometSkalLese
