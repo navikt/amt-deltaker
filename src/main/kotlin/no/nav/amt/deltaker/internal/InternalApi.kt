@@ -106,6 +106,31 @@ fun Routing.registerInternalApi(deltakerService: DeltakerService, deltakerProduc
         }
     }
 
+    post("/internal/relast/deltakere") {
+        if (isInternal(call.request.local.remoteAddress)) {
+            val request = call.receive<RepubliserRequest>()
+            scope.launch {
+                log.info("Relaster alle deltakere komet er master for på deltaker-v2")
+                for (tiltakstype in Tiltakstype.ArenaKode.entries) {
+                    val deltakerIder = deltakerService.getDeltakerIderForTiltakstype(tiltakstype)
+                    log.info("Gjør klar for relast av ${deltakerIder.size} deltakere på tiltakstype ${tiltakstype.name}.")
+                    deltakerIder.forEach {
+                        deltakerProducerService.produce(
+                            deltakerService.get(it).getOrThrow(),
+                            forcedUpdate = request.forcedUpdate,
+                            publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
+                        )
+                    }
+                    log.info("Ferdig relastet av ${deltakerIder.size} deltakere på tiltakstype ${tiltakstype.name}.")
+                }
+                log.info("Ferdig relastet alle deltakere komet er master for på deltaker-v2")
+            }
+            call.respond(HttpStatusCode.OK)
+        } else {
+            throw AuthorizationException("Ikke tilgang til api")
+        }
+    }
+
     post("/internal/slett") {
         if (isInternal(call.request.local.remoteAddress)) {
             val request = call.receive<DeleteRequest>()
