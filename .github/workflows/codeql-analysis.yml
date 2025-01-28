@@ -36,7 +36,7 @@ jobs:
       - name: Build artifacts
         run: ./gradlew build --no-build-cache -x test
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@v3.28.6
         with:
           category: "/language:${{matrix.language}}"
 
