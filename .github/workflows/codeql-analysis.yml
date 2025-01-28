@@ -23,7 +23,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@v3.28.6
         with:
           languages: ${{ matrix.language }}
       - name: Setup java
