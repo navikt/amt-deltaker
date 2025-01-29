@@ -4,7 +4,7 @@ group = "no.nav.amt-deltaker"
 version = "1.0-SNAPSHOT"
 
 plugins {
-    val kotlinVersion = "2.1.0"
+    val kotlinVersion = "2.1.10"
 
     kotlin("jvm") version kotlinVersion
     id("io.ktor.plugin") version "3.0.3"
