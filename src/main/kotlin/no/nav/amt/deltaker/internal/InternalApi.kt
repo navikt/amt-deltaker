@@ -106,7 +106,7 @@ fun Routing.registerInternalApi(deltakerService: DeltakerService, deltakerProduc
         }
     }
 
-    post("/internal/relast/deltakere") {
+    post("/internal/relast/alle-deltakere") {
         if (isInternal(call.request.local.remoteAddress)) {
             val request = call.receive<RepubliserRequest>()
             scope.launch {
@@ -122,6 +122,26 @@ fun Routing.registerInternalApi(deltakerService: DeltakerService, deltakerProduc
                         )
                     }
                     log.info("Ferdig relastet av ${deltakerIder.size} deltakere på tiltakstype ${tiltakstype.name}.")
+                }
+                log.info("Ferdig relastet alle deltakere komet er master for på deltaker-v2")
+            }
+            call.respond(HttpStatusCode.OK)
+        } else {
+            throw AuthorizationException("Ikke tilgang til api")
+        }
+    }
+
+    post("/internal/relast/deltakere") {
+        if (isInternal(call.request.local.remoteAddress)) {
+            val request = call.receive<RelastDeltakereRequest>()
+            scope.launch {
+                log.info("Relaster ${request.deltakere.size} deltakere komet er master for på deltaker-v2")
+                request.deltakere.forEach { deltakerId ->
+                    deltakerProducerService.produce(
+                        deltakerService.get(deltakerId).getOrThrow(),
+                        forcedUpdate = request.forcedUpdate,
+                        publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
+                    )
                 }
                 log.info("Ferdig relastet alle deltakere komet er master for på deltaker-v2")
             }
@@ -152,6 +172,12 @@ fun Routing.registerInternalApi(deltakerService: DeltakerService, deltakerProduc
         }
     }
 }
+
+data class RelastDeltakereRequest(
+    val deltakere: List<UUID>,
+    val forcedUpdate: Boolean,
+    val publiserTilDeltakerV1: Boolean,
+)
 
 data class RepubliserRequest(
     val forcedUpdate: Boolean,
