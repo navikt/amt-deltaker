@@ -230,7 +230,8 @@ fun Application.module() {
         isOppfolgingstilfelleClient = isOppfolgingstilfelleClient,
     )
 
-    val deltakerStatusOppdateringService = DeltakerStatusOppdateringService(deltakerRepository, deltakerService, unleashToggle)
+    val deltakerStatusOppdateringService =
+        DeltakerStatusOppdateringService(deltakerRepository, deltakerService, unleashToggle, vedtakService)
 
     val consumers = listOf(
         ArrangorConsumer(arrangorRepository),
