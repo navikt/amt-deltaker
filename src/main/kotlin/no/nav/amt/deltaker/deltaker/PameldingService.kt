@@ -5,11 +5,9 @@ import no.nav.amt.deltaker.deltaker.api.model.KladdResponse
 import no.nav.amt.deltaker.deltaker.api.model.UtkastRequest
 import no.nav.amt.deltaker.deltaker.api.model.toKladdResponse
 import no.nav.amt.deltaker.deltaker.model.Deltaker
-import no.nav.amt.deltaker.deltaker.model.Innsatsgruppe
 import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
-import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.deltaker.isoppfolgingstilfelle.IsOppfolgingstilfelleClient
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
@@ -17,7 +15,9 @@ import no.nav.amt.deltaker.navbruker.NavBrukerService
 import no.nav.amt.deltaker.navbruker.model.NavBruker
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.deltaker.Vedtak
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -146,8 +146,8 @@ class PameldingService(
         log.info("Avbrutt utkast for deltaker med id $deltakerId")
     }
 
-    private suspend fun harRiktigInnsatsgruppe(navBruker: NavBruker, deltakerliste: Deltakerliste): Boolean {
-        return if (navBruker.innsatsgruppe in deltakerliste.tiltakstype.innsatsgrupper) {
+    private suspend fun harRiktigInnsatsgruppe(navBruker: NavBruker, deltakerliste: Deltakerliste): Boolean =
+        if (navBruker.innsatsgruppe in deltakerliste.tiltakstype.innsatsgrupper) {
             true
         } else if (deltakerliste.tiltakstype.tiltakskode == Tiltakstype.Tiltakskode.ARBEIDSRETTET_REHABILITERING &&
             navBruker.innsatsgruppe == Innsatsgruppe.SITUASJONSBESTEMT_INNSATS
@@ -157,30 +157,27 @@ class PameldingService(
         } else {
             false
         }
-    }
 
     private fun kanUpserteUtkast(opprinneligDeltakerStatus: DeltakerStatus) = opprinneligDeltakerStatus.type in listOf(
         DeltakerStatus.Type.KLADD,
         DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
     )
 
-    private fun getOppdatertStatus(opprinneligDeltaker: Deltaker, godkjentAvNav: Boolean): DeltakerStatus {
-        return if (godkjentAvNav) {
-            if (opprinneligDeltaker.startdato != null && opprinneligDeltaker.startdato.isBefore(LocalDate.now())) {
-                nyDeltakerStatus(DeltakerStatus.Type.DELTAR)
-            } else {
-                nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART)
-            }
+    private fun getOppdatertStatus(opprinneligDeltaker: Deltaker, godkjentAvNav: Boolean): DeltakerStatus = if (godkjentAvNav) {
+        if (opprinneligDeltaker.startdato != null && opprinneligDeltaker.startdato.isBefore(LocalDate.now())) {
+            nyDeltakerStatus(DeltakerStatus.Type.DELTAR)
         } else {
-            when (opprinneligDeltaker.status.type) {
-                DeltakerStatus.Type.KLADD -> nyDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING)
-                DeltakerStatus.Type.UTKAST_TIL_PAMELDING -> opprinneligDeltaker.status
-                else -> throw IllegalArgumentException(
-                    "Kan ikke upserte utkast for deltaker " +
-                        "med status ${opprinneligDeltaker.status.type}," +
-                        "status må være ${DeltakerStatus.Type.KLADD} eller ${DeltakerStatus.Type.UTKAST_TIL_PAMELDING}.",
-                )
-            }
+            nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART)
+        }
+    } else {
+        when (opprinneligDeltaker.status.type) {
+            DeltakerStatus.Type.KLADD -> nyDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING)
+            DeltakerStatus.Type.UTKAST_TIL_PAMELDING -> opprinneligDeltaker.status
+            else -> throw IllegalArgumentException(
+                "Kan ikke upserte utkast for deltaker " +
+                    "med status ${opprinneligDeltaker.status.type}," +
+                    "status må være ${DeltakerStatus.Type.KLADD} eller ${DeltakerStatus.Type.UTKAST_TIL_PAMELDING}.",
+            )
         }
     }
 

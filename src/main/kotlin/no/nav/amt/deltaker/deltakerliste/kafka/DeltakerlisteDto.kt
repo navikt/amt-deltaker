@@ -21,7 +21,7 @@ data class DeltakerlisteDto(
         val arenaKode: String,
     )
 
-    fun toModel(arrangor: Arrangor, tiltakstype: no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype) = Deltakerliste(
+    fun toModel(arrangor: Arrangor, tiltakstype: no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype) = Deltakerliste(
         id = this.id,
         tiltakstype = tiltakstype,
         navn = this.navn,

@@ -6,12 +6,12 @@ import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerV1Dto
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerV2Dto
-import no.nav.amt.deltaker.hendelse.model.Hendelse
-import no.nav.amt.deltaker.hendelse.model.HendelseType
 import no.nav.amt.lib.kafka.utils.stringStringConsumer
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.hendelse.Hendelse
+import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.testing.AsyncUtils
 import no.nav.amt.lib.testing.shouldBeCloseTo
 import java.util.UUID

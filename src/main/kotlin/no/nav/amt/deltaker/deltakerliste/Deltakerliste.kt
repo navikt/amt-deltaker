@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.deltakerliste
 
 import no.nav.amt.deltaker.arrangor.Arrangor
-import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import java.time.LocalDate
 import java.util.UUID
 
@@ -39,20 +39,14 @@ data class Deltakerliste(
         }
     }
 
-    fun erAvlystEllerAvbrutt(): Boolean {
-        return status == Status.AVLYST || status == Status.AVBRUTT
-    }
+    fun erAvlystEllerAvbrutt(): Boolean = status == Status.AVLYST || status == Status.AVBRUTT
 
-    fun erAvsluttet(): Boolean {
-        return erAvlystEllerAvbrutt() || status == Status.AVSLUTTET
-    }
+    fun erAvsluttet(): Boolean = erAvlystEllerAvbrutt() || status == Status.AVSLUTTET
 
-    fun erKurs(): Boolean {
-        return if (oppstart != null) {
-            oppstart == Oppstartstype.FELLES
-        } else {
-            kursTiltak.contains(tiltakstype.arenaKode)
-        }
+    fun erKurs(): Boolean = if (oppstart != null) {
+        oppstart == Oppstartstype.FELLES
+    } else {
+        kursTiltak.contains(tiltakstype.arenaKode)
     }
 
     private val kursTiltak = setOf(
