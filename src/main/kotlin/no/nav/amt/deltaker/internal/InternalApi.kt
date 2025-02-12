@@ -1,17 +1,21 @@
 package no.nav.amt.deltaker.internal
 
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.call
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
+import io.ktor.server.routing.get
 import io.ktor.server.routing.post
+import io.ktor.server.util.getOrFail
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import no.nav.amt.deltaker.auth.AuthorizationException
 import no.nav.amt.deltaker.deltaker.DeltakerService
+import no.nav.amt.deltaker.deltaker.VedtakService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
+import no.nav.amt.deltaker.deltaker.nyDeltakerStatus
+import no.nav.amt.deltaker.deltaker.tilVedtaksinformasjon
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import org.slf4j.Logger
@@ -19,7 +23,11 @@ import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.util.UUID
 
-fun Routing.registerInternalApi(deltakerService: DeltakerService, deltakerProducerService: DeltakerProducerService) {
+fun Routing.registerInternalApi(
+    deltakerService: DeltakerService,
+    deltakerProducerService: DeltakerProducerService,
+    vedtakService: VedtakService,
+) {
     val scope = CoroutineScope(Dispatchers.IO)
 
     val log: Logger = LoggerFactory.getLogger(javaClass)
@@ -170,6 +178,25 @@ fun Routing.registerInternalApi(deltakerService: DeltakerService, deltakerProduc
         } else {
             throw AuthorizationException("Ikke tilgang til api")
         }
+    }
+
+    get("internal/avbryt-utkast/{deltakerId}") {
+        if (!isInternal(call.request.local.remoteAddress)) {
+            throw AuthorizationException("Ikke tilgang til api")
+        }
+
+        val deltakerId = call.parameters.getOrFail("deltakerId").let { UUID.fromString(it) }
+        val deltaker = deltakerService.get(deltakerId).getOrThrow()
+
+        val vedtak = vedtakService.avbrytVedtakVedAvsluttetDeltakerliste(deltaker)
+        val status = nyDeltakerStatus(
+            DeltakerStatus.Type.AVBRUTT_UTKAST,
+            DeltakerStatus.Aarsak(type = DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT, beskrivelse = null),
+        )
+
+        val oppdatertDeltaker = deltaker.copy(status = status, vedtaksinformasjon = vedtak.tilVedtaksinformasjon())
+
+        deltakerService.upsertDeltaker(oppdatertDeltaker)
     }
 }
 

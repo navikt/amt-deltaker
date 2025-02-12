@@ -19,6 +19,7 @@ import no.nav.amt.deltaker.auth.TilgangskontrollService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.PameldingService
+import no.nav.amt.deltaker.deltaker.VedtakService
 import no.nav.amt.deltaker.deltaker.api.model.DeltakelserResponseMapper
 import no.nav.amt.deltaker.deltaker.api.registerDeltakerApi
 import no.nav.amt.deltaker.deltaker.api.registerHentDeltakelserApi
@@ -36,6 +37,7 @@ fun Application.configureRouting(
     tilgangskontrollService: TilgangskontrollService,
     deltakelserResponseMapper: DeltakelserResponseMapper,
     deltakerProducerService: DeltakerProducerService,
+    vedtakService: VedtakService,
     unleashToggle: UnleashToggle,
 ) {
     install(StatusPages) {
@@ -66,7 +68,7 @@ fun Application.configureRouting(
         registerPameldingApi(pameldingService, deltakerHistorikkService)
         registerDeltakerApi(deltakerService, deltakerHistorikkService)
         registerHentDeltakelserApi(tilgangskontrollService, deltakerService, deltakelserResponseMapper, unleashToggle)
-        registerInternalApi(deltakerService, deltakerProducerService)
+        registerInternalApi(deltakerService, deltakerProducerService, vedtakService)
 
         val catchAllRoute = "{...}"
         route(catchAllRoute) {

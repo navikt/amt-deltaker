@@ -259,6 +259,7 @@ fun Application.module() {
         tilgangskontrollService,
         deltakelserResponseMapper,
         deltakerProducerService,
+        vedtakService,
         unleashToggle,
     )
     configureMonitoring()
