@@ -26,12 +26,12 @@ import no.nav.amt.deltaker.deltaker.api.model.DeltakerKort
 import no.nav.amt.deltaker.deltaker.api.model.Periode
 import no.nav.amt.deltaker.deltaker.api.utils.postVeilederRequest
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
-import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.deltaker.utils.configureEnvForAuthentication
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.poao_tilgang.client.Decision
 import no.nav.poao_tilgang.client.PoaoTilgangCachedClient
 import no.nav.poao_tilgang.client.api.ApiResult

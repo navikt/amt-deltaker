@@ -12,8 +12,8 @@ import kotlinx.coroutines.launch
 import no.nav.amt.deltaker.auth.AuthorizationException
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
-import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
@@ -189,6 +189,4 @@ data class DeleteRequest(
     val deltakerlisteId: UUID,
 )
 
-fun isInternal(remoteAdress: String): Boolean {
-    return remoteAdress == "127.0.0.1"
-}
+fun isInternal(remoteAdress: String): Boolean = remoteAdress == "127.0.0.1"

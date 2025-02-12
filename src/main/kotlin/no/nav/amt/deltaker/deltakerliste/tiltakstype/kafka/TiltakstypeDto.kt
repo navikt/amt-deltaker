@@ -1,8 +1,8 @@
 package no.nav.amt.deltaker.deltakerliste.tiltakstype.kafka
 
-import no.nav.amt.deltaker.deltaker.model.Innsatsgruppe
-import no.nav.amt.deltaker.deltakerliste.tiltakstype.DeltakerRegistreringInnhold
-import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype
+import no.nav.amt.lib.models.deltaker.Innsatsgruppe
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.DeltakerRegistreringInnhold
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import java.util.UUID
 
 data class TiltakstypeDto(
@@ -13,16 +13,14 @@ data class TiltakstypeDto(
     val innsatsgrupper: Set<Innsatsgruppe>,
     val deltakerRegistreringInnhold: DeltakerRegistreringInnhold?,
 ) {
-    fun toModel(arenaKode: String): Tiltakstype {
-        return Tiltakstype(
-            id = id,
-            navn = navn,
-            tiltakskode = tiltakskode,
-            arenaKode = Tiltakstype.ArenaKode.valueOf(arenaKode),
-            innsatsgrupper = innsatsgrupper,
-            innhold = deltakerRegistreringInnhold,
-        )
-    }
+    fun toModel(arenaKode: String): Tiltakstype = Tiltakstype(
+        id = id,
+        navn = navn,
+        tiltakskode = tiltakskode,
+        arenaKode = Tiltakstype.ArenaKode.valueOf(arenaKode),
+        innsatsgrupper = innsatsgrupper,
+        innhold = deltakerRegistreringInnhold,
+    )
 }
 
 fun erStottet(arenaKode: String) = arenaKode in setOf(

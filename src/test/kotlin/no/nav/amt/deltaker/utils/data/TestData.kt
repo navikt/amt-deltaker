@@ -5,13 +5,9 @@ import no.nav.amt.deltaker.amtperson.dto.NavEnhetDto
 import no.nav.amt.deltaker.arrangor.Arrangor
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerV2Dto
 import no.nav.amt.deltaker.deltaker.model.Deltaker
-import no.nav.amt.deltaker.deltaker.model.Innsatsgruppe
 import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlisteDto
-import no.nav.amt.deltaker.deltakerliste.tiltakstype.DeltakerRegistreringInnhold
-import no.nav.amt.deltaker.deltakerliste.tiltakstype.Innholdselement
-import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.deltaker.navansatt.NavAnsatt
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhet
 import no.nav.amt.deltaker.navbruker.model.Adresse
@@ -30,7 +26,11 @@ import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.DeltakerVedImport
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
+import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.deltaker.Vedtak
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.DeltakerRegistreringInnhold
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Innholdselement
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID

@@ -2,8 +2,7 @@ package no.nav.amt.deltaker.hendelse.model
 
 import no.nav.amt.deltaker.arrangor.Arrangor
 import no.nav.amt.deltaker.deltaker.model.Deltaker
-import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype
-import no.nav.amt.deltaker.deltakerliste.tiltakstype.Tiltakstype.Tiltakskode
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import java.time.LocalDate
 import java.util.UUID
 
@@ -30,7 +29,7 @@ data class HendelseDeltaker(
             val navn: String,
             val type: Tiltakstype.ArenaKode,
             val ledetekst: String?,
-            val tiltakskode: Tiltakskode,
+            val tiltakskode: Tiltakstype.Tiltakskode,
         )
     }
 }
