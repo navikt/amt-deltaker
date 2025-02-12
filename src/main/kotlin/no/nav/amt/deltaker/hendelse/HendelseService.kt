@@ -45,7 +45,7 @@ class HendelseService(
             deltakerEndring.toHendelseEndring()
         }
 
-        hendelseProducer.produce(nyHendelse(deltaker, navAnsatt, navEnhet, endring))
+        hendelseProducer.produce(nyHendelseFraNavAnsatt(deltaker, navAnsatt, navEnhet, endring))
     }
 
     suspend fun hendelseForEndringFraArrangor(endringFraArrangor: EndringFraArrangor, deltaker: Deltaker) {
@@ -74,7 +74,7 @@ class HendelseService(
         val navEnhet = navEnhetService.hentEllerOpprettNavEnhet(vedtak.sistEndretAvEnhet)
 
         val endring = HendelseType.InnbyggerGodkjennUtkast(deltaker.toUtkastDto())
-        hendelseProducer.produce(nyHendelse(deltaker, navAnsatt, navEnhet, endring))
+        hendelseProducer.produce(nyHendelseFraNavAnsatt(deltaker, navAnsatt, navEnhet, endring))
     }
 
     fun hendelseForVedtak(
@@ -84,31 +84,28 @@ class HendelseService(
         block: (it: UtkastDto) -> HendelseType,
     ) {
         val endring = block(deltaker.toUtkastDto())
-        hendelseProducer.produce(nyHendelse(deltaker, navAnsatt, enhet, endring))
+        hendelseProducer.produce(nyHendelseFraNavAnsatt(deltaker, navAnsatt, enhet, endring))
     }
 
-    private fun nyHendelse(
+    fun hendelseFraSystem(deltaker: Deltaker, block: (it: UtkastDto) -> HendelseType.HendelseSystemKanOpprette) {
+        val endring = block(deltaker.toUtkastDto())
+        hendelseProducer.produce(nyHendelseFraSystem(deltaker, endring))
+    }
+
+    private fun nyHendelseFraNavAnsatt(
         deltaker: Deltaker,
         navAnsatt: NavAnsatt,
         navEnhet: NavEnhet,
         endring: HendelseType,
     ): Hendelse {
-        val overordnetArrangor = deltaker.deltakerliste.arrangor.overordnetArrangorId
-            ?.let { arrangorService.hentArrangor(it) }
-        val forsteVedtakFattet = deltakerHistorikkService.getForsteVedtakFattet(deltaker.id)
-
-        return Hendelse(
-            id = UUID.randomUUID(),
-            opprettet = LocalDateTime.now(),
-            deltaker = deltaker.toHendelseDeltaker(overordnetArrangor, forsteVedtakFattet),
-            ansvarlig = HendelseAnsvarlig.NavVeileder(
-                id = navAnsatt.id,
-                navIdent = navAnsatt.navIdent,
-                navn = navAnsatt.navn,
-                enhet = HendelseAnsvarlig.NavVeileder.Enhet(navEnhet.id, navEnhet.enhetsnummer),
-            ),
-            payload = endring,
+        val ansvarlig = HendelseAnsvarlig.NavVeileder(
+            id = navAnsatt.id,
+            navIdent = navAnsatt.navIdent,
+            navn = navAnsatt.navn,
+            enhet = HendelseAnsvarlig.NavVeileder.Enhet(navEnhet.id, navEnhet.enhetsnummer),
         )
+
+        return nyHendelse(deltaker, ansvarlig, endring)
     }
 
     private fun nyHendelseForEndringFraArrangor(
@@ -116,6 +113,34 @@ class HendelseService(
         navEnhet: NavEnhet,
         endring: HendelseType,
     ): Hendelse {
+        val ansvarlig =
+            HendelseAnsvarlig.Arrangor(
+                enhet = HendelseAnsvarlig.Arrangor.Enhet(navEnhet.id, navEnhet.enhetsnummer),
+            )
+
+        return nyHendelse(deltaker, ansvarlig, endring)
+    }
+
+    private fun nyHendelseFraSystem(deltaker: Deltaker, endring: HendelseType.HendelseSystemKanOpprette): Hendelse {
+        val ansvarlig = HendelseAnsvarlig.System
+
+        return nyHendelse(deltaker, ansvarlig, endring)
+    }
+
+    fun hendelseForSistBesokt(deltaker: Deltaker, sistBesokt: ZonedDateTime) {
+        val ansvarlig = HendelseAnsvarlig.Deltaker(
+            id = deltaker.id,
+            navn = deltaker.navBruker.fulltNavn,
+        )
+        val hendelse = nyHendelse(deltaker, ansvarlig, HendelseType.DeltakerSistBesokt(sistBesokt))
+        hendelseProducer.produce(hendelse)
+    }
+
+    private fun nyHendelse(
+        deltaker: Deltaker,
+        ansvarlig: HendelseAnsvarlig,
+        endring: HendelseType,
+    ): Hendelse {
         val overordnetArrangor = deltaker.deltakerliste.arrangor.overordnetArrangorId
             ?.let { arrangorService.hentArrangor(it) }
         val forsteVedtakFattet = deltakerHistorikkService.getForsteVedtakFattet(deltaker.id)
@@ -124,30 +149,9 @@ class HendelseService(
             id = UUID.randomUUID(),
             opprettet = LocalDateTime.now(),
             deltaker = deltaker.toHendelseDeltaker(overordnetArrangor, forsteVedtakFattet),
-            ansvarlig = HendelseAnsvarlig.Arrangor(
-                enhet = HendelseAnsvarlig.Arrangor.Enhet(navEnhet.id, navEnhet.enhetsnummer),
-            ),
+            ansvarlig = ansvarlig,
             payload = endring,
         )
-    }
-
-    fun hendelseForSistBesokt(deltaker: Deltaker, sistBesokt: ZonedDateTime) {
-        val overordnetArrangor = deltaker.deltakerliste.arrangor.overordnetArrangorId
-            ?.let { arrangorService.hentArrangor(it) }
-        val forsteVedtakFattet = deltakerHistorikkService.getForsteVedtakFattet(deltaker.id)
-
-        val hendelse = Hendelse(
-            id = UUID.randomUUID(),
-            opprettet = LocalDateTime.now(),
-            deltaker = deltaker.toHendelseDeltaker(overordnetArrangor, forsteVedtakFattet),
-            ansvarlig = HendelseAnsvarlig.Deltaker(
-                id = deltaker.id,
-                navn = deltaker.navBruker.fulltNavn,
-            ),
-            payload = HendelseType.DeltakerSistBesokt(sistBesokt),
-        )
-
-        hendelseProducer.produce(hendelse)
     }
 }
 

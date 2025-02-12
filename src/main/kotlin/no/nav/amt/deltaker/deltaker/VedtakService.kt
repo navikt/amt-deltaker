@@ -14,7 +14,7 @@ class VedtakService(
     private val repository: VedtakRepository,
     private val hendelseService: HendelseService,
 ) {
-    suspend fun avbrytVedtak(
+    fun avbrytVedtak(
         deltaker: Deltaker,
         avbruttAv: NavAnsatt,
         avbruttAvNavEnhet: NavEnhet,
@@ -38,7 +38,24 @@ class VedtakService(
         return avbruttVedtak
     }
 
-    suspend fun oppdaterEllerOpprettVedtak(
+    fun avbrytVedtakVedAvsluttetDeltakerliste(deltaker: Deltaker): Vedtak {
+        val ikkeFattetVedtak = repository.getIkkeFattet(deltaker.id)
+        require(ikkeFattetVedtak != null) {
+            "Deltaker ${deltaker.id} har ikke et vedtak som kan avbrytes"
+        }
+
+        val avbruttVedtak = ikkeFattetVedtak.copy(
+            gyldigTil = LocalDateTime.now(),
+        )
+
+        repository.upsert(avbruttVedtak)
+
+        hendelseService.hendelseFraSystem(deltaker) { HendelseType.AvbrytUtkast(it) }
+
+        return avbruttVedtak
+    }
+
+    fun oppdaterEllerOpprettVedtak(
         deltaker: Deltaker,
         endretAv: NavAnsatt,
         endretAvEnhet: NavEnhet,

@@ -1,10 +1,12 @@
 package no.nav.amt.deltaker.job
 
 import no.nav.amt.deltaker.deltaker.DeltakerService
+import no.nav.amt.deltaker.deltaker.VedtakService
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.deltaker.deltaker.model.harIkkeStartet
+import no.nav.amt.deltaker.deltaker.tilVedtaksinformasjon
 import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import org.slf4j.LoggerFactory
@@ -16,6 +18,7 @@ class DeltakerStatusOppdateringService(
     private val deltakerRepository: DeltakerRepository,
     private val deltakerService: DeltakerService,
     private val unleashToggle: UnleashToggle,
+    private val vedtakService: VedtakService,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -34,7 +37,8 @@ class DeltakerStatusOppdateringService(
 
     private suspend fun oppdaterTilAvsluttendeStatus() {
         val deltakereSomSkalHaAvsluttendeStatus =
-            deltakerRepository.skalHaAvsluttendeStatus()
+            deltakerRepository
+                .skalHaAvsluttendeStatus()
                 .plus(deltakerRepository.deltarPaAvsluttetDeltakerliste())
                 .filter { it.kilde == Kilde.KOMET || unleashToggle.erKometMasterForTiltakstype(it.deltakerliste.tiltakstype.arenaKode) }
                 .distinct()
@@ -57,18 +61,7 @@ class DeltakerStatusOppdateringService(
             .filter { it.deltarPaKurs() && !sluttetForTidlig(it) }
 
         skalBliAvbruttUtkast.forEach {
-            oppdaterDeltaker(
-                it.copy(
-                    status = DeltakerStatus(
-                        id = UUID.randomUUID(),
-                        type = DeltakerStatus.Type.AVBRUTT_UTKAST,
-                        aarsak = null,
-                        gyldigFra = LocalDateTime.now(),
-                        gyldigTil = null,
-                        opprettet = LocalDateTime.now(),
-                    ),
-                ),
-            )
+            avbrytUtkastVedAvsluttetDeltakerliste(it)
         }
 
         skalBliIkkeAktuell.forEach {
@@ -124,6 +117,27 @@ class DeltakerStatusOppdateringService(
         oppdaterStatusTilHarSluttet(skalBliHarSluttet)
     }
 
+    private suspend fun avbrytUtkastVedAvsluttetDeltakerliste(deltaker: Deltaker) {
+        val vedtak = vedtakService.avbrytVedtakVedAvsluttetDeltakerliste(deltaker)
+
+        oppdaterDeltaker(
+            deltaker.copy(
+                status = DeltakerStatus(
+                    id = UUID.randomUUID(),
+                    type = DeltakerStatus.Type.AVBRUTT_UTKAST,
+                    aarsak = DeltakerStatus.Aarsak(
+                        type = DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT,
+                        beskrivelse = null,
+                    ),
+                    gyldigFra = LocalDateTime.now(),
+                    gyldigTil = null,
+                    opprettet = LocalDateTime.now(),
+                ),
+                vedtaksinformasjon = vedtak.tilVedtaksinformasjon(),
+            ),
+        )
+    }
+
     private suspend fun oppdaterStatusTilDeltar() {
         val deltakere = deltakerRepository.skalHaStatusDeltar().distinct()
 
@@ -149,9 +163,11 @@ class DeltakerStatusOppdateringService(
     private suspend fun oppdaterStatusTilHarSluttet(skalBliHarSluttet: List<Deltaker>) {
         skalBliHarSluttet.forEach {
             val fremtidigStatus = deltakerRepository.getDeltakerStatuser(it.id).firstOrNull { status ->
-                status.gyldigTil == null && !status.gyldigFra.toLocalDate().isAfter(
-                    LocalDate.now(),
-                ) && status.type == DeltakerStatus.Type.HAR_SLUTTET
+                status.gyldigTil == null &&
+                    !status.gyldigFra.toLocalDate().isAfter(
+                        LocalDate.now(),
+                    ) &&
+                    status.type == DeltakerStatus.Type.HAR_SLUTTET
             }
             if (fremtidigStatus != null) {
                 oppdaterDeltaker(
@@ -194,8 +210,8 @@ class DeltakerStatusOppdateringService(
         return false
     }
 
-    private fun getOppdatertSluttdato(deltaker: Deltaker): LocalDate? {
-        return if (deltaker.sluttdato == null || deltaker.sluttdato.isAfter(LocalDate.now())) {
+    private fun getOppdatertSluttdato(deltaker: Deltaker): LocalDate? =
+        if (deltaker.sluttdato == null || deltaker.sluttdato.isAfter(LocalDate.now())) {
             if (deltaker.deltakerliste.sluttDato != null && !deltaker.deltakerliste.sluttDato.isAfter(LocalDate.now())) {
                 deltaker.deltakerliste.sluttDato
             } else {
@@ -204,16 +220,13 @@ class DeltakerStatusOppdateringService(
         } else {
             deltaker.sluttdato
         }
-    }
 
-    private fun getSluttarsak(deltaker: Deltaker): DeltakerStatus.Aarsak? {
-        return if (deltaker.deltakerliste.erAvlystEllerAvbrutt()) {
-            DeltakerStatus.Aarsak(
-                type = DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT,
-                beskrivelse = null,
-            )
-        } else {
-            null
-        }
+    private fun getSluttarsak(deltaker: Deltaker): DeltakerStatus.Aarsak? = if (deltaker.deltakerliste.erAvlystEllerAvbrutt()) {
+        DeltakerStatus.Aarsak(
+            type = DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT,
+            beskrivelse = null,
+        )
+    } else {
+        null
     }
 }

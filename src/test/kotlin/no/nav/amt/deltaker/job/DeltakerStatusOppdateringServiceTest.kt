@@ -26,6 +26,7 @@ import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.hendelse.HendelseProducer
 import no.nav.amt.deltaker.hendelse.HendelseService
+import no.nav.amt.deltaker.kafka.utils.assertProducedHendelse
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetRepository
@@ -38,6 +39,7 @@ import no.nav.amt.deltaker.utils.mockAmtPersonClient
 import no.nav.amt.lib.kafka.Producer
 import no.nav.amt.lib.kafka.config.LocalKafkaConfig
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.testing.SingletonKafkaProvider
 import no.nav.amt.lib.testing.SingletonPostgres16Container
 import org.junit.Before
@@ -114,7 +116,8 @@ class DeltakerStatusOppdateringServiceTest {
                 importertFraArenaRepository,
                 deltakerHistorikkService,
             )
-            deltakerStatusOppdateringService = DeltakerStatusOppdateringService(deltakerRepository, deltakerService, unleashToggle)
+            deltakerStatusOppdateringService =
+                DeltakerStatusOppdateringService(deltakerRepository, deltakerService, unleashToggle, vedtakService)
         }
     }
 
@@ -485,7 +488,6 @@ class DeltakerStatusOppdateringServiceTest {
             deltakerVedVedtak = deltaker,
             opprettetAv = sistEndretAv,
             opprettetAvEnhet = sistEndretAvEnhet,
-            fattet = LocalDateTime.now(),
         )
         TestRepository.insert(deltaker, vedtak)
 
@@ -494,8 +496,9 @@ class DeltakerStatusOppdateringServiceTest {
 
             val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
             deltakerFraDb.status.type shouldBe DeltakerStatus.Type.AVBRUTT_UTKAST
-            deltakerFraDb.status.aarsak shouldBe null
+            deltakerFraDb.status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT
             deltakerFraDb.sluttdato shouldBe null
+            assertProducedHendelse(deltaker.id, HendelseType.AvbrytUtkast::class)
         }
     }
 
