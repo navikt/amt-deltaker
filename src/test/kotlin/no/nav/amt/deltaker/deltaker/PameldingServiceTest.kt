@@ -21,7 +21,6 @@ import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.hendelse.HendelseProducer
 import no.nav.amt.deltaker.hendelse.HendelseService
-import no.nav.amt.deltaker.hendelse.model.HendelseType
 import no.nav.amt.deltaker.isoppfolgingstilfelle.OppfolgingstilfelleDTO
 import no.nav.amt.deltaker.isoppfolgingstilfelle.OppfolgingstilfellePersonDTO
 import no.nav.amt.deltaker.kafka.utils.assertProducedHendelse
@@ -44,6 +43,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
+import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.testing.SingletonKafkaProvider
 import no.nav.amt.lib.testing.SingletonPostgres16Container
 import org.junit.Before

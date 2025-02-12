@@ -399,15 +399,3 @@ object TestData {
         else -> Deltakerliste.Oppstartstype.LOPENDE
     }
 }
-
-fun Tiltakstype.Tiltakskode.toArenaKode() = when (this) {
-    Tiltakstype.Tiltakskode.ARBEIDSFORBEREDENDE_TRENING -> Tiltakstype.ArenaKode.ARBFORB
-    Tiltakstype.Tiltakskode.ARBEIDSRETTET_REHABILITERING -> Tiltakstype.ArenaKode.ARBRRHDAG
-    Tiltakstype.Tiltakskode.AVKLARING -> Tiltakstype.ArenaKode.AVKLARAG
-    Tiltakstype.Tiltakskode.DIGITALT_OPPFOLGINGSTILTAK -> Tiltakstype.ArenaKode.DIGIOPPARB
-    Tiltakstype.Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING -> Tiltakstype.ArenaKode.GRUPPEAMO
-    Tiltakstype.Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING -> Tiltakstype.ArenaKode.GRUFAGYRKE
-    Tiltakstype.Tiltakskode.JOBBKLUBB -> Tiltakstype.ArenaKode.JOBBK
-    Tiltakstype.Tiltakskode.OPPFOLGING -> Tiltakstype.ArenaKode.INDOPPFAG
-    Tiltakstype.Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET -> Tiltakstype.ArenaKode.VASV
-}

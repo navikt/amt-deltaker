@@ -3,13 +3,7 @@ package no.nav.amt.deltaker.hendelse
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.model.Deltaker
-import no.nav.amt.deltaker.hendelse.model.Hendelse
-import no.nav.amt.deltaker.hendelse.model.HendelseAnsvarlig
-import no.nav.amt.deltaker.hendelse.model.HendelseType
-import no.nav.amt.deltaker.hendelse.model.InnholdDto
-import no.nav.amt.deltaker.hendelse.model.UtkastDto
 import no.nav.amt.deltaker.hendelse.model.toHendelseDeltaker
-import no.nav.amt.deltaker.hendelse.model.toHendelseEndring
 import no.nav.amt.deltaker.navansatt.NavAnsatt
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhet
@@ -18,6 +12,12 @@ import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltaker.Vedtak
+import no.nav.amt.lib.models.hendelse.Hendelse
+import no.nav.amt.lib.models.hendelse.HendelseAnsvarlig
+import no.nav.amt.lib.models.hendelse.HendelseType
+import no.nav.amt.lib.models.hendelse.InnholdDto
+import no.nav.amt.lib.models.hendelse.UtkastDto
+import no.nav.amt.lib.models.hendelse.toHendelseEndring
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
@@ -93,7 +93,8 @@ class HendelseService(
         navEnhet: NavEnhet,
         endring: HendelseType,
     ): Hendelse {
-        val overordnetArrangor = deltaker.deltakerliste.arrangor.overordnetArrangorId?.let { arrangorService.hentArrangor(it) }
+        val overordnetArrangor = deltaker.deltakerliste.arrangor.overordnetArrangorId
+            ?.let { arrangorService.hentArrangor(it) }
         val forsteVedtakFattet = deltakerHistorikkService.getForsteVedtakFattet(deltaker.id)
 
         return Hendelse(
@@ -115,7 +116,8 @@ class HendelseService(
         navEnhet: NavEnhet,
         endring: HendelseType,
     ): Hendelse {
-        val overordnetArrangor = deltaker.deltakerliste.arrangor.overordnetArrangorId?.let { arrangorService.hentArrangor(it) }
+        val overordnetArrangor = deltaker.deltakerliste.arrangor.overordnetArrangorId
+            ?.let { arrangorService.hentArrangor(it) }
         val forsteVedtakFattet = deltakerHistorikkService.getForsteVedtakFattet(deltaker.id)
 
         return Hendelse(
@@ -130,7 +132,8 @@ class HendelseService(
     }
 
     fun hendelseForSistBesokt(deltaker: Deltaker, sistBesokt: ZonedDateTime) {
-        val overordnetArrangor = deltaker.deltakerliste.arrangor.overordnetArrangorId?.let { arrangorService.hentArrangor(it) }
+        val overordnetArrangor = deltaker.deltakerliste.arrangor.overordnetArrangorId
+            ?.let { arrangorService.hentArrangor(it) }
         val forsteVedtakFattet = deltakerHistorikkService.getForsteVedtakFattet(deltaker.id)
 
         val hendelse = Hendelse(

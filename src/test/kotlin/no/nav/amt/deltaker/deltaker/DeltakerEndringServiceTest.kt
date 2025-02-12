@@ -24,7 +24,6 @@ import no.nav.amt.deltaker.deltaker.forslag.kafka.ArrangorMeldingProducer
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.hendelse.HendelseProducer
 import no.nav.amt.deltaker.hendelse.HendelseService
-import no.nav.amt.deltaker.hendelse.model.HendelseType
 import no.nav.amt.deltaker.kafka.utils.assertProducedForslag
 import no.nav.amt.deltaker.kafka.utils.assertProducedHendelse
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
@@ -45,6 +44,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengde
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
+import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.testing.SingletonKafkaProvider
 import no.nav.amt.lib.testing.SingletonPostgres16Container
 import org.junit.Before
@@ -148,12 +148,14 @@ class DeltakerEndringServiceTest {
             deltakelsesinnhold = Deltakelsesinnhold("tekst", listOf(Innhold("Tekst", "kode", true, null))),
         )
 
-        val resultat = deltakerEndringService.upsertEndring(
-            deltaker,
-            endringsrequest.toDeltakerEndringEndring(),
-            utfall,
-            endringsrequest,
-        )!!.endring
+        val resultat = deltakerEndringService
+            .upsertEndring(
+                deltaker,
+                endringsrequest.toDeltakerEndringEndring(),
+                utfall,
+                endringsrequest,
+            )!!
+            .endring
             as DeltakerEndring.Endring.EndreInnhold
         resultat.innhold shouldBe endringsrequest.deltakelsesinnhold.innhold
         resultat.ledetekst shouldBe endringsrequest.deltakelsesinnhold.ledetekst
