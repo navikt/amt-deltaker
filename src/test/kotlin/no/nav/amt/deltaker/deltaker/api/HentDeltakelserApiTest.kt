@@ -251,6 +251,7 @@ class HentDeltakelserApiTest {
                 tilgangskontrollService,
                 deltakelserResponseMapper,
                 deltakerProducerService,
+                mockk(),
                 unleashToggle,
             )
         }

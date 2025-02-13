@@ -30,73 +30,78 @@ class AuthenticationTest {
     @Test
     fun `testAuthentication - gyldig token, klient-app har tilgang - returnerer 200`() = testApplication {
         setUpTestApplication()
-        client.get("/deltaker") {
-            header(
-                HttpHeaders.Authorization,
-                "Bearer ${generateJWT(consumerClientId = "amt-deltaker-bff", audience = "amt-deltaker")}",
-            )
-        }.apply {
-            status shouldBe HttpStatusCode.OK
-            bodyAsText() shouldBe "System har tilgang!"
-        }
+        client
+            .get("/deltaker") {
+                header(
+                    HttpHeaders.Authorization,
+                    "Bearer ${generateJWT(consumerClientId = "amt-deltaker-bff", audience = "amt-deltaker")}",
+                )
+            }.apply {
+                status shouldBe HttpStatusCode.OK
+                bodyAsText() shouldBe "System har tilgang!"
+            }
     }
 
     @Test
     fun `testAuthentication - gyldig token, ikke maskin-til-maskin - returnerer 401`() = testApplication {
         setUpTestApplication()
-        client.get("/deltaker") {
-            header(
-                HttpHeaders.Authorization,
-                "Bearer ${generateJWT(consumerClientId = "amt-deltaker-bff", audience = "amt-deltaker", oid = "ikke-subject")}",
-            )
-        }.apply {
-            status shouldBe HttpStatusCode.Unauthorized
-        }
+        client
+            .get("/deltaker") {
+                header(
+                    HttpHeaders.Authorization,
+                    "Bearer ${generateJWT(consumerClientId = "amt-deltaker-bff", audience = "amt-deltaker", oid = "ikke-subject")}",
+                )
+            }.apply {
+                status shouldBe HttpStatusCode.Unauthorized
+            }
     }
 
     @Test
     fun `testAuthentication - gyldig token, klient-app har ikke tilgang - returnerer 401`() = testApplication {
         setUpTestApplication()
-        client.get("/deltaker") {
-            header(
-                HttpHeaders.Authorization,
-                "Bearer ${generateJWT(consumerClientId = "annen-consumer", audience = "amt-deltaker")}",
-            )
-        }.apply {
-            status shouldBe HttpStatusCode.Unauthorized
-        }
+        client
+            .get("/deltaker") {
+                header(
+                    HttpHeaders.Authorization,
+                    "Bearer ${generateJWT(consumerClientId = "annen-consumer", audience = "amt-deltaker")}",
+                )
+            }.apply {
+                status shouldBe HttpStatusCode.Unauthorized
+            }
     }
 
     @Test
     fun `testAuthentication - gyldig token, feil audience - returnerer 401`() = testApplication {
         setUpTestApplication()
-        client.get("/deltaker") {
-            header(
-                HttpHeaders.Authorization,
-                "Bearer ${generateJWT(consumerClientId = "amt-deltaker-bff", audience = "feil-aud")}",
-            )
-        }.apply {
-            status shouldBe HttpStatusCode.Unauthorized
-        }
+        client
+            .get("/deltaker") {
+                header(
+                    HttpHeaders.Authorization,
+                    "Bearer ${generateJWT(consumerClientId = "amt-deltaker-bff", audience = "feil-aud")}",
+                )
+            }.apply {
+                status shouldBe HttpStatusCode.Unauthorized
+            }
     }
 
     @Test
     fun `testAuthentication - ugyldig tokenissuer - returnerer 401`() = testApplication {
         setUpTestApplication()
-        client.get("/deltaker") {
-            header(
-                HttpHeaders.Authorization,
-                "Bearer ${
-                    generateJWT(
-                        consumerClientId = "amt-deltaker-bff",
-                        audience = "amt-deltaker",
-                        issuer = "annenIssuer",
-                    )
-                }",
-            )
-        }.apply {
-            status shouldBe HttpStatusCode.Unauthorized
-        }
+        client
+            .get("/deltaker") {
+                header(
+                    HttpHeaders.Authorization,
+                    "Bearer ${
+                        generateJWT(
+                            consumerClientId = "amt-deltaker-bff",
+                            audience = "amt-deltaker",
+                            issuer = "annenIssuer",
+                        )
+                    }",
+                )
+            }.apply {
+                status shouldBe HttpStatusCode.Unauthorized
+            }
     }
 
     private fun ApplicationTestBuilder.setUpTestApplication() {
@@ -104,6 +109,7 @@ class AuthenticationTest {
             configureSerialization()
             configureAuthentication(Environment())
             configureRouting(
+                mockk(),
                 mockk(),
                 mockk(),
                 mockk(),
