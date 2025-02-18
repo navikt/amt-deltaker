@@ -170,13 +170,7 @@ class DeltakerService(
             .forEach { upsertDeltaker(it) }
     }
 
-    private fun deltakereSomSkalHaAvsluttendeStatus() = deltakerRepository
-        .skalHaAvsluttendeStatus()
-        .plus(deltakerRepository.deltarPaAvsluttetDeltakerliste())
-        .filter { it.kilde == Kilde.KOMET || unleashToggle.erKometMasterForTiltakstype(it.deltakerliste.tiltakstype.arenaKode) }
-        .distinct()
-
-    suspend fun avsluttDeltakelserForAvbruttDeltakerliste(deltakerlisteId: UUID) {
+    suspend fun avsluttDeltakelserPaaDeltakerliste(deltakerlisteId: UUID) {
         val deltakerePaAvbruttDeltakerliste = getDeltakereForDeltakerliste(deltakerlisteId)
             .filter { it.status.type != DeltakerStatus.Type.KLADD }
 
@@ -202,6 +196,12 @@ class DeltakerService(
     } else {
         deltaker
     }
+
+    private fun deltakereSomSkalHaAvsluttendeStatus() = deltakerRepository
+        .skalHaAvsluttendeStatus()
+        .plus(deltakerRepository.deltarPaAvsluttetDeltakerliste())
+        .filter { it.kilde == Kilde.KOMET || unleashToggle.erKometMasterForTiltakstype(it.deltakerliste.tiltakstype.arenaKode) }
+        .distinct()
 
     private fun deltakereSomSkalHaStatusDeltar() = deltakerRepository
         .skalHaStatusDeltar()

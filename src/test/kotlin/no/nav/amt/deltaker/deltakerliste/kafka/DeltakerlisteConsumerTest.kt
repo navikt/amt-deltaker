@@ -62,7 +62,7 @@ class DeltakerlisteConsumerTest {
             deltakerlisteRepository.get(deltakerliste.id).getOrThrow() shouldBe deltakerliste
         }
 
-        coVerify(exactly = 0) { deltakerService.avsluttDeltakelserForAvbruttDeltakerliste(any()) }
+        coVerify(exactly = 0) { deltakerService.avsluttDeltakelserPaaDeltakerliste(any()) }
     }
 
     @Test
@@ -86,7 +86,7 @@ class DeltakerlisteConsumerTest {
             deltakerlisteRepository.get(deltakerliste.id).getOrThrow() shouldBe oppdatertDeltakerliste
         }
 
-        coVerify(exactly = 0) { deltakerService.avsluttDeltakelserForAvbruttDeltakerliste(any()) }
+        coVerify(exactly = 0) { deltakerService.avsluttDeltakelserPaaDeltakerliste(any()) }
     }
 
     @Test
@@ -110,7 +110,7 @@ class DeltakerlisteConsumerTest {
             deltakerlisteRepository.get(deltakerliste.id).getOrThrow() shouldBe oppdatertDeltakerliste
         }
 
-        coVerify { deltakerService.avsluttDeltakelserForAvbruttDeltakerliste(deltakerliste.id) }
+        coVerify { deltakerService.avsluttDeltakelserPaaDeltakerliste(deltakerliste.id) }
     }
 
     @Test
@@ -129,6 +129,6 @@ class DeltakerlisteConsumerTest {
             deltakerlisteRepository.get(deltakerliste.id).getOrNull() shouldBe null
         }
 
-        coVerify(exactly = 0) { deltakerService.avsluttDeltakelserForAvbruttDeltakerliste(any()) }
+        coVerify(exactly = 0) { deltakerService.avsluttDeltakelserPaaDeltakerliste(any()) }
     }
 }

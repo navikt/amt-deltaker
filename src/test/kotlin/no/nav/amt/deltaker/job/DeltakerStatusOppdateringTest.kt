@@ -502,7 +502,7 @@ class DeltakerStatusOppdateringTest {
     }
 
     @Test
-    fun `avsluttDeltakelserForAvbruttDeltakerliste - deltakerliste avlyst - setter riktig status og sluttarsak`() {
+    fun `avsluttDeltakelserPaaDeltakerliste - deltakerliste avlyst - setter riktig status og sluttarsak`() {
         val sistEndretAv = TestData.lagNavAnsatt()
         val sistEndretAvEnhet = TestData.lagNavEnhet()
         TestRepository.insert(sistEndretAv)
@@ -543,7 +543,7 @@ class DeltakerStatusOppdateringTest {
         TestRepository.insert(deltaker2, vedtak2)
 
         runBlocking {
-            deltakerService.avsluttDeltakelserForAvbruttDeltakerliste(deltakerliste.id)
+            deltakerService.avsluttDeltakelserPaaDeltakerliste(deltakerliste.id)
 
             val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
             deltakerFraDb.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET

@@ -55,7 +55,7 @@ class DeltakerlisteConsumer(
         repository.upsert(deltakerliste)
 
         if (deltakerliste.erAvlystEllerAvbrutt()) {
-            deltakerService.avsluttDeltakelserForAvbruttDeltakerliste(deltakerliste.id)
+            deltakerService.avsluttDeltakelserPaaDeltakerliste(deltakerliste.id)
         }
     }
 }
