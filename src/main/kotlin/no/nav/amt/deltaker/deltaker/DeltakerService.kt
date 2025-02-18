@@ -11,7 +11,10 @@ import no.nav.amt.deltaker.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.model.Deltaker
+import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.deltaker.hendelse.HendelseService
+import no.nav.amt.deltaker.job.DeltakerStatusOppdateringService
+import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
@@ -30,6 +33,8 @@ class DeltakerService(
     private val forslagService: ForslagService,
     private val importertFraArenaRepository: ImportertFraArenaRepository,
     private val deltakerHistorikkService: DeltakerHistorikkService,
+    private val deltakerStatusOppdateringService: DeltakerStatusOppdateringService,
+    private val unleashToggle: UnleashToggle,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -100,10 +105,12 @@ class DeltakerService(
                 deltakerEndringService.upsertEndring(deltaker, endring, utfall, request)
                 upsertDeltaker(utfall.deltaker, nesteStatus = utfall.nesteStatus)
             }
+
             is DeltakerEndringUtfall.FremtidigEndring -> {
                 deltakerEndringService.upsertEndring(deltaker, endring, utfall, request)
                 upsertDeltaker(utfall.deltaker)
             }
+
             is DeltakerEndringUtfall.UgyldigEndring -> deltaker
         }
     }
@@ -152,6 +159,38 @@ class DeltakerService(
     }
 
     fun getDeltakereMedStatus(statusType: DeltakerStatus.Type) = deltakerRepository.getDeltakereMedStatus(statusType)
+
+    suspend fun oppdaterDeltakerStatuser() {
+        val deltakereSomSkalAvsluttes = deltakereSomSkalHaAvsluttendeStatus()
+        deltakerStatusOppdateringService
+            .oppdaterTilAvsluttendeStatus(deltakereSomSkalAvsluttes)
+            .forEach { upsertDeltaker(it) }
+
+        val deltakereSomSkalDelta = deltakereSomSkalHaStatusDeltar()
+        deltakerStatusOppdateringService
+            .oppdaterStatusTilDeltar(deltakereSomSkalDelta)
+            .forEach { upsertDeltaker(it) }
+    }
+
+    private fun deltakereSomSkalHaAvsluttendeStatus() = deltakerRepository
+        .skalHaAvsluttendeStatus()
+        .plus(deltakerRepository.deltarPaAvsluttetDeltakerliste())
+        .filter { it.kilde == Kilde.KOMET || unleashToggle.erKometMasterForTiltakstype(it.deltakerliste.tiltakstype.arenaKode) }
+        .distinct()
+
+    suspend fun avsluttDeltakelserForAvbruttDeltakerliste(deltakerlisteId: UUID) {
+        val deltakerePaAvbruttDeltakerliste = getDeltakereForDeltakerliste(deltakerlisteId)
+            .filter { it.status.type != DeltakerStatus.Type.KLADD }
+
+        deltakerStatusOppdateringService
+            .oppdaterTilAvsluttendeStatus(deltakerePaAvbruttDeltakerliste)
+            .forEach { upsert(it) }
+    }
+
+    private fun deltakereSomSkalHaStatusDeltar() = deltakerRepository
+        .skalHaStatusDeltar()
+        .distinct()
+        .filter { it.kilde == Kilde.KOMET || unleashToggle.erKometMasterForTiltakstype(it.deltakerliste.tiltakstype.arenaKode) }
 }
 
 fun nyDeltakerStatus(

@@ -8,10 +8,10 @@ import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
+import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
-import no.nav.amt.deltaker.job.DeltakerStatusOppdateringService
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.utils.mockAmtArrangorClient
@@ -25,7 +25,7 @@ class DeltakerlisteConsumerTest {
     companion object {
         lateinit var deltakerlisteRepository: DeltakerlisteRepository
         lateinit var tiltakstypeRepository: TiltakstypeRepository
-        lateinit var deltakerStatusOppdateringService: DeltakerStatusOppdateringService
+        lateinit var deltakerService: DeltakerService
 
         @JvmStatic
         @BeforeClass
@@ -33,14 +33,14 @@ class DeltakerlisteConsumerTest {
             SingletonPostgres16Container
             deltakerlisteRepository = DeltakerlisteRepository()
             tiltakstypeRepository = TiltakstypeRepository()
-            deltakerStatusOppdateringService = mockk<DeltakerStatusOppdateringService>(relaxed = true)
+            deltakerService = mockk<DeltakerService>(relaxed = true)
         }
     }
 
     @Before
     fun cleanDatabase() {
         TestRepository.cleanDatabase()
-        clearMocks(deltakerStatusOppdateringService)
+        clearMocks(deltakerService)
     }
 
     @Test
@@ -51,7 +51,7 @@ class DeltakerlisteConsumerTest {
         val deltakerliste = TestData.lagDeltakerliste(arrangor = arrangor, tiltakstype = tiltakstype)
         val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient(arrangor))
         val consumer =
-            DeltakerlisteConsumer(deltakerlisteRepository, tiltakstypeRepository, arrangorService, deltakerStatusOppdateringService)
+            DeltakerlisteConsumer(deltakerlisteRepository, tiltakstypeRepository, arrangorService, deltakerService)
 
         runBlocking {
             consumer.consume(
@@ -62,7 +62,7 @@ class DeltakerlisteConsumerTest {
             deltakerlisteRepository.get(deltakerliste.id).getOrThrow() shouldBe deltakerliste
         }
 
-        coVerify(exactly = 0) { deltakerStatusOppdateringService.avsluttDeltakelserForAvbruttDeltakerliste(any()) }
+        coVerify(exactly = 0) { deltakerService.avsluttDeltakelserForAvbruttDeltakerliste(any()) }
     }
 
     @Test
@@ -73,7 +73,7 @@ class DeltakerlisteConsumerTest {
         TestRepository.insert(deltakerliste)
 
         val consumer =
-            DeltakerlisteConsumer(deltakerlisteRepository, tiltakstypeRepository, arrangorService, deltakerStatusOppdateringService)
+            DeltakerlisteConsumer(deltakerlisteRepository, tiltakstypeRepository, arrangorService, deltakerService)
 
         val oppdatertDeltakerliste = deltakerliste.copy(sluttDato = LocalDate.now())
 
@@ -86,7 +86,7 @@ class DeltakerlisteConsumerTest {
             deltakerlisteRepository.get(deltakerliste.id).getOrThrow() shouldBe oppdatertDeltakerliste
         }
 
-        coVerify(exactly = 0) { deltakerStatusOppdateringService.avsluttDeltakelserForAvbruttDeltakerliste(any()) }
+        coVerify(exactly = 0) { deltakerService.avsluttDeltakelserForAvbruttDeltakerliste(any()) }
     }
 
     @Test
@@ -97,7 +97,7 @@ class DeltakerlisteConsumerTest {
         TestRepository.insert(deltakerliste)
 
         val consumer =
-            DeltakerlisteConsumer(deltakerlisteRepository, tiltakstypeRepository, arrangorService, deltakerStatusOppdateringService)
+            DeltakerlisteConsumer(deltakerlisteRepository, tiltakstypeRepository, arrangorService, deltakerService)
 
         val oppdatertDeltakerliste = deltakerliste.copy(sluttDato = LocalDate.now(), status = Deltakerliste.Status.AVBRUTT)
 
@@ -110,7 +110,7 @@ class DeltakerlisteConsumerTest {
             deltakerlisteRepository.get(deltakerliste.id).getOrThrow() shouldBe oppdatertDeltakerliste
         }
 
-        coVerify { deltakerStatusOppdateringService.avsluttDeltakelserForAvbruttDeltakerliste(deltakerliste.id) }
+        coVerify { deltakerService.avsluttDeltakelserForAvbruttDeltakerliste(deltakerliste.id) }
     }
 
     @Test
@@ -121,7 +121,7 @@ class DeltakerlisteConsumerTest {
         TestRepository.insert(deltakerliste)
 
         val consumer =
-            DeltakerlisteConsumer(deltakerlisteRepository, tiltakstypeRepository, arrangorService, deltakerStatusOppdateringService)
+            DeltakerlisteConsumer(deltakerlisteRepository, tiltakstypeRepository, arrangorService, deltakerService)
 
         runBlocking {
             consumer.consume(deltakerliste.id, null)
@@ -129,6 +129,6 @@ class DeltakerlisteConsumerTest {
             deltakerlisteRepository.get(deltakerliste.id).getOrNull() shouldBe null
         }
 
-        coVerify(exactly = 0) { deltakerStatusOppdateringService.avsluttDeltakelserForAvbruttDeltakerliste(any()) }
+        coVerify(exactly = 0) { deltakerService.avsluttDeltakelserForAvbruttDeltakerliste(any()) }
     }
 }

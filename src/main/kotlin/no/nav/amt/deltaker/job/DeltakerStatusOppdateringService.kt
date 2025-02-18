@@ -1,13 +1,10 @@
 package no.nav.amt.deltaker.job
 
-import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.VedtakService
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.model.Deltaker
-import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.deltaker.deltaker.model.harIkkeStartet
 import no.nav.amt.deltaker.deltaker.tilVedtaksinformasjon
-import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
@@ -16,189 +13,97 @@ import java.util.UUID
 
 class DeltakerStatusOppdateringService(
     private val deltakerRepository: DeltakerRepository,
-    private val deltakerService: DeltakerService,
-    private val unleashToggle: UnleashToggle,
     private val vedtakService: VedtakService,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    suspend fun oppdaterDeltakerStatuser() {
-        oppdaterTilAvsluttendeStatus()
-        oppdaterStatusTilDeltar()
-    }
+    fun oppdaterTilAvsluttendeStatus(deltakere: List<Deltaker>): List<Deltaker> = listOf(
+        avbrytUtkast(deltakere),
+        ikkeAktuell(deltakere),
+        avbryt(deltakere),
+        harSluttet(deltakere),
+        fullfor(deltakere),
+    ).flatten()
 
-    suspend fun avsluttDeltakelserForAvbruttDeltakerliste(deltakerlisteId: UUID) {
-        val deltakerePaAvbruttDeltakerliste = deltakerService
-            .getDeltakereForDeltakerliste(deltakerlisteId)
-            .filter { it.status.type != DeltakerStatus.Type.KLADD }
-
-        oppdaterTilAvsluttendeStatus(deltakerePaAvbruttDeltakerliste)
-    }
-
-    private suspend fun oppdaterTilAvsluttendeStatus() {
-        val deltakereSomSkalHaAvsluttendeStatus =
-            deltakerRepository
-                .skalHaAvsluttendeStatus()
-                .plus(deltakerRepository.deltarPaAvsluttetDeltakerliste())
-                .filter { it.kilde == Kilde.KOMET || unleashToggle.erKometMasterForTiltakstype(it.deltakerliste.tiltakstype.arenaKode) }
-                .distinct()
-        oppdaterTilAvsluttendeStatus(deltakereSomSkalHaAvsluttendeStatus)
-    }
-
-    private suspend fun oppdaterTilAvsluttendeStatus(deltakereSomSkalHaAvsluttendeStatus: List<Deltaker>) {
-        val skalBliAvbruttUtkast = deltakereSomSkalHaAvsluttendeStatus.filter { it.status.type == DeltakerStatus.Type.UTKAST_TIL_PAMELDING }
-        val skalBliIkkeAktuell = deltakereSomSkalHaAvsluttendeStatus.filter { it.status.harIkkeStartet() }
-        val skalBliAvbrutt = deltakereSomSkalHaAvsluttendeStatus
-            .filter { it.status.type == DeltakerStatus.Type.DELTAR }
-            .filter { sluttetForTidlig(it) }
-
-        val skalBliHarSluttet = deltakereSomSkalHaAvsluttendeStatus
-            .filter { it.status.type == DeltakerStatus.Type.DELTAR }
-            .filter { !it.deltarPaKurs() }
-
-        val skalBliFullfort = deltakereSomSkalHaAvsluttendeStatus
+    private fun fullfor(deltakere: List<Deltaker>): List<Deltaker> {
+        val skalBliFullfort = deltakere
             .filter { it.status.type == DeltakerStatus.Type.DELTAR }
             .filter { it.deltarPaKurs() && !sluttetForTidlig(it) }
-
-        skalBliAvbruttUtkast.forEach {
-            avbrytUtkastVedAvsluttetDeltakerliste(it)
-        }
-
-        skalBliIkkeAktuell.forEach {
-            oppdaterDeltaker(
-                it.copy(
-                    status = DeltakerStatus(
-                        id = UUID.randomUUID(),
-                        type = DeltakerStatus.Type.IKKE_AKTUELL,
-                        aarsak = getSluttarsak(it),
-                        gyldigFra = LocalDateTime.now(),
-                        gyldigTil = null,
-                        opprettet = LocalDateTime.now(),
-                    ),
-                ),
-            )
-        }
-        log.info("Endret status til IKKE AKTUELL for ${skalBliIkkeAktuell.size}")
-
-        skalBliAvbrutt.forEach {
-            oppdaterDeltaker(
-                it.copy(
-                    status = DeltakerStatus(
-                        id = UUID.randomUUID(),
-                        type = DeltakerStatus.Type.AVBRUTT,
-                        aarsak = getSluttarsak(it),
-                        gyldigFra = LocalDateTime.now(),
-                        gyldigTil = null,
-                        opprettet = LocalDateTime.now(),
-                    ),
-                    sluttdato = getOppdatertSluttdato(it),
-                ),
-            )
-        }
-        log.info("Endret status til AVBRUTT for ${skalBliAvbrutt.size}")
-
-        skalBliFullfort.forEach {
-            oppdaterDeltaker(
-                it.copy(
-                    status = DeltakerStatus(
-                        id = UUID.randomUUID(),
-                        type = DeltakerStatus.Type.FULLFORT,
-                        aarsak = null,
-                        gyldigFra = LocalDateTime.now(),
-                        gyldigTil = null,
-                        opprettet = LocalDateTime.now(),
-                    ),
-                    sluttdato = getOppdatertSluttdato(it),
-                ),
-            )
-        }
+            .map {
+                it
+                    .medNyStatus(DeltakerStatus.Type.FULLFORT, getSluttarsak(it))
+                    .medNySluttdato(getOppdatertSluttdato(it))
+            }
         log.info("Endret status til FULLFØRT for ${skalBliFullfort.size}")
 
-        oppdaterStatusTilHarSluttet(skalBliHarSluttet)
+        return skalBliFullfort
     }
 
-    private suspend fun avbrytUtkastVedAvsluttetDeltakerliste(deltaker: Deltaker) {
-        val vedtak = vedtakService.avbrytVedtakVedAvsluttetDeltakerliste(deltaker)
+    private fun harSluttet(deltakere: List<Deltaker>): List<Deltaker> {
+        val skalBliHarSluttet = deltakere
+            .filter { it.status.type == DeltakerStatus.Type.DELTAR }
+            .filter { !it.deltarPaKurs() }
+            .map {
+                val fremtidigStatus = deltakerRepository.getDeltakerStatuser(it.id).firstOrNull { status ->
+                    status.gyldigTil == null &&
+                        !status.gyldigFra.toLocalDate().isAfter(LocalDate.now()) &&
+                        status.type == DeltakerStatus.Type.HAR_SLUTTET
+                }
 
-        oppdaterDeltaker(
-            deltaker.copy(
-                status = DeltakerStatus(
-                    id = UUID.randomUUID(),
-                    type = DeltakerStatus.Type.AVBRUTT_UTKAST,
-                    aarsak = DeltakerStatus.Aarsak(
-                        type = DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT,
-                        beskrivelse = null,
-                    ),
-                    gyldigFra = LocalDateTime.now(),
-                    gyldigTil = null,
-                    opprettet = LocalDateTime.now(),
-                ),
-                vedtaksinformasjon = vedtak.tilVedtaksinformasjon(),
-            ),
-        )
-    }
-
-    private suspend fun oppdaterStatusTilDeltar() {
-        val deltakere = deltakerRepository.skalHaStatusDeltar().distinct()
-
-        deltakere
-            .filter { it.kilde == Kilde.KOMET || unleashToggle.erKometMasterForTiltakstype(it.deltakerliste.tiltakstype.arenaKode) }
-            .forEach {
-                oppdaterDeltaker(
-                    it.copy(
-                        status = DeltakerStatus(
-                            id = UUID.randomUUID(),
-                            type = DeltakerStatus.Type.DELTAR,
-                            aarsak = null,
-                            gyldigFra = LocalDateTime.now(),
-                            gyldigTil = null,
-                            opprettet = LocalDateTime.now(),
-                        ),
-                    ),
-                )
+                if (fremtidigStatus != null) {
+                    it.copy(status = fremtidigStatus, sluttdato = getOppdatertSluttdato(it))
+                } else {
+                    it.medNyStatus(DeltakerStatus.Type.HAR_SLUTTET, getSluttarsak(it)).medNySluttdato(getOppdatertSluttdato(it))
+                }
             }
-        log.info("Endret status til DELTAR for ${deltakere.size}")
-    }
 
-    private suspend fun oppdaterStatusTilHarSluttet(skalBliHarSluttet: List<Deltaker>) {
-        skalBliHarSluttet.forEach {
-            val fremtidigStatus = deltakerRepository.getDeltakerStatuser(it.id).firstOrNull { status ->
-                status.gyldigTil == null &&
-                    !status.gyldigFra.toLocalDate().isAfter(
-                        LocalDate.now(),
-                    ) &&
-                    status.type == DeltakerStatus.Type.HAR_SLUTTET
-            }
-            if (fremtidigStatus != null) {
-                oppdaterDeltaker(
-                    it.copy(
-                        status = fremtidigStatus,
-                        sluttdato = getOppdatertSluttdato(it),
-                    ),
-                )
-            } else {
-                oppdaterDeltaker(
-                    it.copy(
-                        status = DeltakerStatus(
-                            id = UUID.randomUUID(),
-                            type = DeltakerStatus.Type.HAR_SLUTTET,
-                            aarsak = getSluttarsak(it),
-                            gyldigFra = LocalDateTime.now(),
-                            gyldigTil = null,
-                            opprettet = LocalDateTime.now(),
-                        ),
-                        sluttdato = getOppdatertSluttdato(it),
-                    ),
-                )
-            }
-        }
         log.info("Endret status til HAR SLUTTET for ${skalBliHarSluttet.size}")
+
+        return skalBliHarSluttet
     }
 
-    private suspend fun oppdaterDeltaker(deltaker: Deltaker) {
-        deltakerService.upsertDeltaker(deltaker)
-        log.info("Oppdatert status for deltaker med id ${deltaker.id}")
+    private fun avbryt(deltakere: List<Deltaker>): List<Deltaker> {
+        val skalBliAvbrutt = deltakere
+            .filter { it.status.type == DeltakerStatus.Type.DELTAR }
+            .filter { sluttetForTidlig(it) }
+            .map { it.medNyStatus(DeltakerStatus.Type.AVBRUTT, getSluttarsak(it)).medNySluttdato(getOppdatertSluttdato(it)) }
+        log.info("Endret status til AVBRUTT for ${skalBliAvbrutt.size}")
+
+        return skalBliAvbrutt
     }
+
+    private fun ikkeAktuell(deltakere: List<Deltaker>): List<Deltaker> {
+        val skalBliIkkeAktuell = deltakere
+            .filter { it.status.harIkkeStartet() }
+            .map { it.medNyStatus(DeltakerStatus.Type.IKKE_AKTUELL, getSluttarsak(it)).medNySluttdato(null).medNyStartdato(null) }
+        log.info("Endret status til IKKE AKTUELL for ${skalBliIkkeAktuell.size}")
+
+        return skalBliIkkeAktuell
+    }
+
+    private fun avbrytUtkast(deltakere: List<Deltaker>): List<Deltaker> {
+        val utkastSomSkalAvbrytes = deltakere
+            .filter { it.status.type == DeltakerStatus.Type.UTKAST_TIL_PAMELDING }
+            .map {
+                val vedtak = vedtakService.avbrytVedtakVedAvsluttetDeltakerliste(it)
+
+                it
+                    .medNyStatus(
+                        DeltakerStatus.Type.AVBRUTT_UTKAST,
+                        // Årsak skal settes selv om gjennomføringen blir avsluttet normalt
+                        DeltakerStatus.Aarsak(
+                            type = DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT,
+                            beskrivelse = null,
+                        ),
+                    ).copy(vedtaksinformasjon = vedtak.tilVedtaksinformasjon())
+            }
+
+        return utkastSomSkalAvbrytes
+    }
+
+    fun oppdaterStatusTilDeltar(deltakere: List<Deltaker>): List<Deltaker> = deltakere
+        .map { it.medNyStatus(DeltakerStatus.Type.DELTAR) }
+        .also { log.info("Endret status til DELTAR for ${deltakere.size}") }
 
     private fun sluttetForTidlig(deltaker: Deltaker): Boolean {
         if (!deltaker.deltarPaKurs()) {
@@ -229,4 +134,19 @@ class DeltakerStatusOppdateringService(
     } else {
         null
     }
+
+    private fun Deltaker.medNyStatus(status: DeltakerStatus.Type, aarsak: DeltakerStatus.Aarsak? = null) = this.copy(
+        status = DeltakerStatus(
+            id = UUID.randomUUID(),
+            type = status,
+            aarsak = aarsak,
+            gyldigFra = LocalDateTime.now(),
+            gyldigTil = null,
+            opprettet = LocalDateTime.now(),
+        ),
+    )
+
+    private fun Deltaker.medNySluttdato(sluttdato: LocalDate?) = this.copy(sluttdato = sluttdato)
+
+    private fun Deltaker.medNyStartdato(startdato: LocalDate?) = this.copy(startdato = startdato)
 }
