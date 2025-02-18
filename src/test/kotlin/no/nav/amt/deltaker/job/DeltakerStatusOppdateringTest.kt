@@ -48,10 +48,9 @@ import org.junit.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-class DeltakerStatusOppdateringServiceTest {
+class DeltakerStatusOppdateringTest {
     companion object {
         private val deltakerRepository: DeltakerRepository = DeltakerRepository()
-        lateinit var deltakerStatusOppdateringService: DeltakerStatusOppdateringService
         private lateinit var deltakerService: DeltakerService
 
         private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonClient())
@@ -105,6 +104,7 @@ class DeltakerStatusOppdateringServiceTest {
         @BeforeClass
         fun setup() {
             SingletonPostgres16Container
+
             deltakerService = DeltakerService(
                 deltakerRepository,
                 deltakerEndringService,
@@ -115,9 +115,8 @@ class DeltakerStatusOppdateringServiceTest {
                 forslagService,
                 importertFraArenaRepository,
                 deltakerHistorikkService,
+                unleashToggle,
             )
-            deltakerStatusOppdateringService =
-                DeltakerStatusOppdateringService(deltakerRepository, deltakerService, unleashToggle, vedtakService)
         }
     }
 
@@ -148,7 +147,7 @@ class DeltakerStatusOppdateringServiceTest {
         TestRepository.insert(deltaker, vedtak)
 
         runBlocking {
-            deltakerStatusOppdateringService.oppdaterDeltakerStatuser()
+            deltakerService.oppdaterDeltakerStatuser()
 
             val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
             deltakerFraDb.status.type shouldBe DeltakerStatus.Type.DELTAR
@@ -180,7 +179,7 @@ class DeltakerStatusOppdateringServiceTest {
         every { unleashToggle.erKometMasterForTiltakstype(any()) } returns false
 
         runBlocking {
-            deltakerStatusOppdateringService.oppdaterDeltakerStatuser()
+            deltakerService.oppdaterDeltakerStatuser()
 
             val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
             deltakerFraDb.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
@@ -212,7 +211,7 @@ class DeltakerStatusOppdateringServiceTest {
         TestRepository.insert(deltaker, vedtak)
 
         runBlocking {
-            deltakerStatusOppdateringService.oppdaterDeltakerStatuser()
+            deltakerService.oppdaterDeltakerStatuser()
 
             val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
             deltakerFraDb.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
@@ -252,7 +251,7 @@ class DeltakerStatusOppdateringServiceTest {
         TestRepository.insert(fremtidigStatus, deltaker.id)
 
         runBlocking {
-            deltakerStatusOppdateringService.oppdaterDeltakerStatuser()
+            deltakerService.oppdaterDeltakerStatuser()
 
             val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
             deltakerFraDb.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
@@ -286,7 +285,7 @@ class DeltakerStatusOppdateringServiceTest {
         TestRepository.insert(deltaker, vedtak)
 
         runBlocking {
-            deltakerStatusOppdateringService.oppdaterDeltakerStatuser()
+            deltakerService.oppdaterDeltakerStatuser()
 
             val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
             deltakerFraDb.status.type shouldBe DeltakerStatus.Type.FULLFORT
@@ -319,7 +318,7 @@ class DeltakerStatusOppdateringServiceTest {
         TestRepository.insert(deltaker, vedtak)
 
         runBlocking {
-            deltakerStatusOppdateringService.oppdaterDeltakerStatuser()
+            deltakerService.oppdaterDeltakerStatuser()
 
             val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
             deltakerFraDb.status.type shouldBe DeltakerStatus.Type.AVBRUTT
@@ -353,7 +352,7 @@ class DeltakerStatusOppdateringServiceTest {
         TestRepository.insert(deltaker, vedtak)
 
         runBlocking {
-            deltakerStatusOppdateringService.oppdaterDeltakerStatuser()
+            deltakerService.oppdaterDeltakerStatuser()
 
             val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
             deltakerFraDb.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
@@ -388,7 +387,7 @@ class DeltakerStatusOppdateringServiceTest {
         TestRepository.insert(deltaker, vedtak)
 
         runBlocking {
-            deltakerStatusOppdateringService.oppdaterDeltakerStatuser()
+            deltakerService.oppdaterDeltakerStatuser()
 
             val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
             deltakerFraDb.status.type shouldBe DeltakerStatus.Type.IKKE_AKTUELL
@@ -423,7 +422,7 @@ class DeltakerStatusOppdateringServiceTest {
         TestRepository.insert(deltaker, vedtak)
 
         runBlocking {
-            deltakerStatusOppdateringService.oppdaterDeltakerStatuser()
+            deltakerService.oppdaterDeltakerStatuser()
 
             val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
             deltakerFraDb.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
@@ -458,7 +457,7 @@ class DeltakerStatusOppdateringServiceTest {
         TestRepository.insert(deltaker, vedtak)
 
         runBlocking {
-            deltakerStatusOppdateringService.oppdaterDeltakerStatuser()
+            deltakerService.oppdaterDeltakerStatuser()
 
             val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
             deltakerFraDb.status.type shouldBe DeltakerStatus.Type.IKKE_AKTUELL
@@ -492,7 +491,7 @@ class DeltakerStatusOppdateringServiceTest {
         TestRepository.insert(deltaker, vedtak)
 
         runBlocking {
-            deltakerStatusOppdateringService.oppdaterDeltakerStatuser()
+            deltakerService.oppdaterDeltakerStatuser()
 
             val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
             deltakerFraDb.status.type shouldBe DeltakerStatus.Type.AVBRUTT_UTKAST
@@ -503,7 +502,7 @@ class DeltakerStatusOppdateringServiceTest {
     }
 
     @Test
-    fun `avsluttDeltakelserForAvbruttDeltakerliste - deltakerliste avlyst - setter riktig status og sluttarsak`() {
+    fun `avsluttDeltakelserPaaDeltakerliste - deltakerliste avlyst - setter riktig status og sluttarsak`() {
         val sistEndretAv = TestData.lagNavAnsatt()
         val sistEndretAvEnhet = TestData.lagNavEnhet()
         TestRepository.insert(sistEndretAv)
@@ -544,7 +543,7 @@ class DeltakerStatusOppdateringServiceTest {
         TestRepository.insert(deltaker2, vedtak2)
 
         runBlocking {
-            deltakerStatusOppdateringService.avsluttDeltakelserForAvbruttDeltakerliste(deltakerliste.id)
+            deltakerService.avsluttDeltakelserPaaDeltakerliste(deltakerliste.id)
 
             val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
             deltakerFraDb.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET

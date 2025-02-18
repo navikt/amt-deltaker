@@ -107,6 +107,7 @@ class PameldingServiceTest {
             forslagService = forslagService,
             importertFraArenaRepository = importertFraArenaRepository,
             deltakerHistorikkService = deltakerHistorikkService,
+            unleashToggle = mockk(),
         )
 
         private var pameldingService = PameldingService(

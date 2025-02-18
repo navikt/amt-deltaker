@@ -4,11 +4,11 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.arrangor.ArrangorService
+import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.kafka.arenaKodeTilTiltakstype
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.kafka.erStottet
-import no.nav.amt.deltaker.job.DeltakerStatusOppdateringService
 import no.nav.amt.lib.kafka.Consumer
 import no.nav.amt.lib.kafka.ManagedKafkaConsumer
 import no.nav.amt.lib.kafka.config.KafkaConfig
@@ -22,7 +22,7 @@ class DeltakerlisteConsumer(
     private val repository: DeltakerlisteRepository,
     private val tiltakstypeRepository: TiltakstypeRepository,
     private val arrangorService: ArrangorService,
-    private val deltakerStatusOppdateringService: DeltakerStatusOppdateringService,
+    private val deltakerService: DeltakerService,
     kafkaConfig: KafkaConfig = if (Environment.isLocal()) LocalKafkaConfig() else KafkaConfigImpl(),
 ) : Consumer<UUID, String?> {
     private val consumer = ManagedKafkaConsumer(
@@ -55,7 +55,7 @@ class DeltakerlisteConsumer(
         repository.upsert(deltakerliste)
 
         if (deltakerliste.erAvlystEllerAvbrutt()) {
-            deltakerStatusOppdateringService.avsluttDeltakelserForAvbruttDeltakerliste(deltakerliste.id)
+            deltakerService.avsluttDeltakelserPaaDeltakerliste(deltakerliste.id)
         }
     }
 }

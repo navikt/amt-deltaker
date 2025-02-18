@@ -11,11 +11,15 @@ import no.nav.amt.deltaker.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.model.Deltaker
+import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.deltaker.hendelse.HendelseService
+import no.nav.amt.deltaker.job.DeltakerProgresjon
+import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import org.slf4j.LoggerFactory
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import java.util.UUID
@@ -30,6 +34,7 @@ class DeltakerService(
     private val forslagService: ForslagService,
     private val importertFraArenaRepository: ImportertFraArenaRepository,
     private val deltakerHistorikkService: DeltakerHistorikkService,
+    private val unleashToggle: UnleashToggle,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -39,7 +44,7 @@ class DeltakerService(
 
     fun getDeltakelser(personident: String) = deltakerRepository.getMany(personident)
 
-    fun getDeltakereForDeltakerliste(deltakerlisteId: UUID) = deltakerRepository.getDeltakereForDeltakerliste(deltakerlisteId)
+    private fun getDeltakereForDeltakerliste(deltakerlisteId: UUID) = deltakerRepository.getDeltakereForDeltakerliste(deltakerlisteId)
 
     fun getDeltakerIderForTiltakstype(tiltakstype: Tiltakstype.ArenaKode) = deltakerRepository.getDeltakerIderForTiltakstype(tiltakstype)
 
@@ -100,10 +105,12 @@ class DeltakerService(
                 deltakerEndringService.upsertEndring(deltaker, endring, utfall, request)
                 upsertDeltaker(utfall.deltaker, nesteStatus = utfall.nesteStatus)
             }
+
             is DeltakerEndringUtfall.FremtidigEndring -> {
                 deltakerEndringService.upsertEndring(deltaker, endring, utfall, request)
                 upsertDeltaker(utfall.deltaker)
             }
+
             is DeltakerEndringUtfall.UgyldigEndring -> deltaker
         }
     }
@@ -146,12 +153,60 @@ class DeltakerService(
         return upsertDeltaker(deltaker)
     }
 
-    suspend fun oppdaterSistBesokt(deltakerId: UUID, sistBesokt: ZonedDateTime) {
+    fun oppdaterSistBesokt(deltakerId: UUID, sistBesokt: ZonedDateTime) {
         val deltaker = get(deltakerId).getOrThrow()
         hendelseService.hendelseForSistBesokt(deltaker, sistBesokt)
     }
 
     fun getDeltakereMedStatus(statusType: DeltakerStatus.Type) = deltakerRepository.getDeltakereMedStatus(statusType)
+
+    suspend fun oppdaterDeltakerStatuser() {
+        val deltakereSomSkalAvsluttes = deltakereSomSkalHaAvsluttendeStatus()
+        avsluttDeltakere(deltakereSomSkalAvsluttes)
+
+        val deltakereSomSkalDelta = deltakereSomSkalHaStatusDeltar()
+        DeltakerProgresjon()
+            .tilDeltar(deltakereSomSkalDelta)
+            .forEach { upsertDeltaker(it) }
+    }
+
+    suspend fun avsluttDeltakelserPaaDeltakerliste(deltakerlisteId: UUID) {
+        val deltakerePaAvbruttDeltakerliste = getDeltakereForDeltakerliste(deltakerlisteId)
+            .filter { it.status.type != DeltakerStatus.Type.KLADD }
+
+        avsluttDeltakere(deltakerePaAvbruttDeltakerliste)
+    }
+
+    private suspend fun avsluttDeltakere(deltakereSomSkalAvsluttes: List<Deltaker>) {
+        DeltakerProgresjon()
+            .tilAvsluttendeStatusOgDatoer(deltakereSomSkalAvsluttes, ::getFremtidigStatus)
+            .map { oppdaterVedtakForAvbruttUtkast(it) }
+            .forEach { upsertDeltaker(it) }
+    }
+
+    private fun getFremtidigStatus(deltaker: Deltaker) = deltakerRepository.getDeltakerStatuser(deltaker.id).firstOrNull { status ->
+        status.gyldigTil == null &&
+            !status.gyldigFra.toLocalDate().isAfter(LocalDate.now()) &&
+            status.type == DeltakerStatus.Type.HAR_SLUTTET
+    }
+
+    private fun oppdaterVedtakForAvbruttUtkast(deltaker: Deltaker) = if (deltaker.status.type == DeltakerStatus.Type.AVBRUTT_UTKAST) {
+        val vedtak = vedtakService.avbrytVedtakVedAvsluttetDeltakerliste(deltaker)
+        deltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksinformasjon())
+    } else {
+        deltaker
+    }
+
+    private fun deltakereSomSkalHaAvsluttendeStatus() = deltakerRepository
+        .skalHaAvsluttendeStatus()
+        .plus(deltakerRepository.deltarPaAvsluttetDeltakerliste())
+        .filter { it.kilde == Kilde.KOMET || unleashToggle.erKometMasterForTiltakstype(it.deltakerliste.tiltakstype.arenaKode) }
+        .distinct()
+
+    private fun deltakereSomSkalHaStatusDeltar() = deltakerRepository
+        .skalHaStatusDeltar()
+        .distinct()
+        .filter { it.kilde == Kilde.KOMET || unleashToggle.erKometMasterForTiltakstype(it.deltakerliste.tiltakstype.arenaKode) }
 }
 
 fun nyDeltakerStatus(

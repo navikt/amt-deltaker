@@ -53,7 +53,6 @@ import no.nav.amt.deltaker.deltakerliste.tiltakstype.kafka.TiltakstypeConsumer
 import no.nav.amt.deltaker.hendelse.HendelseProducer
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.isoppfolgingstilfelle.IsOppfolgingstilfelleClient
-import no.nav.amt.deltaker.job.DeltakerStatusOppdateringService
 import no.nav.amt.deltaker.job.StatusUpdateJob
 import no.nav.amt.deltaker.job.leaderelection.LeaderElection
 import no.nav.amt.deltaker.navansatt.NavAnsattConsumer
@@ -219,6 +218,7 @@ fun Application.module() {
         forslagService = forslagService,
         importertFraArenaRepository = importertFraArenaRepository,
         deltakerHistorikkService = deltakerHistorikkService,
+        unleashToggle = unleashToggle,
     )
     val pameldingService = PameldingService(
         deltakerService = deltakerService,
@@ -230,15 +230,12 @@ fun Application.module() {
         isOppfolgingstilfelleClient = isOppfolgingstilfelleClient,
     )
 
-    val deltakerStatusOppdateringService =
-        DeltakerStatusOppdateringService(deltakerRepository, deltakerService, unleashToggle, vedtakService)
-
     val consumers = listOf(
         ArrangorConsumer(arrangorRepository),
         NavAnsattConsumer(navAnsattService),
         NavBrukerConsumer(navBrukerRepository, navEnhetService, deltakerService),
         TiltakstypeConsumer(tiltakstypeRepository),
-        DeltakerlisteConsumer(deltakerlisteRepository, tiltakstypeRepository, arrangorService, deltakerStatusOppdateringService),
+        DeltakerlisteConsumer(deltakerlisteRepository, tiltakstypeRepository, arrangorService, deltakerService),
         DeltakerConsumer(
             deltakerRepository,
             deltakerlisteRepository,
@@ -264,7 +261,7 @@ fun Application.module() {
     )
     configureMonitoring()
 
-    val statusUpdateJob = StatusUpdateJob(leaderElection, attributes, deltakerStatusOppdateringService)
+    val statusUpdateJob = StatusUpdateJob(leaderElection, attributes, deltakerService)
     statusUpdateJob.startJob()
 
     val deltakelsesmengdeUpdateJob = DeltakelsesmengdeUpdateJob(leaderElection, attributes, deltakerEndringService, deltakerService)

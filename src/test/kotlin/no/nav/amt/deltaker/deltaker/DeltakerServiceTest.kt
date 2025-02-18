@@ -127,6 +127,7 @@ class DeltakerServiceTest {
             forslagService = forslagService,
             importertFraArenaRepository = importertFraArenaRepository,
             deltakerHistorikkService = deltakerHistorikkService,
+            unleashToggle = unleashToggle,
         )
 
         @JvmStatic
