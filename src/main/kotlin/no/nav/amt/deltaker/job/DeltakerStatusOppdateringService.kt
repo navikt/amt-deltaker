@@ -1,10 +1,8 @@
 package no.nav.amt.deltaker.job
 
-import no.nav.amt.deltaker.deltaker.VedtakService
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.harIkkeStartet
-import no.nav.amt.deltaker.deltaker.tilVedtaksinformasjon
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
@@ -13,7 +11,6 @@ import java.util.UUID
 
 class DeltakerStatusOppdateringService(
     private val deltakerRepository: DeltakerRepository,
-    private val vedtakService: VedtakService,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -85,17 +82,14 @@ class DeltakerStatusOppdateringService(
         val utkastSomSkalAvbrytes = deltakere
             .filter { it.status.type == DeltakerStatus.Type.UTKAST_TIL_PAMELDING }
             .map {
-                val vedtak = vedtakService.avbrytVedtakVedAvsluttetDeltakerliste(it)
-
-                it
-                    .medNyStatus(
-                        DeltakerStatus.Type.AVBRUTT_UTKAST,
-                        // Årsak skal settes selv om gjennomføringen blir avsluttet normalt
-                        DeltakerStatus.Aarsak(
-                            type = DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT,
-                            beskrivelse = null,
-                        ),
-                    ).copy(vedtaksinformasjon = vedtak.tilVedtaksinformasjon())
+                it.medNyStatus(
+                    DeltakerStatus.Type.AVBRUTT_UTKAST,
+                    // Årsak skal settes selv om gjennomføringen blir avsluttet normalt
+                    DeltakerStatus.Aarsak(
+                        type = DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT,
+                        beskrivelse = null,
+                    ),
+                )
             }
 
         return utkastSomSkalAvbrytes

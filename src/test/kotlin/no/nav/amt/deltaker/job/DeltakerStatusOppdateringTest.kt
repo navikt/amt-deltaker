@@ -106,7 +106,7 @@ class DeltakerStatusOppdateringTest {
         fun setup() {
             SingletonPostgres16Container
             deltakerStatusOppdateringService =
-                DeltakerStatusOppdateringService(deltakerRepository, vedtakService)
+                DeltakerStatusOppdateringService(deltakerRepository)
 
             deltakerService = DeltakerService(
                 deltakerRepository,

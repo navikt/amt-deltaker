@@ -108,7 +108,7 @@ class PameldingServiceTest {
             forslagService = forslagService,
             importertFraArenaRepository = importertFraArenaRepository,
             deltakerHistorikkService = deltakerHistorikkService,
-            deltakerStatusOppdateringService = DeltakerStatusOppdateringService(deltakerRepository, vedtakService),
+            deltakerStatusOppdateringService = DeltakerStatusOppdateringService(deltakerRepository),
             unleashToggle = mockk(),
         )
 

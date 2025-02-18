@@ -164,12 +164,20 @@ class DeltakerService(
         val deltakereSomSkalAvsluttes = deltakereSomSkalHaAvsluttendeStatus()
         deltakerStatusOppdateringService
             .oppdaterTilAvsluttendeStatus(deltakereSomSkalAvsluttes)
+            .map { oppdaterVedtakForAvbruttUtkast(it) }
             .forEach { upsertDeltaker(it) }
 
         val deltakereSomSkalDelta = deltakereSomSkalHaStatusDeltar()
         deltakerStatusOppdateringService
             .oppdaterStatusTilDeltar(deltakereSomSkalDelta)
             .forEach { upsertDeltaker(it) }
+    }
+
+    private fun oppdaterVedtakForAvbruttUtkast(deltaker: Deltaker) = if (deltaker.status.type == DeltakerStatus.Type.AVBRUTT_UTKAST) {
+        val vedtak = vedtakService.avbrytVedtakVedAvsluttetDeltakerliste(deltaker)
+        deltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksinformasjon())
+    } else {
+        deltaker
     }
 
     private fun deltakereSomSkalHaAvsluttendeStatus() = deltakerRepository

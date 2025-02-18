@@ -210,7 +210,7 @@ fun Application.module() {
     val endringFraArrangorService = EndringFraArrangorService(endringFraArrangorRepository, hendelseService, deltakerHistorikkService)
     val vedtakService = VedtakService(vedtakRepository, hendelseService)
     val deltakerStatusOppdateringService =
-        DeltakerStatusOppdateringService(deltakerRepository, vedtakService)
+        DeltakerStatusOppdateringService(deltakerRepository)
     val deltakerService = DeltakerService(
         deltakerRepository = deltakerRepository,
         deltakerEndringService = deltakerEndringService,
