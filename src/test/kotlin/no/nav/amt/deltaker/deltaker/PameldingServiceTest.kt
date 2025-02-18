@@ -23,7 +23,6 @@ import no.nav.amt.deltaker.hendelse.HendelseProducer
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.isoppfolgingstilfelle.OppfolgingstilfelleDTO
 import no.nav.amt.deltaker.isoppfolgingstilfelle.OppfolgingstilfellePersonDTO
-import no.nav.amt.deltaker.job.DeltakerStatusOppdateringService
 import no.nav.amt.deltaker.kafka.utils.assertProducedHendelse
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
@@ -108,7 +107,6 @@ class PameldingServiceTest {
             forslagService = forslagService,
             importertFraArenaRepository = importertFraArenaRepository,
             deltakerHistorikkService = deltakerHistorikkService,
-            deltakerStatusOppdateringService = DeltakerStatusOppdateringService(deltakerRepository),
             unleashToggle = mockk(),
         )
 

@@ -51,7 +51,6 @@ import java.time.LocalDateTime
 class DeltakerStatusOppdateringTest {
     companion object {
         private val deltakerRepository: DeltakerRepository = DeltakerRepository()
-        lateinit var deltakerStatusOppdateringService: DeltakerStatusOppdateringService
         private lateinit var deltakerService: DeltakerService
 
         private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonClient())
@@ -105,8 +104,6 @@ class DeltakerStatusOppdateringTest {
         @BeforeClass
         fun setup() {
             SingletonPostgres16Container
-            deltakerStatusOppdateringService =
-                DeltakerStatusOppdateringService(deltakerRepository)
 
             deltakerService = DeltakerService(
                 deltakerRepository,
@@ -118,7 +115,6 @@ class DeltakerStatusOppdateringTest {
                 forslagService,
                 importertFraArenaRepository,
                 deltakerHistorikkService,
-                deltakerStatusOppdateringService,
                 unleashToggle,
             )
         }

@@ -28,7 +28,6 @@ import no.nav.amt.deltaker.deltaker.kafka.DeltakerV1Producer
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerDtoMapperService
 import no.nav.amt.deltaker.hendelse.HendelseProducer
 import no.nav.amt.deltaker.hendelse.HendelseService
-import no.nav.amt.deltaker.job.DeltakerStatusOppdateringService
 import no.nav.amt.deltaker.kafka.utils.assertProduced
 import no.nav.amt.deltaker.kafka.utils.assertProducedDeltakerV1
 import no.nav.amt.deltaker.kafka.utils.assertProducedFeilregistrert
@@ -128,7 +127,6 @@ class DeltakerServiceTest {
             forslagService = forslagService,
             importertFraArenaRepository = importertFraArenaRepository,
             deltakerHistorikkService = deltakerHistorikkService,
-            deltakerStatusOppdateringService = DeltakerStatusOppdateringService(deltakerRepository),
             unleashToggle = unleashToggle,
         )
 

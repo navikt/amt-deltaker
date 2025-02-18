@@ -1,6 +1,5 @@
 package no.nav.amt.deltaker.job
 
-import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.harIkkeStartet
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -9,18 +8,21 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
-class DeltakerStatusOppdateringService(
-    private val deltakerRepository: DeltakerRepository,
-) {
+class DeltakerProgresjon {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun oppdaterTilAvsluttendeStatus(deltakere: List<Deltaker>): List<Deltaker> = listOf(
-        avbrytUtkast(deltakere),
-        ikkeAktuell(deltakere),
-        avbryt(deltakere),
-        harSluttet(deltakere),
-        fullfor(deltakere),
-    ).flatten()
+    fun tilAvsluttendeStatusOgDatoer(deltakere: List<Deltaker>, fremtidigStatusProvider: (Deltaker) -> DeltakerStatus?): List<Deltaker> =
+        listOf(
+            avbrytUtkast(deltakere),
+            ikkeAktuell(deltakere),
+            avbryt(deltakere),
+            harSluttet(deltakere, fremtidigStatusProvider),
+            fullfor(deltakere),
+        ).flatten()
+
+    fun tilDeltar(deltakere: List<Deltaker>): List<Deltaker> = deltakere
+        .map { it.medNyStatus(DeltakerStatus.Type.DELTAR) }
+        .also { log.info("Endret status til DELTAR for ${deltakere.size}") }
 
     private fun fullfor(deltakere: List<Deltaker>): List<Deltaker> {
         val skalBliFullfort = deltakere
@@ -36,29 +38,6 @@ class DeltakerStatusOppdateringService(
         return skalBliFullfort
     }
 
-    private fun harSluttet(deltakere: List<Deltaker>): List<Deltaker> {
-        val skalBliHarSluttet = deltakere
-            .filter { it.status.type == DeltakerStatus.Type.DELTAR }
-            .filter { !it.deltarPaKurs() }
-            .map {
-                val fremtidigStatus = deltakerRepository.getDeltakerStatuser(it.id).firstOrNull { status ->
-                    status.gyldigTil == null &&
-                        !status.gyldigFra.toLocalDate().isAfter(LocalDate.now()) &&
-                        status.type == DeltakerStatus.Type.HAR_SLUTTET
-                }
-
-                if (fremtidigStatus != null) {
-                    it.copy(status = fremtidigStatus, sluttdato = getOppdatertSluttdato(it))
-                } else {
-                    it.medNyStatus(DeltakerStatus.Type.HAR_SLUTTET, getSluttarsak(it)).medNySluttdato(getOppdatertSluttdato(it))
-                }
-            }
-
-        log.info("Endret status til HAR SLUTTET for ${skalBliHarSluttet.size}")
-
-        return skalBliHarSluttet
-    }
-
     private fun avbryt(deltakere: List<Deltaker>): List<Deltaker> {
         val skalBliAvbrutt = deltakere
             .filter { it.status.type == DeltakerStatus.Type.DELTAR }
@@ -69,10 +48,35 @@ class DeltakerStatusOppdateringService(
         return skalBliAvbrutt
     }
 
+    private fun harSluttet(deltakere: List<Deltaker>, fremtidigStatusProvider: (Deltaker) -> DeltakerStatus?): List<Deltaker> {
+        val skalBliHarSluttet = deltakere
+            .filter { it.status.type == DeltakerStatus.Type.DELTAR }
+            .filter { !it.deltarPaKurs() }
+            .map {
+                val fremtidigStatus = fremtidigStatusProvider(it)
+                if (fremtidigStatus != null) {
+                    it.copy(status = fremtidigStatus, sluttdato = getOppdatertSluttdato(it))
+                } else {
+                    it
+                        .medNyStatus(DeltakerStatus.Type.HAR_SLUTTET, getSluttarsak(it))
+                        .medNySluttdato(getOppdatertSluttdato(it))
+                }
+            }
+
+        log.info("Endret status til HAR SLUTTET for ${skalBliHarSluttet.size}")
+
+        return skalBliHarSluttet
+    }
+
     private fun ikkeAktuell(deltakere: List<Deltaker>): List<Deltaker> {
         val skalBliIkkeAktuell = deltakere
             .filter { it.status.harIkkeStartet() }
-            .map { it.medNyStatus(DeltakerStatus.Type.IKKE_AKTUELL, getSluttarsak(it)).medNySluttdato(null).medNyStartdato(null) }
+            .map {
+                it
+                    .medNyStatus(DeltakerStatus.Type.IKKE_AKTUELL, getSluttarsak(it))
+                    .medNySluttdato(null)
+                    .medNyStartdato(null)
+            }
         log.info("Endret status til IKKE AKTUELL for ${skalBliIkkeAktuell.size}")
 
         return skalBliIkkeAktuell
@@ -95,20 +99,6 @@ class DeltakerStatusOppdateringService(
         return utkastSomSkalAvbrytes
     }
 
-    fun oppdaterStatusTilDeltar(deltakere: List<Deltaker>): List<Deltaker> = deltakere
-        .map { it.medNyStatus(DeltakerStatus.Type.DELTAR) }
-        .also { log.info("Endret status til DELTAR for ${deltakere.size}") }
-
-    private fun sluttetForTidlig(deltaker: Deltaker): Boolean {
-        if (!deltaker.deltarPaKurs()) {
-            return false
-        }
-        deltaker.deltakerliste.sluttDato?.let {
-            return deltaker.sluttdato?.isBefore(it) == true
-        }
-        return false
-    }
-
     private fun getOppdatertSluttdato(deltaker: Deltaker): LocalDate? =
         if (deltaker.sluttdato == null || deltaker.sluttdato.isAfter(LocalDate.now())) {
             if (deltaker.deltakerliste.sluttDato != null && !deltaker.deltakerliste.sluttDato.isAfter(LocalDate.now())) {
@@ -127,6 +117,16 @@ class DeltakerStatusOppdateringService(
         )
     } else {
         null
+    }
+
+    private fun sluttetForTidlig(deltaker: Deltaker): Boolean {
+        if (!deltaker.deltarPaKurs()) {
+            return false
+        }
+        deltaker.deltakerliste.sluttDato?.let {
+            return deltaker.sluttdato?.isBefore(it) == true
+        }
+        return false
     }
 
     private fun Deltaker.medNyStatus(status: DeltakerStatus.Type, aarsak: DeltakerStatus.Aarsak? = null) = this.copy(

@@ -53,7 +53,6 @@ import no.nav.amt.deltaker.deltakerliste.tiltakstype.kafka.TiltakstypeConsumer
 import no.nav.amt.deltaker.hendelse.HendelseProducer
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.isoppfolgingstilfelle.IsOppfolgingstilfelleClient
-import no.nav.amt.deltaker.job.DeltakerStatusOppdateringService
 import no.nav.amt.deltaker.job.StatusUpdateJob
 import no.nav.amt.deltaker.job.leaderelection.LeaderElection
 import no.nav.amt.deltaker.navansatt.NavAnsattConsumer
@@ -209,8 +208,6 @@ fun Application.module() {
 
     val endringFraArrangorService = EndringFraArrangorService(endringFraArrangorRepository, hendelseService, deltakerHistorikkService)
     val vedtakService = VedtakService(vedtakRepository, hendelseService)
-    val deltakerStatusOppdateringService =
-        DeltakerStatusOppdateringService(deltakerRepository)
     val deltakerService = DeltakerService(
         deltakerRepository = deltakerRepository,
         deltakerEndringService = deltakerEndringService,
@@ -221,7 +218,6 @@ fun Application.module() {
         forslagService = forslagService,
         importertFraArenaRepository = importertFraArenaRepository,
         deltakerHistorikkService = deltakerHistorikkService,
-        deltakerStatusOppdateringService = deltakerStatusOppdateringService,
         unleashToggle = unleashToggle,
     )
     val pameldingService = PameldingService(
