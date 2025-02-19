@@ -12,6 +12,7 @@ import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaReposit
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.Kilde
+import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.job.DeltakerProgresjon
 import no.nav.amt.deltaker.unleash.UnleashToggle
@@ -207,6 +208,20 @@ class DeltakerService(
         .skalHaStatusDeltar()
         .distinct()
         .filter { it.kilde == Kilde.KOMET || unleashToggle.erKometMasterForTiltakstype(it.deltakerliste.tiltakstype.arenaKode) }
+
+    suspend fun avgrensSluttdatoerTil(deltakerliste: Deltakerliste) {
+        val deltakere = getDeltakereForDeltakerliste(deltakerliste.id).filter { it.status.type !in DeltakerStatus.avsluttendeStatuser }
+
+        deltakere.forEach {
+            if (it.sluttdato != null && deltakerliste.sluttDato != null && it.sluttdato > deltakerliste.sluttDato) {
+                upsertDeltaker(
+                    deltaker = it.copy(sluttdato = deltakerliste.sluttDato),
+                    forcedUpdate = true, // For at oppdateringen skal propageres riktig til amt-deltaker-bff så må vi sette denne.
+                )
+                log.info("Deltaker ${it.id} fikk ny sluttdato fordi deltakerlisten sin sluttdato var mindre enn deltakers")
+            }
+        }
+    }
 }
 
 fun nyDeltakerStatus(

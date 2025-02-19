@@ -51,11 +51,23 @@ class DeltakerlisteConsumer(
         val tiltakstype = tiltakstypeRepository.get(arenaKodeTilTiltakstype(deltakerlisteDto.tiltakstype.arenaKode)).getOrThrow()
 
         val arrangor = arrangorService.hentArrangor(deltakerlisteDto.virksomhetsnummer)
-        val deltakerliste = deltakerlisteDto.toModel(arrangor, tiltakstype)
-        repository.upsert(deltakerliste)
 
-        if (deltakerliste.erAvlystEllerAvbrutt()) {
-            deltakerService.avsluttDeltakelserPaaDeltakerliste(deltakerliste.id)
+        val oppdatertDeltakerliste = deltakerlisteDto.toModel(arrangor, tiltakstype)
+        val gammelDeltakerliste = repository.get(deltakerlisteDto.id)
+
+        if (oppdatertDeltakerliste.erAvlystEllerAvbrutt()) {
+            deltakerService.avsluttDeltakelserPaaDeltakerliste(oppdatertDeltakerliste.id)
         }
+
+        gammelDeltakerliste.onSuccess {
+            if (oppdatertDeltakerliste.sluttDato != null &&
+                it.sluttDato != null &&
+                oppdatertDeltakerliste.sluttDato < it.sluttDato
+            ) {
+                deltakerService.avgrensSluttdatoerTil(oppdatertDeltakerliste)
+            }
+        }
+
+        repository.upsert(oppdatertDeltakerliste)
     }
 }
