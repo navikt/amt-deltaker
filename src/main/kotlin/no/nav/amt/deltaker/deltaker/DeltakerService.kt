@@ -214,7 +214,11 @@ class DeltakerService(
 
         deltakere.forEach {
             if (it.sluttdato != null && deltakerliste.sluttDato != null && it.sluttdato > deltakerliste.sluttDato) {
-                upsertDeltaker(it.copy(sluttdato = deltakerliste.sluttDato))
+                upsertDeltaker(
+                    deltaker = it.copy(sluttdato = deltakerliste.sluttDato),
+                    forcedUpdate = true, // For at oppdateringen skal propageres riktig til amt-deltaker-bff så må vi sette denne.
+                )
+                log.info("Deltaker ${it.id} fikk ny sluttdato fordi deltakerlisten sin sluttdato var mindre enn deltakers")
             }
         }
     }
