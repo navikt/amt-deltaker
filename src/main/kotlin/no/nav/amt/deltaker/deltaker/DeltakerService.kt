@@ -210,7 +210,7 @@ class DeltakerService(
         .filter { it.kilde == Kilde.KOMET || unleashToggle.erKometMasterForTiltakstype(it.deltakerliste.tiltakstype.arenaKode) }
 
     suspend fun avgrensSluttdatoerTil(deltakerliste: Deltakerliste) {
-        val deltakere = getDeltakereForDeltakerliste(deltakerliste.id).filter { it.status.type !in avsluttendeStatuser }
+        val deltakere = getDeltakereForDeltakerliste(deltakerliste.id).filter { it.status.type !in DeltakerStatus.avsluttendeStatuser }
 
         deltakere.forEach {
             if (it.sluttdato != null && deltakerliste.sluttDato != null && it.sluttdato > deltakerliste.sluttDato) {
@@ -218,15 +218,6 @@ class DeltakerService(
             }
         }
     }
-
-    private val avsluttendeStatuser = listOf(
-        DeltakerStatus.Type.HAR_SLUTTET,
-        DeltakerStatus.Type.AVBRUTT,
-        DeltakerStatus.Type.AVBRUTT_UTKAST,
-        DeltakerStatus.Type.IKKE_AKTUELL,
-        DeltakerStatus.Type.FULLFORT,
-        DeltakerStatus.Type.FEILREGISTRERT,
-    )
 }
 
 fun nyDeltakerStatus(
