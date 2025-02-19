@@ -687,4 +687,46 @@ class DeltakerServiceTest {
             assertProducedDeltakerV1(deltaker.id)
         }
     }
+
+    @Test
+    fun `avgrensSluttdatoerTil - deltaker har senere sluttdato enn deltakerliste - deltakers sluttdato endres`() {
+        val deltakerliste = TestData.lagDeltakerliste()
+        val deltaker = TestData.lagDeltaker(
+            deltakerliste = deltakerliste,
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+            sluttdato = deltakerliste.sluttDato!!.plusMonths(1),
+        )
+        val vedtak = TestData.lagVedtak(deltakerVedVedtak = deltaker)
+        val ansatt = TestData.lagNavAnsatt(id = vedtak.opprettetAv)
+        val enhet = TestData.lagNavEnhet(id = vedtak.opprettetAvEnhet)
+
+        TestRepository.insertAll(deltakerliste, ansatt, enhet, deltaker, vedtak)
+
+        runBlocking { deltakerService.avgrensSluttdatoerTil(deltakerliste) }
+
+        val oppdatertDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
+
+        oppdatertDeltaker.sluttdato shouldBe deltakerliste.sluttDato
+    }
+
+    @Test
+    fun `avgrensSluttdatoerTil - deltaker har tidligere sluttdato enn deltakerliste - deltakers sluttdato endres ikke`() {
+        val deltakerliste = TestData.lagDeltakerliste()
+        val deltaker = TestData.lagDeltaker(
+            deltakerliste = deltakerliste,
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+            sluttdato = deltakerliste.sluttDato!!.minusDays(1),
+        )
+        val vedtak = TestData.lagVedtak(deltakerVedVedtak = deltaker)
+        val ansatt = TestData.lagNavAnsatt(id = vedtak.opprettetAv)
+        val enhet = TestData.lagNavEnhet(id = vedtak.opprettetAvEnhet)
+
+        TestRepository.insertAll(deltakerliste, ansatt, enhet, deltaker, vedtak)
+
+        runBlocking { deltakerService.avgrensSluttdatoerTil(deltakerliste) }
+
+        val oppdatertDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
+
+        oppdatertDeltaker.sluttdato shouldNotBe deltakerliste.sluttDato
+    }
 }

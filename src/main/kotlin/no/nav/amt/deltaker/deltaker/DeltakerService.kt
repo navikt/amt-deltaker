@@ -12,6 +12,7 @@ import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaReposit
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.Kilde
+import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.job.DeltakerProgresjon
 import no.nav.amt.deltaker.unleash.UnleashToggle
@@ -207,6 +208,25 @@ class DeltakerService(
         .skalHaStatusDeltar()
         .distinct()
         .filter { it.kilde == Kilde.KOMET || unleashToggle.erKometMasterForTiltakstype(it.deltakerliste.tiltakstype.arenaKode) }
+
+    suspend fun avgrensSluttdatoerTil(deltakerliste: Deltakerliste) {
+        val deltakere = getDeltakereForDeltakerliste(deltakerliste.id).filter { it.status.type !in avsluttendeStatuser }
+
+        deltakere.forEach {
+            if (it.sluttdato != null && deltakerliste.sluttDato != null && it.sluttdato > deltakerliste.sluttDato) {
+                upsertDeltaker(it.copy(sluttdato = deltakerliste.sluttDato))
+            }
+        }
+    }
+
+    private val avsluttendeStatuser = listOf(
+        DeltakerStatus.Type.HAR_SLUTTET,
+        DeltakerStatus.Type.AVBRUTT,
+        DeltakerStatus.Type.AVBRUTT_UTKAST,
+        DeltakerStatus.Type.IKKE_AKTUELL,
+        DeltakerStatus.Type.FULLFORT,
+        DeltakerStatus.Type.FEILREGISTRERT,
+    )
 }
 
 fun nyDeltakerStatus(

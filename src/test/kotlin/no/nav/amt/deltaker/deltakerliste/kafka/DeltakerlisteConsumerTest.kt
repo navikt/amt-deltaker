@@ -131,4 +131,28 @@ class DeltakerlisteConsumerTest {
 
         coVerify(exactly = 0) { deltakerService.avsluttDeltakelserPaaDeltakerliste(any()) }
     }
+
+    @Test
+    fun `consumeDeltakerliste - redusert sluttdato - oppdaterer deltakerliste og oppdaterer sluttdato på deltakere`() {
+        val arrangor = TestData.lagArrangor()
+        val deltakerliste = TestData.lagDeltakerliste(arrangor = arrangor)
+        val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
+        TestRepository.insert(deltakerliste)
+
+        val consumer =
+            DeltakerlisteConsumer(deltakerlisteRepository, tiltakstypeRepository, arrangorService, deltakerService)
+
+        val oppdatertDeltakerliste = deltakerliste.copy(sluttDato = LocalDate.now())
+
+        runBlocking {
+            consumer.consume(
+                deltakerliste.id,
+                objectMapper.writeValueAsString(TestData.lagDeltakerlisteDto(arrangor, oppdatertDeltakerliste)),
+            )
+
+            deltakerlisteRepository.get(deltakerliste.id).getOrThrow() shouldBe oppdatertDeltakerliste
+        }
+
+        coVerify { deltakerService.avgrensSluttdatoerTil(oppdatertDeltakerliste) }
+    }
 }
