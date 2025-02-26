@@ -13,6 +13,7 @@ import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerV2Dto
 import no.nav.amt.deltaker.deltaker.kafka.dto.toDeltakerNavVeilederDto
 import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.deltaker.deltaker.sammenlignHistorikk
+import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetRepository
@@ -38,6 +39,7 @@ class DeltakerDtoMapperServiceTest {
     companion object {
         private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonClient())
         private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonClient())
+        private val vurderingRepository = VurderingRepository()
         private val deltakerHistorikkService = DeltakerHistorikkService(
             DeltakerEndringRepository(),
             VedtakRepository(),
@@ -45,7 +47,8 @@ class DeltakerDtoMapperServiceTest {
             EndringFraArrangorRepository(),
             ImportertFraArenaRepository(),
         )
-        private val deltakerDtoMapperService = DeltakerDtoMapperService(navAnsattService, navEnhetService, deltakerHistorikkService)
+        private val deltakerDtoMapperService =
+            DeltakerDtoMapperService(navAnsattService, navEnhetService, deltakerHistorikkService, vurderingRepository)
 
         @BeforeClass
         @JvmStatic

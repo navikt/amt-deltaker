@@ -73,11 +73,12 @@ private data class DeltakerContext(
         opprettetAvEnhet = navEnhet,
     )
     val historikk: MutableList<DeltakerHistorikk> = mutableListOf(DeltakerHistorikk.Vedtak(vedtak))
-
+    val vurderinger = listOf(TestData.lagVurdering())
     val deltakerDto
         get() = DeltakerDto(
             deltaker,
             historikk,
+            vurderinger,
             veileder,
             navEnhet,
             false,

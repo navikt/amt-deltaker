@@ -5,8 +5,10 @@ import no.nav.amt.deltaker.deltaker.getInnsoktDatoFraImportertDeltaker
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.getStatustekst
 import no.nav.amt.deltaker.deltaker.model.getVisningsnavn
+import no.nav.amt.deltaker.deltaker.vurdering.Vurdering
 import no.nav.amt.deltaker.navansatt.NavAnsatt
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhet
+import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -17,6 +19,7 @@ import java.util.UUID
 data class DeltakerDto(
     private val deltaker: Deltaker,
     private val deltakerhistorikk: List<DeltakerHistorikk>,
+    private val vurderinger: List<Vurdering>,
     private val navAnsatt: NavAnsatt?,
     private val navEnhet: NavEnhet?,
     private val forcedUpdate: Boolean?,
@@ -94,11 +97,23 @@ data class DeltakerDto(
             kilde = deltaker.kilde,
             innhold = deltaker.deltakelsesinnhold,
             historikk = deltakerhistorikk,
+            vurderingerFraArrangor = vurderinger.toDto(),
             sistEndret = deltaker.sistEndret,
             sistEndretAv = sisteEndring?.getSistEndretAv(),
             sistEndretAvEnhet = sisteEndring?.getSistEndretAvEnhet(),
             forcedUpdate = forcedUpdate,
         )
+
+    private fun List<Vurdering>.toDto() = this.map {
+        no.nav.amt.lib.models.arrangor.melding.Vurdering(
+            id = it.id,
+            deltakerId = it.deltakerId,
+            opprettetAvArrangorAnsattId = it.opprettetAvArrangorAnsattId,
+            opprettet = it.gyldigFra,
+            vurderingstype = Vurderingstype.valueOf(it.vurderingstype.name),
+            begrunnelse = it.begrunnelse,
+        )
+    }
 
     private fun Deltakelsesinnhold.toDeltakelsesinnholdDto() = DeltakerV1Dto.DeltakelsesinnholdDto(
         ledetekst = ledetekst,
