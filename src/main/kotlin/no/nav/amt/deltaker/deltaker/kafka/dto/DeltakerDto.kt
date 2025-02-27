@@ -116,6 +116,7 @@ data class DeltakerDto(
         is DeltakerHistorikk.Forslag,
         is DeltakerHistorikk.EndringFraArrangor,
         is DeltakerHistorikk.ImportertFraArena,
+        is DeltakerHistorikk.VurderingFraArrangor,
         -> throw IllegalStateException("Siste endring kan ikke være et forslag eller endring fra arrangør")
     }
 
@@ -125,6 +126,7 @@ data class DeltakerDto(
         is DeltakerHistorikk.Forslag,
         is DeltakerHistorikk.EndringFraArrangor,
         is DeltakerHistorikk.ImportertFraArena,
+        is DeltakerHistorikk.VurderingFraArrangor,
         -> throw IllegalStateException("Siste endring kan ikke være et forslag eller endring fra arrangør")
     }
 
