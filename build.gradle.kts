@@ -9,7 +9,7 @@ plugins {
     kotlin("jvm") version kotlinVersion
     id("io.ktor.plugin") version "3.1.1"
     id("org.jetbrains.kotlin.plugin.serialization") version kotlinVersion
-    id("org.jlleitschuh.gradle.ktlint") version "12.1.2"
+    id("org.jlleitschuh.gradle.ktlint") version "12.2.0"
     id("com.gradleup.shadow") version "8.3.6"
 }
 
