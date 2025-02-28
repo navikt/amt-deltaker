@@ -9,7 +9,7 @@ plugins {
     kotlin("jvm") version kotlinVersion
     id("io.ktor.plugin") version "3.1.1"
     id("org.jetbrains.kotlin.plugin.serialization") version kotlinVersion
-    id("org.jlleitschuh.gradle.ktlint") version "12.1.2"
+    id("org.jlleitschuh.gradle.ktlint") version "12.2.0"
     id("com.gradleup.shadow") version "8.3.6"
 }
 
@@ -29,12 +29,12 @@ val commonVersion = "3.2024.10.25_13.44-9db48a0dbe67"
 val poaoTilgangVersion = "2024.10.29_14.10-4fff597d6e1b"
 val kafkaClientsVersion = "3.7.1"
 val kotestVersion = "5.9.1"
-val flywayVersion = "11.3.3"
+val flywayVersion = "11.3.4"
 val hikariVersion = "6.2.1"
 val kotliqueryVersion = "1.9.1"
 val postgresVersion = "42.7.5"
 val caffeineVersion = "3.2.0"
-val mockkVersion = "1.13.16"
+val mockkVersion = "1.13.17"
 val nimbusVersion = "10.0.2"
 val unleashVersion = "10.0.2"
 val amtLibVersion = "1.2025.02.26_09.34-c938c3d93f24"
