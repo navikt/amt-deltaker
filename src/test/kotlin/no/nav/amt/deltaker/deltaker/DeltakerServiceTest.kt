@@ -26,6 +26,7 @@ import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerV1Producer
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerDtoMapperService
+import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
 import no.nav.amt.deltaker.hendelse.HendelseProducer
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.kafka.utils.assertProduced
@@ -69,6 +70,7 @@ class DeltakerServiceTest {
         private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
         private val importertFraArenaRepository = ImportertFraArenaRepository()
         private val kafkaProducer = Producer<String, String>(LocalKafkaConfig(SingletonKafkaProvider.getHost()))
+        private val vurderingRepository = VurderingRepository()
         private val deltakerHistorikkService =
             DeltakerHistorikkService(
                 deltakerEndringRepository,
@@ -86,7 +88,7 @@ class DeltakerServiceTest {
         )
         private val unleashToggle = mockk<UnleashToggle>()
         private val deltakerDtoMapperService =
-            DeltakerDtoMapperService(navAnsattService, navEnhetService, deltakerHistorikkService)
+            DeltakerDtoMapperService(navAnsattService, navEnhetService, deltakerHistorikkService, vurderingRepository)
         private val deltakerProducer = DeltakerProducer(
             kafkaProducer,
         )

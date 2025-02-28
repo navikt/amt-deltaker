@@ -6,6 +6,8 @@ import no.nav.amt.deltaker.arrangor.Arrangor
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerV2Dto
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.Kilde
+import no.nav.amt.deltaker.deltaker.vurdering.Vurdering
+import no.nav.amt.deltaker.deltaker.vurdering.Vurderingstype
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlisteDto
 import no.nav.amt.deltaker.navansatt.NavAnsatt
@@ -340,6 +342,22 @@ object TestData {
         deltakerVedImport,
     )
 
+    fun lagVurdering(
+        id: UUID = UUID.randomUUID(),
+        deltakerId: UUID = UUID.randomUUID(),
+        vurderingstype: Vurderingstype = Vurderingstype.OPPFYLLER_KRAVENE,
+        begrunnelse: String? = null,
+        opprettetAvArrangorAnsattId: UUID = UUID.randomUUID(),
+        gyldigFra: LocalDateTime = LocalDateTime.now(),
+    ) = Vurdering(
+        id = id,
+        deltakerId = deltakerId,
+        vurderingstype = vurderingstype,
+        begrunnelse = begrunnelse,
+        opprettetAvArrangorAnsattId = opprettetAvArrangorAnsattId,
+        gyldigFra = gyldigFra,
+    )
+
     fun Deltaker.toDeltakerV2(
         innsoktDato: LocalDate = LocalDate.now(),
         forsteVedtakFattet: LocalDate? = null,
@@ -387,6 +405,7 @@ object TestData {
         sistEndret = sistEndret,
         sistEndretAv = null,
         sistEndretAvEnhet = null,
+        vurderingerFraArrangor = emptyList(),
         forcedUpdate = null,
     )
 

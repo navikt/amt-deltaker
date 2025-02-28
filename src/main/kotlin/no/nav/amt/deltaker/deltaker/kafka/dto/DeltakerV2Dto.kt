@@ -4,6 +4,7 @@ import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.deltaker.navansatt.NavAnsatt
 import no.nav.amt.deltaker.navbruker.model.Adresse
 import no.nav.amt.deltaker.navbruker.model.Adressebeskyttelse
+import no.nav.amt.lib.models.arrangor.melding.Vurdering
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -29,6 +30,7 @@ data class DeltakerV2Dto(
     val kilde: Kilde?,
     val innhold: Deltakelsesinnhold?,
     val historikk: List<DeltakerHistorikk>?,
+    val vurderingerFraArrangor: List<Vurdering>?,
     val sistEndretAv: UUID?,
     val sistEndretAvEnhet: UUID?,
     val sistEndret: LocalDateTime?,

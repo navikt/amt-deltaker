@@ -23,6 +23,7 @@ import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerV1Producer
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerDtoMapperService
 import no.nav.amt.deltaker.deltaker.model.Kilde
+import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.hendelse.HendelseProducer
 import no.nav.amt.deltaker.hendelse.HendelseService
@@ -69,8 +70,10 @@ class DeltakerStatusOppdateringTest {
                 endringFraArrangorRepository,
                 importertFraArenaRepository,
             )
+        private val vurderingRepository = VurderingRepository()
         private val unleashToggle = mockk<UnleashToggle>()
-        private val deltakerDtoMapperService = DeltakerDtoMapperService(navAnsattService, navEnhetService, deltakerHistorikkService)
+        private val deltakerDtoMapperService =
+            DeltakerDtoMapperService(navAnsattService, navEnhetService, deltakerHistorikkService, vurderingRepository)
         private val deltakerProducer = DeltakerProducer(kafkaProducer)
         private val deltakerV1Producer = DeltakerV1Producer(kafkaProducer)
         private val deltakerProducerService =
