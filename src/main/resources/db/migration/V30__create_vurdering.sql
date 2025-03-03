@@ -6,5 +6,5 @@ CREATE TABLE vurdering
     vurderingstype                  varchar                  not null,
     begrunnelse                     varchar,
     gyldig_fra                      timestamp with time zone not null,
-    created_at                      timestamp with time zone not null
+    created_at                      timestamp with time zone not null default current_timestamp
 );
