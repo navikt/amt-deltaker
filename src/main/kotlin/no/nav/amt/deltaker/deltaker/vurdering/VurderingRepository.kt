@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.deltaker.vurdering
 import kotliquery.Row
 import kotliquery.queryOf
 import no.nav.amt.lib.utils.database.Database
+import java.time.LocalDateTime
 import java.util.UUID
 
 open class VurderingRepository {
@@ -38,7 +39,7 @@ open class VurderingRepository {
             """
             INSERT INTO vurdering (id, deltaker_id, opprettet_av_arrangor_ansatt_id, vurderingstype, begrunnelse, gyldig_fra)
             VALUES (
-                :id, :deltaker_id, :opprettet_av_arrangor_ansatt_id, :vurderingstype, :begrunnelse, :gyldig_fra
+                :id, :deltaker_id, :opprettet_av_arrangor_ansatt_id, :vurderingstype, :begrunnelse, :gyldig_fra, :created_at
             )
             ON CONFLICT (id) DO UPDATE SET
                 opprettet_av_arrangor_ansatt_id = :opprettet_av_arrangor_ansatt_id, 
@@ -53,6 +54,7 @@ open class VurderingRepository {
             "vurderingstype" to vurdering.vurderingstype.name,
             "begrunnelse" to vurdering.begrunnelse,
             "gyldig_fra" to vurdering.gyldigFra,
+            "created_at" to LocalDateTime.now(),
         )
         val query = queryOf(sql, params)
         it.update(query)
