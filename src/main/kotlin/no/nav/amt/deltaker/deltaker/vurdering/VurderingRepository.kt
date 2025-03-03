@@ -13,7 +13,7 @@ open class VurderingRepository {
                 id = row.uuid("id"),
                 deltakerId = row.uuid("deltaker_id"),
                 vurderingstype = Vurderingstype.valueOf(row.string("vurderingstype")),
-                begrunnelse = row.string("begrunnelse"),
+                begrunnelse = row.stringOrNull("begrunnelse"),
                 opprettetAvArrangorAnsattId = row.uuid("opprettet_av_arrangor_ansatt_id"),
                 gyldigFra = row.localDateTime("gyldig_fra"),
             )
@@ -39,7 +39,7 @@ open class VurderingRepository {
             """
             INSERT INTO vurdering (id, deltaker_id, opprettet_av_arrangor_ansatt_id, vurderingstype, begrunnelse, gyldig_fra)
             VALUES (
-                :id, :deltaker_id, :opprettet_av_arrangor_ansatt_id, :vurderingstype, :begrunnelse, :gyldig_fra, :created_at
+                :id, :deltaker_id, :opprettet_av_arrangor_ansatt_id, :vurderingstype, :begrunnelse, :gyldig_fra
             )
             ON CONFLICT (id) DO UPDATE SET
                 opprettet_av_arrangor_ansatt_id = :opprettet_av_arrangor_ansatt_id, 
@@ -54,7 +54,6 @@ open class VurderingRepository {
             "vurderingstype" to vurdering.vurderingstype.name,
             "begrunnelse" to vurdering.begrunnelse,
             "gyldig_fra" to vurdering.gyldigFra,
-            "created_at" to LocalDateTime.now(),
         )
         val query = queryOf(sql, params)
         it.update(query)
