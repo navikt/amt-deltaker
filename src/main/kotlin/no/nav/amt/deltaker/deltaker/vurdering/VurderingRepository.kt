@@ -3,7 +3,6 @@ package no.nav.amt.deltaker.deltaker.vurdering
 import kotliquery.Row
 import kotliquery.queryOf
 import no.nav.amt.lib.utils.database.Database
-import java.time.LocalDateTime
 import java.util.UUID
 
 open class VurderingRepository {

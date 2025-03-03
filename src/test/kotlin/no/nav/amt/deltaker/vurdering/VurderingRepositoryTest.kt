@@ -30,5 +30,4 @@ class VurderingRepositoryTest {
 
         repository.getForDeltaker(vurdering.deltakerId).size shouldBe 1
     }
-
 }
