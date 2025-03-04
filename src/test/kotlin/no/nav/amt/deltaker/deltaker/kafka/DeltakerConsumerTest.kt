@@ -17,6 +17,7 @@ import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.deltaker.deltaker.sammenlignHistorikk
+import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
@@ -61,6 +62,7 @@ class DeltakerConsumerTest {
         lateinit var vedtakRepository: VedtakRepository
         lateinit var forslagRepository: ForslagRepository
         lateinit var endringFraArrangorRepository: EndringFraArrangorRepository
+        lateinit var vurderingRepository: VurderingRepository
 
         @JvmStatic
         @BeforeClass
@@ -78,7 +80,9 @@ class DeltakerConsumerTest {
             deltakerEndringRepository = mockk()
             vedtakRepository = mockk()
             forslagRepository = mockk()
+
             endringFraArrangorRepository = mockk()
+            vurderingRepository = VurderingRepository()
             deltakerHistorikkService = DeltakerHistorikkService(
                 deltakerEndringRepository,
                 vedtakRepository,
@@ -93,6 +97,7 @@ class DeltakerConsumerTest {
                 navBrukerService,
                 deltakerEndringService,
                 importertFraArenaRepository,
+                vurderingRepository,
                 unleashToggle,
             )
         }
@@ -113,6 +118,8 @@ class DeltakerConsumerTest {
         val deltaker = TestData.lagDeltaker(kilde = Kilde.KOMET, deltakerliste = deltakerliste)
 
         val deltakerV2Dto = deltaker.toDeltakerV2()
+
+        every { unleashToggle.erKometMasterForTiltakstype(Tiltakstype.ArenaKode.ARBFORB) } returns true
 
         consumer.consume(deltaker.id, objectMapper.writeValueAsString(deltakerV2Dto))
         Awaitility.await().atLeast(5, TimeUnit.SECONDS)
@@ -151,6 +158,7 @@ class DeltakerConsumerTest {
         every { vedtakRepository.getForDeltaker(deltaker.id) } returns emptyList()
         every { forslagRepository.getForDeltaker(deltaker.id) } returns emptyList()
         every { endringFraArrangorRepository.getForDeltaker(deltaker.id) } returns emptyList()
+        every { unleashToggle.erKometMasterForTiltakstype(Tiltakstype.ArenaKode.JOBBK) } returns false
         every { unleashToggle.skalLeseArenaDeltakereForTiltakstype(Tiltakstype.ArenaKode.JOBBK) } returns true
 
         val deltakerV2Dto = deltaker.toDeltakerV2(deltakerhistorikk = listOf(importertFraArena))

@@ -9,6 +9,9 @@ import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaReposit
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerV2Dto
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.Kilde
+import no.nav.amt.deltaker.deltaker.vurdering.Vurdering
+import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
+import no.nav.amt.deltaker.deltaker.vurdering.Vurderingstype
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.navbruker.NavBrukerService
@@ -34,6 +37,7 @@ class DeltakerConsumer(
     private val navBrukerService: NavBrukerService,
     private val deltakerEndringService: DeltakerEndringService,
     private val importertFraArenaRepository: ImportertFraArenaRepository,
+    private val vurderingRepository: VurderingRepository,
     private val unleashToggle: UnleashToggle,
     kafkaConfig: KafkaConfig = if (Environment.isLocal()) LocalKafkaConfig() else KafkaConfigImpl("earliest"),
 ) : Consumer<UUID, String?> {
@@ -61,32 +65,15 @@ class DeltakerConsumer(
 
     private suspend fun processDeltaker(deltakerV2: DeltakerV2Dto) {
         val deltakerliste = deltakerlisteRepository.get(deltakerV2.deltakerlisteId).getOrThrow()
-        val opprettetAvKomet = deltakerV2.kilde == Kilde.KOMET
-        val kanImporteres =
-            deltakerV2.historikk != null &&
-                deltakerV2.historikk.size == 1 &&
-                deltakerV2.historikk[0] is DeltakerHistorikk.ImportertFraArena
-
-        if (opprettetAvKomet) {
-            log.info("Hopper over komet deltaker på deltaker-v2. deltakerId: ${deltakerV2.id}")
-            return
-        }
-
-        if (!kanImporteres) {
-            log.info(
-                "Hopper over deltaker med id ${deltakerV2.id} fordi " +
-                    "deltakeren har ikke blitt populert med data om importert fra arena " +
-                    "eller deltakeren har flere elementer i historikken som kan være generert av denne appen",
-            )
-            return
-        }
+        if (unleashToggle.erKometMasterForTiltakstype(deltakerliste.tiltakstype.arenaKode)) return
 
         if (unleashToggle.skalLeseArenaDeltakereForTiltakstype(deltakerliste.tiltakstype.arenaKode)) {
             log.info("Ingester arenadeltaker med id ${deltakerV2.id}")
             val deltaker = deltakerV2.toDeltaker(deltakerliste)
-            val historikk = deltakerV2.historikk?.get(0) as DeltakerHistorikk.ImportertFraArena
-
-            upsertImportertDeltaker(deltaker, historikk.importertFraArena)
+            val historikkImportertFraArena =
+                deltakerV2.historikk?.first { it is DeltakerHistorikk.ImportertFraArena } as DeltakerHistorikk.ImportertFraArena
+            val vurderinger = deltakerV2.vurderingerFraArrangor?.map { it.toVurdering() }
+            upsertImportertDeltaker(deltaker, historikkImportertFraArena.importertFraArena, vurderinger)
 
             log.info("Ingest for arenadeltaker med id ${deltaker.id} er ferdig")
         }
@@ -94,9 +81,14 @@ class DeltakerConsumer(
 
     override fun run() = consumer.run()
 
-    private fun upsertImportertDeltaker(deltaker: Deltaker, historikk: ImportertFraArena) {
+    private fun upsertImportertDeltaker(
+        deltaker: Deltaker,
+        importertData: ImportertFraArena,
+        vurderinger: List<Vurdering>?,
+    ) {
         deltakerRepository.upsert(deltaker)
-        importertFraArenaRepository.upsert(historikk)
+        importertFraArenaRepository.upsert(importertData)
+        vurderinger?.forEach { vurderingRepository.upsert(it) }
     }
 
     private suspend fun DeltakerV2Dto.toDeltaker(deltakerliste: Deltakerliste) = Deltaker(
@@ -139,3 +131,12 @@ fun DeltakerStatus.Aarsak.Type.toDeltakerstatusArsak(): DeltakerStatus.Aarsak.Ty
         this
     }
 }
+
+fun no.nav.amt.lib.models.arrangor.melding.Vurdering.toVurdering() = Vurdering(
+    id = id,
+    deltakerId = deltakerId,
+    vurderingstype = Vurderingstype.valueOf(vurderingstype.name),
+    begrunnelse = begrunnelse,
+    opprettetAvArrangorAnsattId = opprettetAvArrangorAnsattId,
+    gyldigFra = opprettet,
+)

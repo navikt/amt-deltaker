@@ -46,6 +46,7 @@ import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerV1Producer
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerDtoMapperService
+import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlisteConsumer
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
@@ -145,6 +146,7 @@ fun Application.module() {
     val forslagRepository = ForslagRepository()
     val endringFraArrangorRepository = EndringFraArrangorRepository()
     val importertFraArenaRepository = ImportertFraArenaRepository()
+    val vurderingRepository = VurderingRepository()
 
     val poaoTilgangCachedClient = PoaoTilgangCachedClient.createDefaultCacheClient(
         PoaoTilgangHttpClient(
@@ -187,7 +189,8 @@ fun Application.module() {
     )
     val unleashToggle = UnleashToggle(unleash)
 
-    val deltakerDtoMapperService = DeltakerDtoMapperService(navAnsattService, navEnhetService, deltakerHistorikkService)
+    val deltakerDtoMapperService =
+        DeltakerDtoMapperService(navAnsattService, navEnhetService, deltakerHistorikkService, vurderingRepository)
     val deltakerProducer = DeltakerProducer(kafkaProducer)
     val deltakerV1Producer = DeltakerV1Producer(kafkaProducer)
     val deltakerProducerService = DeltakerProducerService(deltakerDtoMapperService, deltakerProducer, deltakerV1Producer, unleashToggle)
@@ -242,6 +245,7 @@ fun Application.module() {
             navBrukerService,
             deltakerEndringService,
             importertFraArenaRepository,
+            vurderingRepository,
             unleashToggle,
         ),
         ArrangorMeldingConsumer(forslagService, deltakerService),
