@@ -74,8 +74,8 @@ class ArrangorMeldingConsumer(
     }
 
     private suspend fun handleVurdering(vurdering: Vurdering) {
-        val deltaker = deltakerService.get(vurdering.deltakerId).getOrThrow()
         vurderingService.upsert(vurdering.toVurdering())
+        val deltaker = deltakerService.get(vurdering.deltakerId).getOrThrow()
         deltakerProducerService.produce(deltaker)
     }
 
