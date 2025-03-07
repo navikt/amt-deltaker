@@ -11,7 +11,7 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.Environment.Companion.HTTP_CLIENT_TIMEOUT_MS
-import no.nav.amt.deltaker.amtperson.AmtPersonServiceClient
+import no.nav.amt.deltaker.api.model.DeltakelserResponseMapper
 import no.nav.amt.deltaker.application.isReadyKey
 import no.nav.amt.deltaker.application.plugins.applicationConfig
 import no.nav.amt.deltaker.application.plugins.configureAuthentication
@@ -22,41 +22,31 @@ import no.nav.amt.deltaker.arrangor.AmtArrangorClient
 import no.nav.amt.deltaker.arrangor.ArrangorConsumer
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
+import no.nav.amt.deltaker.arrangormelding.ArrangorMeldingConsumer
+import no.nav.amt.deltaker.arrangormelding.ArrangorMeldingProducer
+import no.nav.amt.deltaker.arrangormelding.endring.EndringFraArrangorRepository
+import no.nav.amt.deltaker.arrangormelding.endring.EndringFraArrangorService
+import no.nav.amt.deltaker.arrangormelding.forslag.ForslagRepository
+import no.nav.amt.deltaker.arrangormelding.forslag.ForslagService
+import no.nav.amt.deltaker.arrangormelding.vurdering.VurderingRepository
+import no.nav.amt.deltaker.arrangormelding.vurdering.VurderingService
 import no.nav.amt.deltaker.auth.AzureAdTokenClient
 import no.nav.amt.deltaker.auth.TilgangskontrollService
-import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
+import no.nav.amt.deltaker.deltaker.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.PameldingService
-import no.nav.amt.deltaker.deltaker.VedtakService
-import no.nav.amt.deltaker.deltaker.api.model.DeltakelserResponseMapper
-import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
-import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
-import no.nav.amt.deltaker.deltaker.db.VedtakRepository
-import no.nav.amt.deltaker.deltaker.endring.DeltakelsesmengdeUpdateJob
-import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringService
-import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
-import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorService
-import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
-import no.nav.amt.deltaker.deltaker.forslag.ForslagService
-import no.nav.amt.deltaker.deltaker.forslag.kafka.ArrangorMeldingConsumer
-import no.nav.amt.deltaker.deltaker.forslag.kafka.ArrangorMeldingProducer
-import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
-import no.nav.amt.deltaker.deltaker.kafka.DeltakerConsumer
-import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
-import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
-import no.nav.amt.deltaker.deltaker.kafka.DeltakerV1Producer
-import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerDtoMapperService
-import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
-import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
+import no.nav.amt.deltaker.deltakerendring.DeltakerEndringRepository
+import no.nav.amt.deltaker.deltakerendring.DeltakerEndringService
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlisteConsumer
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.kafka.TiltakstypeConsumer
-import no.nav.amt.deltaker.hendelse.HendelseProducer
-import no.nav.amt.deltaker.hendelse.HendelseService
-import no.nav.amt.deltaker.isoppfolgingstilfelle.IsOppfolgingstilfelleClient
-import no.nav.amt.deltaker.job.StatusUpdateJob
-import no.nav.amt.deltaker.job.leaderelection.LeaderElection
+import no.nav.amt.deltaker.importertfraarena.ImportertFraArenaRepository
+import no.nav.amt.deltaker.kafka.DeltakerConsumer
+import no.nav.amt.deltaker.kafka.DeltakerProducer
+import no.nav.amt.deltaker.kafka.DeltakerProducerService
+import no.nav.amt.deltaker.kafka.DeltakerV1Producer
+import no.nav.amt.deltaker.kafka.dto.DeltakerDtoMapperService
 import no.nav.amt.deltaker.navansatt.NavAnsattConsumer
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
@@ -65,7 +55,15 @@ import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
 import no.nav.amt.deltaker.navbruker.NavBrukerConsumer
 import no.nav.amt.deltaker.navbruker.NavBrukerRepository
 import no.nav.amt.deltaker.navbruker.NavBrukerService
+import no.nav.amt.deltaker.navbruker.isoppfolgingstilfelle.IsOppfolgingstilfelleClient
+import no.nav.amt.deltaker.person.AmtPersonServiceClient
+import no.nav.amt.deltaker.schedulejob.StatusUpdateJob
+import no.nav.amt.deltaker.schedulejob.leaderelection.LeaderElection
 import no.nav.amt.deltaker.unleash.UnleashToggle
+import no.nav.amt.deltaker.varselhendelse.HendelseProducer
+import no.nav.amt.deltaker.varselhendelse.HendelseService
+import no.nav.amt.deltaker.vedtak.VedtakRepository
+import no.nav.amt.deltaker.vedtak.VedtakService
 import no.nav.amt.lib.kafka.Producer
 import no.nav.amt.lib.kafka.config.KafkaConfigImpl
 import no.nav.amt.lib.kafka.config.LocalKafkaConfig
@@ -271,7 +269,8 @@ fun Application.module() {
     val statusUpdateJob = StatusUpdateJob(leaderElection, attributes, deltakerService)
     statusUpdateJob.startJob()
 
-    val deltakelsesmengdeUpdateJob = DeltakelsesmengdeUpdateJob(leaderElection, attributes, deltakerEndringService, deltakerService)
+    val deltakelsesmengdeUpdateJob =
+        no.nav.amt.deltaker.deltakerendring.DeltakelsesmengdeUpdateJob(leaderElection, attributes, deltakerEndringService, deltakerService)
     deltakelsesmengdeUpdateJob.startJob()
 
     attributes.put(isReadyKey, true)

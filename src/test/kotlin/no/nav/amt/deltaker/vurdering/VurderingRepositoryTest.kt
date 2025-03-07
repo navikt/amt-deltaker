@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.vurdering
 
 import io.kotest.matchers.shouldBe
-import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
+import no.nav.amt.deltaker.arrangormelding.vurdering.VurderingRepository
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.testing.SingletonPostgres16Container

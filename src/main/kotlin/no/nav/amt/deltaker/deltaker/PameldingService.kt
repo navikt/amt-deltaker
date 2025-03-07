@@ -1,18 +1,19 @@
 package no.nav.amt.deltaker.deltaker
 
-import no.nav.amt.deltaker.deltaker.api.model.AvbrytUtkastRequest
-import no.nav.amt.deltaker.deltaker.api.model.KladdResponse
-import no.nav.amt.deltaker.deltaker.api.model.UtkastRequest
-import no.nav.amt.deltaker.deltaker.api.model.toKladdResponse
-import no.nav.amt.deltaker.deltaker.model.Deltaker
-import no.nav.amt.deltaker.deltaker.model.Kilde
+import no.nav.amt.deltaker.api.model.AvbrytUtkastRequest
+import no.nav.amt.deltaker.api.model.KladdResponse
+import no.nav.amt.deltaker.api.model.UtkastRequest
+import no.nav.amt.deltaker.api.model.toKladdResponse
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
-import no.nav.amt.deltaker.isoppfolgingstilfelle.IsOppfolgingstilfelleClient
+import no.nav.amt.deltaker.model.Deltaker
+import no.nav.amt.deltaker.model.Kilde
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
 import no.nav.amt.deltaker.navbruker.NavBrukerService
+import no.nav.amt.deltaker.navbruker.isoppfolgingstilfelle.IsOppfolgingstilfelleClient
 import no.nav.amt.deltaker.navbruker.model.NavBruker
+import no.nav.amt.deltaker.vedtak.VedtakService
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe

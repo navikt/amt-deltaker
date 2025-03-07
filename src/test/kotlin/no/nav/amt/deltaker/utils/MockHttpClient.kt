@@ -11,19 +11,19 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import io.ktor.serialization.jackson.jackson
 import io.ktor.utils.io.ByteReadChannel
-import no.nav.amt.deltaker.amtperson.AmtPersonServiceClient
-import no.nav.amt.deltaker.amtperson.dto.NavEnhetDto
 import no.nav.amt.deltaker.application.plugins.applicationConfig
 import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.arrangor.AmtArrangorClient
 import no.nav.amt.deltaker.arrangor.Arrangor
 import no.nav.amt.deltaker.arrangor.ArrangorDto
 import no.nav.amt.deltaker.auth.AzureAdTokenClient
-import no.nav.amt.deltaker.isoppfolgingstilfelle.IsOppfolgingstilfelleClient
-import no.nav.amt.deltaker.isoppfolgingstilfelle.OppfolgingstilfellePersonDTO
 import no.nav.amt.deltaker.navansatt.NavAnsatt
+import no.nav.amt.deltaker.navansatt.NavEnhetDto
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhet
+import no.nav.amt.deltaker.navbruker.isoppfolgingstilfelle.IsOppfolgingstilfelleClient
+import no.nav.amt.deltaker.navbruker.isoppfolgingstilfelle.OppfolgingstilfellePersonDTO
 import no.nav.amt.deltaker.navbruker.model.NavBruker
+import no.nav.amt.deltaker.person.AmtPersonServiceClient
 import no.nav.amt.deltaker.utils.data.TestData
 
 const val AMT_PERSON_URL = "http://amt-person-service"

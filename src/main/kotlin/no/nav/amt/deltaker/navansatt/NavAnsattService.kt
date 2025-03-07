@@ -1,6 +1,6 @@
 package no.nav.amt.deltaker.navansatt
 
-import no.nav.amt.deltaker.amtperson.AmtPersonServiceClient
+import no.nav.amt.deltaker.person.AmtPersonServiceClient
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
@@ -33,6 +33,4 @@ class NavAnsattService(
     fun slettNavAnsatt(navAnsattId: UUID) {
         repository.delete(navAnsattId)
     }
-
-    fun hentAnsatte(veilederIdenter: List<String>) = repository.getMany(veilederIdenter).associateBy { it.navIdent }
 }
