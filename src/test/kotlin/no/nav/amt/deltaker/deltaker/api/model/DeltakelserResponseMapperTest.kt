@@ -2,16 +2,19 @@ package no.nav.amt.deltaker.deltaker.api.model
 
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
+import no.nav.amt.deltaker.DeltakerHistorikkService
+import no.nav.amt.deltaker.api.model.DeltakelserResponse
+import no.nav.amt.deltaker.api.model.DeltakelserResponseMapper
+import no.nav.amt.deltaker.api.model.Periode
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
-import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
-import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
-import no.nav.amt.deltaker.deltaker.db.VedtakRepository
-import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
-import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
-import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
+import no.nav.amt.deltaker.arrangormelding.endring.EndringFraArrangorRepository
+import no.nav.amt.deltaker.arrangormelding.forslag.ForslagRepository
+import no.nav.amt.deltaker.deltakerendring.DeltakerEndringRepository
+import no.nav.amt.deltaker.importertfraarena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
+import no.nav.amt.deltaker.vedtak.VedtakRepository
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.lib.testing.SingletonPostgres16Container

@@ -3,7 +3,6 @@ package no.nav.amt.deltaker.application.plugins
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCall
-import io.ktor.server.application.call
 import io.ktor.server.application.install
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.request.httpMethod
@@ -12,21 +11,21 @@ import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
+import no.nav.amt.deltaker.DeltakerHistorikkService
+import no.nav.amt.deltaker.api.model.DeltakelserResponseMapper
+import no.nav.amt.deltaker.api.registerDeltakerApi
+import no.nav.amt.deltaker.api.registerHentDeltakelserApi
+import no.nav.amt.deltaker.api.registerPameldingApi
 import no.nav.amt.deltaker.application.registerHealthApi
 import no.nav.amt.deltaker.auth.AuthenticationException
 import no.nav.amt.deltaker.auth.AuthorizationException
 import no.nav.amt.deltaker.auth.TilgangskontrollService
-import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.PameldingService
-import no.nav.amt.deltaker.deltaker.VedtakService
-import no.nav.amt.deltaker.deltaker.api.model.DeltakelserResponseMapper
-import no.nav.amt.deltaker.deltaker.api.registerDeltakerApi
-import no.nav.amt.deltaker.deltaker.api.registerHentDeltakelserApi
-import no.nav.amt.deltaker.deltaker.api.registerPameldingApi
-import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.internal.registerInternalApi
+import no.nav.amt.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.unleash.UnleashToggle
+import no.nav.amt.deltaker.vedtak.VedtakService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 

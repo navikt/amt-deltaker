@@ -1,17 +1,17 @@
 package no.nav.amt.deltaker.utils.data
 
-import no.nav.amt.deltaker.amtperson.dto.NavBrukerDto
-import no.nav.amt.deltaker.amtperson.dto.NavEnhetDto
 import no.nav.amt.deltaker.arrangor.Arrangor
-import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerV2Dto
-import no.nav.amt.deltaker.deltaker.model.Deltaker
-import no.nav.amt.deltaker.deltaker.model.Kilde
-import no.nav.amt.deltaker.deltaker.vurdering.Vurdering
-import no.nav.amt.deltaker.deltaker.vurdering.Vurderingstype
+import no.nav.amt.deltaker.arrangormelding.vurdering.Vurdering
+import no.nav.amt.deltaker.arrangormelding.vurdering.Vurderingstype
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlisteDto
+import no.nav.amt.deltaker.kafka.dto.DeltakerV2Dto
+import no.nav.amt.deltaker.model.Deltaker
+import no.nav.amt.deltaker.model.Kilde
 import no.nav.amt.deltaker.navansatt.NavAnsatt
+import no.nav.amt.deltaker.navansatt.NavEnhetDto
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhet
+import no.nav.amt.deltaker.navbruker.NavBrukerDto
 import no.nav.amt.deltaker.navbruker.model.Adresse
 import no.nav.amt.deltaker.navbruker.model.Adressebeskyttelse
 import no.nav.amt.deltaker.navbruker.model.Bostedsadresse

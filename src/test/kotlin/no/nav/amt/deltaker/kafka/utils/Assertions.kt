@@ -4,8 +4,8 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.application.plugins.objectMapper
-import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerV1Dto
-import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerV2Dto
+import no.nav.amt.deltaker.kafka.dto.DeltakerV1Dto
+import no.nav.amt.deltaker.kafka.dto.DeltakerV2Dto
 import no.nav.amt.lib.kafka.utils.stringStringConsumer
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
@@ -49,59 +49,6 @@ fun assertProducedDeltakerV1(deltakerId: UUID) {
     }
 
     consumer.stop()
-}
-
-fun assertOnProducedDeltaker(deltaker: DeltakerV2Dto) {
-    val cache = mutableMapOf<UUID, DeltakerV2Dto>()
-
-    val consumer = stringStringConsumer(Environment.DELTAKER_V2_TOPIC) { k, v ->
-        cache[UUID.fromString(k)] = objectMapper.readValue(v)
-    }
-
-    consumer.run()
-
-    AsyncUtils.eventually {
-        val cachedDeltaker = cache[deltaker.id]!!
-        cachedDeltaker.id shouldBe deltaker.id
-        cachedDeltaker.deltakerlisteId shouldBe deltaker.deltakerlisteId
-        cachedDeltaker.personalia shouldBe deltaker.personalia
-        cachedDeltaker.status shouldBe deltaker.status
-        cachedDeltaker.dagerPerUke shouldBe deltaker.dagerPerUke
-        cachedDeltaker.prosentStilling shouldBe deltaker.prosentStilling
-        cachedDeltaker.oppstartsdato shouldBe deltaker.oppstartsdato
-        cachedDeltaker.sluttdato shouldBe deltaker.sluttdato
-        cachedDeltaker.innsoktDato shouldBe deltaker.innsoktDato
-        cachedDeltaker.forsteVedtakFattet shouldBe deltaker.forsteVedtakFattet
-        cachedDeltaker.bestillingTekst shouldBe deltaker.bestillingTekst
-        cachedDeltaker.navKontor shouldBe deltaker.navKontor
-        cachedDeltaker.navVeileder shouldBe deltaker.navVeileder
-        cachedDeltaker.deltarPaKurs shouldBe deltaker.deltarPaKurs
-        cachedDeltaker.kilde shouldBe deltaker.kilde
-        cachedDeltaker.innhold shouldBe deltaker.innhold
-        cachedDeltaker.historikk!!.assertComparable(deltaker.historikk!!)
-
-        cachedDeltaker.sistEndretAv shouldBe deltaker.sistEndretAv
-        cachedDeltaker.sistEndretAvEnhet shouldBe deltaker.sistEndretAvEnhet
-        cachedDeltaker.sistEndret shouldBe deltaker.sistEndret
-    }
-
-    consumer.stop()
-}
-
-fun List<DeltakerHistorikk>.assertComparable(deltakerHistorikk: List<DeltakerHistorikk>) {
-    this.forEach { historikkElement ->
-        run {
-            when (historikkElement) {
-                is DeltakerHistorikk.ImportertFraArena -> {
-                    val compareTo =
-                        deltakerHistorikk.find { it is DeltakerHistorikk.ImportertFraArena } as DeltakerHistorikk.ImportertFraArena
-                    historikkElement.importertFraArena.deltakerVedImport shouldBe compareTo.importertFraArena.deltakerVedImport
-                }
-
-                else -> throw NotImplementedError()
-            }
-        }
-    }
 }
 
 fun assertProducedFeilregistrert(deltakerId: UUID) {

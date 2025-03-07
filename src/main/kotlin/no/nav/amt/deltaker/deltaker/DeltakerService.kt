@@ -1,21 +1,20 @@
 package no.nav.amt.deltaker.deltaker
 
-import no.nav.amt.deltaker.deltaker.api.model.EndringRequest
-import no.nav.amt.deltaker.deltaker.api.model.toDeltakerEndringEndring
-import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
-import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringHandler
-import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringService
-import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringUtfall
-import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorService
-import no.nav.amt.deltaker.deltaker.forslag.ForslagService
-import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
-import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
-import no.nav.amt.deltaker.deltaker.model.Deltaker
-import no.nav.amt.deltaker.deltaker.model.Kilde
+import no.nav.amt.deltaker.DeltakerHistorikkService
+import no.nav.amt.deltaker.api.model.EndringRequest
+import no.nav.amt.deltaker.api.model.toDeltakerEndringEndring
+import no.nav.amt.deltaker.arrangormelding.endring.EndringFraArrangorService
+import no.nav.amt.deltaker.arrangormelding.forslag.ForslagService
+import no.nav.amt.deltaker.deltakerendring.DeltakerEndringService
+import no.nav.amt.deltaker.deltakerendring.DeltakerEndringUtfall
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
-import no.nav.amt.deltaker.hendelse.HendelseService
-import no.nav.amt.deltaker.job.DeltakerProgresjon
+import no.nav.amt.deltaker.importertfraarena.ImportertFraArenaRepository
+import no.nav.amt.deltaker.kafka.DeltakerProducerService
+import no.nav.amt.deltaker.model.Deltaker
+import no.nav.amt.deltaker.model.Kilde
 import no.nav.amt.deltaker.unleash.UnleashToggle
+import no.nav.amt.deltaker.varselhendelse.HendelseService
+import no.nav.amt.deltaker.vedtak.VedtakService
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
@@ -99,9 +98,9 @@ class DeltakerService(
         validerIkkeFeilregistrert(deltaker)
 
         val endring = request.toDeltakerEndringEndring()
-        val deltakerEndringHandler = DeltakerEndringHandler(deltaker, endring, deltakerHistorikkService)
+        val deltakerEndringUtfallHandler = DeltakerEndringUtfallHandler(deltaker, endring, deltakerHistorikkService)
 
-        return when (val utfall = deltakerEndringHandler.sjekkUtfall()) {
+        return when (val utfall = deltakerEndringUtfallHandler.sjekkUtfall()) {
             is DeltakerEndringUtfall.VellykketEndring -> {
                 deltakerEndringService.upsertEndring(deltaker, endring, utfall, request)
                 upsertDeltaker(utfall.deltaker, nesteStatus = utfall.nesteStatus)
@@ -166,7 +165,7 @@ class DeltakerService(
         avsluttDeltakere(deltakereSomSkalAvsluttes)
 
         val deltakereSomSkalDelta = deltakereSomSkalHaStatusDeltar()
-        DeltakerProgresjon()
+        DeltakerStatusProgresjon()
             .tilDeltar(deltakereSomSkalDelta)
             .forEach { upsertDeltaker(it) }
     }
@@ -179,7 +178,7 @@ class DeltakerService(
     }
 
     private suspend fun avsluttDeltakere(deltakereSomSkalAvsluttes: List<Deltaker>) {
-        DeltakerProgresjon()
+        DeltakerStatusProgresjon()
             .tilAvsluttendeStatusOgDatoer(deltakereSomSkalAvsluttes, ::getFremtidigStatus)
             .map { oppdaterVedtakForAvbruttUtkast(it) }
             .forEach { upsertDeltaker(it) }

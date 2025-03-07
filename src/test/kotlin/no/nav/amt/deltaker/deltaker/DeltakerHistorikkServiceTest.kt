@@ -1,15 +1,17 @@
 package no.nav.amt.deltaker.deltaker
 
 import io.kotest.matchers.shouldBe
-import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
-import no.nav.amt.deltaker.deltaker.db.VedtakRepository
+import no.nav.amt.deltaker.DeltakerHistorikkService
+import no.nav.amt.deltaker.arrangormelding.endring.EndringFraArrangorRepository
+import no.nav.amt.deltaker.arrangormelding.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.db.sammenlignDeltakereVedVedtak
-import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
-import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
-import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
+import no.nav.amt.deltaker.deltakerendring.DeltakerEndringRepository
+import no.nav.amt.deltaker.getInnsoktDato
+import no.nav.amt.deltaker.importertfraarena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.kafka.utils.sammenlignForslagStatus
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
+import no.nav.amt.deltaker.vedtak.VedtakRepository
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
