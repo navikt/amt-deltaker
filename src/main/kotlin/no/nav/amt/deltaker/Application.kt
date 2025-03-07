@@ -47,6 +47,7 @@ import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerV1Producer
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerDtoMapperService
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
+import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlisteConsumer
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
@@ -208,7 +209,6 @@ fun Application.module() {
             deltakerHistorikkService,
         )
     val deltakelserResponseMapper = DeltakelserResponseMapper(deltakerHistorikkService, arrangorService)
-
     val endringFraArrangorService = EndringFraArrangorService(endringFraArrangorRepository, hendelseService, deltakerHistorikkService)
     val vedtakService = VedtakService(vedtakRepository, hendelseService)
     val deltakerService = DeltakerService(
@@ -223,6 +223,7 @@ fun Application.module() {
         deltakerHistorikkService = deltakerHistorikkService,
         unleashToggle = unleashToggle,
     )
+
     val pameldingService = PameldingService(
         deltakerService = deltakerService,
         deltakerlisteRepository = deltakerlisteRepository,
@@ -232,6 +233,8 @@ fun Application.module() {
         vedtakService = vedtakService,
         isOppfolgingstilfelleClient = isOppfolgingstilfelleClient,
     )
+
+    val vurderingService = VurderingService(vurderingRepository)
 
     val consumers = listOf(
         ArrangorConsumer(arrangorRepository),
@@ -248,7 +251,7 @@ fun Application.module() {
             vurderingRepository,
             unleashToggle,
         ),
-        ArrangorMeldingConsumer(forslagService, deltakerService),
+        ArrangorMeldingConsumer(forslagService, deltakerService, vurderingService, deltakerProducerService, unleashToggle),
     )
     consumers.forEach { it.run() }
 
