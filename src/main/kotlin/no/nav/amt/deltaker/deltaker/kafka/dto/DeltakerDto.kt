@@ -128,6 +128,7 @@ data class DeltakerDto(
     private fun DeltakerHistorikk.getSistEndretAv(): UUID = when (this) {
         is DeltakerHistorikk.Vedtak -> vedtak.sistEndretAv
         is DeltakerHistorikk.Endring -> endring.endretAv
+        is DeltakerHistorikk.EndringFraTiltakskoordinator -> endringFraTiltakskoordinator.endretAv
         is DeltakerHistorikk.Forslag,
         is DeltakerHistorikk.EndringFraArrangor,
         is DeltakerHistorikk.ImportertFraArena,
@@ -135,9 +136,10 @@ data class DeltakerDto(
         -> throw IllegalStateException("Siste endring kan ikke være et forslag eller endring fra arrangør")
     }
 
-    private fun DeltakerHistorikk.getSistEndretAvEnhet(): UUID = when (this) {
+    private fun DeltakerHistorikk.getSistEndretAvEnhet(): UUID? = when (this) {
         is DeltakerHistorikk.Vedtak -> vedtak.sistEndretAvEnhet
         is DeltakerHistorikk.Endring -> endring.endretAvEnhet
+        is DeltakerHistorikk.EndringFraTiltakskoordinator -> null
         is DeltakerHistorikk.Forslag,
         is DeltakerHistorikk.EndringFraArrangor,
         is DeltakerHistorikk.ImportertFraArena,

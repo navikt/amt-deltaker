@@ -65,6 +65,8 @@ import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
 import no.nav.amt.deltaker.navbruker.NavBrukerConsumer
 import no.nav.amt.deltaker.navbruker.NavBrukerRepository
 import no.nav.amt.deltaker.navbruker.NavBrukerService
+import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
+import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorService
 import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.lib.kafka.Producer
 import no.nav.amt.lib.kafka.config.KafkaConfigImpl
@@ -209,6 +211,10 @@ fun Application.module() {
             deltakerHistorikkService,
         )
     val deltakelserResponseMapper = DeltakelserResponseMapper(deltakerHistorikkService, arrangorService)
+
+    val endringFraTiltakskoordinatorService =
+        EndringFraTiltakskoordinatorService(EndringFraTiltakskoordinatorRepository(), navAnsattService)
+
     val endringFraArrangorService = EndringFraArrangorService(endringFraArrangorRepository, hendelseService, deltakerHistorikkService)
     val vedtakService = VedtakService(vedtakRepository, hendelseService)
     val deltakerService = DeltakerService(
@@ -222,6 +228,7 @@ fun Application.module() {
         importertFraArenaRepository = importertFraArenaRepository,
         deltakerHistorikkService = deltakerHistorikkService,
         unleashToggle = unleashToggle,
+        endringFraTiltakskoordinatorService,
     )
 
     val pameldingService = PameldingService(

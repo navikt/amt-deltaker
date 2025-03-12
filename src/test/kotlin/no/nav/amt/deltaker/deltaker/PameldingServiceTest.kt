@@ -108,6 +108,7 @@ class PameldingServiceTest {
             importertFraArenaRepository = importertFraArenaRepository,
             deltakerHistorikkService = deltakerHistorikkService,
             unleashToggle = mockk(),
+            endringFraTiltakskoordinatorService = mockk(),
         )
 
         private var pameldingService = PameldingService(

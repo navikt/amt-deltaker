@@ -33,6 +33,7 @@ import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.DeltakerRegistreringInnhold
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Innholdselement
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
+import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -340,6 +341,20 @@ object TestData {
         deltakerId,
         importertDato,
         deltakerVedImport,
+    )
+
+    fun lagEndringFraTiltakskoordinator(
+        id: UUID = UUID.randomUUID(),
+        deltakerId: UUID = UUID.randomUUID(),
+        endring: EndringFraTiltakskoordinator.Endring = EndringFraTiltakskoordinator.DelMedArrangor,
+        endretAv: UUID = UUID.randomUUID(),
+        endret: LocalDateTime = LocalDateTime.now(),
+    ) = EndringFraTiltakskoordinator(
+        id,
+        deltakerId,
+        endring,
+        endretAv,
+        endret,
     )
 
     fun lagVurdering(

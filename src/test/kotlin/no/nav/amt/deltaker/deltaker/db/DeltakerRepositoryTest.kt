@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.deltaker.db
 
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.amt.deltaker.deltaker.model.Deltaker
@@ -358,6 +359,16 @@ class DeltakerRepositoryTest {
         deltakerFraDb.deltakelsesprosent shouldBe null
         deltakerFraDb.bakgrunnsinformasjon shouldBe null
         deltakerFraDb.deltakelsesinnhold shouldBe null
+    }
+
+    @Test
+    fun `getMany(list) - henter mange deltakere`() {
+        val deltaker1 = TestData.lagDeltaker()
+        val deltaker2 = TestData.lagDeltaker()
+
+        TestRepository.insertAll(deltaker1, deltaker2)
+
+        repository.getMany(listOf(deltaker1.id, deltaker2.id)) shouldHaveSize 2
     }
 }
 
