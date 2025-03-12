@@ -13,7 +13,7 @@ class EndringFraTiltakskoordinatorService(
     private val repository: EndringFraTiltakskoordinatorRepository,
     private val navAnsattService: NavAnsattService,
 ) {
-    suspend fun insertEndringer(deltakere: List<Deltaker>, request: EndringFraTiltakskoordinatorRequest): List<Result<Deltaker>> {
+    suspend fun endre(deltakere: List<Deltaker>, request: EndringFraTiltakskoordinatorRequest): List<Result<Deltaker>> {
         val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(request.endretAv)
 
         val endringer = deltakere.associateWith { deltaker ->

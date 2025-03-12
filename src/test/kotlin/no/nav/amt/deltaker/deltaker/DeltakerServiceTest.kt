@@ -138,6 +138,7 @@ class DeltakerServiceTest {
             deltakerHistorikkService = deltakerHistorikkService,
             unleashToggle = unleashToggle,
             endringFraTiltakskoordinatorService = endringFraTiltakskoordinatorService,
+            amtTiltakClient = mockk(),
         )
 
         @JvmStatic

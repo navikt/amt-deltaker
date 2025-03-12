@@ -20,6 +20,7 @@ import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
+import no.nav.amt.lib.models.tiltakskoordinator.requests.DelMedArrangorRequest
 import no.nav.amt.lib.models.tiltakskoordinator.requests.EndringFraTiltakskoordinatorRequest
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
@@ -39,6 +40,7 @@ class DeltakerService(
     private val deltakerHistorikkService: DeltakerHistorikkService,
     private val unleashToggle: UnleashToggle,
     private val endringFraTiltakskoordinatorService: EndringFraTiltakskoordinatorService,
+    private val amtTiltakClient: AmtTiltakClient,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -223,11 +225,33 @@ class DeltakerService(
     suspend fun upsertEndretDeltakere(request: EndringFraTiltakskoordinatorRequest): List<Deltaker> {
         val deltakere = deltakerRepository.getMany(request.deltakerIder)
 
-        val endreteDeltakere = endringFraTiltakskoordinatorService.insertEndringer(deltakere, request)
+        if (deltakere.isEmpty()) return emptyList()
 
-        return endreteDeltakere
-            .mapNotNull { it.getOrNull() }
-            .map { upsertDeltaker(it) }
+        val tiltakstype = deltakere.distinctBy { it.deltakerliste.tiltakstype.tiltakskode }.map { it.deltakerliste.tiltakstype.tiltakskode }
+
+        require(tiltakstype.size == 1) {
+            "kan ikke endre på deltakere på flere tiltakstyper samtidig"
+        }
+
+        require(tiltakstype.first() in Tiltakstype.kursTiltak) {
+            "kan ikke endre på deltakere på tiltakstypen ${tiltakstype.first()}"
+        }
+
+        val endredeDeltakere = endringFraTiltakskoordinatorService.endre(deltakere, request).mapNotNull { it.getOrNull() }
+
+        return if (unleashToggle.erKometMasterForTiltakstype(tiltakstype.first().toArenaKode())) {
+            endredeDeltakere.map { upsertDeltaker(it) }
+        } else if (request is DelMedArrangorRequest) {
+            val deltakerMap = endredeDeltakere.associateBy { it.id }
+            amtTiltakClient
+                .delMedArrangor(endredeDeltakere.map { it.id })
+                .mapNotNull { (id, status) -> deltakerMap[id]?.copy(status = status) }
+        } else {
+            throw NotImplementedError(
+                "Håndtering av endring fra tiltakskoordinator " +
+                    "hvor komet ikke er master og det ikke er av type del-med-arrangør er ikke støttet",
+            )
+        }
     }
 }
 

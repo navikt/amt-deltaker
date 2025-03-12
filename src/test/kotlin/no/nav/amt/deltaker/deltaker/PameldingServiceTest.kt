@@ -109,6 +109,7 @@ class PameldingServiceTest {
             deltakerHistorikkService = deltakerHistorikkService,
             unleashToggle = mockk(),
             endringFraTiltakskoordinatorService = mockk(),
+            amtTiltakClient = mockk(),
         )
 
         private var pameldingService = PameldingService(

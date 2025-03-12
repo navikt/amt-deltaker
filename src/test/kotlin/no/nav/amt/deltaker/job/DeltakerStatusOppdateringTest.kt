@@ -127,6 +127,7 @@ class DeltakerStatusOppdateringTest {
                 deltakerHistorikkService,
                 unleashToggle,
                 endringFraTiltakskoordinatorService,
+                amtTiltakClient = mockk(),
             )
         }
     }

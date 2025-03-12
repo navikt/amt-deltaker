@@ -21,7 +21,7 @@ class EndringFraTiltakskoordinatorServiceTest {
     fun `insertEndringer(DelMedArrangor) - en deltaker - inserter endring og returnerer endret deltaker`(): Unit = runBlocking {
         with(EndringFraTiltakskoordinatorCtx()) {
             val endretDeltaker = service
-                .insertEndringer(listOf(deltaker), DelMedArrangorRequest(navAnsatt.navIdent, listOf(deltaker.id)))
+                .endre(listOf(deltaker), DelMedArrangorRequest(navAnsatt.navIdent, listOf(deltaker.id)))
                 .first()
                 .getOrThrow()
 
@@ -38,7 +38,7 @@ class EndringFraTiltakskoordinatorServiceTest {
             TestRepository.insert(deltaker2)
 
             val endretDeltakere = service
-                .insertEndringer(listOf(deltaker, deltaker2), DelMedArrangorRequest(navAnsatt.navIdent, listOf(deltaker.id, deltaker2.id)))
+                .endre(listOf(deltaker, deltaker2), DelMedArrangorRequest(navAnsatt.navIdent, listOf(deltaker.id, deltaker2.id)))
 
             endretDeltakere.forEach { it.getOrThrow().status.erManueltDeltMedArrangor shouldBe true }
             repository.getForDeltaker(deltaker.id) shouldHaveSize 1
@@ -51,7 +51,7 @@ class EndringFraTiltakskoordinatorServiceTest {
         with(EndringFraTiltakskoordinatorCtx()) {
             medStatusDeltar()
             val resultat = service
-                .insertEndringer(listOf(deltaker), DelMedArrangorRequest(navAnsatt.navIdent, listOf(deltaker.id)))
+                .endre(listOf(deltaker), DelMedArrangorRequest(navAnsatt.navIdent, listOf(deltaker.id)))
                 .first()
 
             resultat.isFailure shouldBe true
@@ -68,7 +68,7 @@ class EndringFraTiltakskoordinatorServiceTest {
                 medStatusDeltar()
 
                 val endretDeltakere = service
-                    .insertEndringer(
+                    .endre(
                         listOf(deltaker, deltaker2),
                         DelMedArrangorRequest(navAnsatt.navIdent, listOf(deltaker.id, deltaker2.id)),
                     )
