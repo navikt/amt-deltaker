@@ -403,6 +403,7 @@ object TestData {
             aarsaksbeskrivelse = status.aarsak?.beskrivelse,
             gyldigFra = status.gyldigFra,
             opprettetDato = status.opprettet,
+            erManueltDeltMedArrangor = status.erManueltDeltMedArrangor,
         ),
         dagerPerUke = dagerPerUke,
         prosentStilling = deltakelsesprosent?.toDouble(),

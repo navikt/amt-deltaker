@@ -229,23 +229,21 @@ class DeltakerService(
 
         val tiltakstype = deltakere.distinctBy { it.deltakerliste.tiltakstype.tiltakskode }.map { it.deltakerliste.tiltakstype.tiltakskode }
 
-        require(tiltakstype.size == 1) {
-            "kan ikke endre på deltakere på flere tiltakstyper samtidig"
-        }
-
-        require(tiltakstype.first() in Tiltakstype.kursTiltak) {
-            "kan ikke endre på deltakere på tiltakstypen ${tiltakstype.first()}"
-        }
-
-        val endredeDeltakere = endringFraTiltakskoordinatorService.endre(deltakere, request).mapNotNull { it.getOrNull() }
+        require(tiltakstype.size == 1) { "kan ikke endre på deltakere på flere tiltakstyper samtidig" }
+        require(tiltakstype.first() in Tiltakstype.kursTiltak) { "kan ikke endre på deltakere på tiltakstypen ${tiltakstype.first()}" }
 
         return if (unleashToggle.erKometMasterForTiltakstype(tiltakstype.first().toArenaKode())) {
+            val endredeDeltakere = endringFraTiltakskoordinatorService.endre(deltakere, request).mapNotNull { it.getOrNull() }
             endredeDeltakere.map { upsertDeltaker(it) }
         } else if (request is DelMedArrangorRequest) {
-            val deltakerMap = endredeDeltakere.associateBy { it.id }
-            amtTiltakClient
-                .delMedArrangor(endredeDeltakere.map { it.id })
+            val deltakerMap = deltakere.associateBy { it.id }
+            val endredeDeltakere = amtTiltakClient
+                .delMedArrangor(deltakere.map { it.id })
                 .mapNotNull { (id, status) -> deltakerMap[id]?.copy(status = status) }
+
+            endringFraTiltakskoordinatorService.insertDelMedArrangor(endredeDeltakere, request.endretAv)
+
+            endredeDeltakere
         } else {
             throw NotImplementedError(
                 "Håndtering av endring fra tiltakskoordinator " +

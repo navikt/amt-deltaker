@@ -59,6 +59,7 @@ data class DeltakerV2Dto(
         val aarsaksbeskrivelse: String?,
         val gyldigFra: LocalDateTime,
         val opprettetDato: LocalDateTime,
+        val erManueltDeltMedArrangor: Boolean,
     )
 
     data class DeltakerKontaktinformasjonDto(

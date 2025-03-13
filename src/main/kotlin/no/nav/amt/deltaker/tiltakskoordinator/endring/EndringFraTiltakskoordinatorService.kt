@@ -59,4 +59,20 @@ class EndringFraTiltakskoordinatorService(
             }
         }
     }
+
+    // Midlertidig workaround som lagrer historikk mens amt-tiltak er master for deltakere
+    suspend fun insertDelMedArrangor(deltakere: List<Deltaker>, endretAv: String) {
+        val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(endretAv)
+        val endringer = deltakere.map {
+            EndringFraTiltakskoordinator(
+                id = UUID.randomUUID(),
+                deltakerId = it.id,
+                endring = EndringFraTiltakskoordinator.DelMedArrangor,
+                endretAv = navAnsatt.id,
+                endret = LocalDateTime.now(),
+            )
+        }
+
+        repository.insert(endringer)
+    }
 }
