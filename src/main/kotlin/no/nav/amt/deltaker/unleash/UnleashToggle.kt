@@ -20,6 +20,7 @@ class UnleashToggle(
         Tiltakstype.ArenaKode.JOBBK,
         Tiltakstype.ArenaKode.GRUFAGYRKE,
     )
+
     private val tiltakstyperKometKanskjeErMasterFor = tiltakstyperKometSkalLese
 
     fun erKometMasterForTiltakstype(tiltakstype: Tiltakstype.ArenaKode): Boolean = tiltakstype in tiltakstyperKometErMasterFor ||

@@ -224,6 +224,25 @@ class DeltakerRepository {
         session.run(query)
     }
 
+    fun getMany(deltakerIder: List<UUID>) = Database.query {
+        if (deltakerIder.isEmpty()) return@query emptyList()
+
+        val sql = getDeltakerSql(
+            """ where d.id = any(:deltaker_ider)
+                    and ds.gyldig_til is null
+                    and ds.gyldig_fra < CURRENT_TIMESTAMP
+            """.trimMargin(),
+        )
+
+        val query = queryOf(
+            sql,
+            mapOf(
+                "deltaker_ider" to deltakerIder.toTypedArray(),
+            ),
+        ).map(::rowMapper).asList
+        it.run(query)
+    }
+
     fun getMany(personIdent: String) = Database.query {
         val sql = getDeltakerSql(
             """ where nb.personident = :personident
@@ -387,9 +406,12 @@ class DeltakerRepository {
     private fun insertStatusQuery(status: DeltakerStatus, deltakerId: UUID): Query {
         val sql =
             """
-            insert into deltaker_status(id, deltaker_id, type, aarsak, gyldig_fra, created_at) 
-            values (:id, :deltaker_id, :type, :aarsak, :gyldig_fra, :created_at) 
-            on conflict (id) do nothing;
+            insert into deltaker_status(id, deltaker_id, type, aarsak, gyldig_fra, er_manuelt_delt_med_arrangor, created_at)
+            values (:id, :deltaker_id, :type, :aarsak, :gyldig_fra, :er_manuelt_delt_med_arrangor, :created_at)
+            on conflict (id) do update set
+                er_manuelt_delt_med_arrangor = :er_manuelt_delt_med_arrangor,
+                modified_at = current_timestamp
+            ;
             """.trimIndent()
 
         val params = mapOf(
@@ -399,6 +421,7 @@ class DeltakerRepository {
             "aarsak" to toPGObject(status.aarsak),
             "gyldig_fra" to status.gyldigFra,
             "created_at" to status.opprettet,
+            "er_manuelt_delt_med_arrangor" to status.erManueltDeltMedArrangor,
         )
 
         return queryOf(sql, params)
@@ -408,7 +431,7 @@ class DeltakerRepository {
         val sql =
             """
             update deltaker_status
-            set gyldig_til = current_timestamp
+            set gyldig_til = current_timestamp, modified_at = current_timestamp
             where deltaker_id = :deltaker_id 
               and id != :id 
               and gyldig_til is null;

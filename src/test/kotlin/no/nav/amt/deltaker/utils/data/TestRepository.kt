@@ -17,6 +17,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
+import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.utils.database.Database
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
@@ -431,6 +432,24 @@ object TestRepository {
         )
     }
 
+    fun insert(endring: EndringFraTiltakskoordinator) = Database.query {
+        val sql =
+            """
+            insert into endring_fra_tiltakskoordinator (id, deltaker_id, nav_ansatt_id, endret, endring) 
+            values (:id, :deltaker_id, :nav_ansatt_id, :endret, :endring)
+            """.trimIndent()
+
+        val params = mapOf(
+            "id" to endring.id,
+            "deltaker_id" to endring.deltakerId,
+            "nav_ansatt_id" to endring.endretAv,
+            "endret" to endring.endret,
+            "endring" to toPGObject(endring.endring),
+        )
+
+        it.update(queryOf(sql, params))
+    }
+
     fun <T> insertAll(vararg values: T) {
         values.forEach {
             when (it) {
@@ -446,6 +465,7 @@ object TestRepository {
                 is DeltakerEndring -> insert(it)
                 is EndringFraArrangor -> insert(it)
                 is ImportertFraArena -> insert(it)
+                is EndringFraTiltakskoordinator -> insert(it)
                 else -> NotImplementedError("insertAll for type ${it!!::class} er ikke implementert")
             }
         }
