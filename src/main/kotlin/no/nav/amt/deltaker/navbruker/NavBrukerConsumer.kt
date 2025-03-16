@@ -2,7 +2,6 @@ package no.nav.amt.deltaker.navbruker
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.amt.deltaker.Environment
-import no.nav.amt.deltaker.amtperson.dto.NavBrukerDto
 import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService

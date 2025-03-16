@@ -2,18 +2,17 @@ package no.nav.amt.deltaker.deltaker.kafka
 
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
-import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
-import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
-import no.nav.amt.deltaker.deltaker.db.VedtakRepository
-import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
-import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
-import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
-import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerDtoMapperService
-import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerV2Dto
-import no.nav.amt.deltaker.deltaker.kafka.dto.toDeltakerNavVeilederDto
-import no.nav.amt.deltaker.deltaker.model.Kilde
+import no.nav.amt.deltaker.DeltakerHistorikkService
+import no.nav.amt.deltaker.arrangormelding.endring.EndringFraArrangorRepository
+import no.nav.amt.deltaker.arrangormelding.forslag.ForslagRepository
+import no.nav.amt.deltaker.arrangormelding.vurdering.VurderingRepository
 import no.nav.amt.deltaker.deltaker.sammenlignHistorikk
-import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
+import no.nav.amt.deltaker.deltakerendring.DeltakerEndringRepository
+import no.nav.amt.deltaker.importertfraarena.ImportertFraArenaRepository
+import no.nav.amt.deltaker.kafka.dto.DeltakerDtoMapperService
+import no.nav.amt.deltaker.kafka.dto.DeltakerV2Dto
+import no.nav.amt.deltaker.kafka.dto.toDeltakerNavVeilederDto
+import no.nav.amt.deltaker.model.Kilde
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetRepository
@@ -22,6 +21,7 @@ import no.nav.amt.deltaker.navbruker.model.NavBruker
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.utils.mockAmtPersonClient
+import no.nav.amt.deltaker.vedtak.VedtakRepository
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk

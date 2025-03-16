@@ -2,6 +2,8 @@ package no.nav.amt.deltaker.isoppfolgingstilfelle
 
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
+import no.nav.amt.deltaker.navbruker.isoppfolgingstilfelle.OppfolgingstilfelleDTO
+import no.nav.amt.deltaker.navbruker.isoppfolgingstilfelle.OppfolgingstilfellePersonDTO
 import no.nav.amt.deltaker.utils.MockResponseHandler
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.mockIsOppfolgingstilfelleClient

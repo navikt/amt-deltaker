@@ -1,7 +1,9 @@
 package no.nav.amt.deltaker.deltaker.kafka.dto
 
 import io.kotest.matchers.shouldBe
-import no.nav.amt.deltaker.deltaker.model.Deltaker
+import no.nav.amt.deltaker.kafka.dto.DeltakerDto
+import no.nav.amt.deltaker.kafka.dto.DeltakerV1Dto
+import no.nav.amt.deltaker.model.Deltaker
 import no.nav.amt.deltaker.navansatt.NavAnsatt
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhet
 import no.nav.amt.deltaker.utils.data.TestData
