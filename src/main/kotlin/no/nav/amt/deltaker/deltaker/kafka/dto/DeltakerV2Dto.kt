@@ -35,6 +35,7 @@ data class DeltakerV2Dto(
     val sistEndretAvEnhet: UUID?,
     val sistEndret: LocalDateTime?,
     val forcedUpdate: Boolean? = false,
+    val erManueltDeltMedArrangor: Boolean = false,
 ) {
     data class DeltakerPersonaliaDto(
         val personId: UUID?,
@@ -59,7 +60,6 @@ data class DeltakerV2Dto(
         val aarsaksbeskrivelse: String?,
         val gyldigFra: LocalDateTime,
         val opprettetDato: LocalDateTime,
-        val erManueltDeltMedArrangor: Boolean,
     )
 
     data class DeltakerKontaktinformasjonDto(

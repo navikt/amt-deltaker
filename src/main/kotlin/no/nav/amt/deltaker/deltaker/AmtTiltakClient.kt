@@ -1,7 +1,6 @@
 package no.nav.amt.deltaker.deltaker
 
 import io.ktor.client.HttpClient
-import io.ktor.client.call.body
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -12,7 +11,6 @@ import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.auth.AzureAdTokenClient
-import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.UUID
@@ -25,7 +23,7 @@ class AmtTiltakClient(
 ) {
     val log: Logger = LoggerFactory.getLogger(javaClass)
 
-    suspend fun delMedArrangor(deltakerIder: List<UUID>): Map<UUID, DeltakerStatus> {
+    suspend fun delMedArrangor(deltakerIder: List<UUID>) {
         val token = azureAdTokenClient.getMachineToMachineToken(scope)
         val response = httpClient.post("$baseUrl/api/tiltakskoordinator/del-med-arrangor") {
             header(HttpHeaders.Authorization, token)
@@ -39,6 +37,5 @@ class AmtTiltakClient(
             )
             throw RuntimeException("Kunne ikke dele med arrangor")
         }
-        return response.body()
     }
 }

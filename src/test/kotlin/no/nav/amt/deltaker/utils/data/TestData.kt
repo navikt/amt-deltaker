@@ -239,6 +239,7 @@ object TestData {
         vedtaksinformasjon: Deltaker.Vedtaksinformasjon? = null,
         sistEndret: LocalDateTime = LocalDateTime.now(),
         kilde: Kilde = Kilde.KOMET,
+        erManueltDeltMedArrangor: Boolean = false,
     ) = Deltaker(
         id,
         navBruker,
@@ -253,6 +254,7 @@ object TestData {
         vedtaksinformasjon,
         sistEndret,
         kilde,
+        erManueltDeltMedArrangor,
     )
 
     fun lagDeltakerStatus(
@@ -403,7 +405,6 @@ object TestData {
             aarsaksbeskrivelse = status.aarsak?.beskrivelse,
             gyldigFra = status.gyldigFra,
             opprettetDato = status.opprettet,
-            erManueltDeltMedArrangor = status.erManueltDeltMedArrangor,
         ),
         dagerPerUke = dagerPerUke,
         prosentStilling = deltakelsesprosent?.toDouble(),

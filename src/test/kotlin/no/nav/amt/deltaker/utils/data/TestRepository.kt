@@ -255,11 +255,13 @@ object TestRepository {
             """
             insert into deltaker(
                 id, person_id, deltakerliste_id, startdato, sluttdato, dager_per_uke, 
-                deltakelsesprosent, bakgrunnsinformasjon, innhold, kilde, modified_at
+                deltakelsesprosent, bakgrunnsinformasjon, innhold, kilde, modified_at,
+                er_manuelt_delt_med_arrangor
             )
             values (
                 :id, :person_id, :deltakerlisteId, :startdato, :sluttdato, :dagerPerUke, 
-                :deltakelsesprosent, :bakgrunnsinformasjon, :innhold, :kilde, :sistEndret
+                :deltakelsesprosent, :bakgrunnsinformasjon, :innhold, :kilde, :sistEndret,
+                :er_manuelt_delt_med_arrangor
             )
             """.trimIndent()
 
@@ -275,6 +277,7 @@ object TestRepository {
             "innhold" to toPGObject(deltaker.deltakelsesinnhold),
             "kilde" to deltaker.kilde.name,
             "sistEndret" to deltaker.sistEndret,
+            "er_manuelt_delt_med_arrangor" to deltaker.erManueltDeltMedArrangor,
         )
 
         it.update(queryOf(sql, params))

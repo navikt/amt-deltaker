@@ -83,7 +83,6 @@ data class DeltakerDto(
                 aarsaksbeskrivelse = deltaker.status.aarsak?.beskrivelse,
                 gyldigFra = deltaker.status.gyldigFra,
                 opprettetDato = deltaker.status.opprettet,
-                erManueltDeltMedArrangor = deltaker.status.erManueltDeltMedArrangor,
             ),
             dagerPerUke = deltaker.dagerPerUke,
             prosentStilling = deltaker.deltakelsesprosent?.toDouble(),

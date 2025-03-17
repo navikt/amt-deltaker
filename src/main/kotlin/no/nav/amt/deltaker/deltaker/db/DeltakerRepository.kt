@@ -70,6 +70,7 @@ class DeltakerRepository {
             },
             sistEndret = row.localDateTime("d.modified_at"),
             kilde = Kilde.valueOf(row.string("d.kilde")),
+            erManueltDeltMedArrangor = row.boolean("d.er_manuelt_delt_med_arrangor"),
         )
 
         return if (status == DeltakerStatus.Type.FEILREGISTRERT) {
@@ -91,11 +92,13 @@ class DeltakerRepository {
             """
             insert into deltaker(
                 id, person_id, deltakerliste_id, startdato, sluttdato, dager_per_uke, 
-                deltakelsesprosent, bakgrunnsinformasjon, innhold, kilde, modified_at
+                deltakelsesprosent, bakgrunnsinformasjon, innhold, kilde, modified_at,
+                er_manuelt_delt_med_arrangor
             )
             values (
                 :id, :person_id, :deltakerlisteId, :startdato, :sluttdato, :dagerPerUke, 
-                :deltakelsesprosent, :bakgrunnsinformasjon, :innhold, :kilde, :modified_at
+                :deltakelsesprosent, :bakgrunnsinformasjon, :innhold, :kilde, :modified_at,
+                :er_manuelt_delt_med_arrangor
             )
             on conflict (id) do update set 
                 person_id          = :person_id,
@@ -106,7 +109,8 @@ class DeltakerRepository {
                 bakgrunnsinformasjon = :bakgrunnsinformasjon,
                 innhold              = :innhold,
                 kilde                = :kilde,
-                modified_at          = :modified_at
+                modified_at          = :modified_at,
+                er_manuelt_delt_med_arrangor = :er_manuelt_delt_med_arrangor
             """.trimIndent()
 
         val parameters = mapOf(
@@ -121,6 +125,7 @@ class DeltakerRepository {
             "innhold" to toPGObject(deltaker.deltakelsesinnhold),
             "kilde" to deltaker.kilde.name,
             "modified_at" to deltaker.sistEndret,
+            "er_manuelt_delt_med_arrangor" to deltaker.erManueltDeltMedArrangor,
         )
 
         session.transaction { tx ->
@@ -406,12 +411,9 @@ class DeltakerRepository {
     private fun insertStatusQuery(status: DeltakerStatus, deltakerId: UUID): Query {
         val sql =
             """
-            insert into deltaker_status(id, deltaker_id, type, aarsak, gyldig_fra, er_manuelt_delt_med_arrangor, created_at)
-            values (:id, :deltaker_id, :type, :aarsak, :gyldig_fra, :er_manuelt_delt_med_arrangor, :created_at)
-            on conflict (id) do update set
-                er_manuelt_delt_med_arrangor = :er_manuelt_delt_med_arrangor,
-                modified_at = current_timestamp
-            ;
+            insert into deltaker_status(id, deltaker_id, type, aarsak, gyldig_fra, created_at)
+            values (:id, :deltaker_id, :type, :aarsak, :gyldig_fra, :created_at)
+            on conflict (id) do nothing;
             """.trimIndent()
 
         val params = mapOf(
@@ -421,7 +423,6 @@ class DeltakerRepository {
             "aarsak" to toPGObject(status.aarsak),
             "gyldig_fra" to status.gyldigFra,
             "created_at" to status.opprettet,
-            "er_manuelt_delt_med_arrangor" to status.erManueltDeltMedArrangor,
         )
 
         return queryOf(sql, params)
@@ -465,6 +466,7 @@ class DeltakerRepository {
                    d.innhold as "d.innhold",
                    d.modified_at as "d.modified_at",
                    d.kilde as "d.kilde",
+                   d.er_manuelt_delt_med_arrangor as "d.er_manuelt_delt_med_arrangor",
                    nb.personident as "nb.personident",
                    nb.fornavn as "nb.fornavn",
                    nb.mellomnavn as "nb.mellomnavn",

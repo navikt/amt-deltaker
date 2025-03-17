@@ -236,13 +236,9 @@ class DeltakerService(
             val endredeDeltakere = endringFraTiltakskoordinatorService.endre(deltakere, request).mapNotNull { it.getOrNull() }
             endredeDeltakere.map { upsertDeltaker(it) }
         } else if (request is DelMedArrangorRequest) {
-            val deltakerMap = deltakere.associateBy { it.id }
-            val endredeDeltakere = amtTiltakClient
-                .delMedArrangor(deltakere.map { it.id })
-                .mapNotNull { (id, status) -> deltakerMap[id]?.copy(status = status) }
-
+            amtTiltakClient.delMedArrangor(deltakere.map { it.id })
+            val endredeDeltakere = deltakere.map { it.copy(erManueltDeltMedArrangor = true) }
             endringFraTiltakskoordinatorService.insertDelMedArrangor(endredeDeltakere, request.endretAv)
-
             endredeDeltakere
         } else {
             throw NotImplementedError(

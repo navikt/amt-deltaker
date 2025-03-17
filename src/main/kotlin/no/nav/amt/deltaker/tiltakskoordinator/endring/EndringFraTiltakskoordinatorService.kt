@@ -52,9 +52,8 @@ class EndringFraTiltakskoordinatorService(
 
         return when (endring) {
             is EndringFraTiltakskoordinator.DelMedArrangor -> {
-                endreDeltaker(deltaker.status.type == DeltakerStatus.Type.SOKT_INN && !deltaker.status.erManueltDeltMedArrangor) {
-                    val deltStatus = deltaker.status.copy(erManueltDeltMedArrangor = true)
-                    deltaker.copy(status = deltStatus)
+                endreDeltaker(deltaker.status.type == DeltakerStatus.Type.SOKT_INN && !deltaker.erManueltDeltMedArrangor) {
+                    deltaker.copy(erManueltDeltMedArrangor = true)
                 }
             }
         }

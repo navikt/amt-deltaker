@@ -74,4 +74,4 @@ class TiltakskoordinatorApiTest {
     )
 }
 
-private fun Deltaker.toResponse() = EndringFraTiltakskoordinatorResponse(id, status, sistEndret)
+private fun Deltaker.toResponse() = EndringFraTiltakskoordinatorResponse(id, erManueltDeltMedArrangor, sistEndret)

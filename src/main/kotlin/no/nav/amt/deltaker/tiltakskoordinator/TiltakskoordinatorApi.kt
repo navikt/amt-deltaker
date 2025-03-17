@@ -23,4 +23,4 @@ fun Routing.registerTiltakskoordinatorApi(deltakerService: DeltakerService) {
     }
 }
 
-private fun Deltaker.toResponse() = EndringFraTiltakskoordinatorResponse(id, status, sistEndret)
+private fun Deltaker.toResponse() = EndringFraTiltakskoordinatorResponse(id, erManueltDeltMedArrangor, sistEndret)

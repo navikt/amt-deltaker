@@ -25,7 +25,7 @@ class EndringFraTiltakskoordinatorServiceTest {
                 .first()
                 .getOrThrow()
 
-            endretDeltaker.status.erManueltDeltMedArrangor shouldBe true
+            endretDeltaker.erManueltDeltMedArrangor shouldBe true
 
             repository.getForDeltaker(deltaker.id) shouldHaveSize 1
         }
@@ -40,7 +40,7 @@ class EndringFraTiltakskoordinatorServiceTest {
             val endretDeltakere = service
                 .endre(listOf(deltaker, deltaker2), DelMedArrangorRequest(navAnsatt.navIdent, listOf(deltaker.id, deltaker2.id)))
 
-            endretDeltakere.forEach { it.getOrThrow().status.erManueltDeltMedArrangor shouldBe true }
+            endretDeltakere.forEach { it.getOrThrow().erManueltDeltMedArrangor shouldBe true }
             repository.getForDeltaker(deltaker.id) shouldHaveSize 1
             repository.getForDeltaker(deltaker2.id) shouldHaveSize 1
         }
