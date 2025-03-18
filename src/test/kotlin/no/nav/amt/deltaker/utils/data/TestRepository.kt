@@ -17,6 +17,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
+import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.utils.database.Database
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
@@ -254,11 +255,13 @@ object TestRepository {
             """
             insert into deltaker(
                 id, person_id, deltakerliste_id, startdato, sluttdato, dager_per_uke, 
-                deltakelsesprosent, bakgrunnsinformasjon, innhold, kilde, modified_at
+                deltakelsesprosent, bakgrunnsinformasjon, innhold, kilde, modified_at,
+                er_manuelt_delt_med_arrangor
             )
             values (
                 :id, :person_id, :deltakerlisteId, :startdato, :sluttdato, :dagerPerUke, 
-                :deltakelsesprosent, :bakgrunnsinformasjon, :innhold, :kilde, :sistEndret
+                :deltakelsesprosent, :bakgrunnsinformasjon, :innhold, :kilde, :sistEndret,
+                :er_manuelt_delt_med_arrangor
             )
             """.trimIndent()
 
@@ -274,6 +277,7 @@ object TestRepository {
             "innhold" to toPGObject(deltaker.deltakelsesinnhold),
             "kilde" to deltaker.kilde.name,
             "sistEndret" to deltaker.sistEndret,
+            "er_manuelt_delt_med_arrangor" to deltaker.erManueltDeltMedArrangor,
         )
 
         it.update(queryOf(sql, params))
@@ -431,6 +435,24 @@ object TestRepository {
         )
     }
 
+    fun insert(endring: EndringFraTiltakskoordinator) = Database.query {
+        val sql =
+            """
+            insert into endring_fra_tiltakskoordinator (id, deltaker_id, nav_ansatt_id, endret, endring) 
+            values (:id, :deltaker_id, :nav_ansatt_id, :endret, :endring)
+            """.trimIndent()
+
+        val params = mapOf(
+            "id" to endring.id,
+            "deltaker_id" to endring.deltakerId,
+            "nav_ansatt_id" to endring.endretAv,
+            "endret" to endring.endret,
+            "endring" to toPGObject(endring.endring),
+        )
+
+        it.update(queryOf(sql, params))
+    }
+
     fun <T> insertAll(vararg values: T) {
         values.forEach {
             when (it) {
@@ -446,6 +468,7 @@ object TestRepository {
                 is DeltakerEndring -> insert(it)
                 is EndringFraArrangor -> insert(it)
                 is ImportertFraArena -> insert(it)
+                is EndringFraTiltakskoordinator -> insert(it)
                 else -> NotImplementedError("insertAll for type ${it!!::class} er ikke implementert")
             }
         }

@@ -15,10 +15,13 @@ import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.job.DeltakerProgresjon
+import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorService
 import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
+import no.nav.amt.lib.models.tiltakskoordinator.requests.DelMedArrangorRequest
+import no.nav.amt.lib.models.tiltakskoordinator.requests.EndringFraTiltakskoordinatorRequest
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -36,6 +39,8 @@ class DeltakerService(
     private val importertFraArenaRepository: ImportertFraArenaRepository,
     private val deltakerHistorikkService: DeltakerHistorikkService,
     private val unleashToggle: UnleashToggle,
+    private val endringFraTiltakskoordinatorService: EndringFraTiltakskoordinatorService,
+    private val amtTiltakClient: AmtTiltakClient,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -53,12 +58,6 @@ class DeltakerService(
         deltakerRepository.getDeltakerIder(personId = personId, deltakerlisteId = deltakerlisteId)
 
     suspend fun upsertDeltaker(
-        deltaker: Deltaker,
-        forcedUpdate: Boolean? = false,
-        nesteStatus: DeltakerStatus? = null,
-    ): Deltaker = upsert(deltaker, forcedUpdate = forcedUpdate, nesteStatus = nesteStatus)
-
-    private suspend fun upsert(
         deltaker: Deltaker,
         forcedUpdate: Boolean? = false,
         nesteStatus: DeltakerStatus? = null,
@@ -220,6 +219,32 @@ class DeltakerService(
                 )
                 log.info("Deltaker ${it.id} fikk ny sluttdato fordi deltakerlisten sin sluttdato var mindre enn deltakers")
             }
+        }
+    }
+
+    suspend fun upsertEndretDeltakere(request: EndringFraTiltakskoordinatorRequest): List<Deltaker> {
+        val deltakere = deltakerRepository.getMany(request.deltakerIder)
+
+        if (deltakere.isEmpty()) return emptyList()
+
+        val tiltakstype = deltakere.distinctBy { it.deltakerliste.tiltakstype.tiltakskode }.map { it.deltakerliste.tiltakstype.tiltakskode }
+
+        require(tiltakstype.size == 1) { "kan ikke endre på deltakere på flere tiltakstyper samtidig" }
+        require(tiltakstype.first() in Tiltakstype.kursTiltak) { "kan ikke endre på deltakere på tiltakstypen ${tiltakstype.first()}" }
+
+        return if (unleashToggle.erKometMasterForTiltakstype(tiltakstype.first().toArenaKode())) {
+            val endredeDeltakere = endringFraTiltakskoordinatorService.endre(deltakere, request).mapNotNull { it.getOrNull() }
+            endredeDeltakere.map { upsertDeltaker(it) }
+        } else if (request is DelMedArrangorRequest) {
+            amtTiltakClient.delMedArrangor(deltakere.map { it.id })
+            val endredeDeltakere = deltakere.map { it.copy(erManueltDeltMedArrangor = true) }
+            endringFraTiltakskoordinatorService.insertDelMedArrangor(endredeDeltakere, request.endretAv)
+            endredeDeltakere
+        } else {
+            throw NotImplementedError(
+                "Håndtering av endring fra tiltakskoordinator " +
+                    "hvor komet ikke er master og det ikke er av type del-med-arrangør er ikke støttet",
+            )
         }
     }
 }

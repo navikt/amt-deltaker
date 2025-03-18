@@ -107,6 +107,7 @@ class DeltakerConsumer(
         vedtaksinformasjon = null,
         kilde = kilde ?: Kilde.ARENA,
         sistEndret = sistEndret ?: LocalDateTime.now(),
+        erManueltDeltMedArrangor = erManueltDeltMedArrangor,
     )
 
     private fun skalLagreBestillingstekst(deltakerId: UUID): Boolean = deltakerEndringService.getForDeltaker(deltakerId).any {

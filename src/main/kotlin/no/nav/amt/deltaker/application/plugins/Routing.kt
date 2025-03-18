@@ -26,6 +26,7 @@ import no.nav.amt.deltaker.deltaker.api.registerHentDeltakelserApi
 import no.nav.amt.deltaker.deltaker.api.registerPameldingApi
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.internal.registerInternalApi
+import no.nav.amt.deltaker.tiltakskoordinator.registerTiltakskoordinatorApi
 import no.nav.amt.deltaker.unleash.UnleashToggle
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -69,6 +70,7 @@ fun Application.configureRouting(
         registerDeltakerApi(deltakerService, deltakerHistorikkService)
         registerHentDeltakelserApi(tilgangskontrollService, deltakerService, deltakelserResponseMapper, unleashToggle)
         registerInternalApi(deltakerService, deltakerProducerService, vedtakService)
+        registerTiltakskoordinatorApi(deltakerService)
 
         val catchAllRoute = "{...}"
         route(catchAllRoute) {

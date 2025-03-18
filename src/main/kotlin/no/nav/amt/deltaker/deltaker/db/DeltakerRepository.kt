@@ -70,6 +70,7 @@ class DeltakerRepository {
             },
             sistEndret = row.localDateTime("d.modified_at"),
             kilde = Kilde.valueOf(row.string("d.kilde")),
+            erManueltDeltMedArrangor = row.boolean("d.er_manuelt_delt_med_arrangor"),
         )
 
         return if (status == DeltakerStatus.Type.FEILREGISTRERT) {
@@ -91,11 +92,13 @@ class DeltakerRepository {
             """
             insert into deltaker(
                 id, person_id, deltakerliste_id, startdato, sluttdato, dager_per_uke, 
-                deltakelsesprosent, bakgrunnsinformasjon, innhold, kilde, modified_at
+                deltakelsesprosent, bakgrunnsinformasjon, innhold, kilde, modified_at,
+                er_manuelt_delt_med_arrangor
             )
             values (
                 :id, :person_id, :deltakerlisteId, :startdato, :sluttdato, :dagerPerUke, 
-                :deltakelsesprosent, :bakgrunnsinformasjon, :innhold, :kilde, :modified_at
+                :deltakelsesprosent, :bakgrunnsinformasjon, :innhold, :kilde, :modified_at,
+                :er_manuelt_delt_med_arrangor
             )
             on conflict (id) do update set 
                 person_id          = :person_id,
@@ -106,7 +109,8 @@ class DeltakerRepository {
                 bakgrunnsinformasjon = :bakgrunnsinformasjon,
                 innhold              = :innhold,
                 kilde                = :kilde,
-                modified_at          = :modified_at
+                modified_at          = :modified_at,
+                er_manuelt_delt_med_arrangor = :er_manuelt_delt_med_arrangor
             """.trimIndent()
 
         val parameters = mapOf(
@@ -121,6 +125,7 @@ class DeltakerRepository {
             "innhold" to toPGObject(deltaker.deltakelsesinnhold),
             "kilde" to deltaker.kilde.name,
             "modified_at" to deltaker.sistEndret,
+            "er_manuelt_delt_med_arrangor" to deltaker.erManueltDeltMedArrangor,
         )
 
         session.transaction { tx ->
@@ -222,6 +227,25 @@ class DeltakerRepository {
             it.uuid("id")
         }.asList
         session.run(query)
+    }
+
+    fun getMany(deltakerIder: List<UUID>) = Database.query {
+        if (deltakerIder.isEmpty()) return@query emptyList()
+
+        val sql = getDeltakerSql(
+            """ where d.id = any(:deltaker_ider)
+                    and ds.gyldig_til is null
+                    and ds.gyldig_fra < CURRENT_TIMESTAMP
+            """.trimMargin(),
+        )
+
+        val query = queryOf(
+            sql,
+            mapOf(
+                "deltaker_ider" to deltakerIder.toTypedArray(),
+            ),
+        ).map(::rowMapper).asList
+        it.run(query)
     }
 
     fun getMany(personIdent: String) = Database.query {
@@ -387,8 +411,8 @@ class DeltakerRepository {
     private fun insertStatusQuery(status: DeltakerStatus, deltakerId: UUID): Query {
         val sql =
             """
-            insert into deltaker_status(id, deltaker_id, type, aarsak, gyldig_fra, created_at) 
-            values (:id, :deltaker_id, :type, :aarsak, :gyldig_fra, :created_at) 
+            insert into deltaker_status(id, deltaker_id, type, aarsak, gyldig_fra, created_at)
+            values (:id, :deltaker_id, :type, :aarsak, :gyldig_fra, :created_at)
             on conflict (id) do nothing;
             """.trimIndent()
 
@@ -408,7 +432,7 @@ class DeltakerRepository {
         val sql =
             """
             update deltaker_status
-            set gyldig_til = current_timestamp
+            set gyldig_til = current_timestamp, modified_at = current_timestamp
             where deltaker_id = :deltaker_id 
               and id != :id 
               and gyldig_til is null;
@@ -442,6 +466,7 @@ class DeltakerRepository {
                    d.innhold as "d.innhold",
                    d.modified_at as "d.modified_at",
                    d.kilde as "d.kilde",
+                   d.er_manuelt_delt_med_arrangor as "d.er_manuelt_delt_med_arrangor",
                    nb.personident as "nb.personident",
                    nb.fornavn as "nb.fornavn",
                    nb.mellomnavn as "nb.mellomnavn",

@@ -30,6 +30,8 @@ data class Environment(
     val unleashApiToken: String = getEnvVar(UNLEASH_SERVER_API_TOKEN),
     val isOppfolgingstilfelleUrl: String = getEnvVar(ISOPPFOLGINGSTILFELLE_URL_KEY),
     val isOppfolgingstilfelleScope: String = getEnvVar(ISOPPFOLGINGSTILFELLE_SCOPE_KEY),
+    val amtTiltakUrl: String = getEnvVar(AMT_TILTAK_URL_KEY),
+    val amtTiltakScope: String = getEnvVar(AMT_TILTAK_SCOPE_KEY),
 ) {
     companion object {
         const val DB_USERNAME_KEY = "DB_USERNAME"
@@ -53,6 +55,8 @@ data class Environment(
         const val AMT_PERSONSERVICE_SCOPE_KEY = "AMT_PERSONSERVICE_SCOPE"
         const val AMT_ARRANGOR_URL_KEY = "AMT_ARRANGOR_URL"
         const val AMT_ARRANGOR_SCOPE_KEY = "AMT_ARRANGOR_SCOPE"
+        const val AMT_TILTAK_URL_KEY = "AMT_TILTAK_URL"
+        const val AMT_TILTAK_SCOPE_KEY = "AMT_TILTAK_SCOPE"
 
         const val AZURE_AD_TOKEN_URL_KEY = "AZURE_OPENID_CONFIG_TOKEN_ENDPOINT"
         const val AZURE_APP_CLIENT_SECRET_KEY = "AZURE_APP_CLIENT_SECRET"

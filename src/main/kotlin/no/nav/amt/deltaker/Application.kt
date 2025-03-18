@@ -24,6 +24,7 @@ import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.auth.AzureAdTokenClient
 import no.nav.amt.deltaker.auth.TilgangskontrollService
+import no.nav.amt.deltaker.deltaker.AmtTiltakClient
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.PameldingService
@@ -65,6 +66,8 @@ import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
 import no.nav.amt.deltaker.navbruker.NavBrukerConsumer
 import no.nav.amt.deltaker.navbruker.NavBrukerRepository
 import no.nav.amt.deltaker.navbruker.NavBrukerService
+import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
+import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorService
 import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.lib.kafka.Producer
 import no.nav.amt.lib.kafka.config.KafkaConfigImpl
@@ -129,6 +132,13 @@ fun Application.module() {
     val isOppfolgingstilfelleClient = IsOppfolgingstilfelleClient(
         baseUrl = environment.isOppfolgingstilfelleUrl,
         scope = environment.isOppfolgingstilfelleScope,
+        azureAdTokenClient = azureAdTokenClient,
+        httpClient = httpClient,
+    )
+
+    val amtTiltakClient = AmtTiltakClient(
+        baseUrl = environment.amtTiltakUrl,
+        scope = environment.amtTiltakScope,
         azureAdTokenClient = azureAdTokenClient,
         httpClient = httpClient,
     )
@@ -209,6 +219,10 @@ fun Application.module() {
             deltakerHistorikkService,
         )
     val deltakelserResponseMapper = DeltakelserResponseMapper(deltakerHistorikkService, arrangorService)
+
+    val endringFraTiltakskoordinatorService =
+        EndringFraTiltakskoordinatorService(EndringFraTiltakskoordinatorRepository(), navAnsattService)
+
     val endringFraArrangorService = EndringFraArrangorService(endringFraArrangorRepository, hendelseService, deltakerHistorikkService)
     val vedtakService = VedtakService(vedtakRepository, hendelseService)
     val deltakerService = DeltakerService(
@@ -222,6 +236,8 @@ fun Application.module() {
         importertFraArenaRepository = importertFraArenaRepository,
         deltakerHistorikkService = deltakerHistorikkService,
         unleashToggle = unleashToggle,
+        endringFraTiltakskoordinatorService,
+        amtTiltakClient,
     )
 
     val pameldingService = PameldingService(
