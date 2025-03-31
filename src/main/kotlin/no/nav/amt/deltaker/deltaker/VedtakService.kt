@@ -72,7 +72,11 @@ class VedtakService(
         return oppdatertVedtak
     }
 
-    fun fattVedtak(deltaker: Deltaker): Vedtak {
+    /**
+     Kan bare brukes når deltaker selv godkjenner utkast.
+     Hvis Nav fatter vedtaket må `oppdaterEllerOpprettVedtak` brukes.
+     */
+    fun innbyggerFattVedtak(deltaker: Deltaker): Vedtak {
         val vedtak = repository.getIkkeFattet(deltaker.id)
 
         require(vedtak != null) {

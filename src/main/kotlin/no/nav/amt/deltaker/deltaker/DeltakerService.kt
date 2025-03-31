@@ -140,18 +140,23 @@ class DeltakerService(
         }
     }
 
-    suspend fun fattVedtak(deltaker: Deltaker): Deltaker {
+    suspend fun innbyggerFattVedtak(deltaker: Deltaker): Deltaker {
         val status = if (deltaker.status.type == DeltakerStatus.Type.UTKAST_TIL_PAMELDING) {
             nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART)
         } else {
             deltaker.status
         }
 
-        vedtakService.fattVedtak(deltaker)
-
-        hendelseService.hendelseForUtkastGodkjentAvInnbygger(deltaker)
+        vedtakService.innbyggerFattVedtak(deltaker)
 
         return upsertDeltaker(deltaker.copy(status = status))
+    }
+
+    @Deprecated("Midlertidig funksjon for å migrere over til nytt endepunkt for godkjenning av utkast")
+    suspend fun fattVedtakOgProduserHendelse(deltaker: Deltaker): Deltaker {
+        val oppdatertDeltaker = innbyggerFattVedtak(deltaker)
+        hendelseService.hendelseForUtkastGodkjentAvInnbygger(oppdatertDeltaker)
+        return oppdatertDeltaker
     }
 
     fun oppdaterSistBesokt(deltakerId: UUID, sistBesokt: ZonedDateTime) {

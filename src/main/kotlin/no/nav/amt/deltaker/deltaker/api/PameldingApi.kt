@@ -38,6 +38,15 @@ fun Routing.registerPameldingApi(pameldingService: PameldingService, historikkSe
             call.respond(deltaker.toDeltakerEndringResponse(historikk))
         }
 
+        post("/pamelding/{deltakerId}/innbygger/godkjenn-utkast") {
+            val deltakerId = UUID.fromString(call.parameters["deltakerId"])
+
+            val oppdatertDeltaker = pameldingService.innbyggerGodkjennUtkast(deltakerId)
+            val historikk = historikkService.getForDeltaker(oppdatertDeltaker.id)
+
+            call.respond(oppdatertDeltaker.toDeltakerEndringResponse(historikk))
+        }
+
         post("/pamelding/{deltakerId}/avbryt") {
             val request = call.receive<AvbrytUtkastRequest>()
             val deltakerId = UUID.fromString(call.parameters["deltakerId"])

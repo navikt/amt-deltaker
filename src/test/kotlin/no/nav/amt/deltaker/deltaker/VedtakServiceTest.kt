@@ -59,13 +59,13 @@ class VedtakServiceTest {
     private val service = VedtakService(repository, hendelseService)
 
     @Test
-    fun `fattVedtak - ikke fattet vedtak finnes -  fattes`() {
+    fun `innbyggerFattVedtak - ikke fattet vedtak finnes -  fattes`() {
         val deltaker = TestData.lagDeltaker()
         val vedtak = TestData.lagVedtak(deltakerVedVedtak = deltaker)
         insert(vedtak)
 
         runBlocking {
-            val fattetVedtak = service.fattVedtak(deltaker)
+            val fattetVedtak = service.innbyggerFattVedtak(deltaker)
             fattetVedtak.id shouldBe vedtak.id
             fattetVedtak.fattet shouldNotBe null
             fattetVedtak.fattetAvNav shouldBe false
@@ -73,14 +73,14 @@ class VedtakServiceTest {
     }
 
     @Test
-    fun `fattVedtak - vedtaket er fattet -  fattes ikke`() {
+    fun `innbyggerFattVedtak - vedtaket er fattet -  fattes ikke`() {
         val deltaker = TestData.lagDeltaker()
         val vedtak = TestData.lagVedtak(fattet = LocalDateTime.now(), deltakerVedVedtak = deltaker)
         insert(vedtak)
 
         assertThrows(IllegalArgumentException::class.java) {
             runBlocking {
-                service.fattVedtak(deltaker)
+                service.innbyggerFattVedtak(deltaker)
             }
         }
     }

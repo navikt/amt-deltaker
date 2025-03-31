@@ -92,12 +92,13 @@ fun Routing.registerDeltakerApi(deltakerService: DeltakerService, historikkServi
             call.handleDeltakerEndring(deltakerService, request, historikkService)
         }
 
+        // Deprecated: Flytt konsument over til /pamelding/{deltakerId}/innbygger/godkjenn-utkast
         post("/deltaker/{deltakerId}/vedtak/{vedtakId}/fatt") {
             val deltakerId = UUID.fromString(call.parameters["deltakerId"])
 
             val deltaker = deltakerService.get(deltakerId).getOrThrow()
 
-            val oppdatertDeltaker = deltakerService.fattVedtak(deltaker)
+            val oppdatertDeltaker = deltakerService.fattVedtakOgProduserHendelse(deltaker)
             val historikk = historikkService.getForDeltaker(oppdatertDeltaker.id)
 
             call.respond(oppdatertDeltaker.toDeltakerEndringResponse(historikk))
