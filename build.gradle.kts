@@ -7,7 +7,7 @@ plugins {
     val kotlinVersion = "2.1.20"
 
     kotlin("jvm") version kotlinVersion
-    id("io.ktor.plugin") version "3.1.1"
+    id("io.ktor.plugin") version "3.1.2"
     id("org.jetbrains.kotlin.plugin.serialization") version kotlinVersion
     id("org.jlleitschuh.gradle.ktlint") version "12.2.0"
     id("com.gradleup.shadow") version "8.3.6"
@@ -19,7 +19,7 @@ repositories {
 }
 
 val kotlinVersion = "2.1.0"
-val ktorVersion = "3.1.1"
+val ktorVersion = "3.1.2"
 val logbackVersion = "1.5.18"
 val prometeusVersion = "1.14.5"
 val ktlintVersion = "1.2.1"
@@ -36,7 +36,7 @@ val postgresVersion = "42.7.5"
 val caffeineVersion = "3.2.0"
 val mockkVersion = "1.13.17"
 val nimbusVersion = "10.0.2"
-val unleashVersion = "10.2.1"
+val unleashVersion = "10.2.2"
 val amtLibVersion = "1.2025.03.17_13.59-028cbd13def5"
 val awaitilityVersion = "4.3.0"
 
