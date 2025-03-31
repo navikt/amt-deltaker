@@ -248,6 +248,7 @@ fun Application.module() {
         navEnhetService = navEnhetService,
         vedtakService = vedtakService,
         isOppfolgingstilfelleClient = isOppfolgingstilfelleClient,
+        hendelseService = hendelseService,
     )
 
     val vurderingService = VurderingService(vurderingRepository)

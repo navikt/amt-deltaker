@@ -20,6 +20,7 @@ import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
+import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.models.tiltakskoordinator.requests.DelMedArrangorRequest
 import no.nav.amt.lib.models.tiltakskoordinator.requests.EndringFraTiltakskoordinatorRequest
 import org.slf4j.LoggerFactory
@@ -139,18 +140,18 @@ class DeltakerService(
         }
     }
 
-    suspend fun fattVedtak(deltakerId: UUID, vedtakId: UUID): Deltaker {
-        val deltaker = get(deltakerId).getOrThrow().let {
-            if (it.status.type == DeltakerStatus.Type.UTKAST_TIL_PAMELDING) {
-                it.copy(status = nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
-            } else {
-                it
-            }
+    suspend fun fattVedtak(deltaker: Deltaker): Deltaker {
+        val status = if (deltaker.status.type == DeltakerStatus.Type.UTKAST_TIL_PAMELDING) {
+            nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART)
+        } else {
+            deltaker.status
         }
 
-        vedtakService.fattVedtak(vedtakId, deltaker)
+        vedtakService.fattVedtak(deltaker)
 
-        return upsertDeltaker(deltaker)
+        hendelseService.hendelseForUtkastGodkjentAvInnbygger(deltaker)
+
+        return upsertDeltaker(deltaker.copy(status = status))
     }
 
     fun oppdaterSistBesokt(deltakerId: UUID, sistBesokt: ZonedDateTime) {
@@ -192,6 +193,9 @@ class DeltakerService(
 
     private fun oppdaterVedtakForAvbruttUtkast(deltaker: Deltaker) = if (deltaker.status.type == DeltakerStatus.Type.AVBRUTT_UTKAST) {
         val vedtak = vedtakService.avbrytVedtakVedAvsluttetDeltakerliste(deltaker)
+
+        hendelseService.hendelseFraSystem(deltaker) { HendelseType.AvbrytUtkast(it) }
+
         deltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksinformasjon())
     } else {
         deltaker

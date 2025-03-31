@@ -6,7 +6,6 @@ import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.navansatt.NavAnsatt
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhet
 import no.nav.amt.lib.models.deltaker.Vedtak
-import no.nav.amt.lib.models.hendelse.HendelseType
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -33,8 +32,6 @@ class VedtakService(
 
         repository.upsert(avbruttVedtak)
 
-        hendelseService.hendelseForVedtak(deltaker, avbruttAv, avbruttAvNavEnhet) { HendelseType.AvbrytUtkast(it) }
-
         return avbruttVedtak
     }
 
@@ -49,8 +46,6 @@ class VedtakService(
         )
 
         repository.upsert(avbruttVedtak)
-
-        hendelseService.hendelseFraSystem(deltaker) { HendelseType.AvbrytUtkast(it) }
 
         return avbruttVedtak
     }
@@ -74,30 +69,19 @@ class VedtakService(
         )
         repository.upsert(oppdatertVedtak)
 
-        hendelseService.hendelseForVedtak(deltaker, endretAv, endretAvEnhet) {
-            if (fattetAvNav) {
-                HendelseType.NavGodkjennUtkast(it)
-            } else if (eksisterendeVedtak != null) {
-                HendelseType.EndreUtkast(it)
-            } else {
-                HendelseType.OpprettUtkast(it)
-            }
-        }
-
         return oppdatertVedtak
     }
 
-    suspend fun fattVedtak(id: UUID, deltaker: Deltaker): Vedtak {
-        val vedtak = repository.get(id)
+    fun fattVedtak(deltaker: Deltaker): Vedtak {
+        val vedtak = repository.getIkkeFattet(deltaker.id)
 
-        require(vedtak != null && vedtak.fattet == null) {
-            "Vedtak $id kan ikke fattes"
+        require(vedtak != null) {
+            "Deltaker ${deltaker.id} har ikke et vedtak som kan fattes"
         }
 
         val fattetVedtak = vedtak.copy(fattet = LocalDateTime.now())
 
         repository.upsert(fattetVedtak)
-        hendelseService.hendelseForVedtakFattetAvInnbygger(deltaker, vedtak)
 
         return fattetVedtak
     }

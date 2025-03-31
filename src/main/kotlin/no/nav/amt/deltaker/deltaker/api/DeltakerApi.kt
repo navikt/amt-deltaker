@@ -30,7 +30,8 @@ fun Routing.registerDeltakerApi(deltakerService: DeltakerService, historikkServi
     authenticate("SYSTEM") {
         get("/deltaker/{deltakerId}") {
             val deltakerId = UUID.fromString(call.parameters["deltakerId"])
-            val deltaker = deltakerService.get(deltakerId)
+            val deltaker = deltakerService
+                .get(deltakerId)
                 .onFailure { call.respond(HttpStatusCode.NotFound) }
                 .getOrThrow()
 
@@ -93,12 +94,13 @@ fun Routing.registerDeltakerApi(deltakerService: DeltakerService, historikkServi
 
         post("/deltaker/{deltakerId}/vedtak/{vedtakId}/fatt") {
             val deltakerId = UUID.fromString(call.parameters["deltakerId"])
-            val vedtakId = UUID.fromString(call.parameters["vedtakId"])
 
-            val deltaker = deltakerService.fattVedtak(deltakerId, vedtakId)
-            val historikk = historikkService.getForDeltaker(deltaker.id)
+            val deltaker = deltakerService.get(deltakerId).getOrThrow()
 
-            call.respond(deltaker.toDeltakerEndringResponse(historikk))
+            val oppdatertDeltaker = deltakerService.fattVedtak(deltaker)
+            val historikk = historikkService.getForDeltaker(oppdatertDeltaker.id)
+
+            call.respond(oppdatertDeltaker.toDeltakerEndringResponse(historikk))
         }
 
         post("/deltaker/{deltakerId}/sist-besokt") {

@@ -435,7 +435,8 @@ class DeltakerApiTest {
 
         val historikk = listOf(DeltakerHistorikk.Vedtak(vedtak))
 
-        coEvery { deltakerService.fattVedtak(any(), any()) } returns deltaker
+        coEvery { deltakerService.get(any()) } returns Result.success(deltaker)
+        coEvery { deltakerService.fattVedtak(any()) } returns deltaker
         coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
 
         client

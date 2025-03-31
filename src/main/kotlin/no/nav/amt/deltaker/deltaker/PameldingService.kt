@@ -8,6 +8,7 @@ import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
+import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.isoppfolgingstilfelle.IsOppfolgingstilfelleClient
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
@@ -18,6 +19,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
+import no.nav.amt.lib.models.hendelse.HendelseType
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -31,6 +33,7 @@ class PameldingService(
     private val navEnhetService: NavEnhetService,
     private val vedtakService: VedtakService,
     private val isOppfolgingstilfelleClient: IsOppfolgingstilfelleClient,
+    private val hendelseService: HendelseService,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -112,6 +115,17 @@ class PameldingService(
         )
 
         val deltaker = deltakerService.upsertDeltaker(oppdatertDeltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksinformasjon()))
+
+        hendelseService.hendelseForUtkast(deltaker, endretAv, endretAvNavEnhet) {
+            if (utkast.godkjentAvNav) {
+                HendelseType.NavGodkjennUtkast(it)
+            } else if (opprinneligDeltaker.status.type == DeltakerStatus.Type.KLADD) {
+                HendelseType.OpprettUtkast(it)
+            } else {
+                HendelseType.EndreUtkast(it)
+            }
+        }
+
         log.info("Upsertet utkast for deltaker med id $deltakerId, meldt på direkte: ${utkast.godkjentAvNav}")
 
         return deltaker
@@ -142,6 +156,8 @@ class PameldingService(
         val vedtak = vedtakService.avbrytVedtak(oppdatertDeltaker, endretAv, endretAvNavEnhet)
 
         deltakerService.upsertDeltaker(oppdatertDeltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksinformasjon()))
+
+        hendelseService.hendelseForUtkast(oppdatertDeltaker, endretAv, endretAvNavEnhet) { HendelseType.AvbrytUtkast(it) }
 
         log.info("Avbrutt utkast for deltaker med id $deltakerId")
     }

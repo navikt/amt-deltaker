@@ -46,12 +46,6 @@ data class Deltakerliste(
     fun erKurs(): Boolean = if (oppstart != null) {
         oppstart == Oppstartstype.FELLES
     } else {
-        kursTiltak.contains(tiltakstype.arenaKode)
+        tiltakstype.erKurs()
     }
-
-    private val kursTiltak = setOf(
-        Tiltakstype.ArenaKode.JOBBK,
-        Tiltakstype.ArenaKode.GRUPPEAMO,
-        Tiltakstype.ArenaKode.GRUFAGYRKE,
-    )
 }

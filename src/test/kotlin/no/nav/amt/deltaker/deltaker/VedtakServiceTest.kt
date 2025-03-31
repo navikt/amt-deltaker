@@ -12,7 +12,6 @@ import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.hendelse.HendelseProducer
 import no.nav.amt.deltaker.hendelse.HendelseService
-import no.nav.amt.deltaker.kafka.utils.assertProducedHendelse
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetRepository
@@ -24,7 +23,6 @@ import no.nav.amt.deltaker.utils.mockAmtPersonClient
 import no.nav.amt.lib.kafka.Producer
 import no.nav.amt.lib.kafka.config.LocalKafkaConfig
 import no.nav.amt.lib.models.deltaker.Vedtak
-import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.testing.SingletonKafkaProvider
 import no.nav.amt.lib.testing.SingletonPostgres16Container
 import no.nav.amt.lib.testing.shouldBeCloseTo
@@ -57,7 +55,8 @@ class VedtakServiceTest {
         deltakerHistorikkService,
     )
 
-    private val service = VedtakService(VedtakRepository(), hendelseService)
+    private val repository = VedtakRepository()
+    private val service = VedtakService(repository, hendelseService)
 
     @Test
     fun `fattVedtak - ikke fattet vedtak finnes -  fattes`() {
@@ -66,13 +65,11 @@ class VedtakServiceTest {
         insert(vedtak)
 
         runBlocking {
-            val fattetVedtak = service.fattVedtak(vedtak.id, deltaker)
+            val fattetVedtak = service.fattVedtak(deltaker)
             fattetVedtak.id shouldBe vedtak.id
             fattetVedtak.fattet shouldNotBe null
             fattetVedtak.fattetAvNav shouldBe false
         }
-
-        assertProducedHendelse(deltaker.id, HendelseType.InnbyggerGodkjennUtkast::class)
     }
 
     @Test
@@ -83,7 +80,7 @@ class VedtakServiceTest {
 
         assertThrows(IllegalArgumentException::class.java) {
             runBlocking {
-                service.fattVedtak(vedtak.id, deltaker)
+                service.fattVedtak(deltaker)
             }
         }
     }
@@ -110,8 +107,6 @@ class VedtakServiceTest {
             vedtak.fattetAvNav shouldBe false
             vedtak.deltakerId shouldBe deltaker.id
         }
-
-        assertProducedHendelse(deltaker.id, HendelseType.OpprettUtkast::class)
     }
 
     @Test
@@ -140,8 +135,6 @@ class VedtakServiceTest {
             oppdatertVedtak.fattetAvNav shouldBe true
             oppdatertVedtak.deltakerId shouldBe vedtak.deltakerId
         }
-
-        assertProducedHendelse(oppdatertDeltaker.id, HendelseType.NavGodkjennUtkast::class)
     }
 
     @Test
@@ -168,8 +161,6 @@ class VedtakServiceTest {
             oppdatertVedtak.sistEndretAvEnhet shouldBe endretAvEnhet.id
             oppdatertVedtak.deltakerId shouldBe vedtak.deltakerId
         }
-
-        assertProducedHendelse(oppdatertDeltaker.id, HendelseType.EndreUtkast::class)
     }
 
     @Test
@@ -191,8 +182,6 @@ class VedtakServiceTest {
             avbruttVedtak.sistEndretAv shouldBe avbruttAvAnsatt.id
             avbruttVedtak.sistEndretAvEnhet shouldBe avbryttAvEnhet.id
         }
-
-        assertProducedHendelse(deltaker.id, HendelseType.AvbrytUtkast::class)
     }
 
     @Test

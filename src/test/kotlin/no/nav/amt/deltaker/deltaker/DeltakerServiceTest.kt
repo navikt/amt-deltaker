@@ -595,8 +595,10 @@ class DeltakerServiceTest {
         val enhet = TestData.lagNavEnhet(id = vedtak.opprettetAvEnhet)
         TestRepository.insertAll(deltaker, ansatt, enhet, vedtak)
 
+        val deltakerMedVedtak = deltakerService.get(deltaker.id).getOrThrow()
+
         runBlocking {
-            deltakerService.fattVedtak(deltaker.id, vedtak.id)
+            deltakerService.fattVedtak(deltakerMedVedtak)
         }
 
         assertProduced(deltaker.id)
@@ -619,8 +621,10 @@ class DeltakerServiceTest {
         val enhet = TestData.lagNavEnhet(id = vedtak.opprettetAvEnhet)
         TestRepository.insertAll(deltaker, ansatt, enhet, vedtak)
 
+        val deltakerMedVedtak = deltakerService.get(deltaker.id).getOrThrow()
+
         runBlocking {
-            deltakerService.fattVedtak(deltaker.id, vedtak.id)
+            deltakerService.fattVedtak(deltakerMedVedtak)
         }
 
         assertProduced(deltaker.id)
@@ -644,7 +648,7 @@ class DeltakerServiceTest {
 
         assertThrows(IllegalArgumentException::class.java) {
             runBlocking {
-                deltakerService.fattVedtak(deltaker.id, vedtak.id)
+                deltakerService.fattVedtak(deltaker)
             }
         }
 

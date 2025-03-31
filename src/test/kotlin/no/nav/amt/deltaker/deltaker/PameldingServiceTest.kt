@@ -125,6 +125,7 @@ class PameldingServiceTest {
             navEnhetService = navEnhetService,
             vedtakService = vedtakService,
             isOppfolgingstilfelleClient = isOppfolgingstilfelleClient,
+            hendelseService,
         )
 
         @JvmStatic
