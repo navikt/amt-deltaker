@@ -64,10 +64,6 @@ class DeltakerApiTest {
         client.post("/deltaker/${UUID.randomUUID()}/avslutt") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
         client.post("/deltaker/${UUID.randomUUID()}/reaktiver") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
         client.post("/deltaker/${UUID.randomUUID()}/fjern-oppstartsdato") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
-        client
-            .post("/deltaker/${UUID.randomUUID()}/vedtak/${UUID.randomUUID()}/fatt") {
-                setBody("")
-            }.status shouldBe HttpStatusCode.Unauthorized
     }
 
     @Test
@@ -420,28 +416,6 @@ class DeltakerApiTest {
                         endring.begrunnelse,
                     ),
                 )
-            }.apply {
-                status shouldBe HttpStatusCode.OK
-                bodyAsText() shouldBe objectMapper.writeValueAsString(deltaker.toDeltakerEndringResponse(historikk))
-            }
-    }
-
-    @Test
-    fun `fatt vedtak - har tilgang - returnerer 200`() = testApplication {
-        setUpTestApplication()
-
-        val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.VENTER_PA_OPPSTART))
-        val vedtak = TestData.lagVedtak(deltakerVedVedtak = deltaker)
-
-        val historikk = listOf(DeltakerHistorikk.Vedtak(vedtak))
-
-        coEvery { deltakerService.get(any()) } returns Result.success(deltaker)
-        coEvery { deltakerService.fattVedtakOgProduserHendelse(any()) } returns deltaker
-        coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
-
-        client
-            .post("/deltaker/${deltaker.id}/vedtak/${vedtak.id}/fatt") {
-                postRequest("")
             }.apply {
                 status shouldBe HttpStatusCode.OK
                 bodyAsText() shouldBe objectMapper.writeValueAsString(deltaker.toDeltakerEndringResponse(historikk))

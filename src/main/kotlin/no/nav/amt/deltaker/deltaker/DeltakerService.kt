@@ -152,13 +152,6 @@ class DeltakerService(
         return upsertDeltaker(deltaker.copy(status = status))
     }
 
-    @Deprecated("Midlertidig funksjon for å migrere over til nytt endepunkt for godkjenning av utkast")
-    suspend fun fattVedtakOgProduserHendelse(deltaker: Deltaker): Deltaker {
-        val oppdatertDeltaker = innbyggerFattVedtak(deltaker)
-        hendelseService.hendelseForUtkastGodkjentAvInnbygger(oppdatertDeltaker)
-        return oppdatertDeltaker
-    }
-
     fun oppdaterSistBesokt(deltakerId: UUID, sistBesokt: ZonedDateTime) {
         val deltaker = get(deltakerId).getOrThrow()
         hendelseService.hendelseForSistBesokt(deltaker, sistBesokt)
