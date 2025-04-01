@@ -11,7 +11,6 @@ import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.Innhold
-import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.models.hendelse.Hendelse
 import no.nav.amt.lib.models.hendelse.HendelseAnsvarlig
 import no.nav.amt.lib.models.hendelse.HendelseType
@@ -69,15 +68,20 @@ class HendelseService(
         }
     }
 
-    suspend fun hendelseForVedtakFattetAvInnbygger(deltaker: Deltaker, vedtak: Vedtak) {
+    suspend fun hendelseForUtkastGodkjentAvInnbygger(deltaker: Deltaker) {
+        val vedtak = deltaker.vedtaksinformasjon ?: throw IllegalStateException(
+            "Kan ikke produsere hendelse for utkast godkjent av innbygger for deltaker ${deltaker.id} uten vedtak",
+        )
+
         val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(vedtak.sistEndretAv)
         val navEnhet = navEnhetService.hentEllerOpprettNavEnhet(vedtak.sistEndretAvEnhet)
 
-        val endring = HendelseType.InnbyggerGodkjennUtkast(deltaker.toUtkastDto())
-        hendelseProducer.produce(nyHendelseFraNavAnsatt(deltaker, navAnsatt, navEnhet, endring))
+        hendelseForUtkast(deltaker, navAnsatt, navEnhet) {
+            HendelseType.InnbyggerGodkjennUtkast(it)
+        }
     }
 
-    fun hendelseForVedtak(
+    fun hendelseForUtkast(
         deltaker: Deltaker,
         navAnsatt: NavAnsatt,
         enhet: NavEnhet,

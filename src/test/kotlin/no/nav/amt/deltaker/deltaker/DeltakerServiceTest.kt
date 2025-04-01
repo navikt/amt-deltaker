@@ -586,7 +586,7 @@ class DeltakerServiceTest {
     }
 
     @Test
-    fun `fattVedtak - deltaker har status utkast - oppretter ny status og upserter`() {
+    fun `innbyggerFattVedtak - deltaker har status utkast - oppretter ny status og upserter`() {
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
         )
@@ -595,13 +595,14 @@ class DeltakerServiceTest {
         val enhet = TestData.lagNavEnhet(id = vedtak.opprettetAvEnhet)
         TestRepository.insertAll(deltaker, ansatt, enhet, vedtak)
 
+        val deltakerMedVedtak = deltakerService.get(deltaker.id).getOrThrow()
+
         runBlocking {
-            deltakerService.fattVedtak(deltaker.id, vedtak.id)
+            deltakerService.innbyggerFattVedtak(deltakerMedVedtak)
         }
 
         assertProduced(deltaker.id)
         assertProducedDeltakerV1(deltaker.id)
-        assertProducedHendelse(deltaker.id, HendelseType.InnbyggerGodkjennUtkast::class)
 
         val oppdatertDeltaker = deltakerService.get(deltaker.id).getOrThrow()
 
@@ -610,7 +611,7 @@ class DeltakerServiceTest {
     }
 
     @Test
-    fun `fattVedtak - deltaker har ikke status utkast - upserter uten å endre status`() {
+    fun `innbyggerFattVedtak - deltaker har ikke status utkast - upserter uten å endre status`() {
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
         )
@@ -619,13 +620,14 @@ class DeltakerServiceTest {
         val enhet = TestData.lagNavEnhet(id = vedtak.opprettetAvEnhet)
         TestRepository.insertAll(deltaker, ansatt, enhet, vedtak)
 
+        val deltakerMedVedtak = deltakerService.get(deltaker.id).getOrThrow()
+
         runBlocking {
-            deltakerService.fattVedtak(deltaker.id, vedtak.id)
+            deltakerService.innbyggerFattVedtak(deltakerMedVedtak)
         }
 
         assertProduced(deltaker.id)
         assertProducedDeltakerV1(deltaker.id)
-        assertProducedHendelse(deltaker.id, HendelseType.InnbyggerGodkjennUtkast::class)
         val oppdatertDeltaker = deltakerService.get(deltaker.id).getOrThrow()
 
         oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.DELTAR
@@ -633,7 +635,7 @@ class DeltakerServiceTest {
     }
 
     @Test
-    fun `fattVedtak - vedtak kunne ikke fattes - upserter ikke`() {
+    fun `innbyggerFattVedtak - vedtak kunne ikke fattes - upserter ikke`() {
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
         )
@@ -644,7 +646,7 @@ class DeltakerServiceTest {
 
         assertThrows(IllegalArgumentException::class.java) {
             runBlocking {
-                deltakerService.fattVedtak(deltaker.id, vedtak.id)
+                deltakerService.innbyggerFattVedtak(deltaker)
             }
         }
 

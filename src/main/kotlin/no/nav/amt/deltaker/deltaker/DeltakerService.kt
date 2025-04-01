@@ -20,6 +20,7 @@ import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
+import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.models.tiltakskoordinator.requests.DelMedArrangorRequest
 import no.nav.amt.lib.models.tiltakskoordinator.requests.EndringFraTiltakskoordinatorRequest
 import org.slf4j.LoggerFactory
@@ -139,18 +140,23 @@ class DeltakerService(
         }
     }
 
-    suspend fun fattVedtak(deltakerId: UUID, vedtakId: UUID): Deltaker {
-        val deltaker = get(deltakerId).getOrThrow().let {
-            if (it.status.type == DeltakerStatus.Type.UTKAST_TIL_PAMELDING) {
-                it.copy(status = nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
-            } else {
-                it
-            }
+    suspend fun innbyggerFattVedtak(deltaker: Deltaker): Deltaker {
+        val status = if (deltaker.status.type == DeltakerStatus.Type.UTKAST_TIL_PAMELDING) {
+            nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART)
+        } else {
+            deltaker.status
         }
 
-        vedtakService.fattVedtak(vedtakId, deltaker)
+        vedtakService.innbyggerFattVedtak(deltaker)
 
-        return upsertDeltaker(deltaker)
+        return upsertDeltaker(deltaker.copy(status = status))
+    }
+
+    @Deprecated("Midlertidig funksjon for å migrere over til nytt endepunkt for godkjenning av utkast")
+    suspend fun fattVedtakOgProduserHendelse(deltaker: Deltaker): Deltaker {
+        val oppdatertDeltaker = innbyggerFattVedtak(deltaker)
+        hendelseService.hendelseForUtkastGodkjentAvInnbygger(oppdatertDeltaker)
+        return oppdatertDeltaker
     }
 
     fun oppdaterSistBesokt(deltakerId: UUID, sistBesokt: ZonedDateTime) {
@@ -192,6 +198,9 @@ class DeltakerService(
 
     private fun oppdaterVedtakForAvbruttUtkast(deltaker: Deltaker) = if (deltaker.status.type == DeltakerStatus.Type.AVBRUTT_UTKAST) {
         val vedtak = vedtakService.avbrytVedtakVedAvsluttetDeltakerliste(deltaker)
+
+        hendelseService.hendelseFraSystem(deltaker) { HendelseType.AvbrytUtkast(it) }
+
         deltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksinformasjon())
     } else {
         deltaker

@@ -8,6 +8,7 @@ import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
+import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.isoppfolgingstilfelle.IsOppfolgingstilfelleClient
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
@@ -18,6 +19,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
+import no.nav.amt.lib.models.hendelse.HendelseType
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -31,6 +33,7 @@ class PameldingService(
     private val navEnhetService: NavEnhetService,
     private val vedtakService: VedtakService,
     private val isOppfolgingstilfelleClient: IsOppfolgingstilfelleClient,
+    private val hendelseService: HendelseService,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -103,18 +106,46 @@ class PameldingService(
         val endretAv = navAnsattService.hentEllerOpprettNavAnsatt(utkast.endretAv)
         val endretAvNavEnhet = navEnhetService.hentEllerOpprettNavEnhet(utkast.endretAvEnhet)
 
+        val fattet = utkast.godkjentAvNav && !oppdatertDeltaker.deltakerliste.erKurs()
+
         val vedtak = vedtakService.oppdaterEllerOpprettVedtak(
             deltaker = oppdatertDeltaker,
             endretAv = endretAv,
             endretAvEnhet = endretAvNavEnhet,
-            fattet = utkast.godkjentAvNav,
-            fattetAvNav = utkast.godkjentAvNav,
+            fattet = fattet,
+            fattetAvNav = fattet,
         )
 
         val deltaker = deltakerService.upsertDeltaker(oppdatertDeltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksinformasjon()))
+
+        hendelseService.hendelseForUtkast(deltaker, endretAv, endretAvNavEnhet) {
+            if (utkast.godkjentAvNav) {
+                HendelseType.NavGodkjennUtkast(it)
+            } else if (opprinneligDeltaker.status.type == DeltakerStatus.Type.KLADD) {
+                HendelseType.OpprettUtkast(it)
+            } else {
+                HendelseType.EndreUtkast(it)
+            }
+        }
+
         log.info("Upsertet utkast for deltaker med id $deltakerId, meldt på direkte: ${utkast.godkjentAvNav}")
 
         return deltaker
+    }
+
+    suspend fun innbyggerGodkjennUtkast(deltakerId: UUID): Deltaker {
+        val opprinneligDeltaker = deltakerService.get(deltakerId).getOrThrow()
+
+        val oppdatertDeltaker = if (opprinneligDeltaker.deltakerliste.erKurs()) {
+            val status = nyDeltakerStatus(DeltakerStatus.Type.SOKT_INN)
+            deltakerService.upsertDeltaker(opprinneligDeltaker.copy(status = status, sistEndret = LocalDateTime.now()))
+        } else {
+            deltakerService.innbyggerFattVedtak(opprinneligDeltaker)
+        }
+
+        hendelseService.hendelseForUtkastGodkjentAvInnbygger(oppdatertDeltaker)
+
+        return oppdatertDeltaker
     }
 
     suspend fun avbrytUtkast(deltakerId: UUID, avbrytUtkastRequest: AvbrytUtkastRequest) {
@@ -143,6 +174,8 @@ class PameldingService(
 
         deltakerService.upsertDeltaker(oppdatertDeltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksinformasjon()))
 
+        hendelseService.hendelseForUtkast(oppdatertDeltaker, endretAv, endretAvNavEnhet) { HendelseType.AvbrytUtkast(it) }
+
         log.info("Avbrutt utkast for deltaker med id $deltakerId")
     }
 
@@ -164,7 +197,9 @@ class PameldingService(
     )
 
     private fun getOppdatertStatus(opprinneligDeltaker: Deltaker, godkjentAvNav: Boolean): DeltakerStatus = if (godkjentAvNav) {
-        if (opprinneligDeltaker.startdato != null && opprinneligDeltaker.startdato.isBefore(LocalDate.now())) {
+        if (opprinneligDeltaker.deltakerliste.erKurs()) {
+            nyDeltakerStatus(DeltakerStatus.Type.SOKT_INN)
+        } else if (opprinneligDeltaker.startdato != null && opprinneligDeltaker.startdato.isBefore(LocalDate.now())) {
             nyDeltakerStatus(DeltakerStatus.Type.DELTAR)
         } else {
             nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART)

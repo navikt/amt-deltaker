@@ -144,6 +144,18 @@ object TestData {
         apentForPamelding: Boolean = true,
     ) = Deltakerliste(id, tiltakstype, navn, status, startDato, sluttDato, oppstart, apentForPamelding, arrangor)
 
+    fun lagDeltakerlisteMedLopendeOppstart(
+        tiltakstype: Tiltakstype = lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
+    ) = lagDeltakerliste(
+        tiltakstype = tiltakstype,
+    )
+
+    fun lagDeltakerlisteMedFellesOppstart(
+        tiltakstype: Tiltakstype = lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING),
+    ) = lagDeltakerliste(
+        tiltakstype = tiltakstype,
+    )
+
     fun lagDeltakerlisteDto(arrangor: Arrangor = lagArrangor(), deltakerliste: Deltakerliste = lagDeltakerliste(arrangor = arrangor)) =
         DeltakerlisteDto(
             id = deltakerliste.id,
