@@ -147,9 +147,10 @@ class DeltakerService(
             deltaker.status
         }
 
-        vedtakService.innbyggerFattVedtak(deltaker)
+        val oppdatertDeltaker = deltaker.copy(status = status, sistEndret = LocalDateTime.now())
+        vedtakService.innbyggerFattVedtak(oppdatertDeltaker)
 
-        return upsertDeltaker(deltaker.copy(status = status))
+        return upsertDeltaker(oppdatertDeltaker)
     }
 
     fun oppdaterSistBesokt(deltakerId: UUID, sistBesokt: ZonedDateTime) {
