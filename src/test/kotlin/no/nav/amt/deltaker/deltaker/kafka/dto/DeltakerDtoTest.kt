@@ -2,15 +2,18 @@ package no.nav.amt.deltaker.deltaker.kafka.dto
 
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.deltaker.model.Deltaker
+import no.nav.amt.deltaker.deltaker.tilVedtaksinformasjon
 import no.nav.amt.deltaker.navansatt.NavAnsatt
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhet
 import no.nav.amt.deltaker.utils.data.TestData
+import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
+import no.nav.amt.lib.testing.SingletonPostgres16Container
 import org.junit.Test
 import java.time.LocalDate
 
@@ -53,7 +56,7 @@ class DeltakerDtoTest {
     }
 }
 
-private data class DeltakerContext(
+data class DeltakerContext(
     val veileder: NavAnsatt = TestData.lagNavAnsatt(),
     val navEnhet: NavEnhet = TestData.lagNavEnhet(),
     var deltaker: Deltaker = TestData.lagDeltaker(
@@ -74,6 +77,13 @@ private data class DeltakerContext(
     )
     val historikk: MutableList<DeltakerHistorikk> = mutableListOf(DeltakerHistorikk.Vedtak(vedtak))
     val vurderinger = listOf(TestData.lagVurdering())
+
+    init {
+        SingletonPostgres16Container
+        TestRepository.insert(veileder)
+        TestRepository.insert(navEnhet)
+    }
+
     val deltakerDto
         get() = DeltakerDto(
             deltaker,
@@ -103,5 +113,11 @@ private data class DeltakerContext(
         deltaker = deltaker.copy(
             deltakerliste = TestData.lagDeltakerliste(tiltakstype = TestData.lagTiltakstype(tiltakskode = tiltakskode)),
         )
+    }
+
+    fun medVedtak() {
+        TestRepository.insert(deltaker)
+        TestRepository.insert(vedtak)
+        deltaker = deltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksinformasjon())
     }
 }

@@ -129,6 +129,7 @@ data class DeltakerDto(
         is DeltakerHistorikk.Vedtak -> vedtak.sistEndretAv
         is DeltakerHistorikk.Endring -> endring.endretAv
         is DeltakerHistorikk.EndringFraTiltakskoordinator -> endringFraTiltakskoordinator.endretAv
+        is DeltakerHistorikk.Innsok -> innsok.innsoktAv
         is DeltakerHistorikk.Forslag,
         is DeltakerHistorikk.EndringFraArrangor,
         is DeltakerHistorikk.ImportertFraArena,
@@ -139,6 +140,7 @@ data class DeltakerDto(
     private fun DeltakerHistorikk.getSistEndretAvEnhet(): UUID? = when (this) {
         is DeltakerHistorikk.Vedtak -> vedtak.sistEndretAvEnhet
         is DeltakerHistorikk.Endring -> endring.endretAvEnhet
+        is DeltakerHistorikk.Innsok -> innsok.innsoktAvEnhet
         is DeltakerHistorikk.EndringFraTiltakskoordinator -> null
         is DeltakerHistorikk.Forslag,
         is DeltakerHistorikk.EndringFraArrangor,

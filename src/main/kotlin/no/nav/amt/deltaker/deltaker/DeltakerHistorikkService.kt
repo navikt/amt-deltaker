@@ -41,6 +41,7 @@ class DeltakerHistorikkService(
                     is DeltakerHistorikk.ImportertFraArena -> it.importertFraArena.importertDato
                     is DeltakerHistorikk.VurderingFraArrangor -> it.data.opprettet
                     is DeltakerHistorikk.EndringFraTiltakskoordinator -> it.endringFraTiltakskoordinator.endret
+                    is DeltakerHistorikk.Innsok -> it.innsok.innsokt
                 }
             }
 

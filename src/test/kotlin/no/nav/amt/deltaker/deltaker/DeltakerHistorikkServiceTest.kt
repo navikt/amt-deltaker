@@ -228,5 +228,17 @@ fun sammenlignHistorikk(a: DeltakerHistorikk, b: DeltakerHistorikk) {
             a.endringFraTiltakskoordinator.endretAv shouldBe b.endringFraTiltakskoordinator.endretAv
             a.endringFraTiltakskoordinator.endret shouldBeCloseTo b.endringFraTiltakskoordinator.endret
         }
+
+        is DeltakerHistorikk.Innsok -> {
+            b as DeltakerHistorikk.Innsok
+            a.innsok.id shouldBe b.innsok.id
+            a.innsok.deltakerId shouldBe b.innsok.deltakerId
+            a.innsok.deltakelsesinnhold shouldBe b.innsok.deltakelsesinnhold
+            a.innsok.innsokt shouldBeCloseTo b.innsok.innsokt
+            a.innsok.innsoktAv shouldBe b.innsok.innsoktAv
+            a.innsok.innsoktAvEnhet shouldBe b.innsok.innsoktAvEnhet
+            a.innsok.utkastDelt shouldBeCloseTo b.innsok.utkastDelt
+            a.innsok.utkastGodkjentAvNav shouldBe b.innsok.utkastGodkjentAvNav
+        }
     }
 }
