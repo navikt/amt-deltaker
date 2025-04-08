@@ -189,7 +189,7 @@ class PameldingServiceTest {
                 personident = navBruker.personident,
             )
 
-            deltaker.id shouldBe deltakerService.getDeltakelser(navBruker.personident, deltakerliste.id).first().id
+            deltaker.id shouldBe deltakerService.getDeltakelserForPerson(navBruker.personident, deltakerliste.id).first().id
             deltaker.deltakerlisteId shouldBe deltakerliste.id
             deltaker.status.type shouldBe DeltakerStatus.Type.KLADD
             deltaker.startdato shouldBe null
@@ -313,7 +313,7 @@ class PameldingServiceTest {
                 personident = navBruker.personident,
             )
 
-            deltaker.id shouldBe deltakerService.getDeltakelser(navBruker.personident, deltakerliste.id).first().id
+            deltaker.id shouldBe deltakerService.getDeltakelserForPerson(navBruker.personident, deltakerliste.id).first().id
             deltaker.deltakerlisteId shouldBe deltakerliste.id
             deltaker.status.type shouldBe DeltakerStatus.Type.KLADD
             deltaker.startdato shouldBe null

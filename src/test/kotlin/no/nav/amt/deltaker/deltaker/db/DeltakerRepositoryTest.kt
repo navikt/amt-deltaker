@@ -362,13 +362,13 @@ class DeltakerRepositoryTest {
     }
 
     @Test
-    fun `getMany(list) - henter mange deltakere`() {
+    fun `getFlereForPerson(list) - henter mange deltakere`() {
         val deltaker1 = TestData.lagDeltaker()
         val deltaker2 = TestData.lagDeltaker()
 
         TestRepository.insertAll(deltaker1, deltaker2)
 
-        repository.getMany(listOf(deltaker1.id, deltaker2.id)) shouldHaveSize 2
+        repository.getFlereForPerson(listOf(deltaker1.id, deltaker2.id)) shouldHaveSize 2
     }
 }
 

@@ -47,9 +47,12 @@ class DeltakerService(
 
     fun get(id: UUID) = deltakerRepository.get(id)
 
-    fun getDeltakelser(personident: String, deltakerlisteId: UUID) = deltakerRepository.getMany(personident, deltakerlisteId)
+    fun getDeltakelserForPerson(personident: String, deltakerlisteId: UUID) =
+        deltakerRepository.getFlereForPerson(personident, deltakerlisteId)
 
-    fun getDeltakelser(personident: String) = deltakerRepository.getMany(personident)
+    fun getDeltakelser(deltakerIder: List<UUID>) = deltakerRepository.getMany(deltakerIder)
+
+    fun getDeltakelserForPerson(personident: String) = deltakerRepository.getFlereForPerson(personident)
 
     private fun getDeltakereForDeltakerliste(deltakerlisteId: UUID) = deltakerRepository.getDeltakereForDeltakerliste(deltakerlisteId)
 
@@ -57,6 +60,13 @@ class DeltakerService(
 
     fun getDeltakerIder(personId: UUID, deltakerlisteId: UUID) =
         deltakerRepository.getDeltakerIder(personId = personId, deltakerlisteId = deltakerlisteId)
+
+    suspend fun settPaaVenteliste(deltakere: List<Deltaker>): List<Deltaker> {
+        val oppdaterteDeltakere = deltakere.map {
+            upsertDeltaker(deltaker = it, nesteStatus = nyDeltakerStatus(DeltakerStatus.Type.VENTELISTE))
+        }
+        return oppdaterteDeltakere
+    }
 
     suspend fun upsertDeltaker(
         deltaker: Deltaker,
@@ -135,7 +145,7 @@ class DeltakerService(
     }
 
     suspend fun produserDeltakereForPerson(personident: String, publiserTilDeltakerV1: Boolean = true) {
-        getDeltakelser(personident).forEach {
+        getDeltakelserForPerson(personident).forEach {
             deltakerProducerService.produce(it, publiserTilDeltakerV1 = publiserTilDeltakerV1)
         }
     }
@@ -226,7 +236,7 @@ class DeltakerService(
     }
 
     suspend fun upsertEndretDeltakere(request: EndringFraTiltakskoordinatorRequest): List<Deltaker> {
-        val deltakere = deltakerRepository.getMany(request.deltakerIder)
+        val deltakere = deltakerRepository.getFlereForPerson(request.deltakerIder)
 
         if (deltakere.isEmpty()) return emptyList()
 

@@ -25,7 +25,7 @@ fun Routing.registerHentDeltakelserApi(
             val request = call.receive<DeltakelserRequest>()
             tilgangskontrollService.verifiserLesetilgang(call.getNavAnsattAzureId(), request.norskIdent)
 
-            val deltakelser = deltakerService.getDeltakelser(request.norskIdent)
+            val deltakelser = deltakerService.getDeltakelserForPerson(request.norskIdent)
                 .filter {
                     unleashToggle.erKometMasterForTiltakstype(it.deltakerliste.tiltakstype.arenaKode) ||
                         (unleashToggle.skalLeseArenaDeltakereForTiltakstype(it.deltakerliste.tiltakstype.arenaKode) && Environment.isDev())

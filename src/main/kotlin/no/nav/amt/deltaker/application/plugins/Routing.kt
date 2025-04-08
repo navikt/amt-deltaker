@@ -3,7 +3,6 @@ package no.nav.amt.deltaker.application.plugins
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCall
-import io.ktor.server.application.call
 import io.ktor.server.application.install
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.request.httpMethod
@@ -70,7 +69,7 @@ fun Application.configureRouting(
         registerDeltakerApi(deltakerService, deltakerHistorikkService)
         registerHentDeltakelserApi(tilgangskontrollService, deltakerService, deltakelserResponseMapper, unleashToggle)
         registerInternalApi(deltakerService, deltakerProducerService, vedtakService)
-        registerTiltakskoordinatorApi(deltakerService)
+        registerTiltakskoordinatorApi(deltakerService, unleashToggle)
 
         val catchAllRoute = "{...}"
         route(catchAllRoute) {
