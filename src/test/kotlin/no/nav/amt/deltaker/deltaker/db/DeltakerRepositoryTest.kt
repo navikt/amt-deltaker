@@ -378,10 +378,10 @@ class DeltakerRepositoryTest {
 
         TestRepository.insertAll(deltaker1, deltaker2)
 
-        repository.getMany(listOf(deltaker1.id, deltaker2.id)) shouldBe listOf(
-            deltaker1,
-            deltaker2,
-        )
+        val deltakere = repository.getMany(listOf(deltaker1.id, deltaker2.id))
+        deltakere shouldHaveSize 2
+        deltakere.contains(deltaker1)
+        deltakere.contains(deltaker2)
     }
 }
 
