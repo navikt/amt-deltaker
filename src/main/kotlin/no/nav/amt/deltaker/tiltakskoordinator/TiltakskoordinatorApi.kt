@@ -16,7 +16,6 @@ import java.util.UUID
 
 fun Routing.registerTiltakskoordinatorApi(deltakerService: DeltakerService, unleashToggle: UnleashToggle) {
     val log = LoggerFactory.getLogger(javaClass)
-
     val apiPath = "/tiltakskoordinator/deltakere"
 
     authenticate("SYSTEM") {
@@ -28,23 +27,25 @@ fun Routing.registerTiltakskoordinatorApi(deltakerService: DeltakerService, unle
         }
 
         post("$apiPath/sett-paa-venteliste") {
-            val deltakerRequest = call.receive<DeltakereRequest>()
+            val request = call.receive<DeltakereRequest>()
             val deltakere = deltakerService.getDeltakelser(
-                deltakerRequest.deltakere,
-            ).filter { it.deltakerliste.id == deltakerRequest.deltakerlisteId }
+                request.deltakere,
+            ).filter { it.deltakerliste.id == request.deltakerlisteId }
 
             if (!unleashToggle.erKometMasterForTiltakstype(deltakere.first().deltakerliste.tiltakstype.arenaKode)) {
                 log.error("Operasjon er ikke tillatt før komet er master")
                 call.respond(HttpStatusCode.Forbidden)
+                return@post
             }
 
-            if (deltakerRequest.deltakere.size > deltakere.size) {
+            if (request.deltakere.size > deltakere.size) {
                 log.error(
                     "Alle deltakere i bulk operasjon må være på samme deltakerliste. " +
-                        "deltakere: ${deltakerRequest.deltakere}, " +
-                        "deltakerliste: ${deltakerRequest.deltakerlisteId}",
+                        "deltakere: ${request.deltakere}, " +
+                        "deltakerliste: ${request.deltakerlisteId}",
                 )
                 call.respond(HttpStatusCode.Forbidden)
+                return@post
             }
 
             val oppdaterteDeltakere = deltakerService.settPaaVenteliste(deltakere)
