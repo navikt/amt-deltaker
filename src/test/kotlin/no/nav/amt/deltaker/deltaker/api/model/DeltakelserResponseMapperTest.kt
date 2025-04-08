@@ -10,6 +10,7 @@ import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
+import no.nav.amt.deltaker.deltaker.innsok.InnsokRepository
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -29,6 +30,7 @@ class DeltakelserResponseMapperTest {
             ForslagRepository(),
             EndringFraArrangorRepository(),
             ImportertFraArenaRepository(),
+            InnsokRepository(),
         )
         private val arrangorService = ArrangorService(ArrangorRepository(), mockk())
         private val deltakelserResponseMapper = DeltakelserResponseMapper(deltakerHistorikkService, arrangorService)

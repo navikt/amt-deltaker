@@ -7,6 +7,7 @@ import no.nav.amt.deltaker.deltaker.db.sammenlignDeltakereVedVedtak
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
+import no.nav.amt.deltaker.deltaker.innsok.InnsokRepository
 import no.nav.amt.deltaker.kafka.utils.sammenlignForslagStatus
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
@@ -30,6 +31,7 @@ class DeltakerHistorikkServiceTest {
             ForslagRepository(),
             EndringFraArrangorRepository(),
             ImportertFraArenaRepository(),
+            InnsokRepository(),
         )
 
         @BeforeClass

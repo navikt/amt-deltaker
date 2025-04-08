@@ -15,6 +15,7 @@ import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringService
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
+import no.nav.amt.deltaker.deltaker.innsok.InnsokRepository
 import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.deltaker.deltaker.sammenlignHistorikk
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
@@ -89,6 +90,7 @@ class DeltakerConsumerTest {
                 forslagRepository,
                 endringFraArrangorRepository,
                 importertFraArenaRepository,
+                InnsokRepository(),
             )
             deltakerEndringService = mockk()
             consumer = DeltakerConsumer(

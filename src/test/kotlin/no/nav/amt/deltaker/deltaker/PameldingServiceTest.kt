@@ -18,6 +18,8 @@ import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorServi
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
+import no.nav.amt.deltaker.deltaker.innsok.InnsokRepository
+import no.nav.amt.deltaker.deltaker.innsok.InnsokService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerV1Producer
@@ -78,6 +80,8 @@ class PameldingServiceTest {
         private val vedtakRepository = VedtakRepository()
         private val importertFraArenaRepository = ImportertFraArenaRepository()
         private val kafkaProducer = Producer<String, String>(LocalKafkaConfig(SingletonKafkaProvider.getHost()))
+        private val innsokRepository = InnsokRepository()
+        private val innsokService = InnsokService(innsokRepository)
         private val deltakerHistorikkService =
             DeltakerHistorikkService(
                 deltakerEndringRepository,
@@ -85,6 +89,7 @@ class PameldingServiceTest {
                 forslagRepository,
                 endringFraArrangorRepository,
                 importertFraArenaRepository,
+                innsokRepository,
             )
         private val hendelseService = HendelseService(
             HendelseProducer(kafkaProducer),
@@ -149,6 +154,7 @@ class PameldingServiceTest {
             vedtakService = vedtakService,
             isOppfolgingstilfelleClient = isOppfolgingstilfelleClient,
             hendelseService,
+            innsokService,
         )
 
         @JvmStatic
