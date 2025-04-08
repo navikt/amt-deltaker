@@ -4,6 +4,7 @@ import no.nav.amt.deltaker.deltaker.api.model.AvbrytUtkastRequest
 import no.nav.amt.deltaker.deltaker.api.model.KladdResponse
 import no.nav.amt.deltaker.deltaker.api.model.UtkastRequest
 import no.nav.amt.deltaker.deltaker.api.model.toKladdResponse
+import no.nav.amt.deltaker.deltaker.innsok.InnsokService
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
@@ -34,6 +35,7 @@ class PameldingService(
     private val vedtakService: VedtakService,
     private val isOppfolgingstilfelleClient: IsOppfolgingstilfelleClient,
     private val hendelseService: HendelseService,
+    private val innsokService: InnsokService,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -116,7 +118,13 @@ class PameldingService(
             fattetAvNav = fattet,
         )
 
-        val deltaker = deltakerService.upsertDeltaker(oppdatertDeltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksinformasjon()))
+        val deltakerMedNyttVedtak = oppdatertDeltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksinformasjon())
+
+        if (utkast.godkjentAvNav && oppdatertDeltaker.deltakerliste.erKurs()) {
+            innsokService.nyttInnsokUtkastGodkjentAvNav(deltakerMedNyttVedtak, opprinneligDeltaker.status)
+        }
+
+        val deltaker = deltakerService.upsertDeltaker(deltakerMedNyttVedtak)
 
         hendelseService.hendelseForUtkast(deltaker, endretAv, endretAvNavEnhet) {
             if (utkast.godkjentAvNav) {
@@ -137,8 +145,7 @@ class PameldingService(
         val opprinneligDeltaker = deltakerService.get(deltakerId).getOrThrow()
 
         val oppdatertDeltaker = if (opprinneligDeltaker.deltakerliste.erKurs()) {
-            val status = nyDeltakerStatus(DeltakerStatus.Type.SOKT_INN)
-            deltakerService.upsertDeltaker(opprinneligDeltaker.copy(status = status, sistEndret = LocalDateTime.now()))
+            innbyggerGodkjennInnsok(opprinneligDeltaker)
         } else {
             deltakerService.innbyggerFattVedtak(opprinneligDeltaker)
         }
@@ -146,6 +153,17 @@ class PameldingService(
         hendelseService.hendelseForUtkastGodkjentAvInnbygger(oppdatertDeltaker)
 
         return oppdatertDeltaker
+    }
+
+    private suspend fun innbyggerGodkjennInnsok(opprinneligDeltaker: Deltaker): Deltaker {
+        val oppdatertDeltaker = opprinneligDeltaker.copy(
+            status = nyDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
+            sistEndret = LocalDateTime.now(),
+        )
+
+        innsokService.nyttInnsokUtkastGodkjentAvDeltaker(oppdatertDeltaker, opprinneligDeltaker.status)
+
+        return deltakerService.upsertDeltaker(oppdatertDeltaker)
     }
 
     suspend fun avbrytUtkast(deltakerId: UUID, avbrytUtkastRequest: AvbrytUtkastRequest) {

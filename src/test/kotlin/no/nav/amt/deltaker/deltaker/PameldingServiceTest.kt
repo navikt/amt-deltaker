@@ -504,6 +504,9 @@ class PameldingServiceTest {
             vedtak.fattetAvNav shouldBe true
             vedtak.sistEndretAv shouldBe sistEndretAv.id
             vedtak.sistEndretAvEnhet shouldBe sistEndretAvEnhet.id
+
+            innsokRepository.getForDeltaker(deltaker.id).isFailure shouldBe true
+
             assertProducedHendelse(deltaker.id, HendelseType.NavGodkjennUtkast::class)
         }
     }
@@ -543,6 +546,12 @@ class PameldingServiceTest {
             val vedtak = vedtakRepository.getForDeltaker(deltaker.id).first()
             vedtak.fattet shouldBe null
             vedtak.fattetAvNav shouldBe false
+
+            val innsok = innsokRepository.getForDeltaker(deltaker.id).getOrThrow()
+            innsok.utkastGodkjentAvNav shouldBe true
+            innsok.utkastDelt shouldBe null
+            innsok.innsokt shouldBeCloseTo LocalDateTime.now()
+
             assertProducedHendelse(deltaker.id, HendelseType.NavGodkjennUtkast::class)
         }
     }
@@ -612,6 +621,8 @@ class PameldingServiceTest {
 
         oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
         oppdatertDeltaker.vedtaksinformasjon!!.fattet shouldBeCloseTo LocalDateTime.now()
+
+        innsokRepository.getForDeltaker(deltaker.id).isFailure shouldBe true
     }
 
     @Test
@@ -637,6 +648,11 @@ class PameldingServiceTest {
 
         oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.SOKT_INN
         oppdatertDeltaker.vedtaksinformasjon!!.fattet shouldBe null
+
+        val innsok = innsokRepository.getForDeltaker(deltaker.id).getOrThrow()
+        innsok.utkastGodkjentAvNav shouldBe false
+        innsok.utkastDelt shouldNotBe null
+        innsok.innsokt shouldBeCloseTo LocalDateTime.now()
     }
 
     @Test

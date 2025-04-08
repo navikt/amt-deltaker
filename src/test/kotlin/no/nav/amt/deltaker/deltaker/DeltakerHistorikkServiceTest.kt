@@ -14,6 +14,7 @@ import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
+import no.nav.amt.lib.models.deltaker.Innsok
 import no.nav.amt.lib.testing.SingletonPostgres16Container
 import no.nav.amt.lib.testing.shouldBeCloseTo
 import org.junit.Before
@@ -155,6 +156,28 @@ class DeltakerHistorikkServiceTest {
                     deltakerId = UUID.randomUUID(),
                     importertDato = LocalDateTime.now(),
                     deltakerVedImport = TestData.lagDeltaker().toDeltakerVedImport(innsoktDato = innsoktDato),
+                ),
+            ),
+        )
+
+        deltakerhistorikk.getInnsoktDato() shouldBe innsoktDato
+    }
+
+    @Test
+    fun `getInnsoktDato - har innsok - returnerer riktig dato`() {
+        val innsoktDato = LocalDate.now().minusMonths(1)
+        val deltakerhistorikk = listOf(
+            DeltakerHistorikk.Endring(TestData.lagDeltakerEndring()),
+            DeltakerHistorikk.Innsok(
+                Innsok(
+                    id = UUID.randomUUID(),
+                    deltakerId = UUID.randomUUID(),
+                    innsokt = innsoktDato.atStartOfDay(),
+                    innsoktAv = UUID.randomUUID(),
+                    innsoktAvEnhet = UUID.randomUUID(),
+                    deltakelsesinnhold = null,
+                    utkastDelt = null,
+                    utkastGodkjentAvNav = true,
                 ),
             ),
         )
