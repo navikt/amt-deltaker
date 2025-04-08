@@ -5,18 +5,18 @@ import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerContext
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
-import no.nav.amt.lib.models.deltaker.Innsok
+import no.nav.amt.lib.models.deltaker.InnsokPaaFellesOppstart
 import no.nav.amt.lib.testing.SingletonPostgres16Container
 import org.junit.Test
 import java.time.LocalDateTime
 import java.util.UUID
 
-class InnsokRepositoryTest {
+class InnsokPaaFellesOppstartRepositoryTest {
     init {
         SingletonPostgres16Container
     }
 
-    val repository = InnsokRepository()
+    val repository = InnsokPaaFellesOppstartRepository()
 
     @Test
     fun `insert - ny innsok - inserter`() {
@@ -37,5 +37,14 @@ fun TestData.lagInnsok(
     innsoktAvEnhet: UUID = deltaker.vedtaksinformasjon!!.sistEndretAvEnhet,
     utkastGodkjentAvNav: Boolean = false,
     utkastDelt: LocalDateTime? = LocalDateTime.now(),
-    deltakelsesinnhold: Deltakelsesinnhold? = deltaker.deltakelsesinnhold,
-) = Innsok(id, deltaker.id, innsokt, innsoktAv, innsoktAvEnhet, deltakelsesinnhold, utkastDelt, utkastGodkjentAvNav)
+    deltakelsesinnholdVedInnsok: Deltakelsesinnhold? = deltaker.deltakelsesinnhold,
+) = InnsokPaaFellesOppstart(
+    id,
+    deltaker.id,
+    innsokt,
+    innsoktAv,
+    innsoktAvEnhet,
+    deltakelsesinnholdVedInnsok,
+    utkastDelt,
+    utkastGodkjentAvNav,
+)

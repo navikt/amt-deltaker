@@ -31,6 +31,7 @@ object TestRepository {
             "deltaker_endring",
             "forslag",
             "endring_fra_arrangor",
+            "innsok_paa_felles_oppstart",
             "vedtak",
             "importert_fra_arena",
             "deltaker_status",

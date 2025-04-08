@@ -5,7 +5,7 @@ import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
-import no.nav.amt.deltaker.deltaker.innsok.InnsokRepository
+import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import java.time.LocalDate
@@ -17,7 +17,7 @@ class DeltakerHistorikkService(
     private val forslagRepository: ForslagRepository,
     private val endringFraArrangorRepository: EndringFraArrangorRepository,
     private val importertFraArenaRepository: ImportertFraArenaRepository,
-    private val innsokRepository: InnsokRepository,
+    private val innsokPaaFellesOppstartRepository: InnsokPaaFellesOppstartRepository,
 ) {
     fun getForDeltaker(id: UUID): List<DeltakerHistorikk> {
         val endringer = deltakerEndringRepository.getForDeltaker(id).map { DeltakerHistorikk.Endring(it) }
@@ -28,13 +28,14 @@ class DeltakerHistorikkService(
             .getForDeltaker(id)
             ?.let { listOf(DeltakerHistorikk.ImportertFraArena(it)) }
             ?: emptyList()
-        val innsok = innsokRepository
+        val innsok = innsokPaaFellesOppstartRepository
             .getForDeltaker(id)
             .getOrNull()
-            ?.let { listOf(DeltakerHistorikk.Innsok(it)) }
+            ?.let { listOf(DeltakerHistorikk.InnsokPaaFellesOppstart(it)) }
             ?: emptyList()
 
         val historikk = endringer
+            .asSequence()
             .plus(vedtak)
             .plus(importertFraArena)
             .plus(innsok)
@@ -49,9 +50,9 @@ class DeltakerHistorikkService(
                     is DeltakerHistorikk.ImportertFraArena -> it.importertFraArena.importertDato
                     is DeltakerHistorikk.VurderingFraArrangor -> it.data.opprettet
                     is DeltakerHistorikk.EndringFraTiltakskoordinator -> it.endringFraTiltakskoordinator.endret
-                    is DeltakerHistorikk.Innsok -> it.innsok.innsokt
+                    is DeltakerHistorikk.InnsokPaaFellesOppstart -> it.data.innsokt
                 }
-            }
+            }.toList()
 
         return historikk
     }
@@ -81,9 +82,9 @@ fun List<DeltakerHistorikk>.getInnsoktDatoFraImportertDeltaker(): LocalDate? = f
     ?.deltakerVedImport
     ?.innsoktDato
 
-fun List<DeltakerHistorikk>.getInnsoktDatoFraInnsok(): LocalDate? = filterIsInstance<DeltakerHistorikk.Innsok>()
+fun List<DeltakerHistorikk>.getInnsoktDatoFraInnsok(): LocalDate? = filterIsInstance<DeltakerHistorikk.InnsokPaaFellesOppstart>()
     .firstOrNull()
-    ?.innsok
+    ?.data
     ?.innsokt
     ?.toLocalDate()
 

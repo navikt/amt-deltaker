@@ -4,7 +4,7 @@ import no.nav.amt.deltaker.deltaker.api.model.AvbrytUtkastRequest
 import no.nav.amt.deltaker.deltaker.api.model.KladdResponse
 import no.nav.amt.deltaker.deltaker.api.model.UtkastRequest
 import no.nav.amt.deltaker.deltaker.api.model.toKladdResponse
-import no.nav.amt.deltaker.deltaker.innsok.InnsokService
+import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartService
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
@@ -35,7 +35,7 @@ class PameldingService(
     private val vedtakService: VedtakService,
     private val isOppfolgingstilfelleClient: IsOppfolgingstilfelleClient,
     private val hendelseService: HendelseService,
-    private val innsokService: InnsokService,
+    private val innsokPaaFellesOppstartService: InnsokPaaFellesOppstartService,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -121,7 +121,7 @@ class PameldingService(
         val deltakerMedNyttVedtak = oppdatertDeltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksinformasjon())
 
         if (utkast.godkjentAvNav && oppdatertDeltaker.deltakerliste.erKurs()) {
-            innsokService.nyttInnsokUtkastGodkjentAvNav(deltakerMedNyttVedtak, opprinneligDeltaker.status)
+            innsokPaaFellesOppstartService.nyttInnsokUtkastGodkjentAvNav(deltakerMedNyttVedtak, opprinneligDeltaker.status)
         }
 
         val deltaker = deltakerService.upsertDeltaker(deltakerMedNyttVedtak)
@@ -161,7 +161,7 @@ class PameldingService(
             sistEndret = LocalDateTime.now(),
         )
 
-        innsokService.nyttInnsokUtkastGodkjentAvDeltaker(oppdatertDeltaker, opprinneligDeltaker.status)
+        innsokPaaFellesOppstartService.nyttInnsokUtkastGodkjentAvDeltaker(oppdatertDeltaker, opprinneligDeltaker.status)
 
         return deltakerService.upsertDeltaker(oppdatertDeltaker)
     }

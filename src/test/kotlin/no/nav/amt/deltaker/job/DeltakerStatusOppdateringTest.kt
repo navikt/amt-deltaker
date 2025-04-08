@@ -18,7 +18,7 @@ import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorServi
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
-import no.nav.amt.deltaker.deltaker.innsok.InnsokRepository
+import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerV1Producer
@@ -72,7 +72,7 @@ class DeltakerStatusOppdateringTest {
                 forslagRepository,
                 endringFraArrangorRepository,
                 importertFraArenaRepository,
-                InnsokRepository(),
+                InnsokPaaFellesOppstartRepository(),
             )
         private val vurderingRepository = VurderingRepository()
         private val unleashToggle = mockk<UnleashToggle>()

@@ -42,8 +42,8 @@ import no.nav.amt.deltaker.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.deltaker.forslag.kafka.ArrangorMeldingConsumer
 import no.nav.amt.deltaker.deltaker.forslag.kafka.ArrangorMeldingProducer
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
-import no.nav.amt.deltaker.deltaker.innsok.InnsokRepository
-import no.nav.amt.deltaker.deltaker.innsok.InnsokService
+import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
+import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerConsumer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
@@ -179,8 +179,8 @@ fun Application.module() {
     )
 
     val arrangorService = ArrangorService(arrangorRepository, amtArrangorClient)
-    val innsokRepository = InnsokRepository()
-    val innsokService = InnsokService(innsokRepository)
+    val innsokPaaFellesOppstartRepository = InnsokPaaFellesOppstartRepository()
+    val innsokPaaFellesOppstartService = InnsokPaaFellesOppstartService(innsokPaaFellesOppstartRepository)
 
     val deltakerHistorikkService = DeltakerHistorikkService(
         deltakerEndringRepository,
@@ -188,7 +188,7 @@ fun Application.module() {
         forslagRepository,
         endringFraArrangorRepository,
         importertFraArenaRepository,
-        innsokRepository,
+        innsokPaaFellesOppstartRepository,
     )
 
     val hendelseProducer = HendelseProducer(kafkaProducer)
@@ -254,7 +254,7 @@ fun Application.module() {
         vedtakService = vedtakService,
         isOppfolgingstilfelleClient = isOppfolgingstilfelleClient,
         hendelseService = hendelseService,
-        innsokService = innsokService,
+        innsokPaaFellesOppstartService = innsokPaaFellesOppstartService,
     )
 
     val vurderingService = VurderingService(vurderingRepository)
