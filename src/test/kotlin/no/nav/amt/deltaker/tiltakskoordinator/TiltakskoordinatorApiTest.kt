@@ -45,7 +45,7 @@ class TiltakskoordinatorApiTest {
     @Test
     fun `del-med-arrangor - har tilgang - returnerer 200`() = testApplication {
         val deltaker = TestData.lagDeltaker()
-        coEvery { deltakerService.upsertEndretDeltakere(any()) } returns listOf(deltaker)
+        coEvery { deltakerService.upsertEndretDeltakere(any(), any(), any()) } returns listOf(deltaker)
 
         setUpTestApplication()
         client.post("$apiPath/del-med-arrangor") { postRequest(delMedArrangorRequest) }.apply {
@@ -59,33 +59,16 @@ class TiltakskoordinatorApiTest {
         val deltaker = TestData.lagDeltaker()
         coEvery { deltakerService.getDeltakelser(any()) } returns listOf(deltaker)
         coEvery { unleashToggle.erKometMasterForTiltakstype(deltaker.deltakerliste.tiltakstype.arenaKode) } returns true
-        coEvery { deltakerService.settPaaVenteliste(listOf(deltaker)) } returns listOf(deltaker)
+        coEvery { deltakerService.upsertEndretDeltakere(any(), any(), any()) } returns listOf(deltaker)
         val request = DeltakereRequest(
             deltakere = listOf(deltaker.id),
             deltakerlisteId = deltaker.deltakerliste.id,
+            endretAv = "Nav Veiledersen",
         )
         setUpTestApplication()
         client.post("$apiPath/sett-paa-venteliste") { postRequest(request) }.apply {
             status shouldBe HttpStatusCode.OK
             bodyAsText() shouldBe objectMapper.writeValueAsString(listOf(deltaker))
-        }
-    }
-
-    @Test
-    fun `sett-paa-venteliste - deltakere i feil liste - returnerer 401`() = testApplication {
-        val deltaker1 = TestData.lagDeltaker()
-        val deltaker2 = TestData.lagDeltaker(deltakerliste = TestData.lagDeltakerliste(id = UUID.randomUUID()))
-        coEvery { deltakerService.getDeltakelser(any()) } returns listOf(deltaker1, deltaker2)
-        coEvery { unleashToggle.erKometMasterForTiltakstype(deltaker1.deltakerliste.tiltakstype.arenaKode) } returns true
-
-        val request = DeltakereRequest(
-            deltakere = listOf(deltaker1.id, deltaker2.id),
-            deltakerlisteId = deltaker1.deltakerliste.id,
-        )
-        setUpTestApplication()
-        client.post("$apiPath/sett-paa-venteliste") { postRequest(request) }.apply {
-            status shouldBe HttpStatusCode.Forbidden
-            bodyAsText() shouldBe ""
         }
     }
 

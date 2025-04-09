@@ -21,8 +21,7 @@ import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.lib.models.hendelse.HendelseType
-import no.nav.amt.lib.models.tiltakskoordinator.requests.DelMedArrangorRequest
-import no.nav.amt.lib.models.tiltakskoordinator.requests.EndringFraTiltakskoordinatorRequest
+import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -60,13 +59,6 @@ class DeltakerService(
 
     fun getDeltakerIder(personId: UUID, deltakerlisteId: UUID) =
         deltakerRepository.getDeltakerIder(personId = personId, deltakerlisteId = deltakerlisteId)
-
-    suspend fun settPaaVenteliste(deltakere: List<Deltaker>): List<Deltaker> {
-        val oppdaterteDeltakere = deltakere.map {
-            upsertDeltaker(deltaker = it, nesteStatus = nyDeltakerStatus(DeltakerStatus.Type.VENTELISTE))
-        }
-        return oppdaterteDeltakere
-    }
 
     suspend fun upsertDeltaker(
         deltaker: Deltaker,
@@ -235,8 +227,12 @@ class DeltakerService(
         }
     }
 
-    suspend fun upsertEndretDeltakere(request: EndringFraTiltakskoordinatorRequest): List<Deltaker> {
-        val deltakere = deltakerRepository.getFlereForPerson(request.deltakerIder)
+    suspend fun upsertEndretDeltakere(
+        deltakerIder: List<UUID>,
+        endringsType: EndringFraTiltakskoordinator.Endring,
+        endretAv: String,
+    ): List<Deltaker> {
+        val deltakere = deltakerRepository.getFlereForPerson(deltakerIder)
 
         if (deltakere.isEmpty()) return emptyList()
 
@@ -246,12 +242,14 @@ class DeltakerService(
         require(tiltakstype.first() in Tiltakstype.kursTiltak) { "kan ikke endre på deltakere på tiltakstypen ${tiltakstype.first()}" }
 
         return if (unleashToggle.erKometMasterForTiltakstype(tiltakstype.first().toArenaKode())) {
-            val endredeDeltakere = endringFraTiltakskoordinatorService.endre(deltakere, request).mapNotNull { it.getOrNull() }
-            endredeDeltakere.map { upsertDeltaker(it) }
-        } else if (request is DelMedArrangorRequest) {
+            endringFraTiltakskoordinatorService
+                .upsertEndring(deltakere, endringsType, endretAv)
+                .mapNotNull { it.getOrNull() }
+                .map { upsertDeltaker(it) }
+        } else if (endringsType is EndringFraTiltakskoordinator.DelMedArrangor) {
             amtTiltakClient.delMedArrangor(deltakere.map { it.id })
             val endredeDeltakere = deltakere.map { it.copy(erManueltDeltMedArrangor = true) }
-            endringFraTiltakskoordinatorService.insertDelMedArrangor(endredeDeltakere, request.endretAv)
+            endringFraTiltakskoordinatorService.insertDelMedArrangor(endredeDeltakere, endretAv)
             endredeDeltakere
         } else {
             throw NotImplementedError(
