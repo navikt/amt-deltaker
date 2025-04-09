@@ -8,6 +8,7 @@ import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
+import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerDtoMapperService
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerV2Dto
 import no.nav.amt.deltaker.deltaker.kafka.dto.toDeltakerNavVeilederDto
@@ -46,6 +47,7 @@ class DeltakerDtoMapperServiceTest {
             ForslagRepository(),
             EndringFraArrangorRepository(),
             ImportertFraArenaRepository(),
+            InnsokPaaFellesOppstartRepository(),
         )
         private val deltakerDtoMapperService =
             DeltakerDtoMapperService(navAnsattService, navEnhetService, deltakerHistorikkService, vurderingRepository)

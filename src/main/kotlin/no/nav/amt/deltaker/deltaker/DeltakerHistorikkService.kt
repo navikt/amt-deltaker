@@ -5,6 +5,7 @@ import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
+import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import java.time.LocalDate
@@ -16,6 +17,7 @@ class DeltakerHistorikkService(
     private val forslagRepository: ForslagRepository,
     private val endringFraArrangorRepository: EndringFraArrangorRepository,
     private val importertFraArenaRepository: ImportertFraArenaRepository,
+    private val innsokPaaFellesOppstartRepository: InnsokPaaFellesOppstartRepository,
 ) {
     fun getForDeltaker(id: UUID): List<DeltakerHistorikk> {
         val endringer = deltakerEndringRepository.getForDeltaker(id).map { DeltakerHistorikk.Endring(it) }
@@ -26,10 +28,17 @@ class DeltakerHistorikkService(
             .getForDeltaker(id)
             ?.let { listOf(DeltakerHistorikk.ImportertFraArena(it)) }
             ?: emptyList()
+        val innsok = innsokPaaFellesOppstartRepository
+            .getForDeltaker(id)
+            .getOrNull()
+            ?.let { listOf(DeltakerHistorikk.InnsokPaaFellesOppstart(it)) }
+            ?: emptyList()
 
         val historikk = endringer
+            .asSequence()
             .plus(vedtak)
             .plus(importertFraArena)
+            .plus(innsok)
             .plus(forslag)
             .plus(endringerFraArrangor)
             .sortedByDescending {
@@ -41,8 +50,9 @@ class DeltakerHistorikkService(
                     is DeltakerHistorikk.ImportertFraArena -> it.importertFraArena.importertDato
                     is DeltakerHistorikk.VurderingFraArrangor -> it.data.opprettet
                     is DeltakerHistorikk.EndringFraTiltakskoordinator -> it.endringFraTiltakskoordinator.endret
+                    is DeltakerHistorikk.InnsokPaaFellesOppstart -> it.data.innsokt
                 }
-            }
+            }.toList()
 
         return historikk
     }
@@ -60,17 +70,23 @@ class DeltakerHistorikkService(
 
 fun List<DeltakerHistorikk>.getInnsoktDato(): LocalDate? {
     getInnsoktDatoFraImportertDeltaker()?.let { return it }
+    getInnsoktDatoFraInnsok()?.let { return it }
 
     val vedtak = filterIsInstance<DeltakerHistorikk.Vedtak>().map { it.vedtak }
     return vedtak.minByOrNull { it.opprettet }?.opprettet?.toLocalDate()
 }
 
-fun List<DeltakerHistorikk>.getInnsoktDatoFraImportertDeltaker(): LocalDate? {
-    filterIsInstance<DeltakerHistorikk.ImportertFraArena>()
-        .firstOrNull()
-        ?.let { return it.importertFraArena.deltakerVedImport.innsoktDato }
-    return null
-}
+fun List<DeltakerHistorikk>.getInnsoktDatoFraImportertDeltaker(): LocalDate? = filterIsInstance<DeltakerHistorikk.ImportertFraArena>()
+    .firstOrNull()
+    ?.importertFraArena
+    ?.deltakerVedImport
+    ?.innsoktDato
+
+fun List<DeltakerHistorikk>.getInnsoktDatoFraInnsok(): LocalDate? = filterIsInstance<DeltakerHistorikk.InnsokPaaFellesOppstart>()
+    .firstOrNull()
+    ?.data
+    ?.innsokt
+    ?.toLocalDate()
 
 fun Forslag.skalInkluderesIHistorikk() = when (this.status) {
     is Forslag.Status.Avvist,

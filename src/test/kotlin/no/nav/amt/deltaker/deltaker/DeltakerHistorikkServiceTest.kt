@@ -7,12 +7,14 @@ import no.nav.amt.deltaker.deltaker.db.sammenlignDeltakereVedVedtak
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
+import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
 import no.nav.amt.deltaker.kafka.utils.sammenlignForslagStatus
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
+import no.nav.amt.lib.models.deltaker.InnsokPaaFellesOppstart
 import no.nav.amt.lib.testing.SingletonPostgres16Container
 import no.nav.amt.lib.testing.shouldBeCloseTo
 import org.junit.Before
@@ -30,6 +32,7 @@ class DeltakerHistorikkServiceTest {
             ForslagRepository(),
             EndringFraArrangorRepository(),
             ImportertFraArenaRepository(),
+            InnsokPaaFellesOppstartRepository(),
         )
 
         @BeforeClass
@@ -159,6 +162,28 @@ class DeltakerHistorikkServiceTest {
 
         deltakerhistorikk.getInnsoktDato() shouldBe innsoktDato
     }
+
+    @Test
+    fun `getInnsoktDato - har innsok - returnerer riktig dato`() {
+        val innsoktDato = LocalDate.now().minusMonths(1)
+        val deltakerhistorikk = listOf(
+            DeltakerHistorikk.Endring(TestData.lagDeltakerEndring()),
+            DeltakerHistorikk.InnsokPaaFellesOppstart(
+                InnsokPaaFellesOppstart(
+                    id = UUID.randomUUID(),
+                    deltakerId = UUID.randomUUID(),
+                    innsokt = innsoktDato.atStartOfDay(),
+                    innsoktAv = UUID.randomUUID(),
+                    innsoktAvEnhet = UUID.randomUUID(),
+                    deltakelsesinnholdVedInnsok = null,
+                    utkastDelt = null,
+                    utkastGodkjentAvNav = true,
+                ),
+            ),
+        )
+
+        deltakerhistorikk.getInnsoktDato() shouldBe innsoktDato
+    }
 }
 
 fun sammenlignHistorikk(a: DeltakerHistorikk, b: DeltakerHistorikk) {
@@ -227,6 +252,18 @@ fun sammenlignHistorikk(a: DeltakerHistorikk, b: DeltakerHistorikk) {
             a.endringFraTiltakskoordinator.endring shouldBe b.endringFraTiltakskoordinator.endring
             a.endringFraTiltakskoordinator.endretAv shouldBe b.endringFraTiltakskoordinator.endretAv
             a.endringFraTiltakskoordinator.endret shouldBeCloseTo b.endringFraTiltakskoordinator.endret
+        }
+
+        is DeltakerHistorikk.InnsokPaaFellesOppstart -> {
+            b as DeltakerHistorikk.InnsokPaaFellesOppstart
+            a.data.id shouldBe b.data.id
+            a.data.deltakerId shouldBe b.data.deltakerId
+            a.data.deltakelsesinnholdVedInnsok shouldBe b.data.deltakelsesinnholdVedInnsok
+            a.data.innsokt shouldBeCloseTo b.data.innsokt
+            a.data.innsoktAv shouldBe b.data.innsoktAv
+            a.data.innsoktAvEnhet shouldBe b.data.innsoktAvEnhet
+            a.data.utkastDelt shouldBeCloseTo b.data.utkastDelt
+            a.data.utkastGodkjentAvNav shouldBe b.data.utkastGodkjentAvNav
         }
     }
 }

@@ -10,6 +10,7 @@ import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
+import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
 import no.nav.amt.deltaker.hendelse.HendelseProducer
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.kafka.utils.assertProducedHendelse
@@ -48,6 +49,7 @@ class EndringFraArrangorServiceTest {
         forslagRepository,
         endringFraArrangorRepository,
         ImportertFraArenaRepository(),
+        InnsokPaaFellesOppstartRepository(),
     )
     private val kafkaProducer = Producer<String, String>(LocalKafkaConfig(SingletonKafkaProvider.getHost()))
     private val hendelseService = HendelseService(

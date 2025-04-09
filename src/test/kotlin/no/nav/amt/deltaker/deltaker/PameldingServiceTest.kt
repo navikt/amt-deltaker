@@ -18,6 +18,8 @@ import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorServi
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
+import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
+import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerV1Producer
@@ -78,6 +80,8 @@ class PameldingServiceTest {
         private val vedtakRepository = VedtakRepository()
         private val importertFraArenaRepository = ImportertFraArenaRepository()
         private val kafkaProducer = Producer<String, String>(LocalKafkaConfig(SingletonKafkaProvider.getHost()))
+        private val innsokPaaFellesOppstartRepository = InnsokPaaFellesOppstartRepository()
+        private val innsokPaaFellesOppstartService = InnsokPaaFellesOppstartService(innsokPaaFellesOppstartRepository)
         private val deltakerHistorikkService =
             DeltakerHistorikkService(
                 deltakerEndringRepository,
@@ -85,6 +89,7 @@ class PameldingServiceTest {
                 forslagRepository,
                 endringFraArrangorRepository,
                 importertFraArenaRepository,
+                innsokPaaFellesOppstartRepository,
             )
         private val hendelseService = HendelseService(
             HendelseProducer(kafkaProducer),
@@ -149,6 +154,7 @@ class PameldingServiceTest {
             vedtakService = vedtakService,
             isOppfolgingstilfelleClient = isOppfolgingstilfelleClient,
             hendelseService,
+            innsokPaaFellesOppstartService,
         )
 
         @JvmStatic
@@ -498,6 +504,9 @@ class PameldingServiceTest {
             vedtak.fattetAvNav shouldBe true
             vedtak.sistEndretAv shouldBe sistEndretAv.id
             vedtak.sistEndretAvEnhet shouldBe sistEndretAvEnhet.id
+
+            innsokPaaFellesOppstartRepository.getForDeltaker(deltaker.id).isFailure shouldBe true
+
             assertProducedHendelse(deltaker.id, HendelseType.NavGodkjennUtkast::class)
         }
     }
@@ -537,6 +546,12 @@ class PameldingServiceTest {
             val vedtak = vedtakRepository.getForDeltaker(deltaker.id).first()
             vedtak.fattet shouldBe null
             vedtak.fattetAvNav shouldBe false
+
+            val innsok = innsokPaaFellesOppstartRepository.getForDeltaker(deltaker.id).getOrThrow()
+            innsok.utkastGodkjentAvNav shouldBe true
+            innsok.utkastDelt shouldBe null
+            innsok.innsokt shouldBeCloseTo LocalDateTime.now()
+
             assertProducedHendelse(deltaker.id, HendelseType.NavGodkjennUtkast::class)
         }
     }
@@ -606,6 +621,8 @@ class PameldingServiceTest {
 
         oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
         oppdatertDeltaker.vedtaksinformasjon!!.fattet shouldBeCloseTo LocalDateTime.now()
+
+        innsokPaaFellesOppstartRepository.getForDeltaker(deltaker.id).isFailure shouldBe true
     }
 
     @Test
@@ -631,6 +648,11 @@ class PameldingServiceTest {
 
         oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.SOKT_INN
         oppdatertDeltaker.vedtaksinformasjon!!.fattet shouldBe null
+
+        val innsok = innsokPaaFellesOppstartRepository.getForDeltaker(deltaker.id).getOrThrow()
+        innsok.utkastGodkjentAvNav shouldBe false
+        innsok.utkastDelt shouldNotBe null
+        innsok.innsokt shouldBeCloseTo LocalDateTime.now()
     }
 
     @Test

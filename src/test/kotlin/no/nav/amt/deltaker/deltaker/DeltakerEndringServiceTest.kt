@@ -22,6 +22,7 @@ import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.deltaker.forslag.kafka.ArrangorMeldingProducer
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
+import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
 import no.nav.amt.deltaker.hendelse.HendelseProducer
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.kafka.utils.assertProducedForslag
@@ -68,6 +69,7 @@ class DeltakerEndringServiceTest {
         forslagRepository,
         EndringFraArrangorRepository(),
         ImportertFraArenaRepository(),
+        InnsokPaaFellesOppstartRepository(),
     )
     private val hendelseService = HendelseService(
         HendelseProducer(kafkaProducer),
