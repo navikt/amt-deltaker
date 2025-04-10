@@ -7,13 +7,12 @@ import io.ktor.server.routing.Routing
 import io.ktor.server.routing.post
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.model.Deltaker
-import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.models.tiltakskoordinator.requests.DelMedArrangorRequest
 import no.nav.amt.lib.models.tiltakskoordinator.response.EndringFraTiltakskoordinatorResponse
 import java.util.UUID
 
-fun Routing.registerTiltakskoordinatorApi(deltakerService: DeltakerService, unleashToggle: UnleashToggle) {
+fun Routing.registerTiltakskoordinatorApi(deltakerService: DeltakerService) {
     val apiPath = "/tiltakskoordinator/deltakere"
 
     authenticate("SYSTEM") {

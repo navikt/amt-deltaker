@@ -69,7 +69,7 @@ fun Application.configureRouting(
         registerDeltakerApi(deltakerService, deltakerHistorikkService)
         registerHentDeltakelserApi(tilgangskontrollService, deltakerService, deltakelserResponseMapper, unleashToggle)
         registerInternalApi(deltakerService, deltakerProducerService, vedtakService)
-        registerTiltakskoordinatorApi(deltakerService, unleashToggle)
+        registerTiltakskoordinatorApi(deltakerService)
 
         val catchAllRoute = "{...}"
         route(catchAllRoute) {
