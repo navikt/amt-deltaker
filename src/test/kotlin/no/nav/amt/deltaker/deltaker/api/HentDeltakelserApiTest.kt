@@ -96,7 +96,7 @@ class HentDeltakelserApiTest {
             ),
         )
 
-        coEvery { deltakerService.getDeltakelser(any()) } returns listOf(deltaker)
+        coEvery { deltakerService.getDeltakelserForPerson(any()) } returns listOf(deltaker)
         coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
 
         val forventetRespons = DeltakelserResponse(
@@ -167,7 +167,7 @@ class HentDeltakelserApiTest {
             ),
         )
 
-        coEvery { deltakerService.getDeltakelser(any()) } returns listOf(deltakerKladd, avsluttetDeltaker)
+        coEvery { deltakerService.getDeltakelserForPerson(any()) } returns listOf(deltakerKladd, avsluttetDeltaker)
         coEvery { deltakerHistorikkService.getForDeltaker(deltakerKladd.id) } returns emptyList()
         coEvery { deltakerHistorikkService.getForDeltaker(avsluttetDeltaker.id) } returns deltakerhistorikk
 
@@ -226,7 +226,7 @@ class HentDeltakelserApiTest {
     fun `post deltakelser - har tilgang, ingen deltakelser - returnerer 200`() = testApplication {
         coEvery { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
 
-        coEvery { deltakerService.getDeltakelser(any()) } returns emptyList()
+        coEvery { deltakerService.getDeltakelserForPerson(any()) } returns emptyList()
 
         val forventetRespons = DeltakelserResponse(
             aktive = emptyList(),

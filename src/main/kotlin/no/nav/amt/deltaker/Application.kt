@@ -181,6 +181,9 @@ fun Application.module() {
     val arrangorService = ArrangorService(arrangorRepository, amtArrangorClient)
     val innsokPaaFellesOppstartRepository = InnsokPaaFellesOppstartRepository()
     val innsokPaaFellesOppstartService = InnsokPaaFellesOppstartService(innsokPaaFellesOppstartRepository)
+    val endringFraTiltakskoordinatorRepository = EndringFraTiltakskoordinatorRepository()
+    val endringFraTiltakskoordinatorService =
+        EndringFraTiltakskoordinatorService(endringFraTiltakskoordinatorRepository, navAnsattService)
 
     val deltakerHistorikkService = DeltakerHistorikkService(
         deltakerEndringRepository,
@@ -189,6 +192,7 @@ fun Application.module() {
         endringFraArrangorRepository,
         importertFraArenaRepository,
         innsokPaaFellesOppstartRepository,
+        endringFraTiltakskoordinatorRepository,
     )
 
     val hendelseProducer = HendelseProducer(kafkaProducer)
@@ -224,9 +228,6 @@ fun Application.module() {
             deltakerHistorikkService,
         )
     val deltakelserResponseMapper = DeltakelserResponseMapper(deltakerHistorikkService, arrangorService)
-
-    val endringFraTiltakskoordinatorService =
-        EndringFraTiltakskoordinatorService(EndringFraTiltakskoordinatorRepository(), navAnsattService)
 
     val endringFraArrangorService = EndringFraArrangorService(endringFraArrangorRepository, hendelseService, deltakerHistorikkService)
     val vedtakService = VedtakService(vedtakRepository, hendelseService)

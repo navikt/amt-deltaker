@@ -18,8 +18,12 @@ class DeltakerDtoMapperService(
         val deltakerhistorikk = deltakerHistorikkService.getForDeltaker(deltaker.id)
         val vurderinger = vurderingRepository.getForDeltaker(deltaker.id)
 
-        if (deltaker.kilde == Kilde.KOMET && deltakerhistorikk.filterIsInstance<DeltakerHistorikk.Vedtak>().isEmpty()) {
-            throw IllegalStateException("Deltaker med kilde ${Kilde.KOMET} må ha minst et vedtak for å produseres til topic")
+        if (deltaker.kilde == Kilde.KOMET && deltakerhistorikk.filterIsInstance<DeltakerHistorikk.Vedtak>().isEmpty() &&
+            deltakerhistorikk.filterIsInstance<DeltakerHistorikk.InnsokPaaFellesOppstart>().isEmpty()
+        ) {
+            throw IllegalStateException(
+                "Deltaker med kilde ${Kilde.KOMET} må ha minst et vedtak eller være søkt in for å produseres til topic",
+            )
         }
 
         val navEnhet = deltaker.navBruker.navEnhetId

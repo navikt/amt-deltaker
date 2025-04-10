@@ -17,6 +17,7 @@ import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
 import no.nav.amt.deltaker.deltaker.model.Deltaker
+import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.deltaker.utils.configureEnvForAuthentication
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.lib.models.tiltakskoordinator.requests.DelMedArrangorRequest
@@ -27,6 +28,8 @@ import java.util.UUID
 
 class TiltakskoordinatorApiTest {
     private val deltakerService = mockk<DeltakerService>()
+    private val unleashToggle = mockk<UnleashToggle>()
+    private val apiPath = "/tiltakskoordinator/deltakere"
 
     @Before
     fun setup() {
@@ -36,18 +39,36 @@ class TiltakskoordinatorApiTest {
     @Test
     fun `skal teste autentisering - mangler token - returnerer 401`() = testApplication {
         setUpTestApplication()
-        client.post("/tiltakskoordinator/deltakere/del-med-arrangor") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
+        client.post("$apiPath/del-med-arrangor") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
     }
 
     @Test
     fun `del-med-arrangor - har tilgang - returnerer 200`() = testApplication {
         val deltaker = TestData.lagDeltaker()
-        coEvery { deltakerService.upsertEndretDeltakere(any()) } returns listOf(deltaker)
+        coEvery { deltakerService.upsertEndretDeltakere(any(), any(), any()) } returns listOf(deltaker)
 
         setUpTestApplication()
-        client.post("/tiltakskoordinator/deltakere/del-med-arrangor") { postRequest(delMedArrangorRequest) }.apply {
+        client.post("$apiPath/del-med-arrangor") { postRequest(delMedArrangorRequest) }.apply {
             status shouldBe HttpStatusCode.OK
-            bodyAsText() shouldBe objectMapper.writeValueAsString(listOf(deltaker.toResponse()))
+            bodyAsText() shouldBe objectMapper.writeValueAsString(listOf(deltaker.toDelMedArrangorResponse()))
+        }
+    }
+
+    @Test
+    fun `sett-paa-venteliste - har tilgang - returnerer 200`() = testApplication {
+        val deltaker = TestData.lagDeltaker()
+        coEvery { deltakerService.getDeltakelser(any()) } returns listOf(deltaker)
+        coEvery { unleashToggle.erKometMasterForTiltakstype(deltaker.deltakerliste.tiltakstype.arenaKode) } returns true
+        coEvery { deltakerService.upsertEndretDeltakere(any(), any(), any()) } returns listOf(deltaker)
+        val request = DeltakereRequest(
+            deltakere = listOf(deltaker.id),
+            deltakerlisteId = deltaker.deltakerliste.id,
+            endretAv = "Nav Veiledersen",
+        )
+        setUpTestApplication()
+        client.post("$apiPath/sett-paa-venteliste") { postRequest(request) }.apply {
+            status shouldBe HttpStatusCode.OK
+            bodyAsText() shouldBe objectMapper.writeValueAsString(listOf(deltaker))
         }
     }
 
@@ -63,7 +84,7 @@ class TiltakskoordinatorApiTest {
                 mockk(),
                 mockk(),
                 mockk(),
-                mockk(),
+                unleashToggle,
             )
         }
     }
@@ -74,4 +95,4 @@ class TiltakskoordinatorApiTest {
     )
 }
 
-private fun Deltaker.toResponse() = EndringFraTiltakskoordinatorResponse(id, erManueltDeltMedArrangor, sistEndret)
+private fun Deltaker.toDelMedArrangorResponse() = EndringFraTiltakskoordinatorResponse(id, erManueltDeltMedArrangor, sistEndret)

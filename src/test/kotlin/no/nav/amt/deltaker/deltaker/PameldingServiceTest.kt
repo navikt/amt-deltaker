@@ -40,6 +40,7 @@ import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
 import no.nav.amt.deltaker.navbruker.NavBrukerRepository
 import no.nav.amt.deltaker.navbruker.NavBrukerService
+import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.deltaker.utils.MockResponseHandler
 import no.nav.amt.deltaker.utils.data.TestData
@@ -82,6 +83,7 @@ class PameldingServiceTest {
         private val kafkaProducer = Producer<String, String>(LocalKafkaConfig(SingletonKafkaProvider.getHost()))
         private val innsokPaaFellesOppstartRepository = InnsokPaaFellesOppstartRepository()
         private val innsokPaaFellesOppstartService = InnsokPaaFellesOppstartService(innsokPaaFellesOppstartRepository)
+        private val endringFraTiltakskoordinatorRepository = EndringFraTiltakskoordinatorRepository()
         private val deltakerHistorikkService =
             DeltakerHistorikkService(
                 deltakerEndringRepository,
@@ -90,6 +92,7 @@ class PameldingServiceTest {
                 endringFraArrangorRepository,
                 importertFraArenaRepository,
                 innsokPaaFellesOppstartRepository,
+                endringFraTiltakskoordinatorRepository,
             )
         private val hendelseService = HendelseService(
             HendelseProducer(kafkaProducer),
@@ -189,7 +192,7 @@ class PameldingServiceTest {
                 personident = navBruker.personident,
             )
 
-            deltaker.id shouldBe deltakerService.getDeltakelser(navBruker.personident, deltakerliste.id).first().id
+            deltaker.id shouldBe deltakerService.getDeltakelserForPerson(navBruker.personident, deltakerliste.id).first().id
             deltaker.deltakerlisteId shouldBe deltakerliste.id
             deltaker.status.type shouldBe DeltakerStatus.Type.KLADD
             deltaker.startdato shouldBe null
@@ -313,7 +316,7 @@ class PameldingServiceTest {
                 personident = navBruker.personident,
             )
 
-            deltaker.id shouldBe deltakerService.getDeltakelser(navBruker.personident, deltakerliste.id).first().id
+            deltaker.id shouldBe deltakerService.getDeltakelserForPerson(navBruker.personident, deltakerliste.id).first().id
             deltaker.deltakerlisteId shouldBe deltakerliste.id
             deltaker.status.type shouldBe DeltakerStatus.Type.KLADD
             deltaker.startdato shouldBe null

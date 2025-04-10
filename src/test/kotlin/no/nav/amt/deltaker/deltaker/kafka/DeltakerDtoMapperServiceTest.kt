@@ -20,6 +20,7 @@ import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
 import no.nav.amt.deltaker.navbruker.model.NavBruker
+import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.utils.mockAmtPersonClient
@@ -48,6 +49,7 @@ class DeltakerDtoMapperServiceTest {
             EndringFraArrangorRepository(),
             ImportertFraArenaRepository(),
             InnsokPaaFellesOppstartRepository(),
+            EndringFraTiltakskoordinatorRepository(),
         )
         private val deltakerDtoMapperService =
             DeltakerDtoMapperService(navAnsattService, navEnhetService, deltakerHistorikkService, vurderingRepository)

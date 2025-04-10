@@ -7,7 +7,7 @@ import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.utils.mockAmtPersonClient
-import no.nav.amt.lib.models.tiltakskoordinator.requests.DelMedArrangorRequest
+import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import org.junit.Test
 import java.util.UUID
 
@@ -21,7 +21,11 @@ class EndringFraTiltakskoordinatorServiceTest {
     fun `insertEndringer(DelMedArrangor) - en deltaker - inserter endring og returnerer endret deltaker`(): Unit = runBlocking {
         with(EndringFraTiltakskoordinatorCtx()) {
             val endretDeltaker = service
-                .endre(listOf(deltaker), DelMedArrangorRequest(navAnsatt.navIdent, listOf(deltaker.id)))
+                .upsertEndring(
+                    listOf(deltaker),
+                    EndringFraTiltakskoordinator.DelMedArrangor,
+                    navAnsatt.navIdent,
+                )
                 .first()
                 .getOrThrow()
 
@@ -38,7 +42,11 @@ class EndringFraTiltakskoordinatorServiceTest {
             TestRepository.insert(deltaker2)
 
             val endretDeltakere = service
-                .endre(listOf(deltaker, deltaker2), DelMedArrangorRequest(navAnsatt.navIdent, listOf(deltaker.id, deltaker2.id)))
+                .upsertEndring(
+                    listOf(deltaker, deltaker2),
+                    EndringFraTiltakskoordinator.DelMedArrangor,
+                    navAnsatt.navIdent,
+                )
 
             endretDeltakere.forEach { it.getOrThrow().erManueltDeltMedArrangor shouldBe true }
             repository.getForDeltaker(deltaker.id) shouldHaveSize 1
@@ -51,7 +59,11 @@ class EndringFraTiltakskoordinatorServiceTest {
         with(EndringFraTiltakskoordinatorCtx()) {
             medStatusDeltar()
             val resultat = service
-                .endre(listOf(deltaker), DelMedArrangorRequest(navAnsatt.navIdent, listOf(deltaker.id)))
+                .upsertEndring(
+                    listOf(deltaker),
+                    EndringFraTiltakskoordinator.DelMedArrangor,
+                    navAnsatt.navIdent,
+                )
                 .first()
 
             resultat.isFailure shouldBe true
@@ -68,9 +80,10 @@ class EndringFraTiltakskoordinatorServiceTest {
                 medStatusDeltar()
 
                 val endretDeltakere = service
-                    .endre(
+                    .upsertEndring(
                         listOf(deltaker, deltaker2),
-                        DelMedArrangorRequest(navAnsatt.navIdent, listOf(deltaker.id, deltaker2.id)),
+                        EndringFraTiltakskoordinator.DelMedArrangor,
+                        navAnsatt.navIdent,
                     )
 
                 endretDeltakere.count { it.isFailure } shouldBe 1

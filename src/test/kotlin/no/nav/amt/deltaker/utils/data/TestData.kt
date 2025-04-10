@@ -29,6 +29,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.DeltakerVedImport
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
+import no.nav.amt.lib.models.deltaker.InnsokPaaFellesOppstart
 import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.DeltakerRegistreringInnhold
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Innholdselement
@@ -345,6 +346,26 @@ object TestData {
         sistEndret,
         sistEndretAv.id,
         sistEndretAvEnhet.id,
+    )
+
+    fun lagInnsoktPaaKurs(
+        id: UUID = UUID.randomUUID(),
+        deltakerId: UUID = UUID.randomUUID(),
+        innsokt: LocalDateTime = LocalDateTime.now(),
+        innsoktAv: UUID = UUID.randomUUID(),
+        innsoktAvEnhet: UUID = UUID.randomUUID(),
+        deltakelsesinnholdVedInnsok: Deltakelsesinnhold = Deltakelsesinnhold("", emptyList()),
+        utkastDelt: LocalDateTime = LocalDateTime.now().minusDays(2),
+        utkastGodkjentAvNav: Boolean = false,
+    ) = InnsokPaaFellesOppstart(
+        id = id,
+        deltakerId = deltakerId,
+        innsokt = innsokt,
+        innsoktAv = innsoktAv,
+        innsoktAvEnhet = innsoktAvEnhet,
+        deltakelsesinnholdVedInnsok = deltakelsesinnholdVedInnsok,
+        utkastDelt = utkastDelt,
+        utkastGodkjentAvNav = utkastGodkjentAvNav,
     )
 
     fun lagImportertFraArena(

@@ -41,7 +41,7 @@ class PameldingService(
 
     suspend fun opprettKladd(deltakerlisteId: UUID, personident: String): KladdResponse {
         val eksisterendeDeltaker = deltakerService
-            .getDeltakelser(personident, deltakerlisteId)
+            .getDeltakelserForPerson(personident, deltakerlisteId)
             .firstOrNull { !it.harSluttet() }
 
         if (eksisterendeDeltaker != null) {

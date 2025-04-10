@@ -31,6 +31,7 @@ import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
+import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.utils.mockAmtArrangorClient
@@ -70,6 +71,7 @@ class DeltakerEndringServiceTest {
         EndringFraArrangorRepository(),
         ImportertFraArenaRepository(),
         InnsokPaaFellesOppstartRepository(),
+        EndringFraTiltakskoordinatorRepository(),
     )
     private val hendelseService = HendelseService(
         HendelseProducer(kafkaProducer),

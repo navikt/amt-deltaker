@@ -154,9 +154,8 @@ data class DeltakerDto(
 
         val vedtak = filterIsInstance<DeltakerHistorikk.Vedtak>().map { it.vedtak }
         val forsteVedtak = vedtak.minByOrNull { it.opprettet }
-            ?: throw IllegalStateException("Skal ikke produsere deltaker som mangler vedtak til topic")
 
-        return forsteVedtak.fattet?.toLocalDate()
+        return forsteVedtak?.fattet?.toLocalDate()
     }
 
     private fun List<DeltakerHistorikk>.getSisteEndring() = this.firstOrNull {

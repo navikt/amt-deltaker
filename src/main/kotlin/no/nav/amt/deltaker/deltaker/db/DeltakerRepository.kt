@@ -151,7 +151,20 @@ class DeltakerRepository {
             ?: Result.failure(NoSuchElementException("Ingen deltaker med id $id"))
     }
 
-    fun getMany(personIdent: String, deltakerlisteId: UUID) = Database.query {
+    fun getMany(deltakerIder: List<UUID>) = Database.query {
+        val sql = getDeltakerSql(
+            """ where ds.gyldig_til is null
+                and ds.gyldig_fra < CURRENT_TIMESTAMP
+                and d.id = any(:ider)
+            """.trimMargin(),
+        )
+
+        val query = queryOf(sql, mapOf("ider" to deltakerIder.toTypedArray())).map(::rowMapper).asList
+
+        it.run(query)
+    }
+
+    fun getFlereForPerson(personIdent: String, deltakerlisteId: UUID) = Database.query {
         val sql = getDeltakerSql(
             """ where nb.personident = :personident 
                     and d.deltakerliste_id = :deltakerliste_id 
@@ -229,26 +242,7 @@ class DeltakerRepository {
         session.run(query)
     }
 
-    fun getMany(deltakerIder: List<UUID>) = Database.query {
-        if (deltakerIder.isEmpty()) return@query emptyList()
-
-        val sql = getDeltakerSql(
-            """ where d.id = any(:deltaker_ider)
-                    and ds.gyldig_til is null
-                    and ds.gyldig_fra < CURRENT_TIMESTAMP
-            """.trimMargin(),
-        )
-
-        val query = queryOf(
-            sql,
-            mapOf(
-                "deltaker_ider" to deltakerIder.toTypedArray(),
-            ),
-        ).map(::rowMapper).asList
-        it.run(query)
-    }
-
-    fun getMany(personIdent: String) = Database.query {
+    fun getFlereForPerson(personIdent: String) = Database.query {
         val sql = getDeltakerSql(
             """ where nb.personident = :personident
                     and ds.gyldig_til is null

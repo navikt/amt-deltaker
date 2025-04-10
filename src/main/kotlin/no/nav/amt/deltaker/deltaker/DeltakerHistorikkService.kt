@@ -6,6 +6,7 @@ import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepos
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
+import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import java.time.LocalDate
@@ -18,16 +19,25 @@ class DeltakerHistorikkService(
     private val endringFraArrangorRepository: EndringFraArrangorRepository,
     private val importertFraArenaRepository: ImportertFraArenaRepository,
     private val innsokPaaFellesOppstartRepository: InnsokPaaFellesOppstartRepository,
+    private val endringFraTiltakskoordinatorRepository: EndringFraTiltakskoordinatorRepository,
 ) {
     fun getForDeltaker(id: UUID): List<DeltakerHistorikk> {
         val endringer = deltakerEndringRepository.getForDeltaker(id).map { DeltakerHistorikk.Endring(it) }
         val vedtak = vedtakRepository.getForDeltaker(id).map { DeltakerHistorikk.Vedtak(it) }
         val forslag = forslagRepository.getForDeltaker(id).filter { it.skalInkluderesIHistorikk() }.map { DeltakerHistorikk.Forslag(it) }
-        val endringerFraArrangor = endringFraArrangorRepository.getForDeltaker(id).map { DeltakerHistorikk.EndringFraArrangor(it) }
+        val endringerFraArrangor = endringFraArrangorRepository
+            .getForDeltaker(id)
+            .map { DeltakerHistorikk.EndringFraArrangor(it) }
+
         val importertFraArena = importertFraArenaRepository
             .getForDeltaker(id)
             ?.let { listOf(DeltakerHistorikk.ImportertFraArena(it)) }
             ?: emptyList()
+
+        val endringFraTiltakskoordinator = endringFraTiltakskoordinatorRepository
+            .getForDeltaker(id)
+            .map { DeltakerHistorikk.EndringFraTiltakskoordinator(it) }
+
         val innsok = innsokPaaFellesOppstartRepository
             .getForDeltaker(id)
             .getOrNull()
@@ -39,6 +49,7 @@ class DeltakerHistorikkService(
             .plus(vedtak)
             .plus(importertFraArena)
             .plus(innsok)
+            .plus(endringFraTiltakskoordinator)
             .plus(forslag)
             .plus(endringerFraArrangor)
             .sortedByDescending {

@@ -73,6 +73,7 @@ class DeltakerStatusOppdateringTest {
                 endringFraArrangorRepository,
                 importertFraArenaRepository,
                 InnsokPaaFellesOppstartRepository(),
+                EndringFraTiltakskoordinatorRepository(),
             )
         private val vurderingRepository = VurderingRepository()
         private val unleashToggle = mockk<UnleashToggle>()

@@ -15,6 +15,7 @@ import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
+import no.nav.amt.lib.models.deltaker.InnsokPaaFellesOppstart
 import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
@@ -28,6 +29,7 @@ object TestRepository {
 
     fun cleanDatabase() = Database.query { session ->
         val tables = listOf(
+            "endring_fra_tiltakskoordinator",
             "deltaker_endring",
             "forslag",
             "endring_fra_arrangor",
@@ -237,6 +239,44 @@ object TestRepository {
                 ),
             )
         }
+    }
+
+    fun insert(innsok: InnsokPaaFellesOppstart) = Database.query {
+        val sql =
+            """
+            insert into innsok_paa_felles_oppstart (
+                id, 
+                deltaker_id, 
+                innsokt, 
+                innsokt_av, 
+                innsokt_av_enhet, 
+                utkast_godkjent_av_nav, 
+                utkast_delt, 
+                deltakelsesinnhold_ved_innsok
+            ) 
+            values (
+                :id, 
+                :deltaker_id, 
+                :innsokt, 
+                :innsokt_av, 
+                :innsokt_av_enhet, 
+                :utkast_godkjent_av_nav, 
+                :utkast_delt, 
+                :deltakelsesinnhold_ved_innsok
+                )
+            """.trimIndent()
+        val params = mapOf(
+            "id" to innsok.id,
+            "deltaker_id" to innsok.deltakerId,
+            "innsokt" to innsok.innsokt,
+            "innsokt_av" to innsok.innsoktAv,
+            "innsokt_av_enhet" to innsok.innsoktAvEnhet,
+            "utkast_godkjent_av_nav" to innsok.utkastGodkjentAvNav,
+            "utkast_delt" to innsok.utkastDelt,
+            "deltakelsesinnhold_ved_innsok" to toPGObject(innsok.deltakelsesinnholdVedInnsok),
+        )
+
+        it.update(queryOf(sql, params))
     }
 
     fun insert(deltaker: Deltaker, vedtak: Vedtak? = null) = Database.query {
@@ -469,6 +509,7 @@ object TestRepository {
                 is DeltakerEndring -> insert(it)
                 is EndringFraArrangor -> insert(it)
                 is ImportertFraArena -> insert(it)
+                is InnsokPaaFellesOppstart -> insert(it)
                 is EndringFraTiltakskoordinator -> insert(it)
                 else -> NotImplementedError("insertAll for type ${it!!::class} er ikke implementert")
             }

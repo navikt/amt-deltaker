@@ -21,8 +21,7 @@ import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.lib.models.hendelse.HendelseType
-import no.nav.amt.lib.models.tiltakskoordinator.requests.DelMedArrangorRequest
-import no.nav.amt.lib.models.tiltakskoordinator.requests.EndringFraTiltakskoordinatorRequest
+import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -47,9 +46,12 @@ class DeltakerService(
 
     fun get(id: UUID) = deltakerRepository.get(id)
 
-    fun getDeltakelser(personident: String, deltakerlisteId: UUID) = deltakerRepository.getMany(personident, deltakerlisteId)
+    fun getDeltakelserForPerson(personident: String, deltakerlisteId: UUID) =
+        deltakerRepository.getFlereForPerson(personident, deltakerlisteId)
 
-    fun getDeltakelser(personident: String) = deltakerRepository.getMany(personident)
+    fun getDeltakelser(deltakerIder: List<UUID>) = deltakerRepository.getMany(deltakerIder)
+
+    fun getDeltakelserForPerson(personident: String) = deltakerRepository.getFlereForPerson(personident)
 
     private fun getDeltakereForDeltakerliste(deltakerlisteId: UUID) = deltakerRepository.getDeltakereForDeltakerliste(deltakerlisteId)
 
@@ -130,12 +132,44 @@ class DeltakerService(
         )
     }
 
+    suspend fun upsertEndretDeltakere(
+        deltakerIder: List<UUID>,
+        endringsType: EndringFraTiltakskoordinator.Endring,
+        endretAv: String,
+    ): List<Deltaker> {
+        val deltakere = deltakerRepository.getMany(deltakerIder)
+
+        if (deltakere.isEmpty()) return emptyList()
+
+        val tiltakstype = deltakere.distinctBy { it.deltakerliste.tiltakstype.tiltakskode }.map { it.deltakerliste.tiltakstype.tiltakskode }
+
+        require(tiltakstype.size == 1) { "kan ikke endre på deltakere på flere tiltakstyper samtidig" }
+        require(tiltakstype.first() in Tiltakstype.kursTiltak) { "kan ikke endre på deltakere på tiltakstypen ${tiltakstype.first()}" }
+
+        return if (unleashToggle.erKometMasterForTiltakstype(tiltakstype.first().toArenaKode())) {
+            endringFraTiltakskoordinatorService
+                .upsertEndring(deltakere, endringsType, endretAv)
+                .mapNotNull { it.getOrNull() }
+                .map { upsertDeltaker(it) }
+        } else if (endringsType is EndringFraTiltakskoordinator.DelMedArrangor) {
+            amtTiltakClient.delMedArrangor(deltakere.map { it.id })
+            val endredeDeltakere = deltakere.map { it.copy(erManueltDeltMedArrangor = true) }
+            endringFraTiltakskoordinatorService.insertDelMedArrangor(endredeDeltakere, endretAv)
+            endredeDeltakere
+        } else {
+            throw NotImplementedError(
+                "Håndtering av endring fra tiltakskoordinator " +
+                    "hvor komet ikke er master og det ikke er av type del-med-arrangør er ikke støttet",
+            )
+        }
+    }
+
     private fun validerIkkeFeilregistrert(deltaker: Deltaker) = require(deltaker.status.type != DeltakerStatus.Type.FEILREGISTRERT) {
         "Kan ikke oppdatere feilregistrert deltaker, id ${deltaker.id}"
     }
 
     suspend fun produserDeltakereForPerson(personident: String, publiserTilDeltakerV1: Boolean = true) {
-        getDeltakelser(personident).forEach {
+        getDeltakelserForPerson(personident).forEach {
             deltakerProducerService.produce(it, publiserTilDeltakerV1 = publiserTilDeltakerV1)
         }
     }
@@ -222,32 +256,6 @@ class DeltakerService(
                 )
                 log.info("Deltaker ${it.id} fikk ny sluttdato fordi deltakerlisten sin sluttdato var mindre enn deltakers")
             }
-        }
-    }
-
-    suspend fun upsertEndretDeltakere(request: EndringFraTiltakskoordinatorRequest): List<Deltaker> {
-        val deltakere = deltakerRepository.getMany(request.deltakerIder)
-
-        if (deltakere.isEmpty()) return emptyList()
-
-        val tiltakstype = deltakere.distinctBy { it.deltakerliste.tiltakstype.tiltakskode }.map { it.deltakerliste.tiltakstype.tiltakskode }
-
-        require(tiltakstype.size == 1) { "kan ikke endre på deltakere på flere tiltakstyper samtidig" }
-        require(tiltakstype.first() in Tiltakstype.kursTiltak) { "kan ikke endre på deltakere på tiltakstypen ${tiltakstype.first()}" }
-
-        return if (unleashToggle.erKometMasterForTiltakstype(tiltakstype.first().toArenaKode())) {
-            val endredeDeltakere = endringFraTiltakskoordinatorService.endre(deltakere, request).mapNotNull { it.getOrNull() }
-            endredeDeltakere.map { upsertDeltaker(it) }
-        } else if (request is DelMedArrangorRequest) {
-            amtTiltakClient.delMedArrangor(deltakere.map { it.id })
-            val endredeDeltakere = deltakere.map { it.copy(erManueltDeltMedArrangor = true) }
-            endringFraTiltakskoordinatorService.insertDelMedArrangor(endredeDeltakere, request.endretAv)
-            endredeDeltakere
-        } else {
-            throw NotImplementedError(
-                "Håndtering av endring fra tiltakskoordinator " +
-                    "hvor komet ikke er master og det ikke er av type del-med-arrangør er ikke støttet",
-            )
         }
     }
 }
