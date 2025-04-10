@@ -566,7 +566,7 @@ class DeltakerServiceTest {
     }
 
     @Test
-    fun `upsertEndretDeltaker - sett på venteliste - upserter endring`(): Unit = runBlocking {
+    fun `upsertEndretDeltakere - sett på venteliste - upserter endring`(): Unit = runBlocking {
         val deltakerliste = TestData.lagDeltakerliste(
             tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING),
         )
@@ -599,8 +599,10 @@ class DeltakerServiceTest {
         historikk2.filterIsInstance<DeltakerHistorikk.EndringFraTiltakskoordinator>().size shouldBe 1
 
         // TODO: assertProducedHendelse(deltaker.id, HendelseType.SettPaaVenteliste::class)
-        // TODO: assertProduced(deltaker.id)
-        // TODO: assertProducedDeltakerV1(deltaker.id)
+        assertProduced(deltaker.id)
+        assertProducedDeltakerV1(deltaker.id)
+        assertProduced(deltaker2.id)
+        assertProducedDeltakerV1(deltaker2.id)
     }
 
     @Test
