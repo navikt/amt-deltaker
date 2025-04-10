@@ -19,7 +19,7 @@ class DeltakerHistorikkService(
     private val endringFraArrangorRepository: EndringFraArrangorRepository,
     private val importertFraArenaRepository: ImportertFraArenaRepository,
     private val innsokPaaFellesOppstartRepository: InnsokPaaFellesOppstartRepository,
-    private val endringFraTiltakskoordinator: EndringFraTiltakskoordinatorRepository,
+    private val endringFraTiltakskoordinatorRepository: EndringFraTiltakskoordinatorRepository,
 ) {
     fun getForDeltaker(id: UUID): List<DeltakerHistorikk> {
         val endringer = deltakerEndringRepository.getForDeltaker(id).map { DeltakerHistorikk.Endring(it) }
@@ -34,7 +34,7 @@ class DeltakerHistorikkService(
             ?.let { listOf(DeltakerHistorikk.ImportertFraArena(it)) }
             ?: emptyList()
 
-        val endringFraTiltakskoordinator = endringFraTiltakskoordinator
+        val endringFraTiltakskoordinator = endringFraTiltakskoordinatorRepository
             .getForDeltaker(id)
             .map { DeltakerHistorikk.EndringFraTiltakskoordinator(it) }
 
