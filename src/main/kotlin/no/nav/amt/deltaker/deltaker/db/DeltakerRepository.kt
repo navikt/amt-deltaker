@@ -242,25 +242,6 @@ class DeltakerRepository {
         session.run(query)
     }
 
-    fun getFlereForPerson(deltakerIder: List<UUID>) = Database.query {
-        if (deltakerIder.isEmpty()) return@query emptyList()
-
-        val sql = getDeltakerSql(
-            """ where d.id = any(:deltaker_ider)
-                    and ds.gyldig_til is null
-                    and ds.gyldig_fra < CURRENT_TIMESTAMP
-            """.trimMargin(),
-        )
-
-        val query = queryOf(
-            sql,
-            mapOf(
-                "deltaker_ider" to deltakerIder.toTypedArray(),
-            ),
-        ).map(::rowMapper).asList
-        it.run(query)
-    }
-
     fun getFlereForPerson(personIdent: String) = Database.query {
         val sql = getDeltakerSql(
             """ where nb.personident = :personident

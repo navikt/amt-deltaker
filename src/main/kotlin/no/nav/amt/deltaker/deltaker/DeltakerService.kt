@@ -132,6 +132,38 @@ class DeltakerService(
         )
     }
 
+    suspend fun upsertEndretDeltakere(
+        deltakerIder: List<UUID>,
+        endringsType: EndringFraTiltakskoordinator.Endring,
+        endretAv: String,
+    ): List<Deltaker> {
+        val deltakere = deltakerRepository.getMany(deltakerIder)
+
+        if (deltakere.isEmpty()) return emptyList()
+
+        val tiltakstype = deltakere.distinctBy { it.deltakerliste.tiltakstype.tiltakskode }.map { it.deltakerliste.tiltakstype.tiltakskode }
+
+        require(tiltakstype.size == 1) { "kan ikke endre på deltakere på flere tiltakstyper samtidig" }
+        require(tiltakstype.first() in Tiltakstype.kursTiltak) { "kan ikke endre på deltakere på tiltakstypen ${tiltakstype.first()}" }
+
+        return if (unleashToggle.erKometMasterForTiltakstype(tiltakstype.first().toArenaKode())) {
+            endringFraTiltakskoordinatorService
+                .upsertEndring(deltakere, endringsType, endretAv)
+                .mapNotNull { it.getOrNull() }
+                .map { upsertDeltaker(it) }
+        } else if (endringsType is EndringFraTiltakskoordinator.DelMedArrangor) {
+            amtTiltakClient.delMedArrangor(deltakere.map { it.id })
+            val endredeDeltakere = deltakere.map { it.copy(erManueltDeltMedArrangor = true) }
+            endringFraTiltakskoordinatorService.insertDelMedArrangor(endredeDeltakere, endretAv)
+            endredeDeltakere
+        } else {
+            throw NotImplementedError(
+                "Håndtering av endring fra tiltakskoordinator " +
+                    "hvor komet ikke er master og det ikke er av type del-med-arrangør er ikke støttet",
+            )
+        }
+    }
+
     private fun validerIkkeFeilregistrert(deltaker: Deltaker) = require(deltaker.status.type != DeltakerStatus.Type.FEILREGISTRERT) {
         "Kan ikke oppdatere feilregistrert deltaker, id ${deltaker.id}"
     }
@@ -224,38 +256,6 @@ class DeltakerService(
                 )
                 log.info("Deltaker ${it.id} fikk ny sluttdato fordi deltakerlisten sin sluttdato var mindre enn deltakers")
             }
-        }
-    }
-
-    suspend fun upsertEndretDeltakere(
-        deltakerIder: List<UUID>,
-        endringsType: EndringFraTiltakskoordinator.Endring,
-        endretAv: String,
-    ): List<Deltaker> {
-        val deltakere = deltakerRepository.getFlereForPerson(deltakerIder)
-
-        if (deltakere.isEmpty()) return emptyList()
-
-        val tiltakstype = deltakere.distinctBy { it.deltakerliste.tiltakstype.tiltakskode }.map { it.deltakerliste.tiltakstype.tiltakskode }
-
-        require(tiltakstype.size == 1) { "kan ikke endre på deltakere på flere tiltakstyper samtidig" }
-        require(tiltakstype.first() in Tiltakstype.kursTiltak) { "kan ikke endre på deltakere på tiltakstypen ${tiltakstype.first()}" }
-
-        return if (unleashToggle.erKometMasterForTiltakstype(tiltakstype.first().toArenaKode())) {
-            endringFraTiltakskoordinatorService
-                .upsertEndring(deltakere, endringsType, endretAv)
-                .mapNotNull { it.getOrNull() }
-                .map { upsertDeltaker(it) }
-        } else if (endringsType is EndringFraTiltakskoordinator.DelMedArrangor) {
-            amtTiltakClient.delMedArrangor(deltakere.map { it.id })
-            val endredeDeltakere = deltakere.map { it.copy(erManueltDeltMedArrangor = true) }
-            endringFraTiltakskoordinatorService.insertDelMedArrangor(endredeDeltakere, endretAv)
-            endredeDeltakere
-        } else {
-            throw NotImplementedError(
-                "Håndtering av endring fra tiltakskoordinator " +
-                    "hvor komet ikke er master og det ikke er av type del-med-arrangør er ikke støttet",
-            )
         }
     }
 }
