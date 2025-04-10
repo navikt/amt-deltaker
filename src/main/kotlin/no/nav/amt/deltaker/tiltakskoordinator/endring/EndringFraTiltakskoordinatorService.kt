@@ -30,7 +30,7 @@ class EndringFraTiltakskoordinatorService(
         }
 
         val tentativtEndredeDeltakere = deltakereMedEndringMap
-            .map { (deltaker, endring) -> sjekkEndringResultat(deltaker, endring.endring) to endring }
+            .map { (deltaker, endring) -> sjekkEndringUtfall(deltaker, endring.endring) to endring }
 
         val gyldigeEndringer = tentativtEndredeDeltakere
             .filter { (res, _) -> res.isSuccess }
@@ -43,7 +43,7 @@ class EndringFraTiltakskoordinatorService(
 
     fun deleteForDeltaker(deltakerId: UUID) = repository.deleteForDeltaker(deltakerId)
 
-    private fun sjekkEndringResultat(deltaker: Deltaker, endring: EndringFraTiltakskoordinator.Endring): Result<Deltaker> {
+    private fun sjekkEndringUtfall(deltaker: Deltaker, endring: EndringFraTiltakskoordinator.Endring): Result<Deltaker> {
         fun createResult(gyldigEndring: Boolean, deltakerOnSuccess: () -> Deltaker) = if (gyldigEndring) {
             Result.success(deltakerOnSuccess())
         } else {

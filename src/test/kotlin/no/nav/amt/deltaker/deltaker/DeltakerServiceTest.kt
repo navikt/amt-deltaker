@@ -27,6 +27,7 @@ import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerV1Producer
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerDtoMapperService
+import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
 import no.nav.amt.deltaker.hendelse.HendelseProducer
 import no.nav.amt.deltaker.hendelse.HendelseService
@@ -48,8 +49,11 @@ import no.nav.amt.deltaker.utils.mockAmtPersonClient
 import no.nav.amt.lib.kafka.Producer
 import no.nav.amt.lib.kafka.config.LocalKafkaConfig
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
+import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.lib.models.hendelse.HendelseType
+import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.testing.SingletonKafkaProvider
 import no.nav.amt.lib.testing.SingletonPostgres16Container
 import no.nav.amt.lib.testing.shouldBeCloseTo
@@ -82,6 +86,7 @@ class DeltakerServiceTest {
                 endringFraArrangorRepository,
                 importertFraArenaRepository,
                 InnsokPaaFellesOppstartRepository(),
+                EndringFraTiltakskoordinatorRepository(),
             )
         private val hendelseService = HendelseService(
             HendelseProducer(kafkaProducer),
@@ -514,7 +519,7 @@ class DeltakerServiceTest {
     }
 
     @Test
-    fun `upsertEndretDeltaker - endret startdato- upserter ny dato og status`(): Unit = runBlocking {
+    fun `upsertEndretDeltaker - endret startdato - upserter ny dato og status`(): Unit = runBlocking {
         val deltakersSluttdato = LocalDate.now().plusWeeks(3)
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
@@ -558,6 +563,44 @@ class DeltakerServiceTest {
         assertProducedHendelse(deltaker.id, HendelseType.EndreStartdato::class)
         assertProduced(deltaker.id)
         assertProducedDeltakerV1(deltaker.id)
+    }
+
+    @Test
+    fun `upsertEndretDeltaker - sett på venteliste - upserter endring`(): Unit = runBlocking {
+        val deltakerliste = TestData.lagDeltakerliste(
+            tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING),
+        )
+        val deltaker = TestData.lagDeltaker(deltakerliste = deltakerliste)
+        val deltaker2 = TestData.lagDeltaker(deltakerliste = deltakerliste)
+        val deltakerIder = listOf(deltaker.id, deltaker2.id)
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+        val innsokt = TestData.lagInnsoktPaaKurs(deltakerId = deltaker.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
+        val innsokt2 = TestData.lagInnsoktPaaKurs(deltakerId = deltaker2.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
+        TestRepository.insertAll(endretAv, endretAvEnhet, deltaker, deltaker2, innsokt, innsokt2)
+
+        val endredeDeltakere = deltakerService.upsertEndretDeltakere(
+            deltakerIder,
+            EndringFraTiltakskoordinator.SettPaaVenteliste,
+            endretAv.navIdent,
+        )
+        endredeDeltakere.size shouldBe 2
+        endredeDeltakere.first {
+            it.id == deltaker.id
+        } shouldBeComparableWith deltaker.copy(status = deltaker.status.copy(type = DeltakerStatus.Type.VENTELISTE))
+        endredeDeltakere.first {
+            it.id == deltaker2.id
+        } shouldBeComparableWith deltaker2.copy(status = deltaker2.status.copy(type = DeltakerStatus.Type.VENTELISTE))
+
+        val historikk1 = deltakerHistorikkService.getForDeltaker(deltaker.id)
+        historikk1.filterIsInstance<DeltakerHistorikk.EndringFraTiltakskoordinator>().size shouldBe 1
+
+        val historikk2 = deltakerHistorikkService.getForDeltaker(deltaker2.id)
+        historikk2.filterIsInstance<DeltakerHistorikk.EndringFraTiltakskoordinator>().size shouldBe 1
+
+        // TODO: assertProducedHendelse(deltaker.id, HendelseType.SettPaaVenteliste::class)
+        // TODO: assertProduced(deltaker.id)
+        // TODO: assertProducedDeltakerV1(deltaker.id)
     }
 
     @Test
@@ -744,4 +787,24 @@ class DeltakerServiceTest {
 
         oppdatertDeltaker.sluttdato shouldNotBe deltakerliste.sluttDato
     }
+}
+
+infix fun Deltaker.shouldBeComparableWith(expected: Deltaker?) {
+    val statusOpprettetDay = this.status.opprettet.toLocalDate().atStartOfDay()
+    val gyldigFra = this.status.gyldigFra.toLocalDate().atStartOfDay()
+    val sistEndret = this.sistEndret.toLocalDate().atStartOfDay()
+
+    fun LocalDateTime.atStartOfDay() = this.toLocalDate().atStartOfDay()
+
+    this.copy(
+        sistEndret = sistEndret,
+        status = status.copy(id = expected!!.status.id, opprettet = statusOpprettetDay, gyldigFra = gyldigFra),
+    ) shouldBe expected.copy(
+        sistEndret = expected.sistEndret.atStartOfDay(),
+        status = expected.status.copy(
+            id = expected.status.id,
+            opprettet = expected.status.opprettet.atStartOfDay(),
+            gyldigFra = expected.status.gyldigFra.atStartOfDay(),
+        ),
+    )
 }
