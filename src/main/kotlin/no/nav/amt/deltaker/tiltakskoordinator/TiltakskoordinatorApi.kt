@@ -43,7 +43,6 @@ fun Routing.registerTiltakskoordinatorApi(deltakerService: DeltakerService) {
 
 data class DeltakereRequest(
     val deltakere: List<UUID>,
-    val deltakerlisteId: UUID,
     val endretAv: String,
 )
 
