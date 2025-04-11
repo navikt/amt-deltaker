@@ -62,7 +62,6 @@ class TiltakskoordinatorApiTest {
         coEvery { deltakerService.upsertEndretDeltakere(any(), any(), any()) } returns listOf(deltaker)
         val request = DeltakereRequest(
             deltakere = listOf(deltaker.id),
-            deltakerlisteId = deltaker.deltakerliste.id,
             endretAv = "Nav Veiledersen",
         )
         setUpTestApplication()
