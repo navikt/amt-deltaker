@@ -8,6 +8,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.mockk
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.application.plugins.configureAuthentication
@@ -20,6 +21,7 @@ import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.deltaker.utils.configureEnvForAuthentication
 import no.nav.amt.deltaker.utils.data.TestData
+import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.tiltakskoordinator.requests.DelMedArrangorRequest
 import no.nav.amt.lib.models.tiltakskoordinator.response.EndringFraTiltakskoordinatorResponse
 import org.junit.Before
@@ -57,9 +59,11 @@ class TiltakskoordinatorApiTest {
     @Test
     fun `sett-paa-venteliste - har tilgang - returnerer 200`() = testApplication {
         val deltaker = TestData.lagDeltaker()
+        val historikk = emptyList<DeltakerHistorikk>()
         coEvery { deltakerService.getDeltakelser(any()) } returns listOf(deltaker)
         coEvery { unleashToggle.erKometMasterForTiltakstype(deltaker.deltakerliste.tiltakstype.arenaKode) } returns true
         coEvery { deltakerService.upsertEndretDeltakere(any(), any(), any()) } returns listOf(deltaker)
+        every { deltakerService.getHistorikk(deltaker.id) } returns historikk
         val request = DeltakereRequest(
             deltakere = listOf(deltaker.id),
             endretAv = "Nav Veiledersen",
@@ -67,7 +71,7 @@ class TiltakskoordinatorApiTest {
         setUpTestApplication()
         client.post("$apiPath/sett-paa-venteliste") { postRequest(request) }.apply {
             status shouldBe HttpStatusCode.OK
-            bodyAsText() shouldBe objectMapper.writeValueAsString(listOf(deltaker))
+            bodyAsText() shouldBe objectMapper.writeValueAsString(listOf(deltaker.toDeltakerOppdatering(historikk)))
         }
     }
 
