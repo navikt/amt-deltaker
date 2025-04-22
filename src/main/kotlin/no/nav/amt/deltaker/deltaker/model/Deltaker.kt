@@ -2,7 +2,9 @@ package no.nav.amt.deltaker.deltaker.model
 
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.navbruker.model.NavBruker
+import no.nav.amt.deltaker.tiltakskoordinator.Deltakeroppdatering
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
+import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.DeltakerVedImport
 import no.nav.amt.lib.models.deltaker.DeltakerVedVedtak
@@ -50,6 +52,23 @@ data class Deltaker(
         deltakelsesprosent = deltakelsesprosent,
         status = status,
     )
+
+    fun toDeltakerOppdatering(historikk: List<DeltakerHistorikk>): Deltakeroppdatering {
+        return Deltakeroppdatering(
+            id = id,
+            startdato = startdato,
+            sluttdato = sluttdato,
+            dagerPerUke = dagerPerUke,
+            deltakelsesprosent = deltakelsesprosent,
+            bakgrunnsinformasjon = bakgrunnsinformasjon,
+            deltakelsesinnhold = deltakelsesinnhold,
+            status = status,
+            historikk = historikk,
+            sistEndret = sistEndret,
+            erManueltDeltMedArrangor = erManueltDeltMedArrangor,
+            forcedUpdate = false,
+        )
+    }
 
     data class Vedtaksinformasjon(
         val fattet: LocalDateTime?,

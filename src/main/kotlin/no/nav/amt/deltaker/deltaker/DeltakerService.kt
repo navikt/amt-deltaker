@@ -18,6 +18,7 @@ import no.nav.amt.deltaker.job.DeltakerProgresjon
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorService
 import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
+import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.lib.models.hendelse.HendelseType
@@ -45,6 +46,8 @@ class DeltakerService(
     private val log = LoggerFactory.getLogger(javaClass)
 
     fun get(id: UUID) = deltakerRepository.get(id)
+
+    fun getHistorikk(deltakerId: UUID): List<DeltakerHistorikk> = deltakerHistorikkService.getForDeltaker(deltakerId)
 
     fun getDeltakelserForPerson(personident: String, deltakerlisteId: UUID) =
         deltakerRepository.getFlereForPerson(personident, deltakerlisteId)

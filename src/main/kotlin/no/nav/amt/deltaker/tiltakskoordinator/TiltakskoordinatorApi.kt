@@ -15,6 +15,8 @@ import java.util.UUID
 fun Routing.registerTiltakskoordinatorApi(deltakerService: DeltakerService) {
     val apiPath = "/tiltakskoordinator/deltakere"
 
+    fun List<Deltaker>.toDeltakereResponse() = this.map { it.toDeltakerOppdatering(deltakerService.getHistorikk(it.id)) }
+
     authenticate("SYSTEM") {
         post("$apiPath/del-med-arrangor") {
             val request = call.receive<DelMedArrangorRequest>()
@@ -34,7 +36,7 @@ fun Routing.registerTiltakskoordinatorApi(deltakerService: DeltakerService) {
                 deltakerIder,
                 EndringFraTiltakskoordinator.DelMedArrangor,
                 request.endretAv,
-            )
+            ).toDeltakereResponse()
 
             call.respond(oppdaterteDeltakere)
         }
