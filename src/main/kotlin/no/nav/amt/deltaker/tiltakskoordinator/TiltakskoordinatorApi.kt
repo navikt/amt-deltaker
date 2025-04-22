@@ -34,7 +34,7 @@ fun Routing.registerTiltakskoordinatorApi(deltakerService: DeltakerService) {
             val deltakerIder = request.deltakere
             val oppdaterteDeltakere = deltakerService.upsertEndretDeltakere(
                 deltakerIder,
-                EndringFraTiltakskoordinator.DelMedArrangor,
+                EndringFraTiltakskoordinator.SettPaaVenteliste,
                 request.endretAv,
             ).toDeltakereResponse()
 
