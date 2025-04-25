@@ -60,9 +60,6 @@ class DeltakerService(
 
     fun getDeltakerIderForTiltakstype(tiltakstype: Tiltakstype.ArenaKode) = deltakerRepository.getDeltakerIderForTiltakstype(tiltakstype)
 
-    fun getDeltakerIder(personId: UUID, deltakerlisteId: UUID) =
-        deltakerRepository.getDeltakerIder(personId = personId, deltakerlisteId = deltakerlisteId)
-
     suspend fun upsertDeltaker(
         deltaker: Deltaker,
         forcedUpdate: Boolean? = false,
@@ -87,6 +84,7 @@ class DeltakerService(
         forslagService.deleteForDeltaker(deltakerId)
         endringFraArrangorService.deleteForDeltaker(deltakerId)
         deltakerRepository.deleteDeltakerOgStatus(deltakerId)
+        endringFraTiltakskoordinatorService.deleteForDeltaker(deltakerId)
     }
 
     suspend fun feilregistrerDeltaker(deltakerId: UUID) {
