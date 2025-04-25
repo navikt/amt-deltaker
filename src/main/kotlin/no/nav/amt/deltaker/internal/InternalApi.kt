@@ -38,7 +38,6 @@ fun Routing.registerInternalApi(
 
     val log: Logger = LoggerFactory.getLogger(javaClass)
 
-
     fun slettDeltaker(deltakerId: UUID) {
         innsokPaaFellesOppstartRepository.deleteForDeltaker(deltakerId)
         vurderingService.deleteForDeltaker(deltakerId)
@@ -209,7 +208,6 @@ fun Routing.registerInternalApi(
         deltakerService.upsertDeltaker(oppdatertDeltaker)
     }
 }
-
 
 data class RelastDeltakereRequest(
     val deltakere: List<UUID>,
