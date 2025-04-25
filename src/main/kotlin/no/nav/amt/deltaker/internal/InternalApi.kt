@@ -14,7 +14,7 @@ import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.auth.AuthorizationException
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.VedtakService
-import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
+import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.nyDeltakerStatus
 import no.nav.amt.deltaker.deltaker.tilVedtaksinformasjon
@@ -31,7 +31,7 @@ fun Routing.registerInternalApi(
     deltakerService: DeltakerService,
     deltakerProducerService: DeltakerProducerService,
     vedtakService: VedtakService,
-    innsokPaaFellesOppstartRepository: InnsokPaaFellesOppstartRepository,
+    innsokPaaFellesOppstartService: InnsokPaaFellesOppstartService,
     vurderingService: VurderingService,
 ) {
     val scope = CoroutineScope(Dispatchers.IO)
@@ -39,7 +39,7 @@ fun Routing.registerInternalApi(
     val log: Logger = LoggerFactory.getLogger(javaClass)
 
     fun slettDeltaker(deltakerId: UUID) {
-        innsokPaaFellesOppstartRepository.deleteForDeltaker(deltakerId)
+        innsokPaaFellesOppstartService.deleteForDeltaker(deltakerId)
         vurderingService.deleteForDeltaker(deltakerId)
         deltakerService.delete(deltakerId)
     }
