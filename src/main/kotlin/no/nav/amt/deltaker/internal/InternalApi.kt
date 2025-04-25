@@ -14,9 +14,11 @@ import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.auth.AuthorizationException
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.VedtakService
+import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.nyDeltakerStatus
 import no.nav.amt.deltaker.deltaker.tilVedtaksinformasjon
+import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import org.slf4j.Logger
@@ -29,10 +31,18 @@ fun Routing.registerInternalApi(
     deltakerService: DeltakerService,
     deltakerProducerService: DeltakerProducerService,
     vedtakService: VedtakService,
+    innsokPaaFellesOppstartService: InnsokPaaFellesOppstartService,
+    vurderingService: VurderingService,
 ) {
     val scope = CoroutineScope(Dispatchers.IO)
 
     val log: Logger = LoggerFactory.getLogger(javaClass)
+
+    fun slettDeltaker(deltakerId: UUID) {
+        innsokPaaFellesOppstartService.deleteForDeltaker(deltakerId)
+        vurderingService.deleteForDeltaker(deltakerId)
+        deltakerService.delete(deltakerId)
+    }
 
     post("/internal/sett-ikke-aktuell/{fra-status}") {
         if (isInternal(call.request.local.remoteAddress)) {
@@ -169,7 +179,7 @@ fun Routing.registerInternalApi(
                 log.info("Sletter ${request.deltakere.size} deltakere")
                 request.deltakere.forEach { deltakerId ->
                     deltakerProducerService.tombstone(deltakerId)
-                    deltakerService.delete(deltakerId)
+                    slettDeltaker(deltakerId)
                 }
                 log.info("Slettet ${request.deltakere.size} deltakere")
             }

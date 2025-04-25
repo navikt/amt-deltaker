@@ -289,6 +289,8 @@ fun Application.module() {
         deltakerProducerService,
         vedtakService,
         unleashToggle,
+        innsokPaaFellesOppstartService,
+        vurderingService,
     )
     configureMonitoring()
 

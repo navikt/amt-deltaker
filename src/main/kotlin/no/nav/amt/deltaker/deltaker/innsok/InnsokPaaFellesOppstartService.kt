@@ -33,4 +33,6 @@ class InnsokPaaFellesOppstartService(
         repository.insert(innsok)
         return innsok
     }
+
+    fun deleteForDeltaker(deltakerId: UUID) = repository.deleteForDeltaker(deltakerId)
 }
