@@ -9,7 +9,6 @@ import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.models.tiltakskoordinator.requests.DelMedArrangorRequest
-import no.nav.amt.lib.models.tiltakskoordinator.response.EndringFraTiltakskoordinatorResponse
 import java.util.UUID
 
 fun Routing.registerTiltakskoordinatorApi(deltakerService: DeltakerService) {
@@ -21,12 +20,12 @@ fun Routing.registerTiltakskoordinatorApi(deltakerService: DeltakerService) {
         post("$apiPath/del-med-arrangor") {
             val request = call.receive<DelMedArrangorRequest>()
 
-            val deltakere = deltakerService.upsertEndretDeltakere(
+            val oppdaterteDeltakere = deltakerService.upsertEndretDeltakere(
                 request.deltakerIder,
                 EndringFraTiltakskoordinator.DelMedArrangor,
                 request.endretAv,
-            )
-            call.respond(deltakere.map { it.toResponse() })
+            ).toDeltakereResponse()
+            call.respond(oppdaterteDeltakere)
         }
 
         post("$apiPath/del-med-arrangor-v2") {
@@ -58,5 +57,3 @@ data class DeltakereRequest(
     val deltakere: List<UUID>,
     val endretAv: String,
 )
-
-private fun Deltaker.toResponse() = EndringFraTiltakskoordinatorResponse(id, erManueltDeltMedArrangor, sistEndret)
