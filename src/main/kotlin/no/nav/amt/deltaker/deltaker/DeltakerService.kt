@@ -83,8 +83,8 @@ class DeltakerService(
         deltakerEndringService.deleteForDeltaker(deltakerId)
         forslagService.deleteForDeltaker(deltakerId)
         endringFraArrangorService.deleteForDeltaker(deltakerId)
-        deltakerRepository.deleteDeltakerOgStatus(deltakerId)
         endringFraTiltakskoordinatorService.deleteForDeltaker(deltakerId)
+        deltakerRepository.deleteDeltakerOgStatus(deltakerId)
     }
 
     suspend fun feilregistrerDeltaker(deltakerId: UUID) {
