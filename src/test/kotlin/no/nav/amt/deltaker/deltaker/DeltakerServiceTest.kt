@@ -606,6 +606,46 @@ class DeltakerServiceTest {
     }
 
     @Test
+    fun `upsertEndretDeltakere - tildel plass - upserter endring`(): Unit = runBlocking {
+        val deltakerliste = TestData.lagDeltakerliste(
+            tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING),
+        )
+        val deltaker = TestData.lagDeltaker(deltakerliste = deltakerliste)
+        val deltaker2 = TestData.lagDeltaker(deltakerliste = deltakerliste)
+        val deltakerIder = listOf(deltaker.id, deltaker2.id)
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+        val innsokt = TestData.lagInnsoktPaaKurs(deltakerId = deltaker.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
+        val innsokt2 = TestData.lagInnsoktPaaKurs(deltakerId = deltaker2.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
+        TestRepository.insertAll(endretAv, endretAvEnhet, deltaker, deltaker2, innsokt, innsokt2)
+
+        val endredeDeltakere = deltakerService.upsertEndretDeltakere(
+            deltakerIder,
+            EndringFraTiltakskoordinator.TildelPlass,
+            endretAv.navIdent,
+        )
+        endredeDeltakere.size shouldBe 2
+        endredeDeltakere.first {
+            it.id == deltaker.id
+        } shouldBeComparableWith deltaker.copy(status = deltaker.status.copy(type = DeltakerStatus.Type.VENTER_PA_OPPSTART))
+        endredeDeltakere.first {
+            it.id == deltaker2.id
+        } shouldBeComparableWith deltaker2.copy(status = deltaker2.status.copy(type = DeltakerStatus.Type.VENTER_PA_OPPSTART))
+
+        val historikk1 = deltakerHistorikkService.getForDeltaker(deltaker.id)
+        historikk1.filterIsInstance<DeltakerHistorikk.EndringFraTiltakskoordinator>().size shouldBe 1
+
+        val historikk2 = deltakerHistorikkService.getForDeltaker(deltaker2.id)
+        historikk2.filterIsInstance<DeltakerHistorikk.EndringFraTiltakskoordinator>().size shouldBe 1
+
+        // TODO: assertProducedHendelse(deltaker.id, HendelseType.TildelPlass::class)
+        assertProduced(deltaker.id)
+        assertProducedDeltakerV1(deltaker.id)
+        assertProduced(deltaker2.id)
+        assertProducedDeltakerV1(deltaker2.id)
+    }
+
+    @Test
     fun `produserDeltakereForPerson - deltaker finnes - publiserer til kafka`() {
         val sistEndretAv = TestData.lagNavAnsatt()
         val sistEndretAvEnhet = TestData.lagNavEnhet()

@@ -61,6 +61,11 @@ class EndringFraTiltakskoordinatorService(
                     deltaker.copy(erManueltDeltMedArrangor = true)
                 }
             }
+            is EndringFraTiltakskoordinator.TildelPlass -> {
+                createResult(deltaker.status.type != DeltakerStatus.Type.FEILREGISTRERT) {
+                    deltaker.copy(status = nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
+                }
+            }
         }
     }
 
