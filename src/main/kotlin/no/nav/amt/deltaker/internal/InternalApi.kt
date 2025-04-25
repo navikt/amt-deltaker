@@ -163,7 +163,7 @@ fun Routing.registerInternalApi(
 
     post("/internal/slett-deltakere") {
         if (isInternal(call.request.local.remoteAddress)) {
-            if(!Environment.isDev()) throw IllegalStateException("Kan kun slette deltaker i dev")
+            if (!Environment.isDev()) throw IllegalStateException("Kan kun slette deltaker i dev")
             val request = call.receive<DeleteDeltakereRequest>()
             scope.launch {
                 log.info("Sletter ${request.deltakere.size} deltakere")
