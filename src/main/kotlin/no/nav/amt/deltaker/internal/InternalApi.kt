@@ -10,6 +10,7 @@ import io.ktor.server.util.getOrFail
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.auth.AuthorizationException
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.VedtakService
@@ -20,6 +21,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.lang.IllegalStateException
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -65,6 +67,15 @@ fun Routing.registerInternalApi(
     }
 
     post("/internal/feilregistrer/{deltakerId}") {
+        if (isInternal(call.request.local.remoteAddress)) {
+            val deltakerId = UUID.fromString(call.parameters["deltakerId"])
+            deltakerService.feilregistrerDeltaker(deltakerId)
+            call.respond(HttpStatusCode.OK)
+        } else {
+            throw AuthorizationException("Ikke tilgang til api")
+        }
+    }
+    post("/internal/slett/{deltakerId}") {
         if (isInternal(call.request.local.remoteAddress)) {
             val deltakerId = UUID.fromString(call.parameters["deltakerId"])
             deltakerService.feilregistrerDeltaker(deltakerId)
@@ -159,20 +170,17 @@ fun Routing.registerInternalApi(
         }
     }
 
-    post("/internal/slett") {
+    post("/internal/slett-deltakere") {
         if (isInternal(call.request.local.remoteAddress)) {
-            val request = call.receive<DeleteRequest>()
+            if(!Environment.isDev()) throw IllegalStateException("Kan kun slette deltaker i dev")
+            val request = call.receive<DeleteDeltakereRequest>()
             scope.launch {
-                log.info("Sletter deltakelser for personid ${request.personId} på deltakerliste ${request.deltakerlisteId}")
-                val deltakerIder = deltakerService.getDeltakerIder(
-                    personId = request.personId,
-                    deltakerlisteId = request.deltakerlisteId,
-                )
-                deltakerIder.forEach {
-                    deltakerProducerService.tombstone(it)
-                    deltakerService.delete(it)
+                log.info("Sletter ${request.deltakere.size} deltakere")
+                request.deltakere.forEach { deltakerId ->
+                    deltakerProducerService.tombstone(deltakerId)
+                    deltakerService.delete(deltakerId)
                 }
-                log.info("Slettet ${deltakerIder.size} deltakere")
+                log.info("Slettet ${request.deltakere.size} deltakere")
             }
             call.respond(HttpStatusCode.OK)
         } else {
@@ -206,14 +214,13 @@ data class RelastDeltakereRequest(
     val publiserTilDeltakerV1: Boolean,
 )
 
+data class DeleteDeltakereRequest(
+    val deltakere: List<UUID>,
+)
+
 data class RepubliserRequest(
     val forcedUpdate: Boolean,
     val publiserTilDeltakerV1: Boolean,
-)
-
-data class DeleteRequest(
-    val personId: UUID,
-    val deltakerlisteId: UUID,
 )
 
 fun isInternal(remoteAdress: String): Boolean = remoteAdress == "127.0.0.1"
