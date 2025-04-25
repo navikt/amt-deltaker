@@ -10,16 +10,20 @@ import io.ktor.server.util.getOrFail
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.auth.AuthorizationException
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.VedtakService
+import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.nyDeltakerStatus
 import no.nav.amt.deltaker.deltaker.tilVedtaksinformasjon
+import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.lang.IllegalStateException
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -27,10 +31,18 @@ fun Routing.registerInternalApi(
     deltakerService: DeltakerService,
     deltakerProducerService: DeltakerProducerService,
     vedtakService: VedtakService,
+    innsokPaaFellesOppstartService: InnsokPaaFellesOppstartService,
+    vurderingService: VurderingService,
 ) {
     val scope = CoroutineScope(Dispatchers.IO)
 
     val log: Logger = LoggerFactory.getLogger(javaClass)
+
+    fun slettDeltaker(deltakerId: UUID) {
+        innsokPaaFellesOppstartService.deleteForDeltaker(deltakerId)
+        vurderingService.deleteForDeltaker(deltakerId)
+        deltakerService.delete(deltakerId)
+    }
 
     post("/internal/sett-ikke-aktuell/{fra-status}") {
         if (isInternal(call.request.local.remoteAddress)) {
@@ -159,20 +171,17 @@ fun Routing.registerInternalApi(
         }
     }
 
-    post("/internal/slett") {
+    post("/internal/slett-deltakere") {
         if (isInternal(call.request.local.remoteAddress)) {
-            val request = call.receive<DeleteRequest>()
+            if (!Environment.isDev()) throw IllegalStateException("Kan kun slette deltaker i dev")
+            val request = call.receive<DeleteDeltakereRequest>()
             scope.launch {
-                log.info("Sletter deltakelser for personid ${request.personId} på deltakerliste ${request.deltakerlisteId}")
-                val deltakerIder = deltakerService.getDeltakerIder(
-                    personId = request.personId,
-                    deltakerlisteId = request.deltakerlisteId,
-                )
-                deltakerIder.forEach {
-                    deltakerProducerService.tombstone(it)
-                    deltakerService.delete(it)
+                log.info("Sletter ${request.deltakere.size} deltakere")
+                request.deltakere.forEach { deltakerId ->
+                    deltakerProducerService.tombstone(deltakerId)
+                    slettDeltaker(deltakerId)
                 }
-                log.info("Slettet ${deltakerIder.size} deltakere")
+                log.info("Slettet ${request.deltakere.size} deltakere")
             }
             call.respond(HttpStatusCode.OK)
         } else {
@@ -206,14 +215,13 @@ data class RelastDeltakereRequest(
     val publiserTilDeltakerV1: Boolean,
 )
 
+data class DeleteDeltakereRequest(
+    val deltakere: List<UUID>,
+)
+
 data class RepubliserRequest(
     val forcedUpdate: Boolean,
     val publiserTilDeltakerV1: Boolean,
-)
-
-data class DeleteRequest(
-    val personId: UUID,
-    val deltakerlisteId: UUID,
 )
 
 fun isInternal(remoteAdress: String): Boolean = remoteAdress == "127.0.0.1"

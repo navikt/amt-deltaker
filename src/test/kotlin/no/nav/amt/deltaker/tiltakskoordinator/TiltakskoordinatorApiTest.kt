@@ -86,6 +86,8 @@ class TiltakskoordinatorApiTest {
                 mockk(),
                 mockk(),
                 unleashToggle,
+                mockk(),
+                mockk(),
             )
         }
     }

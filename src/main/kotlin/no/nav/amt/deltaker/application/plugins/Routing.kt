@@ -23,7 +23,9 @@ import no.nav.amt.deltaker.deltaker.api.model.DeltakelserResponseMapper
 import no.nav.amt.deltaker.deltaker.api.registerDeltakerApi
 import no.nav.amt.deltaker.deltaker.api.registerHentDeltakelserApi
 import no.nav.amt.deltaker.deltaker.api.registerPameldingApi
+import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
+import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
 import no.nav.amt.deltaker.internal.registerInternalApi
 import no.nav.amt.deltaker.tiltakskoordinator.registerTiltakskoordinatorApi
 import no.nav.amt.deltaker.unleash.UnleashToggle
@@ -39,6 +41,8 @@ fun Application.configureRouting(
     deltakerProducerService: DeltakerProducerService,
     vedtakService: VedtakService,
     unleashToggle: UnleashToggle,
+    innsokPaaFellesOppstartService: InnsokPaaFellesOppstartService,
+    vurderingService: VurderingService,
 ) {
     install(StatusPages) {
         exception<IllegalArgumentException> { call, cause ->
@@ -68,7 +72,7 @@ fun Application.configureRouting(
         registerPameldingApi(pameldingService, deltakerHistorikkService)
         registerDeltakerApi(deltakerService, deltakerHistorikkService)
         registerHentDeltakelserApi(tilgangskontrollService, deltakerService, deltakelserResponseMapper, unleashToggle)
-        registerInternalApi(deltakerService, deltakerProducerService, vedtakService)
+        registerInternalApi(deltakerService, deltakerProducerService, vedtakService, innsokPaaFellesOppstartService, vurderingService)
         registerTiltakskoordinatorApi(deltakerService)
 
         val catchAllRoute = "{...}"

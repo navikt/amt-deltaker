@@ -253,6 +253,8 @@ class HentDeltakelserApiTest {
                 deltakerProducerService,
                 mockk(),
                 unleashToggle,
+                mockk(),
+                mockk(),
             )
         }
     }
