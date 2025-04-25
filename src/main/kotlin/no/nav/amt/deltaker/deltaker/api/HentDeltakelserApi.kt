@@ -5,7 +5,6 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.post
-import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.application.plugins.getNavAnsattAzureId
 import no.nav.amt.deltaker.auth.TilgangskontrollService
 import no.nav.amt.deltaker.deltaker.DeltakerService
@@ -28,7 +27,7 @@ fun Routing.registerHentDeltakelserApi(
             val deltakelser = deltakerService.getDeltakelserForPerson(request.norskIdent)
                 .filter {
                     unleashToggle.erKometMasterForTiltakstype(it.deltakerliste.tiltakstype.arenaKode) ||
-                        (unleashToggle.skalLeseArenaDeltakereForTiltakstype(it.deltakerliste.tiltakstype.arenaKode) && Environment.isDev())
+                        (unleashToggle.skalLeseArenaDeltakereForTiltakstype(it.deltakerliste.tiltakstype.arenaKode))
                 }
 
             call.respond(deltakelserResponseMapper.toDeltakelserResponse(deltakelser))
