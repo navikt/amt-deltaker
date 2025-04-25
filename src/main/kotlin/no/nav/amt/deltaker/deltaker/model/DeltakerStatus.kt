@@ -39,6 +39,8 @@ fun DeltakerStatus.Aarsak.getVisningsnavn(): String {
         DeltakerStatus.Aarsak.Type.AVLYST_KONTRAKT -> "Avlyst kontrakt"
         DeltakerStatus.Aarsak.Type.UTDANNING -> "Utdanning"
         DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT -> "Samarbeidet med arrangøren er avbrutt"
+        DeltakerStatus.Aarsak.Type.KRAV_IKKE_OPPFYLT -> "Krav ikke oppfylt"
+        DeltakerStatus.Aarsak.Type.KURS_FULLT -> "Kurs fullt"
     }
 }
 
