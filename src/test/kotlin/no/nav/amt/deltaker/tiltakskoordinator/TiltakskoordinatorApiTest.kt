@@ -17,13 +17,11 @@ import no.nav.amt.deltaker.application.plugins.configureSerialization
 import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
-import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.deltaker.utils.configureEnvForAuthentication
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.tiltakskoordinator.requests.DelMedArrangorRequest
-import no.nav.amt.lib.models.tiltakskoordinator.response.EndringFraTiltakskoordinatorResponse
 import org.junit.Before
 import org.junit.Test
 import java.util.UUID
@@ -48,11 +46,11 @@ class TiltakskoordinatorApiTest {
     fun `del-med-arrangor - har tilgang - returnerer 200`() = testApplication {
         val deltaker = TestData.lagDeltaker()
         coEvery { deltakerService.upsertEndretDeltakere(any(), any(), any()) } returns listOf(deltaker)
-
+        every { deltakerService.getHistorikk(deltaker.id) } returns emptyList()
         setUpTestApplication()
         client.post("$apiPath/del-med-arrangor") { postRequest(delMedArrangorRequest) }.apply {
             status shouldBe HttpStatusCode.OK
-            bodyAsText() shouldBe objectMapper.writeValueAsString(listOf(deltaker.toDelMedArrangorResponse()))
+            bodyAsText() shouldBe objectMapper.writeValueAsString(listOf(deltaker.toDeltakerOppdatering(emptyList())))
         }
     }
 
@@ -97,5 +95,3 @@ class TiltakskoordinatorApiTest {
         deltakerIder = listOf(UUID.randomUUID()),
     )
 }
-
-private fun Deltaker.toDelMedArrangorResponse() = EndringFraTiltakskoordinatorResponse(id, erManueltDeltMedArrangor, sistEndret)
