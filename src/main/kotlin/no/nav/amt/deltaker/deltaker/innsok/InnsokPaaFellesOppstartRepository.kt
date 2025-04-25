@@ -88,4 +88,15 @@ class InnsokPaaFellesOppstartRepository {
             Result.success(it)
         } ?: Result.failure(NoSuchElementException("Fant ikke innsok for deltaker $deltakerId"))
     }
+
+    fun deleteForDeltaker(deltakerId: UUID) = Database.query {
+        val query = queryOf(
+            """
+            DELETE FROM innsok_paa_felles_oppstart 
+            WHERE deltaker_id = :deltaker_id;
+            """.trimIndent(),
+            mapOf("deltaker_id" to deltakerId),
+        )
+        it.update(query)
+    }
 }

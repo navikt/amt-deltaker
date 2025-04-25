@@ -57,4 +57,15 @@ open class VurderingRepository {
         val query = queryOf(sql, params)
         it.update(query)
     }
+
+    fun deleteForDeltaker(deltakerId: UUID) = Database.query {
+        val query = queryOf(
+            """
+            DELETE FROM vurdering 
+            WHERE deltaker_id = :deltaker_id;
+            """.trimIndent(),
+            mapOf("deltaker_id" to deltakerId),
+        )
+        it.update(query)
+    }
 }
