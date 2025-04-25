@@ -75,15 +75,6 @@ fun Routing.registerInternalApi(
             throw AuthorizationException("Ikke tilgang til api")
         }
     }
-    post("/internal/slett/{deltakerId}") {
-        if (isInternal(call.request.local.remoteAddress)) {
-            val deltakerId = UUID.fromString(call.parameters["deltakerId"])
-            deltakerService.feilregistrerDeltaker(deltakerId)
-            call.respond(HttpStatusCode.OK)
-        } else {
-            throw AuthorizationException("Ikke tilgang til api")
-        }
-    }
 
     post("/internal/relast/{deltakerId}") {
         if (isInternal(call.request.local.remoteAddress)) {
