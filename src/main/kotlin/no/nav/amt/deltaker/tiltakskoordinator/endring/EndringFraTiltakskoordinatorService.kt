@@ -5,6 +5,7 @@ import no.nav.amt.deltaker.deltaker.nyDeltakerStatus
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -63,9 +64,29 @@ class EndringFraTiltakskoordinatorService(
             }
             is EndringFraTiltakskoordinator.TildelPlass -> {
                 createResult(deltaker.status.type != DeltakerStatus.Type.FEILREGISTRERT) {
-                    deltaker.copy(status = nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
+                    deltaker.copy(
+                        status = nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
+                        startdato = getStartDatoForKursDeltaker(deltaker),
+                        sluttdato = getSluttDatoForKursDeltaker(deltaker),
+                    )
                 }
             }
+        }
+    }
+
+    private fun getStartDatoForKursDeltaker(deltaker: Deltaker): LocalDate? {
+        if (deltaker.deltakerliste.startDato.isAfter(LocalDate.now())) {
+            return deltaker.deltakerliste.startDato
+        } else {
+            return null
+        }
+    }
+
+    private fun getSluttDatoForKursDeltaker(deltaker: Deltaker): LocalDate? {
+        if (deltaker.deltakerliste.startDato.isAfter(LocalDate.now())) {
+            return deltaker.deltakerliste.sluttDato
+        } else {
+            return null
         }
     }
 

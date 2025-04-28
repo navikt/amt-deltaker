@@ -133,6 +133,21 @@ class DeltakerService(
         )
     }
 
+    suspend fun endreDeltakere(
+        deltakerIder: List<UUID>,
+        endringsType: EndringFraTiltakskoordinator.Endring,
+        endretAv: String,
+    ): List<Deltaker> {
+        val oppdaterteDeltakere = upsertEndretDeltakere(deltakerIder, endringsType, endretAv)
+
+        if (endringsType is EndringFraTiltakskoordinator.TildelPlass) {
+            // TODO Fatte hovedvedtak, maa ha endret av enhet? (vedtakService.oppdaterEllerOpprettVedtak)
+            // TODO sende hendelse (hendelseService.?)
+        }
+
+        return oppdaterteDeltakere
+    }
+
     suspend fun upsertEndretDeltakere(
         deltakerIder: List<UUID>,
         endringsType: EndringFraTiltakskoordinator.Endring,

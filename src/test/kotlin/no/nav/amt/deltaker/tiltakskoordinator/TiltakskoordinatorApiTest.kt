@@ -79,6 +79,7 @@ class TiltakskoordinatorApiTest {
         val historikk = emptyList<DeltakerHistorikk>()
         coEvery { deltakerService.getDeltakelser(any()) } returns listOf(deltaker)
         coEvery { unleashToggle.erKometMasterForTiltakstype(deltaker.deltakerliste.tiltakstype.arenaKode) } returns true
+        coEvery { deltakerService.endreDeltakere(any(), any(), any()) } returns listOf(deltaker)
         coEvery { deltakerService.upsertEndretDeltakere(any(), any(), any()) } returns listOf(deltaker)
         every { deltakerService.getHistorikk(deltaker.id) } returns historikk
         val request = DeltakereRequest(
