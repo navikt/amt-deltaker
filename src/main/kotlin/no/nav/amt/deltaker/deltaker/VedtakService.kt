@@ -87,7 +87,8 @@ class VedtakService(
             opprettetAvEnhet = eksisterendeVedtak.opprettetAvEnhet,
             opprettet = eksisterendeVedtak.opprettet,
             sistEndretAv = endretAv.id,
-            sistEndretAvEnhet = eksisterendeVedtak.sistEndretAvEnhet, // TODO Denne må endres til tiltakskoordinator sin enhet når vi har den
+            // TODO Denne må endres til tiltakskoordinator sin enhet når vi har den
+            sistEndretAvEnhet = eksisterendeVedtak.sistEndretAvEnhet,
             sistEndret = LocalDateTime.now(),
         )
         repository.upsert(oppdatertVedtak)
