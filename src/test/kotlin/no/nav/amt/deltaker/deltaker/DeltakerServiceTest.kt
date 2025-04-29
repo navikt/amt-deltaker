@@ -614,11 +614,28 @@ class DeltakerServiceTest {
             startDato = LocalDate.now().plusDays(2),
             sluttDato = LocalDate.now().plusDays(30),
         )
-        val deltaker = TestData.lagDeltaker(deltakerliste = deltakerliste, startdato = null, sluttdato = null)
-        val deltaker2 = TestData.lagDeltaker(deltakerliste = deltakerliste, startdato = null, sluttdato = null)
-        val deltakerIder = listOf(deltaker.id, deltaker2.id)
         val endretAv = TestData.lagNavAnsatt()
         val endretAvEnhet = TestData.lagNavEnhet()
+        val deltaker = TestData.lagDeltaker(deltakerliste = deltakerliste, startdato = null, sluttdato = null)
+        val deltaker2 = TestData.lagDeltaker(deltakerliste = deltakerliste, startdato = null, sluttdato = null)
+        val vedtak = TestData.lagVedtak(
+            deltakerVedVedtak = deltaker,
+            deltakerId = deltaker.id,
+            opprettetAv = endretAv,
+            opprettetAvEnhet = endretAvEnhet,
+            sistEndretAv = endretAv,
+            sistEndretAvEnhet = endretAvEnhet,
+        )
+        val vedtak2 = TestData.lagVedtak(
+            deltakerVedVedtak = deltaker2,
+            deltakerId = deltaker2.id,
+            opprettetAv = endretAv,
+            opprettetAvEnhet = endretAvEnhet,
+            sistEndretAv = endretAv,
+            sistEndretAvEnhet = endretAvEnhet,
+        )
+        val deltakerIder = listOf(deltaker.id, deltaker2.id)
+
         val innsokt = TestData.lagInnsoktPaaKurs(deltakerId = deltaker.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
         val innsokt2 = TestData.lagInnsoktPaaKurs(deltakerId = deltaker2.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
         TestRepository.insertAll(
@@ -628,8 +645,8 @@ class DeltakerServiceTest {
             deltaker2,
             innsokt,
             innsokt2,
-            TestData.lagVedtak(deltakerVedVedtak = deltaker, sistEndretAvEnhet = endretAvEnhet),
-            TestData.lagVedtak(deltakerVedVedtak = deltaker2, sistEndretAvEnhet = endretAvEnhet),
+            vedtak,
+            vedtak2,
         )
 
         val endredeDeltakere = deltakerService.upsertEndretDeltakere(
@@ -644,6 +661,16 @@ class DeltakerServiceTest {
             status = deltaker.status.copy(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
             startdato = deltakerliste.startDato,
             sluttdato = deltakerliste.sluttDato,
+            vedtaksinformasjon = Deltaker.Vedtaksinformasjon(
+                fattet = null,
+                fattetAvNav = false,
+                opprettet = vedtak.opprettet,
+                opprettetAv = vedtak.opprettetAv,
+                opprettetAvEnhet = vedtak.opprettetAvEnhet,
+                sistEndret = vedtak.sistEndret,
+                sistEndretAv = vedtak.sistEndretAv,
+                sistEndretAvEnhet = vedtak.sistEndretAvEnhet,
+            ),
         )
         endredeDeltakere.first {
             it.id == deltaker2.id
@@ -651,6 +678,16 @@ class DeltakerServiceTest {
             status = deltaker2.status.copy(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
             startdato = deltakerliste.startDato,
             sluttdato = deltakerliste.sluttDato,
+            vedtaksinformasjon = Deltaker.Vedtaksinformasjon(
+                fattet = null,
+                fattetAvNav = false,
+                opprettet = vedtak2.opprettet,
+                opprettetAv = vedtak2.opprettetAv,
+                opprettetAvEnhet = vedtak2.opprettetAvEnhet,
+                sistEndret = vedtak2.sistEndret,
+                sistEndretAv = vedtak2.sistEndretAv,
+                sistEndretAvEnhet = vedtak2.sistEndretAvEnhet,
+            ),
         )
 
         val historikk1 = deltakerHistorikkService.getForDeltaker(deltaker.id)
@@ -678,9 +715,34 @@ class DeltakerServiceTest {
         val deltakerIder = listOf(deltaker.id, deltaker2.id)
         val endretAv = TestData.lagNavAnsatt()
         val endretAvEnhet = TestData.lagNavEnhet()
+        val vedtak = TestData.lagVedtak(
+            deltakerVedVedtak = deltaker,
+            deltakerId = deltaker.id,
+            opprettetAv = endretAv,
+            opprettetAvEnhet = endretAvEnhet,
+            sistEndretAv = endretAv,
+            sistEndretAvEnhet = endretAvEnhet,
+        )
+        val vedtak2 = TestData.lagVedtak(
+            deltakerVedVedtak = deltaker2,
+            deltakerId = deltaker2.id,
+            opprettetAv = endretAv,
+            opprettetAvEnhet = endretAvEnhet,
+            sistEndretAv = endretAv,
+            sistEndretAvEnhet = endretAvEnhet,
+        )
         val innsokt = TestData.lagInnsoktPaaKurs(deltakerId = deltaker.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
         val innsokt2 = TestData.lagInnsoktPaaKurs(deltakerId = deltaker2.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
-        TestRepository.insertAll(endretAv, endretAvEnhet, deltaker, deltaker2, innsokt, innsokt2)
+        TestRepository.insertAll(
+            endretAv,
+            endretAvEnhet,
+            deltaker,
+            deltaker2,
+            innsokt,
+            innsokt2,
+            vedtak,
+            vedtak2,
+        )
 
         val endredeDeltakere = deltakerService.upsertEndretDeltakere(
             deltakerIder,
@@ -694,6 +756,16 @@ class DeltakerServiceTest {
             status = deltaker.status.copy(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
             startdato = null,
             sluttdato = null,
+            vedtaksinformasjon = Deltaker.Vedtaksinformasjon(
+                fattet = null,
+                fattetAvNav = false,
+                opprettet = vedtak.opprettet,
+                opprettetAv = vedtak.opprettetAv,
+                opprettetAvEnhet = vedtak.opprettetAvEnhet,
+                sistEndret = vedtak.sistEndret,
+                sistEndretAv = vedtak.sistEndretAv,
+                sistEndretAvEnhet = vedtak.sistEndretAvEnhet,
+            ),
         )
         endredeDeltakere.first {
             it.id == deltaker2.id
@@ -701,6 +773,16 @@ class DeltakerServiceTest {
             status = deltaker2.status.copy(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
             startdato = null,
             sluttdato = null,
+            vedtaksinformasjon = Deltaker.Vedtaksinformasjon(
+                fattet = null,
+                fattetAvNav = false,
+                opprettet = vedtak2.opprettet,
+                opprettetAv = vedtak2.opprettetAv,
+                opprettetAvEnhet = vedtak2.opprettetAvEnhet,
+                sistEndret = vedtak2.sistEndret,
+                sistEndretAv = vedtak2.sistEndretAv,
+                sistEndretAvEnhet = vedtak2.sistEndretAvEnhet,
+            ),
         )
 
         val historikk1 = deltakerHistorikkService.getForDeltaker(deltaker.id)
