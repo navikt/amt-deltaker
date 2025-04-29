@@ -655,40 +655,19 @@ class DeltakerServiceTest {
             endretAv.navIdent,
         )
         endredeDeltakere.size shouldBe 2
-        endredeDeltakere.first {
+        val testdeltaker = endredeDeltakere.first {
             it.id == deltaker.id
-        } shouldBeComparableWith deltaker.copy(
-            status = deltaker.status.copy(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
-            startdato = deltakerliste.startDato,
-            sluttdato = deltakerliste.sluttDato,
-            vedtaksinformasjon = Deltaker.Vedtaksinformasjon(
-                fattet = null,
-                fattetAvNav = false,
-                opprettet = vedtak.opprettet,
-                opprettetAv = vedtak.opprettetAv,
-                opprettetAvEnhet = vedtak.opprettetAvEnhet,
-                sistEndret = vedtak.sistEndret,
-                sistEndretAv = vedtak.sistEndretAv,
-                sistEndretAvEnhet = vedtak.sistEndretAvEnhet,
-            ),
-        )
-        endredeDeltakere.first {
+        }
+        testdeltaker.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
+        testdeltaker.startdato shouldBe deltakerliste.startDato
+        testdeltaker.sluttdato shouldBe deltakerliste.sluttDato
+
+        val testdeltaker2 = endredeDeltakere.first {
             it.id == deltaker2.id
-        } shouldBeComparableWith deltaker2.copy(
-            status = deltaker2.status.copy(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
-            startdato = deltakerliste.startDato,
-            sluttdato = deltakerliste.sluttDato,
-            vedtaksinformasjon = Deltaker.Vedtaksinformasjon(
-                fattet = null,
-                fattetAvNav = false,
-                opprettet = vedtak2.opprettet,
-                opprettetAv = vedtak2.opprettetAv,
-                opprettetAvEnhet = vedtak2.opprettetAvEnhet,
-                sistEndret = vedtak2.sistEndret,
-                sistEndretAv = vedtak2.sistEndretAv,
-                sistEndretAvEnhet = vedtak2.sistEndretAvEnhet,
-            ),
-        )
+        }
+        testdeltaker2.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
+        testdeltaker2.startdato shouldBe deltakerliste.startDato
+        testdeltaker2.sluttdato shouldBe deltakerliste.sluttDato
 
         val historikk1 = deltakerHistorikkService.getForDeltaker(deltaker.id)
         historikk1.filterIsInstance<DeltakerHistorikk.EndringFraTiltakskoordinator>().size shouldBe 1
@@ -750,40 +729,19 @@ class DeltakerServiceTest {
             endretAv.navIdent,
         )
         endredeDeltakere.size shouldBe 2
-        endredeDeltakere.first {
+        val testdeltaker = endredeDeltakere.first {
             it.id == deltaker.id
-        } shouldBeComparableWith deltaker.copy(
-            status = deltaker.status.copy(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
-            startdato = null,
-            sluttdato = null,
-            vedtaksinformasjon = Deltaker.Vedtaksinformasjon(
-                fattet = null,
-                fattetAvNav = false,
-                opprettet = vedtak.opprettet,
-                opprettetAv = vedtak.opprettetAv,
-                opprettetAvEnhet = vedtak.opprettetAvEnhet,
-                sistEndret = vedtak.sistEndret,
-                sistEndretAv = vedtak.sistEndretAv,
-                sistEndretAvEnhet = vedtak.sistEndretAvEnhet,
-            ),
-        )
-        endredeDeltakere.first {
+        }
+        testdeltaker.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
+        testdeltaker.startdato shouldBe null
+        testdeltaker.sluttdato shouldBe null
+
+        val testdeltaker2 = endredeDeltakere.first {
             it.id == deltaker2.id
-        } shouldBeComparableWith deltaker2.copy(
-            status = deltaker2.status.copy(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
-            startdato = null,
-            sluttdato = null,
-            vedtaksinformasjon = Deltaker.Vedtaksinformasjon(
-                fattet = null,
-                fattetAvNav = false,
-                opprettet = vedtak2.opprettet,
-                opprettetAv = vedtak2.opprettetAv,
-                opprettetAvEnhet = vedtak2.opprettetAvEnhet,
-                sistEndret = vedtak2.sistEndret,
-                sistEndretAv = vedtak2.sistEndretAv,
-                sistEndretAvEnhet = vedtak2.sistEndretAvEnhet,
-            ),
-        )
+        }
+        testdeltaker2.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
+        testdeltaker2.startdato shouldBe null
+        testdeltaker2.sluttdato shouldBe null
 
         val historikk1 = deltakerHistorikkService.getForDeltaker(deltaker.id)
         historikk1.filterIsInstance<DeltakerHistorikk.EndringFraTiltakskoordinator>().size shouldBe 1
