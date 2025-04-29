@@ -141,6 +141,7 @@ class PameldingServiceTest {
             unleashToggle = unleashToggle,
             endringFraTiltakskoordinatorService = mockk(),
             amtTiltakClient = mockk(),
+            navAnsattService = navAnsattService,
         )
 
         private var pameldingService = PameldingService(

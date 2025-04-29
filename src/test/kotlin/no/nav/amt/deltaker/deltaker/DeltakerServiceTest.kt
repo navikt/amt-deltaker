@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.deltaker
 
+import io.kotest.assertions.any
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.every
@@ -146,6 +147,7 @@ class DeltakerServiceTest {
             unleashToggle = unleashToggle,
             endringFraTiltakskoordinatorService = endringFraTiltakskoordinatorService,
             amtTiltakClient = mockk(),
+            navAnsattService = navAnsattService,
         )
 
         @JvmStatic
@@ -619,7 +621,16 @@ class DeltakerServiceTest {
         val endretAvEnhet = TestData.lagNavEnhet()
         val innsokt = TestData.lagInnsoktPaaKurs(deltakerId = deltaker.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
         val innsokt2 = TestData.lagInnsoktPaaKurs(deltakerId = deltaker2.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
-        TestRepository.insertAll(endretAv, endretAvEnhet, deltaker, deltaker2, innsokt, innsokt2)
+        TestRepository.insertAll(
+            endretAv,
+            endretAvEnhet,
+            deltaker,
+            deltaker2,
+            innsokt,
+            innsokt2,
+            TestData.lagVedtak(deltakerVedVedtak = deltaker, sistEndretAvEnhet = endretAvEnhet),
+            TestData.lagVedtak(deltakerVedVedtak = deltaker2, sistEndretAvEnhet = endretAvEnhet),
+        )
 
         val endredeDeltakere = deltakerService.upsertEndretDeltakere(
             deltakerIder,
