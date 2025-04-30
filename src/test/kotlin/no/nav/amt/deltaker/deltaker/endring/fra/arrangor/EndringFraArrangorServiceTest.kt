@@ -38,8 +38,8 @@ import java.time.LocalDateTime
 
 class EndringFraArrangorServiceTest {
     private val amtPersonClient = mockAmtPersonClient()
-    private val navAnsattService = NavAnsattService(NavAnsattRepository(), amtPersonClient)
     private val navEnhetService = NavEnhetService(NavEnhetRepository(), amtPersonClient)
+    private val navAnsattService = NavAnsattService(NavAnsattRepository(), amtPersonClient, navEnhetService)
     private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
     private val forslagRepository = ForslagRepository()
     private val endringFraArrangorRepository = EndringFraArrangorRepository()

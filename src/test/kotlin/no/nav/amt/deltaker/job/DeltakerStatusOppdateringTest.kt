@@ -57,8 +57,8 @@ class DeltakerStatusOppdateringTest {
         private val deltakerRepository: DeltakerRepository = DeltakerRepository()
         private lateinit var deltakerService: DeltakerService
 
-        private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonClient())
         private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonClient())
+        private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonClient(), navEnhetService)
         private val deltakerEndringRepository = DeltakerEndringRepository()
         private val vedtakRepository = VedtakRepository()
         private val forslagRepository = ForslagRepository()

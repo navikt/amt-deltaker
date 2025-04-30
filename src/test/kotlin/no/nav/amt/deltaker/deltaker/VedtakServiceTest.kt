@@ -37,8 +37,8 @@ class VedtakServiceTest {
         SingletonPostgres16Container
     }
 
-    private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonClient())
     private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonClient())
+    private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonClient(), navEnhetService)
     private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
     private val deltakerHistorikkService =
         DeltakerHistorikkService(

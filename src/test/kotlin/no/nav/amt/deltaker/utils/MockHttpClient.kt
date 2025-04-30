@@ -25,15 +25,21 @@ import no.nav.amt.deltaker.navansatt.NavAnsatt
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhet
 import no.nav.amt.deltaker.navbruker.model.NavBruker
 import no.nav.amt.deltaker.utils.data.TestData
+import org.slf4j.LoggerFactory
 
 const val AMT_PERSON_URL = "http://amt-person-service"
 const val ISOPPFOLGINGSTILFELLE_URL = "https://isoppfolgingstilfelle"
+
+private val log = LoggerFactory.getLogger("MockHttpClient")
 
 fun mockHttpClient(defaultResponse: Any? = null): HttpClient {
     val mockEngine = MockEngine {
         val api = Pair(it.url.toString(), it.method)
         if (defaultResponse != null) MockResponseHandler.addResponse(it.url.toString(), it.method, defaultResponse)
-        val response = MockResponseHandler.responses[api]!!
+        val response = MockResponseHandler.responses[api] ?: run {
+            log.error("Reponse for ${api.second} ${api.first} mangler")
+            throw NoSuchElementException("Response not mocked")
+        }
 
         respond(
             content = ByteReadChannel(response.content),
@@ -63,14 +69,12 @@ fun mockAmtArrangorClient(arrangor: Arrangor = TestData.lagArrangor()): AmtArran
     )
 }
 
-fun mockIsOppfolgingstilfelleClient(): IsOppfolgingstilfelleClient {
-    return IsOppfolgingstilfelleClient(
-        baseUrl = ISOPPFOLGINGSTILFELLE_URL,
-        scope = "isoppfolgingstilfelle.scope",
-        httpClient = mockHttpClient(),
-        azureAdTokenClient = mockAzureAdClient(),
-    )
-}
+fun mockIsOppfolgingstilfelleClient(): IsOppfolgingstilfelleClient = IsOppfolgingstilfelleClient(
+    baseUrl = ISOPPFOLGINGSTILFELLE_URL,
+    scope = "isoppfolgingstilfelle.scope",
+    httpClient = mockHttpClient(),
+    azureAdTokenClient = mockAzureAdClient(),
+)
 
 fun mockAmtPersonClient() = AmtPersonServiceClient(
     baseUrl = AMT_PERSON_URL,
@@ -118,6 +122,16 @@ object MockResponseHandler {
     fun addNavAnsattResponse(navAnsatt: NavAnsatt) {
         val url = "$AMT_PERSON_URL/api/nav-ansatt/${navAnsatt.id}"
         addResponse(url, HttpMethod.Get, navAnsatt)
+    }
+
+    fun addNavAnsattPostResponse(navAnsatt: NavAnsatt) {
+        val url = "$AMT_PERSON_URL/api/nav-ansatt"
+        addResponse(url, HttpMethod.Post, navAnsatt)
+    }
+
+    fun addNavEnhetGetResponse(navEnhet: NavEnhet) {
+        val url = "$AMT_PERSON_URL/api/nav-enhet/${navEnhet.id}"
+        addResponse(url, HttpMethod.Get, NavEnhetDto(navEnhet.id, navEnhet.enhetsnummer, navEnhet.navn))
     }
 
     fun addNavEnhetResponse(navEnhet: NavEnhet) {

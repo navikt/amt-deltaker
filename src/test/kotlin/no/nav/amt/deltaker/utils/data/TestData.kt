@@ -61,7 +61,8 @@ object TestData {
         navn: String = "Veileder Veiledersen",
         telefon: String = "99988777",
         epost: String = "ansatt@nav.no",
-    ) = NavAnsatt(id, navIdent, navn, epost, telefon)
+        navEnhetId: UUID? = UUID.randomUUID(),
+    ) = NavAnsatt(id, navIdent, navn, epost, telefon, navEnhetId)
 
     fun lagNavEnhet(
         id: UUID = UUID.randomUUID(),

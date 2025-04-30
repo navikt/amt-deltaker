@@ -5,6 +5,8 @@ import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
+import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetRepository
+import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.utils.mockAmtPersonClient
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
@@ -13,7 +15,8 @@ import java.util.UUID
 
 class EndringFraTiltakskoordinatorServiceTest {
     private val repository = EndringFraTiltakskoordinatorRepository()
-    private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonClient())
+    private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonClient())
+    private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonClient(), navEnhetService)
 
     private val service = EndringFraTiltakskoordinatorService(repository, navAnsattService)
 
@@ -25,8 +28,7 @@ class EndringFraTiltakskoordinatorServiceTest {
                     listOf(deltaker),
                     EndringFraTiltakskoordinator.DelMedArrangor,
                     navAnsatt.navIdent,
-                )
-                .first()
+                ).first()
                 .getOrThrow()
 
             endretDeltaker.erManueltDeltMedArrangor shouldBe true
@@ -63,8 +65,7 @@ class EndringFraTiltakskoordinatorServiceTest {
                     listOf(deltaker),
                     EndringFraTiltakskoordinator.DelMedArrangor,
                     navAnsatt.navIdent,
-                )
-                .first()
+                ).first()
 
             resultat.isFailure shouldBe true
             repository.getForDeltaker(deltaker.id) shouldHaveSize 0

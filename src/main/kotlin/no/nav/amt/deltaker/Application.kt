@@ -169,8 +169,8 @@ fun Application.module() {
     )
     val tilgangskontrollService = TilgangskontrollService(poaoTilgangCachedClient)
 
-    val navAnsattService = NavAnsattService(navAnsattRepository, amtPersonServiceClient)
     val navEnhetService = NavEnhetService(navEnhetRepository, amtPersonServiceClient)
+    val navAnsattService = NavAnsattService(navAnsattRepository, amtPersonServiceClient, navEnhetService)
     val navBrukerService = NavBrukerService(
         navBrukerRepository,
         amtPersonServiceClient,

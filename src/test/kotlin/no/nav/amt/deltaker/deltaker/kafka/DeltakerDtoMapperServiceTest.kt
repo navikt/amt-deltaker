@@ -39,8 +39,8 @@ import java.util.UUID
 
 class DeltakerDtoMapperServiceTest {
     companion object {
-        private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonClient())
         private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonClient())
+        private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonClient(), navEnhetService)
         private val vurderingRepository = VurderingRepository()
         private val deltakerHistorikkService = DeltakerHistorikkService(
             DeltakerEndringRepository(),
