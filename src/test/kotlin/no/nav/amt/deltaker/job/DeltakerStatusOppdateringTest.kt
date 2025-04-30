@@ -132,6 +132,7 @@ class DeltakerStatusOppdateringTest {
                 endringFraTiltakskoordinatorService,
                 amtTiltakClient = mockk(),
                 navAnsattService,
+                navEnhetService,
             )
         }
     }

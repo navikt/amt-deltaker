@@ -32,6 +32,14 @@ class HendelseService(
 ) {
     val log: Logger = LoggerFactory.getLogger(javaClass)
 
+    fun produserSettPaaVentelisteHendelse(
+        deltaker: Deltaker,
+        navAnsatt: NavAnsatt,
+        navEnhet: NavEnhet,
+    ) {
+        hendelseProducer.produce(nyHendelseFraKoordinator(deltaker, navAnsatt, navEnhet, HendelseType.SettPaaVenteliste))
+    }
+
     fun hendelseForDeltakerEndring(
         deltakerEndring: DeltakerEndring,
         deltaker: Deltaker,
@@ -107,6 +115,22 @@ class HendelseService(
             navIdent = navAnsatt.navIdent,
             navn = navAnsatt.navn,
             enhet = HendelseAnsvarlig.NavVeileder.Enhet(navEnhet.id, navEnhet.enhetsnummer),
+        )
+
+        return nyHendelse(deltaker, ansvarlig, endring)
+    }
+
+    private fun nyHendelseFraKoordinator(
+        deltaker: Deltaker,
+        navAnsatt: NavAnsatt,
+        navEnhet: NavEnhet,
+        endring: HendelseType,
+    ): Hendelse {
+        val ansvarlig = HendelseAnsvarlig.NavTiltakskoordinator(
+            id = navAnsatt.id,
+            navIdent = navAnsatt.navIdent,
+            navn = navAnsatt.navn,
+            enhet = HendelseAnsvarlig.NavTiltakskoordinator.Enhet(navEnhet.id, navEnhet.enhetsnummer),
         )
 
         return nyHendelse(deltaker, ansvarlig, endring)
