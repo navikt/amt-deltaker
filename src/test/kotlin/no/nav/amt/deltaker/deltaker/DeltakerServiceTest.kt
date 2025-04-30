@@ -68,8 +68,8 @@ import java.time.ZonedDateTime
 
 class DeltakerServiceTest {
     companion object {
-        private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonClient())
         private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonClient())
+        private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonClient(), navEnhetService)
         private val deltakerRepository = DeltakerRepository()
         private val deltakerEndringRepository = DeltakerEndringRepository()
         private val vedtakRepository = VedtakRepository()
@@ -943,8 +943,12 @@ class DeltakerServiceTest {
 }
 
 infix fun Deltaker.shouldBeComparableWith(expected: Deltaker?) {
-    val statusOpprettetDay = this.status.opprettet.toLocalDate().atStartOfDay()
-    val gyldigFra = this.status.gyldigFra.toLocalDate().atStartOfDay()
+    val statusOpprettetDay = this.status.opprettet
+        .toLocalDate()
+        .atStartOfDay()
+    val gyldigFra = this.status.gyldigFra
+        .toLocalDate()
+        .atStartOfDay()
     val sistEndret = this.sistEndret.toLocalDate().atStartOfDay()
 
     fun LocalDateTime.atStartOfDay() = this.toLocalDate().atStartOfDay()

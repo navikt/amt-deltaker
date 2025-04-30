@@ -1,17 +1,23 @@
 package no.nav.amt.deltaker.navansatt
 
 import io.kotest.matchers.shouldBe
+import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.amtperson.AmtPersonServiceClient
 import no.nav.amt.deltaker.application.plugins.objectMapper
+import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetRepository
+import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
 import no.nav.amt.deltaker.utils.data.TestData
+import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.testing.SingletonPostgres16Container
 import org.junit.BeforeClass
 import org.junit.Test
 
 class NavAnsattConsumerTest {
     private val amtPersonServiceClient = mockk<AmtPersonServiceClient>()
+    private val navEnhetService = NavEnhetService(NavEnhetRepository(), amtPersonServiceClient)
+    private val navAnsattConsumer = NavAnsattConsumer(NavAnsattService(repository, amtPersonServiceClient, navEnhetService))
 
     companion object {
         lateinit var repository: NavAnsattRepository
@@ -27,7 +33,7 @@ class NavAnsattConsumerTest {
     @Test
     fun `consumeNavAnsatt - ny navansatt - upserter`() {
         val navAnsatt = TestData.lagNavAnsatt()
-        val navAnsattConsumer = NavAnsattConsumer(NavAnsattService(repository, amtPersonServiceClient))
+        coEvery { amtPersonServiceClient.hentNavEnhet(navAnsatt.navEnhetId!!) } returns TestData.lagNavEnhet(navAnsatt.navEnhetId!!)
 
         runBlocking {
             navAnsattConsumer.consume(navAnsatt.id, objectMapper.writeValueAsString(navAnsatt.toDto()))
@@ -39,9 +45,8 @@ class NavAnsattConsumerTest {
     @Test
     fun `consumeNavAnsatt - oppdatert navansatt - upserter`() {
         val navAnsatt = TestData.lagNavAnsatt()
-        repository.upsert(navAnsatt)
+        TestRepository.insert(navAnsatt)
         val oppdatertNavAnsatt = navAnsatt.copy(navn = "Nytt Navn")
-        val navAnsattConsumer = NavAnsattConsumer(NavAnsattService(repository, amtPersonServiceClient))
 
         runBlocking {
             navAnsattConsumer.consume(navAnsatt.id, objectMapper.writeValueAsString(oppdatertNavAnsatt.toDto()))
@@ -53,8 +58,7 @@ class NavAnsattConsumerTest {
     @Test
     fun `consumeNavAnsatt - tombstonet navansatt - sletter`() {
         val navAnsatt = TestData.lagNavAnsatt()
-        repository.upsert(navAnsatt)
-        val navAnsattConsumer = NavAnsattConsumer(NavAnsattService(repository, amtPersonServiceClient))
+        TestRepository.insert(navAnsatt)
 
         runBlocking {
             navAnsattConsumer.consume(navAnsatt.id, null)

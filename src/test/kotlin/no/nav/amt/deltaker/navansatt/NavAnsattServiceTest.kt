@@ -1,35 +1,34 @@
 package no.nav.amt.deltaker.navansatt
 
 import io.kotest.matchers.shouldBe
-import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
-import no.nav.amt.deltaker.amtperson.AmtPersonServiceClient
-import no.nav.amt.deltaker.application.plugins.objectMapper
+import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetRepository
+import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
+import no.nav.amt.deltaker.utils.MockResponseHandler
 import no.nav.amt.deltaker.utils.data.TestData
-import no.nav.amt.deltaker.utils.mockAzureAdClient
-import no.nav.amt.deltaker.utils.mockHttpClient
+import no.nav.amt.deltaker.utils.data.TestRepository
+import no.nav.amt.deltaker.utils.mockAmtPersonClient
 import no.nav.amt.lib.testing.SingletonPostgres16Container
 import org.junit.BeforeClass
 import org.junit.Test
 
 class NavAnsattServiceTest {
     companion object {
-        lateinit var repository: NavAnsattRepository
-        lateinit var service: NavAnsattService
+        private val repository: NavAnsattRepository = NavAnsattRepository()
+        private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonClient())
+        private val service: NavAnsattService = NavAnsattService(repository, mockAmtPersonClient(), navEnhetService)
 
         @JvmStatic
         @BeforeClass
         fun setup() {
             SingletonPostgres16Container
-            repository = NavAnsattRepository()
-            service = NavAnsattService(repository, mockk())
         }
     }
 
     @Test
     fun `hentEllerOpprettNavAnsatt - navansatt finnes i db - henter fra db`() {
         val navAnsatt = TestData.lagNavAnsatt()
-        repository.upsert(navAnsatt)
+        TestRepository.insert(navAnsatt)
 
         runBlocking {
             val navAnsattFraDb = service.hentEllerOpprettNavAnsatt(navAnsatt.navIdent)
@@ -40,17 +39,12 @@ class NavAnsattServiceTest {
     @Test
     fun `hentEllerOpprettNavAnsatt - navansatt finnes ikke i db - henter fra personservice og lagrer`() {
         val navAnsattResponse = TestData.lagNavAnsatt()
-        val httpClient = mockHttpClient(objectMapper.writeValueAsString(navAnsattResponse))
-        val amtPersonServiceClient = AmtPersonServiceClient(
-            baseUrl = "http://amt-person-service",
-            scope = "scope",
-            httpClient = httpClient,
-            azureAdTokenClient = mockAzureAdClient(),
-        )
-        val navAnsattService = NavAnsattService(repository, amtPersonServiceClient)
+
+        MockResponseHandler.addNavAnsattPostResponse(navAnsattResponse)
+        MockResponseHandler.addNavEnhetGetResponse(TestData.lagNavEnhet(navAnsattResponse.navEnhetId!!))
 
         runBlocking {
-            val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(navAnsattResponse.navIdent)
+            val navAnsatt = service.hentEllerOpprettNavAnsatt(navAnsattResponse.navIdent)
 
             navAnsatt shouldBe navAnsattResponse
             repository.get(navAnsattResponse.id) shouldBe navAnsattResponse
@@ -60,10 +54,12 @@ class NavAnsattServiceTest {
     @Test
     fun `oppdaterNavAnsatt - navansatt finnes - blir oppdatert`() {
         val navAnsatt = TestData.lagNavAnsatt()
-        repository.upsert(navAnsatt)
+        TestRepository.insert(navAnsatt)
         val oppdatertNavAnsatt = navAnsatt.copy(navn = "Nytt Navn")
 
-        service.oppdaterNavAnsatt(oppdatertNavAnsatt)
+        runBlocking {
+            service.oppdaterNavAnsatt(oppdatertNavAnsatt)
+        }
 
         repository.get(navAnsatt.id) shouldBe oppdatertNavAnsatt
     }
@@ -71,7 +67,7 @@ class NavAnsattServiceTest {
     @Test
     fun `slettNavAnsatt - navansatt blir slettet`() {
         val navAnsatt = TestData.lagNavAnsatt()
-        repository.upsert(navAnsatt)
+        TestRepository.insert(navAnsatt)
 
         service.slettNavAnsatt(navAnsatt.id)
 

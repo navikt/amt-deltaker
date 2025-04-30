@@ -34,12 +34,15 @@ import no.nav.amt.deltaker.isoppfolgingstilfelle.OppfolgingstilfellePersonDTO
 import no.nav.amt.deltaker.kafka.utils.assertProduced
 import no.nav.amt.deltaker.kafka.utils.assertProducedDeltakerV1
 import no.nav.amt.deltaker.kafka.utils.assertProducedHendelse
+import no.nav.amt.deltaker.navansatt.NavAnsatt
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
+import no.nav.amt.deltaker.navansatt.navenhet.NavEnhet
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
 import no.nav.amt.deltaker.navbruker.NavBrukerRepository
 import no.nav.amt.deltaker.navbruker.NavBrukerService
+import no.nav.amt.deltaker.navbruker.model.NavBruker
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.deltaker.utils.MockResponseHandler
@@ -70,8 +73,8 @@ import kotlin.test.assertFailsWith
 
 class PameldingServiceTest {
     companion object {
-        private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonClient())
         private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonClient())
+        private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonClient(), navEnhetService)
         private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
         private val isOppfolgingstilfelleClient = mockIsOppfolgingstilfelleClient()
         private val forslagRepository = ForslagRepository()
@@ -182,9 +185,7 @@ class PameldingServiceTest {
         val opprettetAvEnhet = TestData.lagNavEnhet()
         val navBruker = TestData.lagNavBruker(navVeilederId = opprettetAv.id, navEnhetId = opprettetAvEnhet.id)
 
-        MockResponseHandler.addNavEnhetResponse(opprettetAvEnhet)
-        MockResponseHandler.addNavAnsattResponse(opprettetAv)
-        MockResponseHandler.addNavBrukerResponse(navBruker)
+        mockResponses(opprettetAvEnhet, opprettetAv, navBruker)
         TestRepository.insert(deltakerliste)
 
         runBlocking {
@@ -222,9 +223,7 @@ class PameldingServiceTest {
             innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS,
         )
 
-        MockResponseHandler.addNavEnhetResponse(opprettetAvEnhet)
-        MockResponseHandler.addNavAnsattResponse(opprettetAv)
-        MockResponseHandler.addNavBrukerResponse(navBruker)
+        mockResponses(opprettetAvEnhet, opprettetAv, navBruker)
         TestRepository.insert(deltakerliste)
 
         runBlocking {
@@ -253,9 +252,7 @@ class PameldingServiceTest {
             innsatsgruppe = Innsatsgruppe.SITUASJONSBESTEMT_INNSATS,
         )
 
-        MockResponseHandler.addNavEnhetResponse(opprettetAvEnhet)
-        MockResponseHandler.addNavAnsattResponse(opprettetAv)
-        MockResponseHandler.addNavBrukerResponse(navBruker)
+        mockResponses(opprettetAvEnhet, opprettetAv, navBruker)
         MockResponseHandler.addOppfolgingstilfelleRespons(
             OppfolgingstilfellePersonDTO(
                 listOf(
@@ -295,9 +292,7 @@ class PameldingServiceTest {
             innsatsgruppe = Innsatsgruppe.SITUASJONSBESTEMT_INNSATS,
         )
 
-        MockResponseHandler.addNavEnhetResponse(opprettetAvEnhet)
-        MockResponseHandler.addNavAnsattResponse(opprettetAv)
-        MockResponseHandler.addNavBrukerResponse(navBruker)
+        mockResponses(opprettetAvEnhet, opprettetAv, navBruker)
         MockResponseHandler.addOppfolgingstilfelleRespons(
             OppfolgingstilfellePersonDTO(
                 listOf(
@@ -348,9 +343,7 @@ class PameldingServiceTest {
         val opprettetAvEnhet = TestData.lagNavEnhet()
         val navBruker = TestData.lagNavBruker(navVeilederId = opprettetAv.id, navEnhetId = opprettetAvEnhet.id)
 
-        MockResponseHandler.addNavEnhetResponse(opprettetAvEnhet)
-        MockResponseHandler.addNavAnsattResponse(opprettetAv)
-        MockResponseHandler.addNavBrukerResponse(navBruker)
+        mockResponses(opprettetAvEnhet, opprettetAv, navBruker)
         TestRepository.insert(deltakerliste)
 
         runBlocking {
@@ -371,9 +364,7 @@ class PameldingServiceTest {
         val opprettetAvEnhet = TestData.lagNavEnhet()
         val navBruker = TestData.lagNavBruker(navVeilederId = opprettetAv.id, navEnhetId = opprettetAvEnhet.id)
 
-        MockResponseHandler.addNavEnhetResponse(opprettetAvEnhet)
-        MockResponseHandler.addNavAnsattResponse(opprettetAv)
-        MockResponseHandler.addNavBrukerResponse(navBruker)
+        mockResponses(opprettetAvEnhet, opprettetAv, navBruker)
         TestRepository.insert(deltakerliste)
 
         runBlocking {
@@ -384,6 +375,17 @@ class PameldingServiceTest {
                 )
             }
         }
+    }
+
+    private fun mockResponses(
+        navEnhet: NavEnhet,
+        navAnsatt: NavAnsatt,
+        navBruker: NavBruker,
+    ) {
+        navAnsatt.navEnhetId?.let { MockResponseHandler.addNavEnhetGetResponse(TestData.lagNavEnhet(it)) }
+        MockResponseHandler.addNavEnhetResponse(navEnhet)
+        MockResponseHandler.addNavAnsattResponse(navAnsatt)
+        MockResponseHandler.addNavBrukerResponse(navBruker)
     }
 
     @Test

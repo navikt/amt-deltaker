@@ -1,12 +1,14 @@
 package no.nav.amt.deltaker.navansatt
 
 import no.nav.amt.deltaker.amtperson.AmtPersonServiceClient
+import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
 class NavAnsattService(
     private val repository: NavAnsattRepository,
     private val amtPersonServiceClient: AmtPersonServiceClient,
+    private val navEnhetService: NavEnhetService,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -26,7 +28,8 @@ class NavAnsattService(
         return oppdaterNavAnsatt(navAnsatt)
     }
 
-    fun oppdaterNavAnsatt(navAnsatt: NavAnsatt): NavAnsatt {
+    suspend fun oppdaterNavAnsatt(navAnsatt: NavAnsatt): NavAnsatt {
+        navAnsatt.navEnhetId?.let { navEnhetService.hentEllerOpprettNavEnhet(it) }
         return repository.upsert(navAnsatt)
     }
 

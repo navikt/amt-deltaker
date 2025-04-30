@@ -76,7 +76,7 @@ class DeltakerConsumerTest {
             navBrukerRepository = NavBrukerRepository()
             amtPersonServiceClient = mockk()
             navEnhetService = mockk()
-            navAnsattService = NavAnsattService(mockk(), amtPersonServiceClient)
+            navAnsattService = NavAnsattService(mockk(), amtPersonServiceClient, navEnhetService)
             navBrukerService = NavBrukerService(navBrukerRepository, amtPersonServiceClient, navEnhetService, navAnsattService)
             unleashToggle = mockk()
             deltakerEndringRepository = mockk()
