@@ -77,6 +77,8 @@ object TestRepository {
     }
 
     fun insert(navAnsatt: NavAnsatt) = Database.query {
+        navAnsatt.navEnhetId?.let { id -> insert(lagNavEnhet(id)) }
+
         val sql =
             """
             insert into nav_ansatt(id, nav_ident, navn, telefonnummer, epost, modified_at)

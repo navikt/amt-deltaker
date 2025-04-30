@@ -64,4 +64,4 @@ class NavAnsattConsumerTest {
     }
 }
 
-private fun NavAnsatt.toDto() = NavAnsattDto(id, navIdent, navn, epost, telefon)
+private fun NavAnsatt.toDto() = NavAnsattDto(id, navIdent, navn, epost, telefon, navEnhetId)

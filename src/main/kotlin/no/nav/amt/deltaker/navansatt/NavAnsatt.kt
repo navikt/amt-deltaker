@@ -8,4 +8,5 @@ data class NavAnsatt(
     val navn: String,
     val epost: String?,
     val telefon: String?,
+    val navEnhetId: UUID?,
 )
