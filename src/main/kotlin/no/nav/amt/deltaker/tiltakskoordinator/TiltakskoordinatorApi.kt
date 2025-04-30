@@ -39,6 +39,18 @@ fun Routing.registerTiltakskoordinatorApi(deltakerService: DeltakerService) {
             call.respond(oppdaterteDeltakere)
         }
 
+        post("$apiPath/tildel-plass") {
+            val request = call.receive<DeltakereRequest>()
+            val deltakerIder = request.deltakere
+            val oppdaterteDeltakere = deltakerService.endreDeltakere(
+                deltakerIder,
+                EndringFraTiltakskoordinator.TildelPlass,
+                request.endretAv,
+            ).toDeltakereResponse()
+
+            call.respond(oppdaterteDeltakere)
+        }
+
         post("$apiPath/sett-paa-venteliste") {
             val request = call.receive<DeltakereRequest>()
             val deltakerIder = request.deltakere

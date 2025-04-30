@@ -72,6 +72,30 @@ class VedtakService(
         return oppdatertVedtak
     }
 
+    @Deprecated("Brukes frem til vi har navEnhet for tiltakskoordinator")
+    fun fattVedtakForFellesOppstart(deltaker: Deltaker, endretAv: NavAnsatt): Vedtak {
+        val eksisterendeVedtak = repository.getIkkeFattet(deltaker.id)!!
+
+        val oppdatertVedtak = Vedtak(
+            id = eksisterendeVedtak.id,
+            deltakerId = deltaker.id,
+            fattet = LocalDateTime.now(),
+            gyldigTil = null,
+            deltakerVedVedtak = deltaker.toDeltakerVedVedtak(),
+            fattetAvNav = true,
+            opprettetAv = eksisterendeVedtak.opprettetAv,
+            opprettetAvEnhet = eksisterendeVedtak.opprettetAvEnhet,
+            opprettet = eksisterendeVedtak.opprettet,
+            sistEndretAv = endretAv.id,
+            // TODO Denne må endres til tiltakskoordinator sin enhet når vi har den
+            sistEndretAvEnhet = eksisterendeVedtak.sistEndretAvEnhet,
+            sistEndret = LocalDateTime.now(),
+        )
+        repository.upsert(oppdatertVedtak)
+
+        return oppdatertVedtak
+    }
+
     /**
      Kan bare brukes når deltaker selv godkjenner utkast.
      Hvis Nav fatter vedtaket må `oppdaterEllerOpprettVedtak` brukes.

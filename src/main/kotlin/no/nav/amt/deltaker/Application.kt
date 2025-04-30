@@ -244,6 +244,7 @@ fun Application.module() {
         unleashToggle = unleashToggle,
         endringFraTiltakskoordinatorService,
         amtTiltakClient,
+        navAnsattService,
     )
 
     val pameldingService = PameldingService(

@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.deltaker
 
+import io.kotest.assertions.any
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.every
@@ -146,6 +147,7 @@ class DeltakerServiceTest {
             unleashToggle = unleashToggle,
             endringFraTiltakskoordinatorService = endringFraTiltakskoordinatorService,
             amtTiltakClient = mockk(),
+            navAnsattService = navAnsattService,
         )
 
         @JvmStatic
@@ -599,6 +601,155 @@ class DeltakerServiceTest {
         historikk2.filterIsInstance<DeltakerHistorikk.EndringFraTiltakskoordinator>().size shouldBe 1
 
         // TODO: assertProducedHendelse(deltaker.id, HendelseType.SettPaaVenteliste::class)
+        assertProduced(deltaker.id)
+        assertProducedDeltakerV1(deltaker.id)
+        assertProduced(deltaker2.id)
+        assertProducedDeltakerV1(deltaker2.id)
+    }
+
+    @Test
+    fun `upsertEndretDeltakere - tildel plass - upserter endring, bruker deltakerliste sin start og sluttdato`(): Unit = runBlocking {
+        val deltakerliste = TestData.lagDeltakerliste(
+            tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING),
+            startDato = LocalDate.now().plusDays(2),
+            sluttDato = LocalDate.now().plusDays(30),
+        )
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+        val deltaker = TestData.lagDeltaker(deltakerliste = deltakerliste, startdato = null, sluttdato = null)
+        val deltaker2 = TestData.lagDeltaker(deltakerliste = deltakerliste, startdato = null, sluttdato = null)
+        val vedtak = TestData.lagVedtak(
+            deltakerVedVedtak = deltaker,
+            deltakerId = deltaker.id,
+            opprettetAv = endretAv,
+            opprettetAvEnhet = endretAvEnhet,
+            sistEndretAv = endretAv,
+            sistEndretAvEnhet = endretAvEnhet,
+        )
+        val vedtak2 = TestData.lagVedtak(
+            deltakerVedVedtak = deltaker2,
+            deltakerId = deltaker2.id,
+            opprettetAv = endretAv,
+            opprettetAvEnhet = endretAvEnhet,
+            sistEndretAv = endretAv,
+            sistEndretAvEnhet = endretAvEnhet,
+        )
+        val deltakerIder = listOf(deltaker.id, deltaker2.id)
+
+        val innsokt = TestData.lagInnsoktPaaKurs(deltakerId = deltaker.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
+        val innsokt2 = TestData.lagInnsoktPaaKurs(deltakerId = deltaker2.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
+        TestRepository.insertAll(
+            endretAv,
+            endretAvEnhet,
+            deltaker,
+            deltaker2,
+            innsokt,
+            innsokt2,
+            vedtak,
+            vedtak2,
+        )
+
+        val endredeDeltakere = deltakerService.upsertEndretDeltakere(
+            deltakerIder,
+            EndringFraTiltakskoordinator.TildelPlass,
+            endretAv.navIdent,
+        )
+        endredeDeltakere.size shouldBe 2
+        val testdeltaker = endredeDeltakere.first {
+            it.id == deltaker.id
+        }
+        testdeltaker.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
+        testdeltaker.startdato shouldBe deltakerliste.startDato
+        testdeltaker.sluttdato shouldBe deltakerliste.sluttDato
+
+        val testdeltaker2 = endredeDeltakere.first {
+            it.id == deltaker2.id
+        }
+        testdeltaker2.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
+        testdeltaker2.startdato shouldBe deltakerliste.startDato
+        testdeltaker2.sluttdato shouldBe deltakerliste.sluttDato
+
+        val historikk1 = deltakerHistorikkService.getForDeltaker(deltaker.id)
+        historikk1.filterIsInstance<DeltakerHistorikk.EndringFraTiltakskoordinator>().size shouldBe 1
+
+        val historikk2 = deltakerHistorikkService.getForDeltaker(deltaker2.id)
+        historikk2.filterIsInstance<DeltakerHistorikk.EndringFraTiltakskoordinator>().size shouldBe 1
+
+        // TODO: assertProducedHendelse(deltaker.id, HendelseType.TildelPlass::class)
+        assertProduced(deltaker.id)
+        assertProducedDeltakerV1(deltaker.id)
+        assertProduced(deltaker2.id)
+        assertProducedDeltakerV1(deltaker2.id)
+    }
+
+    @Test
+    fun `upsertEndretDeltakere - tildel plass - upserter endring, dato passert får start og sluttdato null`(): Unit = runBlocking {
+        val deltakerliste = TestData.lagDeltakerliste(
+            tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING),
+            startDato = LocalDate.now().minusDays(2),
+            sluttDato = LocalDate.now().plusDays(30),
+        )
+        val deltaker = TestData.lagDeltaker(deltakerliste = deltakerliste, startdato = null, sluttdato = null)
+        val deltaker2 = TestData.lagDeltaker(deltakerliste = deltakerliste, startdato = null, sluttdato = null)
+        val deltakerIder = listOf(deltaker.id, deltaker2.id)
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+        val vedtak = TestData.lagVedtak(
+            deltakerVedVedtak = deltaker,
+            deltakerId = deltaker.id,
+            opprettetAv = endretAv,
+            opprettetAvEnhet = endretAvEnhet,
+            sistEndretAv = endretAv,
+            sistEndretAvEnhet = endretAvEnhet,
+        )
+        val vedtak2 = TestData.lagVedtak(
+            deltakerVedVedtak = deltaker2,
+            deltakerId = deltaker2.id,
+            opprettetAv = endretAv,
+            opprettetAvEnhet = endretAvEnhet,
+            sistEndretAv = endretAv,
+            sistEndretAvEnhet = endretAvEnhet,
+        )
+        val innsokt = TestData.lagInnsoktPaaKurs(deltakerId = deltaker.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
+        val innsokt2 = TestData.lagInnsoktPaaKurs(deltakerId = deltaker2.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
+        TestRepository.insertAll(
+            endretAv,
+            endretAvEnhet,
+            deltaker,
+            deltaker2,
+            innsokt,
+            innsokt2,
+            vedtak,
+            vedtak2,
+        )
+
+        val endredeDeltakere = deltakerService.upsertEndretDeltakere(
+            deltakerIder,
+            EndringFraTiltakskoordinator.TildelPlass,
+            endretAv.navIdent,
+        )
+        endredeDeltakere.size shouldBe 2
+        val testdeltaker = endredeDeltakere.first {
+            it.id == deltaker.id
+        }
+        testdeltaker.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
+        testdeltaker.startdato shouldBe null
+        testdeltaker.sluttdato shouldBe null
+
+        val testdeltaker2 = endredeDeltakere.first {
+            it.id == deltaker2.id
+        }
+        testdeltaker2.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
+        testdeltaker2.startdato shouldBe null
+        testdeltaker2.sluttdato shouldBe null
+
+        val historikk1 = deltakerHistorikkService.getForDeltaker(deltaker.id)
+        historikk1.filterIsInstance<DeltakerHistorikk.EndringFraTiltakskoordinator>().size shouldBe 1
+
+        val historikk2 = deltakerHistorikkService.getForDeltaker(deltaker2.id)
+        historikk2.filterIsInstance<DeltakerHistorikk.EndringFraTiltakskoordinator>().size shouldBe 1
+
+        // TODO: assertProducedHendelse(deltaker.id, HendelseType.TildelPlass::class)
         assertProduced(deltaker.id)
         assertProducedDeltakerV1(deltaker.id)
         assertProduced(deltaker2.id)
