@@ -489,4 +489,29 @@ class DeltakerEndringHandlerTest {
         deltakerResult.startdato shouldBe null
         deltakerResult.sluttdato shouldBe null
     }
+
+    @Test
+    fun `sjekkUtfall - reaktiver deltakelse felles oppstart`(): Unit = runBlocking {
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.IKKE_AKTUELL),
+            deltakerliste = TestData.lagDeltakerlisteMedFellesOppstart(),
+        )
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+        val endringsrequest = ReaktiverDeltakelseRequest(
+            endretAv = endretAv.navIdent,
+            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            begrunnelse = "begrunnelse",
+        )
+
+        val deltakerEndringHandler =
+            DeltakerEndringHandler(deltaker, endringsrequest.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
+        val resultat = deltakerEndringHandler.sjekkUtfall()
+
+        resultat.erVellykket shouldBe true
+        val deltakerResult = resultat.getOrThrow()
+        deltakerResult.status.type shouldBe DeltakerStatus.Type.SOKT_INN
+        deltakerResult.startdato shouldBe null
+        deltakerResult.sluttdato shouldBe null
+    }
 }

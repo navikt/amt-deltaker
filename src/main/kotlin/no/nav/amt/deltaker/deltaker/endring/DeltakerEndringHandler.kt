@@ -40,9 +40,15 @@ class DeltakerEndringHandler(
     private fun ugyldigEndring() = DeltakerEndringUtfall.UgyldigEndring(IllegalStateException("Ingen gyldig endring"))
 
     private fun reaktiverDeltakelse() = endreDeltaker(deltaker.status.type == DeltakerStatus.Type.IKKE_AKTUELL) {
+        val nyStatus = if (deltaker.deltakerliste.erFellesOppstart) {
+            nyDeltakerStatus(DeltakerStatus.Type.SOKT_INN)
+        } else {
+            nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART)
+        }
+
         DeltakerEndringUtfall.VellykketEndring(
             deltaker.copy(
-                status = nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
+                status = nyStatus,
                 startdato = null,
                 sluttdato = null,
             ),
