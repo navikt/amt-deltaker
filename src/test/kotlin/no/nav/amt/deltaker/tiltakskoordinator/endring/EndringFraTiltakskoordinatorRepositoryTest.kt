@@ -68,7 +68,7 @@ fun sammenlignEndringFraTiltakskoordinator(a: EndringFraTiltakskoordinator, b: E
 data class EndringFraTiltakskoordinatorCtx(
     val navAnsatt: NavAnsatt = TestData.lagNavAnsatt(),
     val navEnhet: NavEnhet = TestData.lagNavEnhet(navAnsatt.navEnhetId!!),
-    var deltakerliste: Deltakerliste = TestData.lagDeltakerliste(),
+    var deltakerliste: Deltakerliste = TestData.lagDeltakerlisteMedFellesOppstart(),
     var deltaker: Deltaker = TestData.lagDeltaker(
         deltakerliste = deltakerliste,
         startdato = null,
