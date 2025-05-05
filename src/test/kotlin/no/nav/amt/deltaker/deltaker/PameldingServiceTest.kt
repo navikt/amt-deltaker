@@ -145,6 +145,7 @@ class PameldingServiceTest {
             endringFraTiltakskoordinatorService = mockk(),
             amtTiltakClient = mockk(),
             navAnsattService = navAnsattService,
+            navEnhetService = navEnhetService,
         )
 
         private var pameldingService = PameldingService(

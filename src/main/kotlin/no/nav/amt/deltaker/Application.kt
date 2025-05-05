@@ -245,6 +245,7 @@ fun Application.module() {
         endringFraTiltakskoordinatorService,
         amtTiltakClient,
         navAnsattService,
+        navEnhetService,
     )
 
     val pameldingService = PameldingService(

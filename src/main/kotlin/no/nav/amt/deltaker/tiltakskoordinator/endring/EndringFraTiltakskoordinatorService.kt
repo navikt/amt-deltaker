@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.tiltakskoordinator.endring
 
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.nyDeltakerStatus
+import no.nav.amt.deltaker.navansatt.NavAnsatt
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
@@ -13,19 +14,17 @@ class EndringFraTiltakskoordinatorService(
     private val repository: EndringFraTiltakskoordinatorRepository,
     private val navAnsattService: NavAnsattService,
 ) {
-    suspend fun upsertEndring(
+    fun upsertEndringPaaDeltakere(
         deltakere: List<Deltaker>,
         endringsType: EndringFraTiltakskoordinator.Endring,
-        endretAv: String,
+        endretAv: NavAnsatt,
     ): List<Result<Deltaker>> {
-        val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(endretAv)
-
         val deltakereMedEndringMap = deltakere.associateWith { deltaker ->
             EndringFraTiltakskoordinator(
                 id = UUID.randomUUID(),
                 deltakerId = deltaker.id,
                 endring = endringsType,
-                endretAv = navAnsatt.id,
+                endretAv = endretAv.id,
                 endret = LocalDateTime.now(),
             )
         }

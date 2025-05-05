@@ -1,6 +1,5 @@
 package no.nav.amt.deltaker.deltaker
 
-import io.kotest.assertions.any
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.every
@@ -68,8 +67,9 @@ import java.time.ZonedDateTime
 
 class DeltakerServiceTest {
     companion object {
-        private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonClient())
-        private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonClient(), navEnhetService)
+        private val amtPersonClientMock = mockAmtPersonClient()
+        private val navEnhetService = NavEnhetService(NavEnhetRepository(), amtPersonClientMock)
+        private val navAnsattService = NavAnsattService(NavAnsattRepository(), amtPersonClientMock, navEnhetService)
         private val deltakerRepository = DeltakerRepository()
         private val deltakerEndringRepository = DeltakerEndringRepository()
         private val vedtakRepository = VedtakRepository()
@@ -148,6 +148,7 @@ class DeltakerServiceTest {
             endringFraTiltakskoordinatorService = endringFraTiltakskoordinatorService,
             amtTiltakClient = mockk(),
             navAnsattService = navAnsattService,
+            navEnhetService = navEnhetService,
         )
 
         @JvmStatic
@@ -576,7 +577,7 @@ class DeltakerServiceTest {
         val deltaker2 = TestData.lagDeltaker(deltakerliste = deltakerliste)
         val deltakerIder = listOf(deltaker.id, deltaker2.id)
         val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
+        val endretAvEnhet = TestData.lagNavEnhet(enhetsnummer = "0326")
         val innsokt = TestData.lagInnsoktPaaKurs(deltakerId = deltaker.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
         val innsokt2 = TestData.lagInnsoktPaaKurs(deltakerId = deltaker2.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
         TestRepository.insertAll(endretAv, endretAvEnhet, deltaker, deltaker2, innsokt, innsokt2)
@@ -615,7 +616,7 @@ class DeltakerServiceTest {
             sluttDato = LocalDate.now().plusDays(30),
         )
         val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
+        val endretAvEnhet = TestData.lagNavEnhet(enhetsnummer = "0326")
         val deltaker = TestData.lagDeltaker(deltakerliste = deltakerliste, startdato = null, sluttdato = null)
         val deltaker2 = TestData.lagDeltaker(deltakerliste = deltakerliste, startdato = null, sluttdato = null)
         val vedtak = TestData.lagVedtak(
@@ -635,7 +636,6 @@ class DeltakerServiceTest {
             sistEndretAvEnhet = endretAvEnhet,
         )
         val deltakerIder = listOf(deltaker.id, deltaker2.id)
-
         val innsokt = TestData.lagInnsoktPaaKurs(deltakerId = deltaker.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
         val innsokt2 = TestData.lagInnsoktPaaKurs(deltakerId = deltaker2.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
         TestRepository.insertAll(
@@ -693,7 +693,7 @@ class DeltakerServiceTest {
         val deltaker2 = TestData.lagDeltaker(deltakerliste = deltakerliste, startdato = null, sluttdato = null)
         val deltakerIder = listOf(deltaker.id, deltaker2.id)
         val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
+        val endretAvEnhet = TestData.lagNavEnhet(enhetsnummer = "0326")
         val vedtak = TestData.lagVedtak(
             deltakerVedVedtak = deltaker,
             deltakerId = deltaker.id,

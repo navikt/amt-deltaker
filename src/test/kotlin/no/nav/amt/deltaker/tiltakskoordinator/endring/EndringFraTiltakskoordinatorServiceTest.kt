@@ -24,11 +24,12 @@ class EndringFraTiltakskoordinatorServiceTest {
     fun `insertEndringer(DelMedArrangor) - en deltaker - inserter endring og returnerer endret deltaker`(): Unit = runBlocking {
         with(EndringFraTiltakskoordinatorCtx()) {
             val endretDeltaker = service
-                .upsertEndring(
+                .upsertEndringPaaDeltakere(
                     listOf(deltaker),
                     EndringFraTiltakskoordinator.DelMedArrangor,
-                    navAnsatt.navIdent,
-                ).first()
+                    navAnsatt,
+                )
+                .first()
                 .getOrThrow()
 
             endretDeltaker.erManueltDeltMedArrangor shouldBe true
@@ -44,10 +45,10 @@ class EndringFraTiltakskoordinatorServiceTest {
             TestRepository.insert(deltaker2)
 
             val endretDeltakere = service
-                .upsertEndring(
+                .upsertEndringPaaDeltakere(
                     listOf(deltaker, deltaker2),
                     EndringFraTiltakskoordinator.DelMedArrangor,
-                    navAnsatt.navIdent,
+                    navAnsatt,
                 )
 
             endretDeltakere.forEach { it.getOrThrow().erManueltDeltMedArrangor shouldBe true }
@@ -61,11 +62,12 @@ class EndringFraTiltakskoordinatorServiceTest {
         with(EndringFraTiltakskoordinatorCtx()) {
             medStatusDeltar()
             val resultat = service
-                .upsertEndring(
+                .upsertEndringPaaDeltakere(
                     listOf(deltaker),
                     EndringFraTiltakskoordinator.DelMedArrangor,
-                    navAnsatt.navIdent,
-                ).first()
+                    navAnsatt,
+                )
+                .first()
 
             resultat.isFailure shouldBe true
             repository.getForDeltaker(deltaker.id) shouldHaveSize 0
@@ -81,10 +83,10 @@ class EndringFraTiltakskoordinatorServiceTest {
                 medStatusDeltar()
 
                 val endretDeltakere = service
-                    .upsertEndring(
+                    .upsertEndringPaaDeltakere(
                         listOf(deltaker, deltaker2),
                         EndringFraTiltakskoordinator.DelMedArrangor,
-                        navAnsatt.navIdent,
+                        navAnsatt,
                     )
 
                 endretDeltakere.count { it.isFailure } shouldBe 1

@@ -16,6 +16,7 @@ import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.job.DeltakerProgresjon
 import no.nav.amt.deltaker.navansatt.NavAnsattService
+import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorService
 import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
@@ -44,6 +45,7 @@ class DeltakerService(
     private val endringFraTiltakskoordinatorService: EndringFraTiltakskoordinatorService,
     private val amtTiltakClient: AmtTiltakClient,
     private val navAnsattService: NavAnsattService,
+    private val navEnhetService: NavEnhetService,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -150,10 +152,11 @@ class DeltakerService(
     suspend fun upsertEndretDeltakere(
         deltakerIder: List<UUID>,
         endringsType: EndringFraTiltakskoordinator.Endring,
-        endretAv: String,
+        endretAvIdent: String,
     ): List<Deltaker> {
+        val endretAv = navAnsattService.hentEllerOpprettNavAnsatt(endretAvIdent)
+        val endretAvEnhet = navEnhetService.hentEllerOpprettNavEnhet("0326") // TODO()
         val deltakere = deltakerRepository.getMany(deltakerIder)
-        val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(endretAv)
 
         if (deltakere.isEmpty()) return emptyList()
 
@@ -164,19 +167,20 @@ class DeltakerService(
 
         return if (unleashToggle.erKometMasterForTiltakstype(tiltakstype.first().toArenaKode())) {
             endringFraTiltakskoordinatorService
-                .upsertEndring(deltakere, endringsType, endretAv)
+                .upsertEndringPaaDeltakere(deltakere, endringsType, endretAv)
                 .mapNotNull { it.getOrNull() }
+                .map { upsertDeltaker(it) }
                 .map {
-                    val oppdatertDeltaker = upsertDeltaker(it)
                     if (endringsType is EndringFraTiltakskoordinator.TildelPlass) {
-                        vedtakService.fattVedtakForFellesOppstart(oppdatertDeltaker, navAnsatt)
+                        vedtakService.fattVedtakForFellesOppstart(it, endretAv)
                     }
-                    oppdatertDeltaker
+                    hendelseService.produserHendelseFraTiltaksansvarlig(it, endretAv, endretAvEnhet, endringsType)
+                    return@map it
                 }
         } else if (endringsType is EndringFraTiltakskoordinator.DelMedArrangor) {
             amtTiltakClient.delMedArrangor(deltakere.map { it.id })
             val endredeDeltakere = deltakere.map { it.copy(erManueltDeltMedArrangor = true) }
-            endringFraTiltakskoordinatorService.insertDelMedArrangor(endredeDeltakere, endretAv)
+            endringFraTiltakskoordinatorService.insertDelMedArrangor(endredeDeltakere, endretAvIdent)
             endredeDeltakere
         } else {
             throw NotImplementedError(

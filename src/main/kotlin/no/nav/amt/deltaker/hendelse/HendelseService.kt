@@ -17,6 +17,7 @@ import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.models.hendelse.InnholdDto
 import no.nav.amt.lib.models.hendelse.UtkastDto
 import no.nav.amt.lib.models.hendelse.toHendelseEndring
+import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
@@ -31,6 +32,21 @@ class HendelseService(
     private val deltakerHistorikkService: DeltakerHistorikkService,
 ) {
     val log: Logger = LoggerFactory.getLogger(javaClass)
+
+    fun produserHendelseFraTiltaksansvarlig(
+        deltaker: Deltaker,
+        navAnsatt: NavAnsatt,
+        navEnhet: NavEnhet,
+        endringsType: EndringFraTiltakskoordinator.Endring,
+    ) {
+        val hendelseType = when (endringsType) {
+            EndringFraTiltakskoordinator.SettPaaVenteliste -> HendelseType.SettPaaVenteliste
+            else -> null
+        }
+        if (hendelseType == null) return
+
+        hendelseProducer.produce(nyHendelseFraKoordinator(deltaker, navAnsatt, navEnhet, hendelseType))
+    }
 
     fun hendelseForDeltakerEndring(
         deltakerEndring: DeltakerEndring,
@@ -107,6 +123,22 @@ class HendelseService(
             navIdent = navAnsatt.navIdent,
             navn = navAnsatt.navn,
             enhet = HendelseAnsvarlig.NavVeileder.Enhet(navEnhet.id, navEnhet.enhetsnummer),
+        )
+
+        return nyHendelse(deltaker, ansvarlig, endring)
+    }
+
+    private fun nyHendelseFraKoordinator(
+        deltaker: Deltaker,
+        navAnsatt: NavAnsatt,
+        navEnhet: NavEnhet,
+        endring: HendelseType,
+    ): Hendelse {
+        val ansvarlig = HendelseAnsvarlig.NavTiltakskoordinator(
+            id = navAnsatt.id,
+            navIdent = navAnsatt.navIdent,
+            navn = navAnsatt.navn,
+            enhet = HendelseAnsvarlig.NavTiltakskoordinator.Enhet(navEnhet.id, navEnhet.enhetsnummer),
         )
 
         return nyHendelse(deltaker, ansvarlig, endring)
