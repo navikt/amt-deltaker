@@ -469,8 +469,11 @@ class DeltakerEndringHandlerTest {
     }
 
     @Test
-    fun `sjekkUtfall - reaktiver deltakelse`(): Unit = runBlocking {
-        val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.IKKE_AKTUELL))
+    fun `sjekkUtfall - reaktiver deltakelse lopende oppstart`(): Unit = runBlocking {
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.IKKE_AKTUELL),
+            deltakerliste = TestData.lagDeltakerlisteMedLopendeOppstart(),
+        )
         val endretAv = TestData.lagNavAnsatt()
         val endretAvEnhet = TestData.lagNavEnhet()
         val endringsrequest = ReaktiverDeltakelseRequest(
