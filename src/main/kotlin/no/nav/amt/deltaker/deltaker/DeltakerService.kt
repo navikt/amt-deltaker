@@ -174,9 +174,7 @@ class DeltakerService(
                     if (endringsType is EndringFraTiltakskoordinator.TildelPlass) {
                         vedtakService.fattVedtakForFellesOppstart(it, endretAv)
                     }
-                    if (endringsType is EndringFraTiltakskoordinator.SettPaaVenteliste) {
-                        hendelseService.produserSettPaaVentelisteHendelse(it, endretAv, endretAvEnhet)
-                    }
+                    hendelseService.produserHendelseFraTiltaksansvarlig(it, endretAv, endretAvEnhet, endringsType)
                     return@map it
                 }
         } else if (endringsType is EndringFraTiltakskoordinator.DelMedArrangor) {
