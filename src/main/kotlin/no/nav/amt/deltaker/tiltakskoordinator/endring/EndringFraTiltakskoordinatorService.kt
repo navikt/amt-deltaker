@@ -91,7 +91,11 @@ class EndringFraTiltakskoordinatorService(
     }
 
     // Midlertidig workaround som lagrer historikk mens amt-tiltak er master for deltakere
-    suspend fun insertDelMedArrangor(deltakere: List<Deltaker>, endretAv: String) {
+    suspend fun insertDelMedArrangor(
+        deltakere: List<Deltaker>,
+        endretAv: String,
+        endretAvEnhet: NavEnhet,
+    ) {
         val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(endretAv)
         val endringer = deltakere.map {
             EndringFraTiltakskoordinator(
@@ -99,6 +103,7 @@ class EndringFraTiltakskoordinatorService(
                 deltakerId = it.id,
                 endring = EndringFraTiltakskoordinator.DelMedArrangor,
                 endretAv = navAnsatt.id,
+                endretAvEnhet = endretAvEnhet.id,
                 endret = LocalDateTime.now(),
             )
         }

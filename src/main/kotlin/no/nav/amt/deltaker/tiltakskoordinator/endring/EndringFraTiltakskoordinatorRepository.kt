@@ -19,7 +19,7 @@ class EndringFraTiltakskoordinatorRepository {
                 id = row.uuid(col("id")),
                 deltakerId = row.uuid(col("deltaker_id")),
                 endretAv = row.uuid(col("nav_ansatt_id")),
-                endretAvEnhet = row.uuidOrNull(col("nav_enhet_id")),
+                endretAvEnhet = row.uuid(col("nav_enhet_id")),
                 endret = row.localDateTime(col("endret")),
                 endring = objectMapper.readValue(row.string(col("endring"))),
             )
