@@ -189,7 +189,7 @@ class DeltakerService(
         } else if (endringsType is EndringFraTiltakskoordinator.DelMedArrangor) {
             amtTiltakClient.delMedArrangor(deltakere.map { it.id })
             val endredeDeltakere = deltakere.map { it.copy(erManueltDeltMedArrangor = true) }
-            endringFraTiltakskoordinatorService.insertDelMedArrangor(endredeDeltakere, endretAvIdent)
+            endringFraTiltakskoordinatorService.insertDelMedArrangor(endredeDeltakere, endretAvIdent, endretAvEnhet)
             endredeDeltakere
         } else {
             throw NotImplementedError(
