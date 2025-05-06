@@ -23,6 +23,7 @@ fun Deltaker.toHendelseDeltaker(overordnetArrangor: Arrangor?, forsteVedtakFatte
         ),
     ),
     forsteVedtakFattet = forsteVedtakFattet,
+    opprettetDato = opprettet?.toLocalDate(),
 )
 
 private fun Arrangor.toHendelseArrangor(overordnetArrangor: HendelseDeltaker.Deltakerliste.Arrangor? = null) =

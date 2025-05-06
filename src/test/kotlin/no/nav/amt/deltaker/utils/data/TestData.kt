@@ -269,6 +269,7 @@ object TestData {
         sistEndret,
         kilde,
         erManueltDeltMedArrangor,
+        null,
     )
 
     fun lagDeltakerStatus(
@@ -385,11 +386,13 @@ object TestData {
         endring: EndringFraTiltakskoordinator.Endring = EndringFraTiltakskoordinator.DelMedArrangor,
         endretAv: UUID = UUID.randomUUID(),
         endret: LocalDateTime = LocalDateTime.now(),
+        endretAvEnhet: UUID = UUID.randomUUID(),
     ) = EndringFraTiltakskoordinator(
         id,
         deltakerId,
         endring,
         endretAv,
+        endretAvEnhet,
         endret,
     )
 

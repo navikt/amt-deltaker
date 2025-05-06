@@ -249,6 +249,7 @@ class PameldingService(
         sistEndret = LocalDateTime.now(),
         kilde = Kilde.KOMET,
         erManueltDeltMedArrangor = false,
+        opprettet = LocalDateTime.now(),
     )
 }
 

@@ -71,6 +71,7 @@ class DeltakerRepository {
             sistEndret = row.localDateTime("d.modified_at"),
             kilde = Kilde.valueOf(row.string("d.kilde")),
             erManueltDeltMedArrangor = row.boolean("d.er_manuelt_delt_med_arrangor"),
+            opprettet = row.localDateTime("d.created_at"),
         )
 
         return if (status == DeltakerStatus.Type.FEILREGISTRERT) {
@@ -461,6 +462,7 @@ class DeltakerRepository {
                    d.modified_at as "d.modified_at",
                    d.kilde as "d.kilde",
                    d.er_manuelt_delt_med_arrangor as "d.er_manuelt_delt_med_arrangor",
+                   d.created_at as "d.created_at",
                    nb.personident as "nb.personident",
                    nb.fornavn as "nb.fornavn",
                    nb.mellomnavn as "nb.mellomnavn",
