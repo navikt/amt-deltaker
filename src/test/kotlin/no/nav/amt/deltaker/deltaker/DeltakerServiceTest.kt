@@ -956,6 +956,7 @@ infix fun Deltaker.shouldBeComparableWith(expected: Deltaker?) {
     this.copy(
         sistEndret = sistEndret,
         status = status.copy(id = expected!!.status.id, opprettet = statusOpprettetDay, gyldigFra = gyldigFra),
+        opprettet = null,
     ) shouldBe expected.copy(
         sistEndret = expected.sistEndret.atStartOfDay(),
         status = expected.status.copy(
@@ -963,5 +964,6 @@ infix fun Deltaker.shouldBeComparableWith(expected: Deltaker?) {
             opprettet = expected.status.opprettet.atStartOfDay(),
             gyldigFra = expected.status.gyldigFra.atStartOfDay(),
         ),
+        opprettet = null,
     )
 }
