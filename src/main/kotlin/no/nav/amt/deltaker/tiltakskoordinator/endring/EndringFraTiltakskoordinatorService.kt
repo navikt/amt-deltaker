@@ -55,7 +55,7 @@ class EndringFraTiltakskoordinatorService(
 
         return when (endring) {
             is EndringFraTiltakskoordinator.SettPaaVenteliste -> {
-                createResult(deltaker.status.type != DeltakerStatus.Type.FEILREGISTRERT) {
+                createResult(deltaker.status.type !in listOf(DeltakerStatus.Type.FEILREGISTRERT, DeltakerStatus.Type.VENTELISTE)) {
                     deltaker.copy(status = nyDeltakerStatus(DeltakerStatus.Type.VENTELISTE))
                 }
             }
