@@ -385,15 +385,15 @@ object TestData {
         deltakerId: UUID = UUID.randomUUID(),
         endring: EndringFraTiltakskoordinator.Endring = EndringFraTiltakskoordinator.DelMedArrangor,
         endretAv: UUID = UUID.randomUUID(),
-        endret: LocalDateTime = LocalDateTime.now(),
         endretAvEnhet: UUID = UUID.randomUUID(),
+        endret: LocalDateTime = LocalDateTime.now(),
     ) = EndringFraTiltakskoordinator(
-        id,
-        deltakerId,
-        endring,
-        endretAv,
-        endretAvEnhet,
-        endret,
+        id = id,
+        deltakerId = deltakerId,
+        endring = endring,
+        endretAv = endretAv,
+        endretAvEnhet = endretAvEnhet,
+        endret = endret,
     )
 
     fun lagVurdering(

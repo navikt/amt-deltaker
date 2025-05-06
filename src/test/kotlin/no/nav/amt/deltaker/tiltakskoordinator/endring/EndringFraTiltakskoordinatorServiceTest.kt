@@ -28,8 +28,8 @@ class EndringFraTiltakskoordinatorServiceTest {
                     listOf(deltaker),
                     EndringFraTiltakskoordinator.DelMedArrangor,
                     navAnsatt,
-                )
-                .first()
+                    navEnhet,
+                ).first()
                 .getOrThrow()
 
             endretDeltaker.erManueltDeltMedArrangor shouldBe true
@@ -49,6 +49,7 @@ class EndringFraTiltakskoordinatorServiceTest {
                     listOf(deltaker, deltaker2),
                     EndringFraTiltakskoordinator.DelMedArrangor,
                     navAnsatt,
+                    navEnhet,
                 )
 
             endretDeltakere.forEach { it.getOrThrow().erManueltDeltMedArrangor shouldBe true }
@@ -66,8 +67,8 @@ class EndringFraTiltakskoordinatorServiceTest {
                     listOf(deltaker),
                     EndringFraTiltakskoordinator.DelMedArrangor,
                     navAnsatt,
-                )
-                .first()
+                    navEnhet,
+                ).first()
 
             resultat.isFailure shouldBe true
             repository.getForDeltaker(deltaker.id) shouldHaveSize 0
@@ -87,6 +88,7 @@ class EndringFraTiltakskoordinatorServiceTest {
                         listOf(deltaker, deltaker2),
                         EndringFraTiltakskoordinator.DelMedArrangor,
                         navAnsatt,
+                        navEnhet,
                     )
 
                 endretDeltakere.count { it.isFailure } shouldBe 1

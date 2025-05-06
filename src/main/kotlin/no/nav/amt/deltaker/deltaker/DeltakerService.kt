@@ -155,7 +155,10 @@ class DeltakerService(
         endretAvIdent: String,
     ): List<Deltaker> {
         val endretAv = navAnsattService.hentEllerOpprettNavAnsatt(endretAvIdent)
-        val endretAvEnhet = navEnhetService.hentEllerOpprettNavEnhet("0326") // TODO()
+
+        require(endretAv.navEnhetId != null) { "Tiltakskoordinator ${endretAv.id} mangler en tilknyttet nav-enhet" }
+
+        val endretAvEnhet = navEnhetService.hentEllerOpprettNavEnhet(endretAv.navEnhetId)
         val deltakere = deltakerRepository.getMany(deltakerIder)
 
         if (deltakere.isEmpty()) return emptyList()
@@ -167,12 +170,18 @@ class DeltakerService(
 
         return if (unleashToggle.erKometMasterForTiltakstype(tiltakstype.first().toArenaKode())) {
             endringFraTiltakskoordinatorService
-                .upsertEndringPaaDeltakere(deltakere, endringsType, endretAv)
+                .upsertEndringPaaDeltakere(deltakere, endringsType, endretAv, endretAvEnhet)
                 .mapNotNull { it.getOrNull() }
                 .map { upsertDeltaker(it) }
                 .map {
                     if (endringsType is EndringFraTiltakskoordinator.TildelPlass) {
-                        vedtakService.fattVedtakForFellesOppstart(it, endretAv)
+                        vedtakService.oppdaterEllerOpprettVedtak(
+                            it,
+                            endretAv,
+                            endretAvEnhet = endretAvEnhet,
+                            fattet = true,
+                            fattetAvNav = true,
+                        )
                     }
                     hendelseService.produserHendelseFraTiltaksansvarlig(it, endretAv, endretAvEnhet, endringsType)
                     return@map it

@@ -19,6 +19,7 @@ class EndringFraTiltakskoordinatorRepository {
                 id = row.uuid(col("id")),
                 deltakerId = row.uuid(col("deltaker_id")),
                 endretAv = row.uuid(col("nav_ansatt_id")),
+                endretAvEnhet = row.uuidOrNull(col("nav_enhet_id")),
                 endret = row.localDateTime(col("endret")),
                 endring = objectMapper.readValue(row.string(col("endring"))),
             )
@@ -28,14 +29,15 @@ class EndringFraTiltakskoordinatorRepository {
     fun insert(endringer: List<EndringFraTiltakskoordinator>) = Database.query {
         val sql =
             """
-            insert into endring_fra_tiltakskoordinator (id, deltaker_id, nav_ansatt_id, endret, endring) 
-            values (:id, :deltaker_id, :nav_ansatt_id, :endret, :endring)
+            insert into endring_fra_tiltakskoordinator (id, deltaker_id, nav_ansatt_id, nav_enhet_id, endret, endring) 
+            values (:id, :deltaker_id, :nav_ansatt_id, :nav_enhet_id, :endret, :endring)
             """.trimIndent()
         val params = endringer.map { endring ->
             mapOf(
                 "id" to endring.id,
                 "deltaker_id" to endring.deltakerId,
                 "nav_ansatt_id" to endring.endretAv,
+                "nav_enhet_id" to endring.endretAvEnhet,
                 "endret" to endring.endret,
                 "endring" to toPGObject(endring.endring),
             )
@@ -51,6 +53,7 @@ class EndringFraTiltakskoordinatorRepository {
                 et.id as "et.id",
                 et.deltaker_id as "et.deltaker_id",
                 et.nav_ansatt_id as "et.nav_ansatt_id",
+                et.nav_enhet_id as "et.nav_enhet_id",
                 et.endret as "et.endret",
                 et.endring as "et.endring"
             FROM endring_fra_tiltakskoordinator et 

@@ -5,6 +5,7 @@ import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.navansatt.NavAnsatt
+import no.nav.amt.deltaker.navansatt.navenhet.NavEnhet
 import no.nav.amt.deltaker.navbruker.model.Adressebeskyttelse
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
@@ -66,7 +67,8 @@ fun sammenlignEndringFraTiltakskoordinator(a: EndringFraTiltakskoordinator, b: E
 
 data class EndringFraTiltakskoordinatorCtx(
     val navAnsatt: NavAnsatt = TestData.lagNavAnsatt(),
-    var deltakerliste: Deltakerliste = TestData.lagDeltakerliste(),
+    val navEnhet: NavEnhet = TestData.lagNavEnhet(navAnsatt.navEnhetId!!),
+    var deltakerliste: Deltakerliste = TestData.lagDeltakerlisteMedFellesOppstart(),
     var deltaker: Deltaker = TestData.lagDeltaker(
         deltakerliste = deltakerliste,
         startdato = null,
@@ -76,12 +78,14 @@ data class EndringFraTiltakskoordinatorCtx(
     var endring: EndringFraTiltakskoordinator = TestData.lagEndringFraTiltakskoordinator(
         deltakerId = deltaker.id,
         endretAv = navAnsatt.id,
+        endretAvEnhet = navEnhet.id,
     ),
 ) {
     private val deltakerRepository = DeltakerRepository()
 
     init {
         SingletonPostgres16Container
+        TestRepository.insert(navEnhet)
         TestRepository.insert(navAnsatt)
         TestRepository.insert(deltakerliste)
         TestRepository.insert(deltaker)

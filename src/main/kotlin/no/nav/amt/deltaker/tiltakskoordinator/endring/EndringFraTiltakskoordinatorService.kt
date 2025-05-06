@@ -4,6 +4,7 @@ import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.nyDeltakerStatus
 import no.nav.amt.deltaker.navansatt.NavAnsatt
 import no.nav.amt.deltaker.navansatt.NavAnsattService
+import no.nav.amt.deltaker.navansatt.navenhet.NavEnhet
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import java.time.LocalDate
@@ -18,6 +19,7 @@ class EndringFraTiltakskoordinatorService(
         deltakere: List<Deltaker>,
         endringsType: EndringFraTiltakskoordinator.Endring,
         endretAv: NavAnsatt,
+        endretAvEnhet: NavEnhet,
     ): List<Result<Deltaker>> {
         val deltakereMedEndringMap = deltakere.associateWith { deltaker ->
             EndringFraTiltakskoordinator(
@@ -25,6 +27,7 @@ class EndringFraTiltakskoordinatorService(
                 deltakerId = deltaker.id,
                 endring = endringsType,
                 endretAv = endretAv.id,
+                endretAvEnhet = endretAvEnhet.id,
                 endret = LocalDateTime.now(),
             )
         }
@@ -56,11 +59,13 @@ class EndringFraTiltakskoordinatorService(
                     deltaker.copy(status = nyDeltakerStatus(DeltakerStatus.Type.VENTELISTE))
                 }
             }
+
             is EndringFraTiltakskoordinator.DelMedArrangor -> {
                 createResult(deltaker.status.type == DeltakerStatus.Type.SOKT_INN && !deltaker.erManueltDeltMedArrangor) {
                     deltaker.copy(erManueltDeltMedArrangor = true)
                 }
             }
+
             is EndringFraTiltakskoordinator.TildelPlass -> {
                 createResult(deltaker.status.type != DeltakerStatus.Type.FEILREGISTRERT) {
                     deltaker.copy(
@@ -73,20 +78,16 @@ class EndringFraTiltakskoordinatorService(
         }
     }
 
-    private fun getStartDatoForKursDeltaker(deltaker: Deltaker): LocalDate? {
-        if (deltaker.deltakerliste.startDato.isAfter(LocalDate.now())) {
-            return deltaker.deltakerliste.startDato
-        } else {
-            return null
-        }
+    private fun getStartDatoForKursDeltaker(deltaker: Deltaker) = if (deltaker.deltakerliste.startDato.isAfter(LocalDate.now())) {
+        deltaker.deltakerliste.startDato
+    } else {
+        null
     }
 
-    private fun getSluttDatoForKursDeltaker(deltaker: Deltaker): LocalDate? {
-        if (deltaker.deltakerliste.startDato.isAfter(LocalDate.now())) {
-            return deltaker.deltakerliste.sluttDato
-        } else {
-            return null
-        }
+    private fun getSluttDatoForKursDeltaker(deltaker: Deltaker) = if (deltaker.deltakerliste.startDato.isAfter(LocalDate.now())) {
+        deltaker.deltakerliste.sluttDato
+    } else {
+        null
     }
 
     // Midlertidig workaround som lagrer historikk mens amt-tiltak er master for deltakere
