@@ -187,6 +187,19 @@ class DeltakerService(
         }
     }
 
+    suspend fun giAvslag(
+        deltakerId: UUID,
+        avslag: EndringFraTiltakskoordinator.Avslag,
+        endretAv: String,
+    ): Deltaker {
+        val res = upsertEndretDeltakere(listOf(deltakerId), avslag, endretAv)
+        return if (res.isEmpty()) {
+            throw IllegalArgumentException("Kunne ikke gi avslag til deltaker $deltakerId")
+        } else {
+            res.first()
+        }
+    }
+
     private fun validerIkkeFeilregistrert(deltaker: Deltaker) = require(deltaker.status.type != DeltakerStatus.Type.FEILREGISTRERT) {
         "Kan ikke oppdatere feilregistrert deltaker, id ${deltaker.id}"
     }

@@ -105,6 +105,15 @@ data class EndringFraTiltakskoordinatorCtx(
 
     fun medStrengtFortroligDeltaker() = adressebeskyttetDeltaker(Adressebeskyttelse.STRENGT_FORTROLIG)
 
+    fun medInnsok() {
+        val innsok = TestData.lagInnsoktPaaKurs(
+            deltakerId = deltaker.id,
+            innsoktAv = navAnsatt.id,
+            innsoktAvEnhet = navEnhet.id,
+        )
+        TestRepository.insert(innsok)
+    }
+
     private fun adressebeskyttetDeltaker(adressebeskyttelse: Adressebeskyttelse?) {
         deltaker = deltaker.copy(navBruker = deltaker.navBruker.copy(adressebeskyttelse = adressebeskyttelse))
         deltakerRepository.upsert(deltaker)
