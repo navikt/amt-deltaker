@@ -41,6 +41,7 @@ class HendelseService(
     ) {
         val hendelseType = when (endringsType) {
             EndringFraTiltakskoordinator.SettPaaVenteliste -> HendelseType.SettPaaVenteliste
+            EndringFraTiltakskoordinator.TildelPlass -> HendelseType.TildelPlass
             else -> null
         }
         if (hendelseType == null) return
