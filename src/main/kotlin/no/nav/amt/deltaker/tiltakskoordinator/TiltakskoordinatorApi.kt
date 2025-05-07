@@ -20,22 +20,24 @@ fun Routing.registerTiltakskoordinatorApi(deltakerService: DeltakerService) {
         post("$apiPath/del-med-arrangor") {
             val request = call.receive<DelMedArrangorRequest>()
 
-            val oppdaterteDeltakere = deltakerService.upsertEndretDeltakere(
-                request.deltakerIder,
-                EndringFraTiltakskoordinator.DelMedArrangor,
-                request.endretAv,
-            ).toDeltakereResponse()
+            val oppdaterteDeltakere = deltakerService
+                .upsertEndretDeltakere(
+                    request.deltakerIder,
+                    EndringFraTiltakskoordinator.DelMedArrangor,
+                    request.endretAv,
+                ).toDeltakereResponse()
             call.respond(oppdaterteDeltakere)
         }
 
         post("$apiPath/del-med-arrangor-v2") {
             val request = call.receive<DelMedArrangorRequest>()
 
-            val oppdaterteDeltakere = deltakerService.upsertEndretDeltakere(
-                request.deltakerIder,
-                EndringFraTiltakskoordinator.DelMedArrangor,
-                request.endretAv,
-            ).toDeltakereResponse()
+            val oppdaterteDeltakere = deltakerService
+                .upsertEndretDeltakere(
+                    request.deltakerIder,
+                    EndringFraTiltakskoordinator.DelMedArrangor,
+                    request.endretAv,
+                ).toDeltakereResponse()
             call.respond(oppdaterteDeltakere)
         }
 
@@ -54,18 +56,37 @@ fun Routing.registerTiltakskoordinatorApi(deltakerService: DeltakerService) {
         post("$apiPath/sett-paa-venteliste") {
             val request = call.receive<DeltakereRequest>()
             val deltakerIder = request.deltakere
-            val oppdaterteDeltakere = deltakerService.upsertEndretDeltakere(
-                deltakerIder,
-                EndringFraTiltakskoordinator.SettPaaVenteliste,
-                request.endretAv,
-            ).toDeltakereResponse()
+            val oppdaterteDeltakere = deltakerService
+                .upsertEndretDeltakere(
+                    deltakerIder,
+                    EndringFraTiltakskoordinator.SettPaaVenteliste,
+                    request.endretAv,
+                ).toDeltakereResponse()
 
             call.respond(oppdaterteDeltakere)
+        }
+
+        post("$apiPath/gi-avslag") {
+            val request = call.receive<AvslagRequest>()
+            val deltakeroppdatering = deltakerService
+                .giAvslag(
+                    request.deltakerId,
+                    request.avslag,
+                    request.endretAv,
+                ).toDeltakerOppdatering(deltakerService.getHistorikk(request.deltakerId))
+
+            call.respond(deltakeroppdatering)
         }
     }
 }
 
 data class DeltakereRequest(
     val deltakere: List<UUID>,
+    val endretAv: String,
+)
+
+data class AvslagRequest(
+    val deltakerId: UUID,
+    val avslag: EndringFraTiltakskoordinator.Avslag,
     val endretAv: String,
 )

@@ -46,6 +46,8 @@ class EndringFraTiltakskoordinatorService(
 
     fun deleteForDeltaker(deltakerId: UUID) = repository.deleteForDeltaker(deltakerId)
 
+    fun getForDeltaker(deltakerId: UUID) = repository.getForDeltaker(deltakerId)
+
     private fun sjekkEndringUtfall(deltaker: Deltaker, endring: EndringFraTiltakskoordinator.Endring): Result<Deltaker> {
         fun createResult(gyldigEndring: Boolean, deltakerOnSuccess: () -> Deltaker) = if (gyldigEndring) {
             Result.success(deltakerOnSuccess())
@@ -53,9 +55,13 @@ class EndringFraTiltakskoordinatorService(
             Result.failure(IllegalStateException("Ingen gyldig deltakerendring"))
         }
 
+        if (deltaker.status.type == DeltakerStatus.Type.FEILREGISTRERT) {
+            return Result.failure(IllegalStateException("Ingen gyldig deltakerendring"))
+        }
+
         return when (endring) {
             is EndringFraTiltakskoordinator.SettPaaVenteliste -> {
-                createResult(deltaker.status.type !in listOf(DeltakerStatus.Type.FEILREGISTRERT, DeltakerStatus.Type.VENTELISTE)) {
+                createResult(deltaker.status.type != DeltakerStatus.Type.VENTELISTE) {
                     deltaker.copy(status = nyDeltakerStatus(DeltakerStatus.Type.VENTELISTE))
                 }
             }
@@ -67,13 +73,28 @@ class EndringFraTiltakskoordinatorService(
             }
 
             is EndringFraTiltakskoordinator.TildelPlass -> {
-                createResult(deltaker.status.type != DeltakerStatus.Type.FEILREGISTRERT) {
+                createResult(true) {
                     deltaker.copy(
                         status = nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
                         startdato = getStartDatoForKursDeltaker(deltaker),
                         sluttdato = getSluttDatoForKursDeltaker(deltaker),
                     )
                 }
+            }
+
+            is EndringFraTiltakskoordinator.Avslag -> createResult(
+                deltaker.status.type in listOf(
+                    DeltakerStatus.Type.SOKT_INN,
+                    DeltakerStatus.Type.VURDERES,
+                    DeltakerStatus.Type.VENTELISTE,
+                    DeltakerStatus.Type.VENTER_PA_OPPSTART,
+                ),
+            ) {
+                deltaker.copy(
+                    status = nyDeltakerStatus(type = DeltakerStatus.Type.IKKE_AKTUELL, endring.aarsak.toDeltakerStatusAarsak()),
+                    startdato = null,
+                    sluttdato = null,
+                )
             }
         }
     }
@@ -111,3 +132,8 @@ class EndringFraTiltakskoordinatorService(
         repository.insert(endringer)
     }
 }
+
+private fun EndringFraTiltakskoordinator.Avslag.Aarsak.toDeltakerStatusAarsak() = DeltakerStatus.Aarsak(
+    type = DeltakerStatus.Aarsak.Type.valueOf(this.type.name),
+    beskrivelse = beskrivelse,
+)

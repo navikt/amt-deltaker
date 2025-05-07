@@ -40,6 +40,9 @@ class TiltakskoordinatorApiTest {
     fun `skal teste autentisering - mangler token - returnerer 401`() = testApplication {
         setUpTestApplication()
         client.post("$apiPath/del-med-arrangor") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
+        client.post("$apiPath/sett-paa-venteliste") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
+        client.post("$apiPath/tildel-plass") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
+        client.post("$apiPath/gi-avslag") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
     }
 
     @Test

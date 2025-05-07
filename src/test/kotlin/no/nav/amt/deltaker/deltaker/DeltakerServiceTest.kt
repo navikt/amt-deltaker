@@ -39,6 +39,7 @@ import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
+import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorCtx
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorService
 import no.nav.amt.deltaker.unleash.UnleashToggle
@@ -754,6 +755,38 @@ class DeltakerServiceTest {
         assertProducedDeltakerV1(deltaker.id)
         assertProduced(deltaker2.id)
         assertProducedDeltakerV1(deltaker2.id)
+    }
+
+    @Test
+    fun `giAvslag - deltaker får riktig status og historikk`(): Unit = runBlocking {
+        with(EndringFraTiltakskoordinatorCtx()) {
+            medInnsok()
+
+            val avslag = EndringFraTiltakskoordinator.Avslag(
+                aarsak = EndringFraTiltakskoordinator.Avslag.Aarsak(
+                    type = EndringFraTiltakskoordinator.Avslag.Aarsak.Type.KURS_FULLT,
+                    beskrivelse = null,
+                ),
+                begrunnelse = "Fordi...",
+            )
+            val deltaker = deltakerService.giAvslag(
+                deltaker.id,
+                avslag,
+                navAnsatt.navIdent,
+            )
+
+            val endringer = endringFraTiltakskoordinatorService.getForDeltaker(deltaker.id)
+            endringer.size shouldBe 1
+            (endringer.first().endring is EndringFraTiltakskoordinator.Avslag) shouldBe true
+
+            deltaker.status.type shouldBe DeltakerStatus.Type.IKKE_AKTUELL
+            deltaker.status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.KURS_FULLT
+            deltaker.startdato shouldBe null
+            deltaker.sluttdato shouldBe null
+
+            assertProduced(deltaker.id)
+            assertProducedDeltakerV1(deltaker.id)
+        }
     }
 
     @Test
