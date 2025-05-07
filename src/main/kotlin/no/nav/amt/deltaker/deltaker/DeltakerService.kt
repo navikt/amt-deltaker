@@ -137,18 +137,6 @@ class DeltakerService(
         )
     }
 
-    suspend fun endreDeltakere(
-        deltakerIder: List<UUID>,
-        endringsType: EndringFraTiltakskoordinator.Endring,
-        endretAv: String,
-    ): List<Deltaker> {
-        val oppdaterteDeltakere = upsertEndretDeltakere(deltakerIder, endringsType, endretAv)
-
-        // TODO sende hendelse (hendelseService.?)
-
-        return oppdaterteDeltakere
-    }
-
     suspend fun upsertEndretDeltakere(
         deltakerIder: List<UUID>,
         endringsType: EndringFraTiltakskoordinator.Endring,
