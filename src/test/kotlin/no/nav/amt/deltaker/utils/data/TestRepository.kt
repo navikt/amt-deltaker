@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.utils.data
 import kotliquery.queryOf
 import no.nav.amt.deltaker.arrangor.Arrangor
 import no.nav.amt.deltaker.deltaker.model.Deltaker
+import no.nav.amt.deltaker.deltaker.vurdering.Vurdering
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.navansatt.NavAnsatt
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhet
@@ -37,6 +38,7 @@ object TestRepository {
             "vedtak",
             "importert_fra_arena",
             "deltaker_status",
+            "vurdering",
             "deltaker",
             "nav_bruker",
             "nav_ansatt",
@@ -406,6 +408,31 @@ object TestRepository {
         )
 
         it.update(queryOf(sql, params))
+    }
+
+    fun insert(vurdering: Vurdering) = Database.query {
+        val sql =
+            """
+            INSERT INTO vurdering (id, deltaker_id, opprettet_av_arrangor_ansatt_id, vurderingstype, begrunnelse, gyldig_fra)
+            VALUES (
+                :id, :deltaker_id, :opprettet_av_arrangor_ansatt_id, :vurderingstype, :begrunnelse, :gyldig_fra
+            )
+            ON CONFLICT (id) DO UPDATE SET
+                opprettet_av_arrangor_ansatt_id = :opprettet_av_arrangor_ansatt_id, 
+                vurderingstype = :vurderingstype, 
+                begrunnelse = :begrunnelse, 
+                gyldig_fra = :gyldig_fra
+            """.trimIndent()
+        val params = mapOf(
+            "id" to vurdering.id,
+            "deltaker_id" to vurdering.deltakerId,
+            "opprettet_av_arrangor_ansatt_id" to vurdering.opprettetAvArrangorAnsattId,
+            "vurderingstype" to vurdering.vurderingstype.name,
+            "begrunnelse" to vurdering.begrunnelse,
+            "gyldig_fra" to vurdering.gyldigFra,
+        )
+        val query = queryOf(sql, params)
+        it.update(query)
     }
 
     fun insert(forslag: Forslag) = Database.query {

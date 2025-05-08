@@ -8,6 +8,8 @@ import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepos
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
+import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
+import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
 import no.nav.amt.deltaker.kafka.utils.sammenlignForslagStatus
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.deltaker.utils.data.TestData
@@ -35,6 +37,7 @@ class DeltakerHistorikkServiceTest {
             ImportertFraArenaRepository(),
             InnsokPaaFellesOppstartRepository(),
             EndringFraTiltakskoordinatorRepository(),
+            VurderingService(VurderingRepository()),
         )
 
         @BeforeClass
@@ -63,13 +66,6 @@ class DeltakerHistorikkServiceTest {
             opprettetAvEnhet = navEnhet,
             sistEndret = LocalDateTime.now().minusMonths(1),
         )
-        val ikkeFattetVedtak = TestData.lagVedtak(
-            deltakerId = deltaker.id,
-            fattet = null,
-            opprettetAv = navAnsatt,
-            opprettetAvEnhet = navEnhet,
-            sistEndret = LocalDateTime.now().minusDays(4),
-        )
         val gammelEndring = TestData.lagDeltakerEndring(
             deltakerId = deltaker.id,
             endretAv = navAnsatt.id,
@@ -92,8 +88,21 @@ class DeltakerHistorikkServiceTest {
             deltakerId = deltaker.id,
             endretAv = navAnsatt.id,
             endretAvEnhet = navEnhet.id,
-            endret = LocalDateTime.now().minusDays(1),
+            endret = LocalDateTime.now().minusDays(13),
         )
+        val nyVurdering = TestData.lagVurdering(
+            deltakerId = deltaker.id,
+            gyldigFra = LocalDateTime.now().minusDays(10),
+        )
+
+        val ikkeFattetVedtak = TestData.lagVedtak(
+            deltakerId = deltaker.id,
+            fattet = null,
+            opprettetAv = navAnsatt,
+            opprettetAvEnhet = navEnhet,
+            sistEndret = LocalDateTime.now().minusDays(4),
+        )
+
         TestRepository.insert(deltaker)
         TestRepository.insert(vedtak)
         TestRepository.insert(ikkeFattetVedtak)
@@ -102,16 +111,18 @@ class DeltakerHistorikkServiceTest {
         TestRepository.insert(nyEndring)
         TestRepository.insert(forslag)
         TestRepository.insert(forslagVenter)
+        TestRepository.insert(nyVurdering)
 
         val historikk = service.getForDeltaker(deltaker.id)
 
-        historikk.size shouldBe 6
-        sammenlignHistorikk(historikk[0], DeltakerHistorikk.Endring(nyEndring))
-        sammenlignHistorikk(historikk[1], DeltakerHistorikk.Vedtak(ikkeFattetVedtak))
-        sammenlignHistorikk(historikk[2], DeltakerHistorikk.Forslag(forslag))
-        sammenlignHistorikk(historikk[3], DeltakerHistorikk.EndringFraArrangor(endringFraArrangor))
-        sammenlignHistorikk(historikk[4], DeltakerHistorikk.Endring(gammelEndring))
-        sammenlignHistorikk(historikk[5], DeltakerHistorikk.Vedtak(vedtak))
+        historikk.size shouldBe 7
+        sammenlignHistorikk(historikk[0], DeltakerHistorikk.Vedtak(ikkeFattetVedtak))
+        sammenlignHistorikk(historikk[1], DeltakerHistorikk.VurderingFraArrangor(nyVurdering.toVurderingFraArrangorData()))
+        sammenlignHistorikk(historikk[2], DeltakerHistorikk.Endring(nyEndring))
+        sammenlignHistorikk(historikk[3], DeltakerHistorikk.Forslag(forslag))
+        sammenlignHistorikk(historikk[4], DeltakerHistorikk.EndringFraArrangor(endringFraArrangor))
+        sammenlignHistorikk(historikk[5], DeltakerHistorikk.Endring(gammelEndring))
+        sammenlignHistorikk(historikk[6], DeltakerHistorikk.Vedtak(vedtak))
     }
 
     @Test

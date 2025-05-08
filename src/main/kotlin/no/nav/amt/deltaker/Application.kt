@@ -177,7 +177,7 @@ fun Application.module() {
         navEnhetService,
         navAnsattService,
     )
-
+    val vurderingService = VurderingService(vurderingRepository)
     val arrangorService = ArrangorService(arrangorRepository, amtArrangorClient)
     val innsokPaaFellesOppstartRepository = InnsokPaaFellesOppstartRepository()
     val innsokPaaFellesOppstartService = InnsokPaaFellesOppstartService(innsokPaaFellesOppstartRepository)
@@ -193,6 +193,7 @@ fun Application.module() {
         importertFraArenaRepository,
         innsokPaaFellesOppstartRepository,
         endringFraTiltakskoordinatorRepository,
+        vurderingService,
     )
 
     val hendelseProducer = HendelseProducer(kafkaProducer)
@@ -259,8 +260,6 @@ fun Application.module() {
         hendelseService = hendelseService,
         innsokPaaFellesOppstartService = innsokPaaFellesOppstartService,
     )
-
-    val vurderingService = VurderingService(vurderingRepository)
 
     val consumers = listOf(
         ArrangorConsumer(arrangorRepository),

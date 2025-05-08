@@ -29,6 +29,7 @@ import no.nav.amt.deltaker.deltaker.kafka.DeltakerV1Producer
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerDtoMapperService
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
+import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
 import no.nav.amt.deltaker.hendelse.HendelseProducer
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.kafka.utils.assertProduced
@@ -89,6 +90,7 @@ class DeltakerServiceTest {
                 importertFraArenaRepository,
                 InnsokPaaFellesOppstartRepository(),
                 EndringFraTiltakskoordinatorRepository(),
+                VurderingService(VurderingRepository()),
             )
         private val hendelseService = HendelseService(
             HendelseProducer(kafkaProducer),

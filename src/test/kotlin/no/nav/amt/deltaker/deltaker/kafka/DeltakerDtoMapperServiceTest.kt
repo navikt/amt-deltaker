@@ -15,6 +15,7 @@ import no.nav.amt.deltaker.deltaker.kafka.dto.toDeltakerNavVeilederDto
 import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.deltaker.deltaker.sammenlignHistorikk
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
+import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetRepository
@@ -50,6 +51,7 @@ class DeltakerDtoMapperServiceTest {
             ImportertFraArenaRepository(),
             InnsokPaaFellesOppstartRepository(),
             EndringFraTiltakskoordinatorRepository(),
+            vurderingService = VurderingService(vurderingRepository),
         )
         private val deltakerDtoMapperService =
             DeltakerDtoMapperService(navAnsattService, navEnhetService, deltakerHistorikkService, vurderingRepository)

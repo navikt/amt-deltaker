@@ -6,9 +6,13 @@ import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepos
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
+import no.nav.amt.deltaker.deltaker.vurdering.Vurdering
+import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.lib.models.arrangor.melding.Forslag
+import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
+import no.nav.amt.lib.models.deltaker.VurderingFraArrangorData
 import java.time.LocalDate
 import java.util.UUID
 
@@ -20,11 +24,14 @@ class DeltakerHistorikkService(
     private val importertFraArenaRepository: ImportertFraArenaRepository,
     private val innsokPaaFellesOppstartRepository: InnsokPaaFellesOppstartRepository,
     private val endringFraTiltakskoordinatorRepository: EndringFraTiltakskoordinatorRepository,
+    private val vurderingService: VurderingService,
 ) {
     fun getForDeltaker(id: UUID): List<DeltakerHistorikk> {
         val endringer = deltakerEndringRepository.getForDeltaker(id).map { DeltakerHistorikk.Endring(it) }
         val vedtak = vedtakRepository.getForDeltaker(id).map { DeltakerHistorikk.Vedtak(it) }
         val forslag = forslagRepository.getForDeltaker(id).filter { it.skalInkluderesIHistorikk() }.map { DeltakerHistorikk.Forslag(it) }
+        val vurderinger = vurderingService.getForDeltaker(id)
+            .map { DeltakerHistorikk.VurderingFraArrangor(it.toVurderingFraArrangorData()) }
         val endringerFraArrangor = endringFraArrangorRepository
             .getForDeltaker(id)
             .map { DeltakerHistorikk.EndringFraArrangor(it) }
@@ -52,6 +59,7 @@ class DeltakerHistorikkService(
             .plus(endringFraTiltakskoordinator)
             .plus(forslag)
             .plus(endringerFraArrangor)
+            .plus(vurderinger)
             .sortedByDescending {
                 when (it) {
                     is DeltakerHistorikk.Endring -> it.endring.endret
@@ -86,6 +94,15 @@ fun List<DeltakerHistorikk>.getInnsoktDato(): LocalDate? {
     val vedtak = filterIsInstance<DeltakerHistorikk.Vedtak>().map { it.vedtak }
     return vedtak.minByOrNull { it.opprettet }?.opprettet?.toLocalDate()
 }
+
+fun Vurdering.toVurderingFraArrangorData() = VurderingFraArrangorData(
+    id = id,
+    deltakerId = deltakerId,
+    vurderingstype = Vurderingstype.valueOf(vurderingstype.name),
+    begrunnelse = begrunnelse,
+    opprettetAvArrangorAnsattId = opprettetAvArrangorAnsattId,
+    opprettet = gyldigFra,
+)
 
 fun List<DeltakerHistorikk>.getInnsoktDatoFraImportertDeltaker(): LocalDate? = filterIsInstance<DeltakerHistorikk.ImportertFraArena>()
     .firstOrNull()
