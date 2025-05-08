@@ -139,7 +139,11 @@ class HendelseService(
             id = navAnsatt.id,
             navIdent = navAnsatt.navIdent,
             navn = navAnsatt.navn,
-            enhet = HendelseAnsvarlig.NavTiltakskoordinator.Enhet(navEnhet.id, navEnhet.enhetsnummer),
+            enhet = HendelseAnsvarlig.NavTiltakskoordinator.Enhet(
+                navn = navEnhet.navn,
+                id = navEnhet.id,
+                enhetsnummer = navEnhet.enhetsnummer,
+            ),
         )
 
         return nyHendelse(deltaker, ansvarlig, endring)
