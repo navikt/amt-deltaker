@@ -11,6 +11,8 @@ import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepos
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
+import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
+import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
 import no.nav.amt.deltaker.hendelse.HendelseProducer
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
@@ -49,6 +51,7 @@ class VedtakServiceTest {
             ImportertFraArenaRepository(),
             InnsokPaaFellesOppstartRepository(),
             EndringFraTiltakskoordinatorRepository(),
+            VurderingService(VurderingRepository()),
         )
     private val kafkaProducer = Producer<String, String>(LocalKafkaConfig(SingletonKafkaProvider.getHost()))
     private val hendelseService = HendelseService(

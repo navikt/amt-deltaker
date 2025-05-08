@@ -9,5 +9,9 @@ class VurderingService(
         vurderingRepository.upsert(vurdering)
     }
 
+    fun getForDeltaker(deltakerId: UUID): List<Vurdering> {
+        return vurderingRepository.getForDeltaker(deltakerId)
+    }
+
     fun deleteForDeltaker(deltakerId: UUID) = vurderingRepository.deleteForDeltaker(deltakerId)
 }

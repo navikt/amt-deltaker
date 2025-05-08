@@ -25,6 +25,7 @@ import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerV1Producer
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerDtoMapperService
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
+import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.hendelse.HendelseProducer
@@ -96,6 +97,7 @@ class PameldingServiceTest {
                 importertFraArenaRepository,
                 innsokPaaFellesOppstartRepository,
                 endringFraTiltakskoordinatorRepository,
+                vurderingService = VurderingService(VurderingRepository()),
             )
         private val hendelseService = HendelseService(
             HendelseProducer(kafkaProducer),
