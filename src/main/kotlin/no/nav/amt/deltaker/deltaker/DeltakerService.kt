@@ -160,8 +160,10 @@ class DeltakerService(
             endringFraTiltakskoordinatorService
                 .upsertEndringPaaDeltakere(deltakere, endringsType, endretAv, endretAvEnhet)
                 .mapNotNull { it.getOrNull() }
-                .map { upsertDeltaker(it) }
                 .map {
+                    log.info("Utfører tiltakskoordinatorendring ${endringsType::class.simpleName} på deltaker: ${it.id}")
+                    upsertDeltaker(it)
+                }.map {
                     if (endringsType is EndringFraTiltakskoordinator.TildelPlass) {
                         vedtakService.oppdaterEllerOpprettVedtak(
                             it,
