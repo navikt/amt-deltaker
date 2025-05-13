@@ -110,13 +110,15 @@ class PameldingService(
 
         val fattet = utkast.godkjentAvNav && !oppdatertDeltaker.deltakerliste.erKurs()
 
-        val vedtak = vedtakService.oppdaterEllerOpprettVedtak(
-            deltaker = oppdatertDeltaker,
-            endretAv = endretAv,
-            endretAvEnhet = endretAvNavEnhet,
-            fattet = fattet,
-            fattetAvNav = fattet,
-        )
+        val vedtak = if (fattet) {
+            vedtakService.navFattEksisterendeEllerOpprettVedtak(oppdatertDeltaker, endretAv, endretAvNavEnhet)
+        } else {
+            vedtakService.oppdaterEllerOpprettVedtak(
+                deltaker = oppdatertDeltaker,
+                endretAv = endretAv,
+                endretAvEnhet = endretAvNavEnhet,
+            )
+        }.getVedtakOrThrow(deltakerId.toString())
 
         val deltakerMedNyttVedtak = oppdatertDeltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksinformasjon())
 

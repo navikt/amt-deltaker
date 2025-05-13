@@ -80,18 +80,6 @@ class VedtakRepository {
         it.run(query.map(::rowMapper).asSingle)
     }
 
-    fun getIkkeFattet(deltakerId: UUID) = Database.query {
-        val sql =
-            """
-            select * from vedtak
-            where deltaker_id = :deltaker_id and fattet is null
-            """.trimIndent()
-
-        val query = queryOf(sql, mapOf("deltaker_id" to deltakerId))
-
-        it.run(query.map(::rowMapper).asSingle)
-    }
-
     fun getForDeltaker(deltakerId: UUID) = Database.query {
         val query = queryOf(
             "select * from vedtak where deltaker_id = :deltaker_id order by created_at",

@@ -116,7 +116,7 @@ class DeltakerServiceTest {
             deltakerRepository,
             deltakerProducerService,
         )
-        private val vedtakService = VedtakService(vedtakRepository, hendelseService)
+        private val vedtakService = VedtakService(vedtakRepository)
         private val deltakerEndringService =
             DeltakerEndringService(
                 deltakerEndringRepository,

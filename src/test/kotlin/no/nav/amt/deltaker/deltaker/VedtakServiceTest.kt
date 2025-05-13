@@ -3,34 +3,13 @@ package no.nav.amt.deltaker.deltaker
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.runBlocking
-import no.nav.amt.deltaker.arrangor.ArrangorRepository
-import no.nav.amt.deltaker.arrangor.ArrangorService
-import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.db.sammenlignVedtak
-import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
-import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
-import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
-import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerContext
-import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
-import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
-import no.nav.amt.deltaker.hendelse.HendelseProducer
-import no.nav.amt.deltaker.hendelse.HendelseService
-import no.nav.amt.deltaker.navansatt.NavAnsattRepository
-import no.nav.amt.deltaker.navansatt.NavAnsattService
-import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetRepository
-import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
-import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
-import no.nav.amt.deltaker.utils.mockAmtArrangorClient
-import no.nav.amt.deltaker.utils.mockAmtPersonClient
-import no.nav.amt.lib.kafka.Producer
-import no.nav.amt.lib.kafka.config.LocalKafkaConfig
 import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
-import no.nav.amt.lib.testing.SingletonKafkaProvider
 import no.nav.amt.lib.testing.SingletonPostgres16Container
 import no.nav.amt.lib.testing.shouldBeCloseTo
 import org.junit.Test
@@ -41,31 +20,8 @@ class VedtakServiceTest {
         SingletonPostgres16Container
     }
 
-    private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonClient())
-    private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonClient(), navEnhetService)
-    private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
-    private val deltakerHistorikkService =
-        DeltakerHistorikkService(
-            DeltakerEndringRepository(),
-            VedtakRepository(),
-            ForslagRepository(),
-            EndringFraArrangorRepository(),
-            ImportertFraArenaRepository(),
-            InnsokPaaFellesOppstartRepository(),
-            EndringFraTiltakskoordinatorRepository(),
-            VurderingService(VurderingRepository()),
-        )
-    private val kafkaProducer = Producer<String, String>(LocalKafkaConfig(SingletonKafkaProvider.getHost()))
-    private val hendelseService = HendelseService(
-        HendelseProducer(kafkaProducer),
-        navAnsattService,
-        navEnhetService,
-        arrangorService,
-        deltakerHistorikkService,
-    )
-
     private val repository = VedtakRepository()
-    private val service = VedtakService(repository, hendelseService)
+    private val service = VedtakService(repository)
 
     @Test
     fun `innbyggerFattVedtak - ikke fattet vedtak finnes -  fattes`() {
@@ -98,13 +54,13 @@ class VedtakServiceTest {
         TestRepository.insertAll(deltaker, endretAvAnsatt, endretAvEnhet)
 
         runBlocking {
-            val vedtak = service.oppdaterEllerOpprettVedtak(
-                deltaker = deltaker,
-                endretAv = endretAvAnsatt,
-                endretAvEnhet = endretAvEnhet,
-                fattet = false,
-                fattetAvNav = false,
-            )
+            val vedtak = service
+                .oppdaterEllerOpprettVedtak(
+                    deltaker = deltaker,
+                    endretAv = endretAvAnsatt,
+                    endretAvEnhet = endretAvEnhet,
+                ).getVedtakOrThrow()
+
             vedtak.deltakerVedVedtak shouldBe deltaker.toDeltakerVedVedtak()
             vedtak.opprettetAv shouldBe endretAvAnsatt.id
             vedtak.opprettetAvEnhet shouldBe endretAvEnhet.id
@@ -115,7 +71,7 @@ class VedtakServiceTest {
     }
 
     @Test
-    fun `oppdaterEllerOpprettVedtak - vedtak finnes, fattes av nav - oppdateres`() {
+    fun `navFattVedtak - vedtak finnes, fattes av nav - oppdateres`() {
         val vedtak = TestData.lagVedtak()
         insert(vedtak)
 
@@ -125,13 +81,12 @@ class VedtakServiceTest {
         TestRepository.insertAll(endretAvAnsatt, endretAvEnhet)
 
         runBlocking {
-            val oppdatertVedtak = service.oppdaterEllerOpprettVedtak(
-                deltaker = oppdatertDeltaker,
-                endretAv = endretAvAnsatt,
-                endretAvEnhet = endretAvEnhet,
-                fattet = true,
-                fattetAvNav = true,
-            )
+            val oppdatertVedtak = service
+                .navFattVedtak(
+                    deltaker = oppdatertDeltaker,
+                    endretAv = endretAvAnsatt,
+                    endretAvEnhet = endretAvEnhet,
+                ).getVedtakOrThrow()
 
             oppdatertVedtak.deltakerVedVedtak shouldBe oppdatertDeltaker.toDeltakerVedVedtak()
             oppdatertVedtak.sistEndretAv shouldBe endretAvAnsatt.id
@@ -153,13 +108,12 @@ class VedtakServiceTest {
         TestRepository.insertAll(endretAvAnsatt, endretAvEnhet)
 
         runBlocking {
-            val oppdatertVedtak = service.oppdaterEllerOpprettVedtak(
-                deltaker = oppdatertDeltaker,
-                endretAv = endretAvAnsatt,
-                endretAvEnhet = endretAvEnhet,
-                fattet = false,
-                fattetAvNav = false,
-            )
+            val oppdatertVedtak = service
+                .oppdaterEllerOpprettVedtak(
+                    deltaker = oppdatertDeltaker,
+                    endretAv = endretAvAnsatt,
+                    endretAvEnhet = endretAvEnhet,
+                ).getVedtakOrThrow()
 
             oppdatertVedtak.deltakerVedVedtak shouldBe oppdatertDeltaker.toDeltakerVedVedtak()
             oppdatertVedtak.sistEndretAv shouldBe endretAvAnsatt.id
@@ -198,7 +152,7 @@ class VedtakServiceTest {
         val avbruttAvAnsatt = TestData.lagNavAnsatt()
         val avbryttAvEnhet = TestData.lagNavEnhet()
 
-        service.avbrytVedtak(deltaker, avbruttAvAnsatt, avbryttAvEnhet) shouldBe Vedtaksutfall.ManglerVedtakSomKanEndres
+        service.avbrytVedtak(deltaker, avbruttAvAnsatt, avbryttAvEnhet) shouldBe Vedtaksutfall.VedtakAlleredeFattet
     }
 
     @Test

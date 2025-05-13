@@ -103,7 +103,7 @@ class DeltakerStatusOppdateringTest {
             forslagService = forslagService,
             deltakerHistorikkService = deltakerHistorikkService,
         )
-        private val vedtakService = VedtakService(vedtakRepository, hendelseService)
+        private val vedtakService = VedtakService(vedtakRepository)
         private val endringFraArrangorService = EndringFraArrangorService(
             endringFraArrangorRepository = endringFraArrangorRepository,
             hendelseService = hendelseService,
