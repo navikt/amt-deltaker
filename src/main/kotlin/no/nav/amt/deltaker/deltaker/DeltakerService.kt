@@ -164,7 +164,7 @@ class DeltakerService(
                     log.info("Utfører tiltakskoordinatorendring ${endringsType::class.simpleName} på deltaker: ${it.id}")
                     upsertDeltaker(it)
                 }.map {
-                    if (endringsType is EndringFraTiltakskoordinator.TildelPlass) {
+                    if (endringsType is EndringFraTiltakskoordinator.TildelPlass && it.kilde == Kilde.KOMET) {
                         val utfall = vedtakService.navFattVedtak(
                             deltaker = it,
                             endretAv = endretAv,
