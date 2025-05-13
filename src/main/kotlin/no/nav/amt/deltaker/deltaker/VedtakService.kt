@@ -17,11 +17,8 @@ class VedtakService(
         deltaker: Deltaker,
         avbruttAv: NavAnsatt,
         avbruttAvNavEnhet: NavEnhet,
-    ): Vedtak {
-        val ikkeFattetVedtak = repository.getIkkeFattet(deltaker.id)
-        require(ikkeFattetVedtak != null) {
-            "Deltaker ${deltaker.id} har ikke et vedtak som kan avbrytes"
-        }
+    ): Vedtaksutfall {
+        val ikkeFattetVedtak = repository.getIkkeFattet(deltaker.id) ?: return Vedtaksutfall.ManglerVedtakSomKanEndres
 
         val avbruttVedtak = ikkeFattetVedtak.copy(
             gyldigTil = LocalDateTime.now(),
@@ -32,14 +29,11 @@ class VedtakService(
 
         repository.upsert(avbruttVedtak)
 
-        return avbruttVedtak
+        return Vedtaksutfall.OK(avbruttVedtak)
     }
 
-    fun avbrytVedtakVedAvsluttetDeltakerliste(deltaker: Deltaker): Vedtak {
-        val ikkeFattetVedtak = repository.getIkkeFattet(deltaker.id)
-        require(ikkeFattetVedtak != null) {
-            "Deltaker ${deltaker.id} har ikke et vedtak som kan avbrytes"
-        }
+    fun avbrytVedtakVedAvsluttetDeltakerliste(deltaker: Deltaker): Vedtaksutfall {
+        val ikkeFattetVedtak = repository.getIkkeFattet(deltaker.id) ?: return Vedtaksutfall.ManglerVedtakSomKanEndres
 
         val avbruttVedtak = ikkeFattetVedtak.copy(
             gyldigTil = LocalDateTime.now(),
@@ -47,7 +41,7 @@ class VedtakService(
 
         repository.upsert(avbruttVedtak)
 
-        return avbruttVedtak
+        return Vedtaksutfall.OK(avbruttVedtak)
     }
 
     fun oppdaterEllerOpprettVedtak(
@@ -69,24 +63,20 @@ class VedtakService(
         )
     }
 
-    fun fattVedtakForFellesOppstart(
+    fun navFattVedtak(
         deltaker: Deltaker,
         endretAv: NavAnsatt,
         endretAvEnhet: NavEnhet,
-    ) {
-        require(deltaker.deltakerliste.erFellesOppstart) {
-            "Kan ikke fatte vedtak for deltaker ${deltaker.id} som ikke deltaker på en gjennomføring som har felles oppstart"
-        }
-
+    ): Vedtaksutfall {
         val vedtak = repository.getForDeltaker(deltaker.id)
 
-        require(vedtak.any { it.gyldigTil == null }) {
-            "Deltaker ${deltaker.id} har ikke et aktivt vedtak"
+        if (!vedtak.any { it.gyldigTil == null }) {
+            return Vedtaksutfall.ManglerVedtakSomKanEndres
         }
 
-        val ikkeFattetVedtak = vedtak.firstOrNull { it.fattet == null } ?: return
+        val ikkeFattetVedtak = vedtak.firstOrNull { it.fattet == null } ?: return Vedtaksutfall.VedtakAlleredeFattet
 
-        upsertOppdatertVedtak(
+        val oppdatertVedtak = upsertOppdatertVedtak(
             eksisterendeVedtak = ikkeFattetVedtak,
             fattetAvNav = true,
             endretAv = endretAv,
@@ -94,24 +84,28 @@ class VedtakService(
             deltaker = deltaker,
             fattet = true,
         )
+
+        return Vedtaksutfall.OK(oppdatertVedtak)
     }
 
     /**
      Kan bare brukes når deltaker selv godkjenner utkast.
      Hvis Nav fatter vedtaket må `oppdaterEllerOpprettVedtak` brukes.
      */
-    fun innbyggerFattVedtak(deltaker: Deltaker): Vedtak {
-        val vedtak = repository.getIkkeFattet(deltaker.id)
+    fun innbyggerFattVedtak(deltaker: Deltaker): Vedtaksutfall {
+        val vedtak = repository.getForDeltaker(deltaker.id)
 
-        require(vedtak != null) {
-            "Deltaker ${deltaker.id} har ikke et vedtak som kan fattes"
+        if (!vedtak.any { it.gyldigTil == null }) {
+            return Vedtaksutfall.ManglerVedtakSomKanEndres
         }
 
-        val fattetVedtak = vedtak.copy(fattet = LocalDateTime.now())
+        val ikkeFattetVedtak = vedtak.firstOrNull { it.fattet == null } ?: return Vedtaksutfall.VedtakAlleredeFattet
+
+        val fattetVedtak = ikkeFattetVedtak.copy(fattet = LocalDateTime.now())
 
         repository.upsert(fattetVedtak)
 
-        return fattetVedtak
+        return Vedtaksutfall.OK(fattetVedtak)
     }
 
     fun deleteForDeltaker(deltakerId: UUID) = repository.deleteForDeltaker(deltakerId)
@@ -159,4 +153,28 @@ class VedtakService(
         sistEndretAvEnhet = endretAvNavEnhet.id,
         sistEndret = LocalDateTime.now(),
     )
+}
+
+sealed interface Vedtaksutfall {
+    data class OK(
+        val vedtak: Vedtak,
+    ) : Vedtaksutfall
+
+    data object ManglerVedtakSomKanEndres : Vedtaksutfall
+
+    data object VedtakAlleredeFattet : Vedtaksutfall
+}
+
+fun Vedtaksutfall.getVedtakOrThrow(details: String = ""): Vedtak = when (this) {
+    is Vedtaksutfall.OK -> vedtak
+    else -> throw toException(details)
+}
+
+private fun Vedtaksutfall.toException(details: String = ""): Exception = when (this) {
+    Vedtaksutfall.ManglerVedtakSomKanEndres ->
+        IllegalArgumentException("Deltaker har ikke vedtak som kan endres $details")
+    Vedtaksutfall.VedtakAlleredeFattet ->
+        IllegalArgumentException("Deltaker har allerede et fattet vedtak $details")
+    is Vedtaksutfall.OK ->
+        IllegalStateException("Tried to convert successful result to exception: $vedtak")
 }

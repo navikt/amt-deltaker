@@ -165,11 +165,23 @@ class DeltakerService(
                     upsertDeltaker(it)
                 }.map {
                     if (endringsType is EndringFraTiltakskoordinator.TildelPlass) {
-                        vedtakService.fattVedtakForFellesOppstart(
+                        val utfall = vedtakService.navFattVedtak(
                             deltaker = it,
                             endretAv = endretAv,
                             endretAvEnhet = endretAvEnhet,
                         )
+                        when (utfall) {
+                            is Vedtaksutfall.ManglerVedtakSomKanEndres -> throw throw IllegalArgumentException(
+                                "Deltaker ${it.id} mangler et vedtak som kan fattes",
+                            )
+                            is Vedtaksutfall.VedtakAlleredeFattet -> {
+                                log.info("Vedtak allerede fattet for deltaker ${it.id}, fatter ikke nytt vedtak")
+                            }
+
+                            is Vedtaksutfall.OK -> {
+                                log.info("Fattet hovedvedtak for deltaker $it.id")
+                            }
+                        }
                     }
                     hendelseService.produserHendelseFraTiltaksansvarlig(it, endretAv, endretAvEnhet, endringsType)
                     return@map it
@@ -218,7 +230,7 @@ class DeltakerService(
         }
 
         val oppdatertDeltaker = deltaker.copy(status = status, sistEndret = LocalDateTime.now())
-        vedtakService.innbyggerFattVedtak(oppdatertDeltaker)
+        vedtakService.innbyggerFattVedtak(oppdatertDeltaker).getVedtakOrThrow()
 
         return upsertDeltaker(oppdatertDeltaker)
     }
@@ -261,7 +273,7 @@ class DeltakerService(
     }
 
     private fun oppdaterVedtakForAvbruttUtkast(deltaker: Deltaker) = if (deltaker.status.type == DeltakerStatus.Type.AVBRUTT_UTKAST) {
-        val vedtak = vedtakService.avbrytVedtakVedAvsluttetDeltakerliste(deltaker)
+        val vedtak = vedtakService.avbrytVedtakVedAvsluttetDeltakerliste(deltaker).getVedtakOrThrow()
 
         hendelseService.hendelseFraSystem(deltaker) { HendelseType.AvbrytUtkast(it) }
 

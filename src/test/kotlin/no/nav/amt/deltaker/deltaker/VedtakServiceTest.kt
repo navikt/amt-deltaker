@@ -33,9 +33,7 @@ import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.lib.testing.SingletonKafkaProvider
 import no.nav.amt.lib.testing.SingletonPostgres16Container
 import no.nav.amt.lib.testing.shouldBeCloseTo
-import org.junit.Assert.assertThrows
 import org.junit.Test
-import org.junit.jupiter.api.assertThrows
 import java.time.LocalDateTime
 
 class VedtakServiceTest {
@@ -76,7 +74,7 @@ class VedtakServiceTest {
         insert(vedtak)
 
         runBlocking {
-            val fattetVedtak = service.innbyggerFattVedtak(deltaker)
+            val fattetVedtak = service.innbyggerFattVedtak(deltaker).getVedtakOrThrow()
             fattetVedtak.id shouldBe vedtak.id
             fattetVedtak.fattet shouldNotBe null
             fattetVedtak.fattetAvNav shouldBe false
@@ -89,11 +87,7 @@ class VedtakServiceTest {
         val vedtak = TestData.lagVedtak(fattet = LocalDateTime.now(), deltakerVedVedtak = deltaker)
         insert(vedtak)
 
-        assertThrows(IllegalArgumentException::class.java) {
-            runBlocking {
-                service.innbyggerFattVedtak(deltaker)
-            }
-        }
+        service.innbyggerFattVedtak(deltaker) shouldBe Vedtaksutfall.VedtakAlleredeFattet
     }
 
     @Test
@@ -185,7 +179,7 @@ class VedtakServiceTest {
         TestRepository.insertAll(avbruttAvAnsatt, avbryttAvEnhet)
 
         runBlocking {
-            val avbruttVedtak = service.avbrytVedtak(deltaker, avbruttAvAnsatt, avbryttAvEnhet)
+            val avbruttVedtak = service.avbrytVedtak(deltaker, avbruttAvAnsatt, avbryttAvEnhet).getVedtakOrThrow()
 
             avbruttVedtak.id shouldBe vedtak.id
             avbruttVedtak.gyldigTil shouldBeCloseTo LocalDateTime.now()
@@ -204,19 +198,15 @@ class VedtakServiceTest {
         val avbruttAvAnsatt = TestData.lagNavAnsatt()
         val avbryttAvEnhet = TestData.lagNavEnhet()
 
-        assertThrows(IllegalArgumentException::class.java) {
-            runBlocking {
-                service.avbrytVedtak(deltaker, avbruttAvAnsatt, avbryttAvEnhet)
-            }
-        }
+        service.avbrytVedtak(deltaker, avbruttAvAnsatt, avbryttAvEnhet) shouldBe Vedtaksutfall.ManglerVedtakSomKanEndres
     }
 
     @Test
-    fun `fattVedtakForFellesOppstart - felles oppstart - fatter vedtak`() {
+    fun `navFattVedtak - fatter vedtak`() {
         with(DeltakerContext()) {
             medVedtak(fattet = false)
             withTiltakstype(Tiltakstype.Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING)
-            service.fattVedtakForFellesOppstart(deltaker, veileder, navEnhet)
+            service.navFattVedtak(deltaker, veileder, navEnhet)::class shouldBe Vedtaksutfall.OK::class
 
             val deltakersVedtak = repository.getForDeltaker(deltaker.id)
             deltakersVedtak.size shouldBe 1
@@ -226,32 +216,21 @@ class VedtakServiceTest {
     }
 
     @Test
-    fun `fattVedtakForFellesOppstart - lopende oppstart - feiler`() {
-        with(DeltakerContext()) {
-            medVedtak(fattet = false)
-            withTiltakstype(Tiltakstype.Tiltakskode.ARBEIDSFORBEREDENDE_TRENING)
-            assertThrows<IllegalArgumentException> {
-                service.fattVedtakForFellesOppstart(deltaker, veileder, navEnhet)
-            }
-        }
-    }
-
-    @Test
-    fun `fattVedtakForFellesOppstart - mangler vedtak - feiler`() {
+    fun `navFattVedtak - mangler vedtak - feiler`() {
         with(DeltakerContext()) {
             withTiltakstype(Tiltakstype.Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING)
-            assertThrows<IllegalArgumentException> {
-                service.fattVedtakForFellesOppstart(deltaker, veileder, navEnhet)
-            }
+
+            service.navFattVedtak(deltaker, veileder, navEnhet) shouldBe Vedtaksutfall.ManglerVedtakSomKanEndres
         }
     }
 
     @Test
-    fun `fattVedtakForFellesOppstart - vedtak allerede fattet - fatter ikke nytt vedtak`() {
+    fun `navFattVedtak - vedtak allerede fattet - fatter ikke nytt vedtak`() {
         with(DeltakerContext()) {
             medVedtak(fattet = true)
             withTiltakstype(Tiltakstype.Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING)
-            service.fattVedtakForFellesOppstart(deltaker, veileder, navEnhet)
+
+            service.navFattVedtak(deltaker, veileder, navEnhet) shouldBe Vedtaksutfall.VedtakAlleredeFattet
 
             val deltakersVedtak = repository.getForDeltaker(deltaker.id)
             deltakersVedtak.size shouldBe 1

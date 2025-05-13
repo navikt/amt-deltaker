@@ -14,6 +14,7 @@ import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.auth.AuthorizationException
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.VedtakService
+import no.nav.amt.deltaker.deltaker.getVedtakOrThrow
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.nyDeltakerStatus
@@ -197,7 +198,7 @@ fun Routing.registerInternalApi(
         val deltakerId = call.parameters.getOrFail("deltakerId").let { UUID.fromString(it) }
         val deltaker = deltakerService.get(deltakerId).getOrThrow()
 
-        val vedtak = vedtakService.avbrytVedtakVedAvsluttetDeltakerliste(deltaker)
+        val vedtak = vedtakService.avbrytVedtakVedAvsluttetDeltakerliste(deltaker).getVedtakOrThrow()
         val status = nyDeltakerStatus(
             DeltakerStatus.Type.AVBRUTT_UTKAST,
             DeltakerStatus.Aarsak(type = DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT, beskrivelse = null),
