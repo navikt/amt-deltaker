@@ -59,17 +59,41 @@ class VedtakService(
     ): Vedtak {
         val eksisterendeVedtak = repository.getIkkeFattet(deltaker.id)
 
-        val oppdatertVedtak = opprettEllerOppdaterVedtak(
-            original = eksisterendeVedtak,
-            godkjentAvNav = fattetAvNav,
+        return upsertOppdatertVedtak(
+            eksisterendeVedtak = eksisterendeVedtak,
+            fattetAvNav = fattetAvNav,
             endretAv = endretAv,
-            endretAvNavEnhet = endretAvEnhet,
+            endretAvEnhet = endretAvEnhet,
             deltaker = deltaker,
-            fattet = if (fattet) LocalDateTime.now() else null,
+            fattet = fattet,
         )
-        repository.upsert(oppdatertVedtak)
+    }
 
-        return oppdatertVedtak
+    fun fattVedtakForFellesOppstart(
+        deltaker: Deltaker,
+        endretAv: NavAnsatt,
+        endretAvEnhet: NavEnhet,
+    ) {
+        require(deltaker.deltakerliste.erFellesOppstart) {
+            "Kan ikke fatte vedtak for deltaker ${deltaker.id} som ikke deltaker på en gjennomføring som har felles oppstart"
+        }
+
+        val vedtak = repository.getForDeltaker(deltaker.id)
+
+        require(vedtak.any { it.gyldigTil == null }) {
+            "Deltaker ${deltaker.id} har ikke et aktivt vedtak"
+        }
+
+        val ikkeFattetVedtak = vedtak.firstOrNull { it.fattet == null } ?: return
+
+        upsertOppdatertVedtak(
+            eksisterendeVedtak = ikkeFattetVedtak,
+            fattetAvNav = true,
+            endretAv = endretAv,
+            endretAvEnhet = endretAvEnhet,
+            deltaker = deltaker,
+            fattet = true,
+        )
     }
 
     /**
@@ -91,6 +115,27 @@ class VedtakService(
     }
 
     fun deleteForDeltaker(deltakerId: UUID) = repository.deleteForDeltaker(deltakerId)
+
+    private fun upsertOppdatertVedtak(
+        eksisterendeVedtak: Vedtak?,
+        fattetAvNav: Boolean,
+        endretAv: NavAnsatt,
+        endretAvEnhet: NavEnhet,
+        deltaker: Deltaker,
+        fattet: Boolean,
+    ): Vedtak {
+        val oppdatertVedtak = opprettEllerOppdaterVedtak(
+            original = eksisterendeVedtak,
+            godkjentAvNav = fattetAvNav,
+            endretAv = endretAv,
+            endretAvNavEnhet = endretAvEnhet,
+            deltaker = deltaker,
+            fattet = if (fattet) LocalDateTime.now() else null,
+        )
+        repository.upsert(oppdatertVedtak)
+
+        return oppdatertVedtak
+    }
 
     private fun opprettEllerOppdaterVedtak(
         original: Vedtak?,

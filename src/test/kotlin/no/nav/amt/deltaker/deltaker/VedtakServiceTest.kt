@@ -7,10 +7,12 @@ import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
+import no.nav.amt.deltaker.deltaker.db.sammenlignVedtak
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
+import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerContext
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
 import no.nav.amt.deltaker.hendelse.HendelseProducer
@@ -27,11 +29,13 @@ import no.nav.amt.deltaker.utils.mockAmtPersonClient
 import no.nav.amt.lib.kafka.Producer
 import no.nav.amt.lib.kafka.config.LocalKafkaConfig
 import no.nav.amt.lib.models.deltaker.Vedtak
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.lib.testing.SingletonKafkaProvider
 import no.nav.amt.lib.testing.SingletonPostgres16Container
 import no.nav.amt.lib.testing.shouldBeCloseTo
 import org.junit.Assert.assertThrows
 import org.junit.Test
+import org.junit.jupiter.api.assertThrows
 import java.time.LocalDateTime
 
 class VedtakServiceTest {
@@ -204,6 +208,55 @@ class VedtakServiceTest {
             runBlocking {
                 service.avbrytVedtak(deltaker, avbruttAvAnsatt, avbryttAvEnhet)
             }
+        }
+    }
+
+    @Test
+    fun `fattVedtakForFellesOppstart - felles oppstart - fatter vedtak`() {
+        with(DeltakerContext()) {
+            medVedtak(fattet = false)
+            withTiltakstype(Tiltakstype.Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING)
+            service.fattVedtakForFellesOppstart(deltaker, veileder, navEnhet)
+
+            val deltakersVedtak = repository.getForDeltaker(deltaker.id)
+            deltakersVedtak.size shouldBe 1
+
+            deltakersVedtak.first().fattet shouldNotBe null
+        }
+    }
+
+    @Test
+    fun `fattVedtakForFellesOppstart - lopende oppstart - feiler`() {
+        with(DeltakerContext()) {
+            medVedtak(fattet = false)
+            withTiltakstype(Tiltakstype.Tiltakskode.ARBEIDSFORBEREDENDE_TRENING)
+            assertThrows<IllegalArgumentException> {
+                service.fattVedtakForFellesOppstart(deltaker, veileder, navEnhet)
+            }
+        }
+    }
+
+    @Test
+    fun `fattVedtakForFellesOppstart - mangler vedtak - feiler`() {
+        with(DeltakerContext()) {
+            withTiltakstype(Tiltakstype.Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING)
+            assertThrows<IllegalArgumentException> {
+                service.fattVedtakForFellesOppstart(deltaker, veileder, navEnhet)
+            }
+        }
+    }
+
+    @Test
+    fun `fattVedtakForFellesOppstart - vedtak allerede fattet - fatter ikke nytt vedtak`() {
+        with(DeltakerContext()) {
+            medVedtak(fattet = true)
+            withTiltakstype(Tiltakstype.Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING)
+            service.fattVedtakForFellesOppstart(deltaker, veileder, navEnhet)
+
+            val deltakersVedtak = repository.getForDeltaker(deltaker.id)
+            deltakersVedtak.size shouldBe 1
+
+            sammenlignVedtak(deltakersVedtak.first(), vedtak)
         }
     }
 

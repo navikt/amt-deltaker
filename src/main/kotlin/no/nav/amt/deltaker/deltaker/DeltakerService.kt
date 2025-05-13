@@ -165,12 +165,10 @@ class DeltakerService(
                     upsertDeltaker(it)
                 }.map {
                     if (endringsType is EndringFraTiltakskoordinator.TildelPlass) {
-                        vedtakService.oppdaterEllerOpprettVedtak(
-                            it,
-                            endretAv,
+                        vedtakService.fattVedtakForFellesOppstart(
+                            deltaker = it,
+                            endretAv = endretAv,
                             endretAvEnhet = endretAvEnhet,
-                            fattet = true,
-                            fattetAvNav = true,
                         )
                     }
                     hendelseService.produserHendelseFraTiltaksansvarlig(it, endretAv, endretAvEnhet, endringsType)
