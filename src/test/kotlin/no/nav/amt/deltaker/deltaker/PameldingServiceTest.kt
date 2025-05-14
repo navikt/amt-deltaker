@@ -105,6 +105,7 @@ class PameldingServiceTest {
             navEnhetService,
             arrangorService,
             deltakerHistorikkService,
+            VurderingService(VurderingRepository()),
         )
 
         private val vedtakService = VedtakService(vedtakRepository)

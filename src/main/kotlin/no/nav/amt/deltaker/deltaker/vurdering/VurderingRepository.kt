@@ -2,21 +2,20 @@ package no.nav.amt.deltaker.deltaker.vurdering
 
 import kotliquery.Row
 import kotliquery.queryOf
+import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.utils.database.Database
 import java.util.UUID
 
 open class VurderingRepository {
     companion object {
-        fun rowMapper(row: Row): Vurdering {
-            return Vurdering(
-                id = row.uuid("id"),
-                deltakerId = row.uuid("deltaker_id"),
-                vurderingstype = Vurderingstype.valueOf(row.string("vurderingstype")),
-                begrunnelse = row.stringOrNull("begrunnelse"),
-                opprettetAvArrangorAnsattId = row.uuid("opprettet_av_arrangor_ansatt_id"),
-                gyldigFra = row.localDateTime("gyldig_fra"),
-            )
-        }
+        fun rowMapper(row: Row): Vurdering = Vurdering(
+            id = row.uuid("id"),
+            deltakerId = row.uuid("deltaker_id"),
+            vurderingstype = Vurderingstype.valueOf(row.string("vurderingstype")),
+            begrunnelse = row.stringOrNull("begrunnelse"),
+            opprettetAvArrangorAnsattId = row.uuid("opprettet_av_arrangor_ansatt_id"),
+            gyldigFra = row.localDateTime("gyldig_fra"),
+        )
     }
 
     fun getForDeltaker(deltakerId: UUID): List<Vurdering> = Database.query {

@@ -46,6 +46,7 @@ class EndringFraArrangorServiceTest {
     private val forslagRepository = ForslagRepository()
     private val endringFraArrangorRepository = EndringFraArrangorRepository()
     private val deltakerRepository = DeltakerRepository()
+    private val vurderingService = VurderingService(VurderingRepository())
     private val deltakerHistorikkService = DeltakerHistorikkService(
         DeltakerEndringRepository(),
         VedtakRepository(),
@@ -54,7 +55,7 @@ class EndringFraArrangorServiceTest {
         ImportertFraArenaRepository(),
         InnsokPaaFellesOppstartRepository(),
         EndringFraTiltakskoordinatorRepository(),
-        vurderingService = VurderingService(VurderingRepository()),
+        vurderingService,
     )
     private val kafkaProducer = Producer<String, String>(LocalKafkaConfig(SingletonKafkaProvider.getHost()))
     private val hendelseService = HendelseService(
@@ -63,6 +64,7 @@ class EndringFraArrangorServiceTest {
         navEnhetService,
         arrangorService,
         deltakerHistorikkService,
+        vurderingService,
     )
     private val endringFraArrangorService = EndringFraArrangorService(
         endringFraArrangorRepository = endringFraArrangorRepository,
