@@ -69,7 +69,7 @@ data class DeltakerContext(
         navBruker = TestData.lagNavBruker(navVeilederId = veileder.id, navEnhetId = navEnhet.id),
     ),
 ) {
-    val vedtak: Vedtak = TestData.lagVedtak(
+    var vedtak: Vedtak = TestData.lagVedtak(
         deltakerVedVedtak = deltaker,
         fattet = deltaker.sistEndret.minusMonths(3),
         opprettetAv = veileder,
@@ -115,7 +115,8 @@ data class DeltakerContext(
         )
     }
 
-    fun medVedtak() {
+    fun medVedtak(fattet: Boolean = true) {
+        vedtak = vedtak.copy(fattet = if (fattet) deltaker.sistEndret.minusMonths(3) else null)
         TestRepository.insert(deltaker)
         TestRepository.insert(vedtak)
         deltaker = deltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksinformasjon())

@@ -89,55 +89,6 @@ class VedtakRepositoryTest {
 
         sammenlignVedtak(repository.get(vedtak.id)!!, vedtak)
     }
-
-    @Test
-    fun `getIkkeFattet - flere vedtak - henter det som ikke er fattet`() {
-        val navAnsatt = TestData.lagNavAnsatt()
-        TestRepository.insert(navAnsatt)
-        val navEnhet = TestData.lagNavEnhet()
-        TestRepository.insert(navEnhet)
-        val deltaker = TestData.lagDeltaker()
-        val fattet: Vedtak = TestData.lagVedtak(
-            deltakerId = deltaker.id,
-            fattet = LocalDateTime.now().minusMonths(2),
-            deltakerVedVedtak = deltaker,
-            opprettetAv = navAnsatt,
-            opprettetAvEnhet = navEnhet,
-        )
-        val ikkeFattet: Vedtak = TestData.lagVedtak(
-            deltakerId = deltaker.id,
-            deltakerVedVedtak = deltaker,
-            opprettetAv = navAnsatt,
-            opprettetAvEnhet = navEnhet,
-        )
-        TestRepository.insert(deltaker)
-
-        TestRepository.insert(fattet)
-        TestRepository.insert(ikkeFattet)
-
-        sammenlignVedtak(repository.getIkkeFattet(deltaker.id)!!, ikkeFattet)
-    }
-
-    @Test
-    fun `getIkkeFattet - fattet vedtak - returnerer null`() {
-        val navAnsatt = TestData.lagNavAnsatt()
-        TestRepository.insert(navAnsatt)
-        val navEnhet = TestData.lagNavEnhet()
-        TestRepository.insert(navEnhet)
-        val deltaker = TestData.lagDeltaker()
-        val fattet: Vedtak = TestData.lagVedtak(
-            deltakerId = deltaker.id,
-            fattet = LocalDateTime.now().minusMonths(2),
-            deltakerVedVedtak = deltaker,
-            opprettetAv = navAnsatt,
-            opprettetAvEnhet = navEnhet,
-        )
-        TestRepository.insert(deltaker)
-
-        TestRepository.insert(fattet)
-
-        repository.getIkkeFattet(deltaker.id) shouldBe null
-    }
 }
 
 fun sammenlignVedtak(a: Vedtak, b: Vedtak) {

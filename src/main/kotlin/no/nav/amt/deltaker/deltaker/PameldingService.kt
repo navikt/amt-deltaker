@@ -110,13 +110,15 @@ class PameldingService(
 
         val fattet = utkast.godkjentAvNav && !oppdatertDeltaker.deltakerliste.erKurs()
 
-        val vedtak = vedtakService.oppdaterEllerOpprettVedtak(
-            deltaker = oppdatertDeltaker,
-            endretAv = endretAv,
-            endretAvEnhet = endretAvNavEnhet,
-            fattet = fattet,
-            fattetAvNav = fattet,
-        )
+        val vedtak = if (fattet) {
+            vedtakService.navFattEksisterendeEllerOpprettVedtak(oppdatertDeltaker, endretAv, endretAvNavEnhet)
+        } else {
+            vedtakService.oppdaterEllerOpprettVedtak(
+                deltaker = oppdatertDeltaker,
+                endretAv = endretAv,
+                endretAvEnhet = endretAvNavEnhet,
+            )
+        }.getVedtakOrThrow(deltakerId.toString())
 
         val deltakerMedNyttVedtak = oppdatertDeltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksinformasjon())
 
@@ -188,7 +190,9 @@ class PameldingService(
         val endretAv = navAnsattService.hentEllerOpprettNavAnsatt(avbrytUtkastRequest.avbruttAv)
         val endretAvNavEnhet = navEnhetService.hentEllerOpprettNavEnhet(avbrytUtkastRequest.avbruttAvEnhet)
 
-        val vedtak = vedtakService.avbrytVedtak(oppdatertDeltaker, endretAv, endretAvNavEnhet)
+        val vedtak = vedtakService
+            .avbrytVedtak(oppdatertDeltaker, endretAv, endretAvNavEnhet)
+            .getVedtakOrThrow("Kunne ikke avbryte vedtak for deltaker $deltakerId")
 
         deltakerService.upsertDeltaker(oppdatertDeltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksinformasjon()))
 

@@ -107,7 +107,7 @@ class PameldingServiceTest {
             deltakerHistorikkService,
         )
 
-        private val vedtakService = VedtakService(vedtakRepository, hendelseService)
+        private val vedtakService = VedtakService(vedtakRepository)
         private val forslagService = ForslagService(forslagRepository, mockk(), deltakerRepository, mockk())
         private val endringFraArrangorService = EndringFraArrangorService(
             endringFraArrangorRepository = endringFraArrangorRepository,

@@ -231,7 +231,7 @@ fun Application.module() {
     val deltakelserResponseMapper = DeltakelserResponseMapper(deltakerHistorikkService, arrangorService)
 
     val endringFraArrangorService = EndringFraArrangorService(endringFraArrangorRepository, hendelseService, deltakerHistorikkService)
-    val vedtakService = VedtakService(vedtakRepository, hendelseService)
+    val vedtakService = VedtakService(vedtakRepository)
     val deltakerService = DeltakerService(
         deltakerRepository = deltakerRepository,
         deltakerEndringService = deltakerEndringService,
