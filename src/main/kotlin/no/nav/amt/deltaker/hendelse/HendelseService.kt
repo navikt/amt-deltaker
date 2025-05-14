@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.hendelse
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.model.Deltaker
+import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
 import no.nav.amt.deltaker.hendelse.model.toHendelseDeltaker
 import no.nav.amt.deltaker.navansatt.NavAnsatt
 import no.nav.amt.deltaker.navansatt.NavAnsattService
@@ -30,6 +31,7 @@ class HendelseService(
     private val navEnhetService: NavEnhetService,
     private val arrangorService: ArrangorService,
     private val deltakerHistorikkService: DeltakerHistorikkService,
+    private val vurderingService: VurderingService,
 ) {
     val log: Logger = LoggerFactory.getLogger(javaClass)
 
@@ -42,9 +44,15 @@ class HendelseService(
         val hendelseType = when (endringsType) {
             EndringFraTiltakskoordinator.SettPaaVenteliste -> HendelseType.SettPaaVenteliste
             EndringFraTiltakskoordinator.TildelPlass -> HendelseType.TildelPlass
-            else -> null
+            is EndringFraTiltakskoordinator.Avslag -> HendelseType.Avslag(
+                aarsak = endringsType.aarsak,
+                begrunnelseFraNav = endringsType.begrunnelse,
+                vurderingFraArrangor = vurderingService.getSisteForDeltaker(deltaker.id)?.let {
+                    HendelseType.Avslag.Vurdering(it.vurderingstype, it.begrunnelse)
+                },
+            )
+            EndringFraTiltakskoordinator.DelMedArrangor -> return
         }
-        if (hendelseType == null) return
 
         hendelseProducer.produce(nyHendelseFraKoordinator(deltaker, navAnsatt, navEnhet, hendelseType))
     }

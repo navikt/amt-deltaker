@@ -66,6 +66,7 @@ class DeltakerEndringServiceTest {
     private val forslagRepository = ForslagRepository()
     private val kafkaProducer = Producer<String, String>(LocalKafkaConfig(SingletonKafkaProvider.getHost()))
     private val deltakerEndringRepository = DeltakerEndringRepository()
+    private val vurderingService = VurderingService(VurderingRepository())
     private val deltakerHistorikkService = DeltakerHistorikkService(
         deltakerEndringRepository,
         VedtakRepository(),
@@ -74,7 +75,7 @@ class DeltakerEndringServiceTest {
         ImportertFraArenaRepository(),
         InnsokPaaFellesOppstartRepository(),
         EndringFraTiltakskoordinatorRepository(),
-        VurderingService(VurderingRepository()),
+        vurderingService,
     )
     private val hendelseService = HendelseService(
         HendelseProducer(kafkaProducer),
@@ -82,6 +83,7 @@ class DeltakerEndringServiceTest {
         navEnhetService,
         arrangorService,
         deltakerHistorikkService,
+        vurderingService,
     )
     private val forslagService = ForslagService(
         forslagRepository,

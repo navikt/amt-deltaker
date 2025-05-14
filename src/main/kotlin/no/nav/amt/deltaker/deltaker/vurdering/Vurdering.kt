@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.deltaker.vurdering
 
+import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import java.time.LocalDateTime
 import java.util.UUID
 

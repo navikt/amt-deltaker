@@ -11,7 +11,6 @@ import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.deltaker.deltaker.vurdering.Vurdering
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
-import no.nav.amt.deltaker.deltaker.vurdering.Vurderingstype
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.navbruker.NavBrukerService
@@ -137,7 +136,7 @@ fun DeltakerStatus.Aarsak.Type.toDeltakerstatusArsak(): DeltakerStatus.Aarsak.Ty
 fun no.nav.amt.lib.models.arrangor.melding.Vurdering.toVurdering() = Vurdering(
     id = id,
     deltakerId = deltakerId,
-    vurderingstype = Vurderingstype.valueOf(vurderingstype.name),
+    vurderingstype = vurderingstype,
     begrunnelse = begrunnelse,
     opprettetAvArrangorAnsattId = opprettetAvArrangorAnsattId,
     gyldigFra = opprettet,

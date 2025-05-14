@@ -86,12 +86,14 @@ class DeltakerStatusOppdateringTest {
         private val deltakerProducerService =
             DeltakerProducerService(deltakerDtoMapperService, deltakerProducer, deltakerV1Producer, unleashToggle)
         private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
+        private val vurderingService = VurderingService(vurderingRepository)
         private val hendelseService = HendelseService(
             HendelseProducer(kafkaProducer),
             navAnsattService,
             navEnhetService,
             arrangorService,
             deltakerHistorikkService,
+            vurderingService,
         )
         private val forslagService = ForslagService(forslagRepository, mockk(), deltakerRepository, deltakerProducerService)
 

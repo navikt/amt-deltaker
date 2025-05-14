@@ -81,6 +81,7 @@ class DeltakerServiceTest {
         private val importertFraArenaRepository = ImportertFraArenaRepository()
         private val kafkaProducer = Producer<String, String>(LocalKafkaConfig(SingletonKafkaProvider.getHost()))
         private val vurderingRepository = VurderingRepository()
+        private val vurderingService = VurderingService(vurderingRepository)
         private val deltakerHistorikkService =
             DeltakerHistorikkService(
                 deltakerEndringRepository,
@@ -90,7 +91,7 @@ class DeltakerServiceTest {
                 importertFraArenaRepository,
                 InnsokPaaFellesOppstartRepository(),
                 EndringFraTiltakskoordinatorRepository(),
-                VurderingService(VurderingRepository()),
+                vurderingService,
             )
         private val hendelseService = HendelseService(
             HendelseProducer(kafkaProducer),
@@ -98,6 +99,7 @@ class DeltakerServiceTest {
             navEnhetService,
             arrangorService,
             deltakerHistorikkService,
+            vurderingService,
         )
         private val unleashToggle = mockk<UnleashToggle>()
         private val deltakerDtoMapperService =
@@ -604,7 +606,7 @@ class DeltakerServiceTest {
         val historikk2 = deltakerHistorikkService.getForDeltaker(deltaker2.id)
         historikk2.filterIsInstance<DeltakerHistorikk.EndringFraTiltakskoordinator>().size shouldBe 1
 
-        // TODO: assertProducedHendelse(deltaker.id, HendelseType.SettPaaVenteliste::class)
+        assertProducedHendelse(deltaker.id, HendelseType.SettPaaVenteliste::class)
         assertProduced(deltaker.id)
         assertProducedDeltakerV1(deltaker.id)
         assertProduced(deltaker2.id)
@@ -678,7 +680,7 @@ class DeltakerServiceTest {
         val historikk2 = deltakerHistorikkService.getForDeltaker(deltaker2.id)
         historikk2.filterIsInstance<DeltakerHistorikk.EndringFraTiltakskoordinator>().size shouldBe 1
 
-        // TODO: assertProducedHendelse(deltaker.id, HendelseType.TildelPlass::class)
+        assertProducedHendelse(deltaker.id, HendelseType.TildelPlass::class)
         assertProduced(deltaker.id)
         assertProducedDeltakerV1(deltaker.id)
         assertProduced(deltaker2.id)
@@ -752,7 +754,7 @@ class DeltakerServiceTest {
         val historikk2 = deltakerHistorikkService.getForDeltaker(deltaker2.id)
         historikk2.filterIsInstance<DeltakerHistorikk.EndringFraTiltakskoordinator>().size shouldBe 1
 
-        // TODO: assertProducedHendelse(deltaker.id, HendelseType.TildelPlass::class)
+        assertProducedHendelse(deltaker.id, HendelseType.TildelPlass::class)
         assertProduced(deltaker.id)
         assertProducedDeltakerV1(deltaker.id)
         assertProduced(deltaker2.id)
@@ -786,6 +788,7 @@ class DeltakerServiceTest {
             deltaker.startdato shouldBe null
             deltaker.sluttdato shouldBe null
 
+            assertProducedHendelse(deltaker.id, HendelseType.Avslag::class)
             assertProduced(deltaker.id)
             assertProducedDeltakerV1(deltaker.id)
         }

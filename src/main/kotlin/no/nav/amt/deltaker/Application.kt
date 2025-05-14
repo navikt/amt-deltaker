@@ -197,7 +197,14 @@ fun Application.module() {
     )
 
     val hendelseProducer = HendelseProducer(kafkaProducer)
-    val hendelseService = HendelseService(hendelseProducer, navAnsattService, navEnhetService, arrangorService, deltakerHistorikkService)
+    val hendelseService = HendelseService(
+        hendelseProducer = hendelseProducer,
+        navAnsattService = navAnsattService,
+        navEnhetService = navEnhetService,
+        arrangorService = arrangorService,
+        deltakerHistorikkService = deltakerHistorikkService,
+        vurderingService = vurderingService,
+    )
 
     val unleash = DefaultUnleash(
         UnleashConfig
