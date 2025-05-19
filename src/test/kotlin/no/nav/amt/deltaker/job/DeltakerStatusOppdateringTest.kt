@@ -564,7 +564,7 @@ class DeltakerStatusOppdateringTest {
         TestRepository.insert(deltaker2, vedtak2)
 
         runBlocking {
-            deltakerService.avsluttDeltakelserPaaDeltakerliste(deltakerliste.id)
+            deltakerService.avsluttDeltakelserPaaDeltakerliste(deltakerliste)
 
             val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
             deltakerFraDb.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET

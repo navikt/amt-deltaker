@@ -252,9 +252,10 @@ class DeltakerService(
             .forEach { upsertDeltaker(it) }
     }
 
-    suspend fun avsluttDeltakelserPaaDeltakerliste(deltakerlisteId: UUID) {
-        val deltakerePaAvbruttDeltakerliste = getDeltakereForDeltakerliste(deltakerlisteId)
+    suspend fun avsluttDeltakelserPaaDeltakerliste(deltakerliste: Deltakerliste) {
+        val deltakerePaAvbruttDeltakerliste = getDeltakereForDeltakerliste(deltakerliste.id)
             .filter { it.status.type != DeltakerStatus.Type.KLADD }
+            .map { it.copy(deltakerliste = deltakerliste) }
 
         avsluttDeltakere(deltakerePaAvbruttDeltakerliste)
     }

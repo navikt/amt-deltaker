@@ -110,7 +110,7 @@ class DeltakerlisteConsumerTest {
             deltakerlisteRepository.get(deltakerliste.id).getOrThrow() shouldBe oppdatertDeltakerliste
         }
 
-        coVerify { deltakerService.avsluttDeltakelserPaaDeltakerliste(deltakerliste.id) }
+        coVerify { deltakerService.avsluttDeltakelserPaaDeltakerliste(oppdatertDeltakerliste) }
     }
 
     @Test
