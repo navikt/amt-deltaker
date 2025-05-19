@@ -595,10 +595,18 @@ class DeltakerServiceTest {
         endredeDeltakere.size shouldBe 2
         endredeDeltakere.first {
             it.id == deltaker.id
-        } shouldBeComparableWith deltaker.copy(status = deltaker.status.copy(type = DeltakerStatus.Type.VENTELISTE))
+        } shouldBeComparableWith deltaker.copy(
+            status = deltaker.status.copy(type = DeltakerStatus.Type.VENTELISTE),
+            startdato = null,
+            sluttdato = null,
+        )
         endredeDeltakere.first {
             it.id == deltaker2.id
-        } shouldBeComparableWith deltaker2.copy(status = deltaker2.status.copy(type = DeltakerStatus.Type.VENTELISTE))
+        } shouldBeComparableWith deltaker2.copy(
+            status = deltaker2.status.copy(type = DeltakerStatus.Type.VENTELISTE),
+            startdato = null,
+            sluttdato = null,
+        )
 
         val historikk1 = deltakerHistorikkService.getForDeltaker(deltaker.id)
         historikk1.filterIsInstance<DeltakerHistorikk.EndringFraTiltakskoordinator>().size shouldBe 1

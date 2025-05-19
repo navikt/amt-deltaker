@@ -62,7 +62,11 @@ class EndringFraTiltakskoordinatorService(
         return when (endring) {
             is EndringFraTiltakskoordinator.SettPaaVenteliste -> {
                 createResult(deltaker.status.type != DeltakerStatus.Type.VENTELISTE) {
-                    deltaker.copy(status = nyDeltakerStatus(DeltakerStatus.Type.VENTELISTE))
+                    deltaker.copy(
+                        status = nyDeltakerStatus(DeltakerStatus.Type.VENTELISTE),
+                        startdato = null,
+                        sluttdato = null,
+                    )
                 }
             }
 
