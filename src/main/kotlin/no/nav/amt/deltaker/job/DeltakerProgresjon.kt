@@ -123,10 +123,11 @@ class DeltakerProgresjon {
         if (!deltaker.deltarPaKurs()) {
             return false
         }
-        deltaker.deltakerliste.sluttDato?.let {
-            return deltaker.sluttdato?.isBefore(it) == true
-        }
-        return false
+        return deltaker.deltakerliste.sluttDato?.let {
+            deltaker.sluttdato?.isBefore(it) == true ||
+                // Deltakerlister som avbrytes får ikke nødvendigvis ny sluttdato
+                deltaker.deltakerliste.sluttDato.isAfter(LocalDate.now())
+        } ?: false
     }
 
     private fun Deltaker.medNyStatus(status: DeltakerStatus.Type, aarsak: DeltakerStatus.Aarsak? = null) = this.copy(

@@ -56,7 +56,7 @@ class DeltakerlisteConsumer(
         val gammelDeltakerliste = repository.get(deltakerlisteDto.id)
 
         if (oppdatertDeltakerliste.erAvlystEllerAvbrutt()) {
-            deltakerService.avsluttDeltakelserPaaDeltakerliste(oppdatertDeltakerliste.id)
+            deltakerService.avsluttDeltakelserPaaDeltakerliste(oppdatertDeltakerliste)
         }
 
         gammelDeltakerliste.onSuccess {
