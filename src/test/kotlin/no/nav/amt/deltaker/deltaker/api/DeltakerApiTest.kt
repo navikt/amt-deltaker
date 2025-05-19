@@ -328,7 +328,7 @@ class DeltakerApiTest {
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(
                 type = DeltakerStatus.Type.HAR_SLUTTET,
-                aarsak = DeltakerStatus.Aarsak.Type.valueOf(endring.aarsak.type.name),
+                aarsak = DeltakerStatus.Aarsak.Type.valueOf(endring.aarsak!!.type.name),
             ),
             sluttdato = endring.sluttdato,
         )

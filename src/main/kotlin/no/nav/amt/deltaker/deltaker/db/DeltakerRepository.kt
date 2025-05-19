@@ -133,7 +133,7 @@ class DeltakerRepository {
             tx.update(queryOf(sql, parameters))
             tx.update(insertStatusQuery(deltaker.status, deltaker.id))
             if (!deltaker.status.gyldigFra
-                    .toLocalDate()
+                    .toLocalDate() // Hæ?
                     .isAfter(LocalDate.now())
             ) {
                 tx.update(deaktiverTidligereStatuserQuery(deltaker.status, deltaker.id))

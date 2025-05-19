@@ -10,6 +10,7 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerService
+import no.nav.amt.deltaker.deltaker.api.model.AvbrytDeltakelseRequest
 import no.nav.amt.deltaker.deltaker.api.model.AvsluttDeltakelseRequest
 import no.nav.amt.deltaker.deltaker.api.model.BakgrunnsinformasjonRequest
 import no.nav.amt.deltaker.deltaker.api.model.DeltakelsesmengdeRequest
@@ -79,6 +80,11 @@ fun Routing.registerDeltakerApi(deltakerService: DeltakerService, historikkServi
 
         post("/deltaker/{deltakerId}/avslutt") {
             val request = call.receive<AvsluttDeltakelseRequest>()
+            call.handleDeltakerEndring(deltakerService, request, historikkService)
+        }
+
+        post("/deltaker/{deltakerId}/avbryt") {
+            val request = call.receive<AvbrytDeltakelseRequest>()
             call.handleDeltakerEndring(deltakerService, request, historikkService)
         }
 

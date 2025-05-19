@@ -82,6 +82,15 @@ data class AvsluttDeltakelseRequest(
     override val endretAvEnhet: String,
     override val forslagId: UUID?,
     val sluttdato: LocalDate,
+    val aarsak: DeltakerEndring.Aarsak?,
+    val begrunnelse: String?,
+) : EndringForslagRequest
+
+data class AvbrytDeltakelseRequest(
+    override val endretAv: String,
+    override val endretAvEnhet: String,
+    override val forslagId: UUID?,
+    val sluttdato: LocalDate,
     val aarsak: DeltakerEndring.Aarsak,
     val begrunnelse: String?,
 ) : EndringForslagRequest
@@ -111,6 +120,11 @@ fun EndringRequest.toDeltakerEndringEndring() = when (this) {
     is ForlengDeltakelseRequest -> DeltakerEndring.Endring.ForlengDeltakelse(this.sluttdato, this.begrunnelse)
     is IkkeAktuellRequest -> DeltakerEndring.Endring.IkkeAktuell(this.aarsak, this.begrunnelse)
     is AvsluttDeltakelseRequest -> DeltakerEndring.Endring.AvsluttDeltakelse(
+        this.aarsak,
+        this.sluttdato,
+        this.begrunnelse,
+    )
+    is AvbrytDeltakelseRequest -> DeltakerEndring.Endring.AvbrytDeltakelse(
         this.aarsak,
         this.sluttdato,
         this.begrunnelse,

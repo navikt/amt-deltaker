@@ -297,6 +297,57 @@ class DeltakerServiceTest {
     }
 
     @Test
+    fun `upsertEndretDeltaker - avslutt kursdeltaker i fremtiden - setter fremtidig FULLFORT`(): Unit = runBlocking {
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+            sluttdato = LocalDate.now().plusMonths(1),
+            deltakerliste = TestData.lagDeltakerliste(
+                tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING),
+            ),
+        )
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+
+        TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
+        val vedtak = TestData.lagVedtak(
+            deltakerId = deltaker.id,
+            deltakerVedVedtak = deltaker,
+            opprettetAv = endretAv,
+            opprettetAvEnhet = endretAvEnhet,
+            fattet = LocalDateTime.now(),
+        )
+        TestRepository.insert(vedtak)
+
+        val endringsrequest = AvsluttDeltakelseRequest(
+            endretAv = endretAv.navIdent,
+            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            sluttdato = LocalDate.now().plusWeeks(1),
+            aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
+            begrunnelse = null,
+            forslagId = null,
+        )
+
+        val deltakerrespons = deltakerService.upsertEndretDeltaker(deltaker.id, endringsrequest)
+
+        deltakerrespons.status.type shouldBe DeltakerStatus.Type.DELTAR
+        deltakerrespons.sluttdato shouldBe endringsrequest.sluttdato
+
+        val oppdatertDeltaker = deltakerService.get(deltaker.id).getOrThrow()
+
+        oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.DELTAR
+        oppdatertDeltaker.sluttdato shouldBe endringsrequest.sluttdato
+
+        val statuser = deltakerRepository.getDeltakerStatuser(deltaker.id)
+        statuser.size shouldBe 2
+        statuser.first { it.id == deltaker.status.id }.gyldigTil shouldBe null
+        statuser.first { it.id == deltaker.status.id }.type shouldBe DeltakerStatus.Type.DELTAR
+        statuser.first { it.id != deltaker.status.id }.gyldigTil shouldBe null
+        statuser.first { it.id != deltaker.status.id }.gyldigFra.toLocalDate() shouldBe endringsrequest.sluttdato.plusDays(1)
+        statuser.first { it.id != deltaker.status.id }.type shouldBe DeltakerStatus.Type.FULLFORT
+        statuser.first { it.id != deltaker.status.id }.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
+    }
+
+    @Test
     fun `upsertEndretDeltaker - avslutt i fremtiden, blir forlenget - deaktiverer fremtidig HAR_SLUTTET`(): Unit = runBlocking {
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
