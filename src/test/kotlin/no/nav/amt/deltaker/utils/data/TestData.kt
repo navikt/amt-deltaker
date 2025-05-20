@@ -116,7 +116,7 @@ object TestData {
 
     fun lagTiltakstype(
         id: UUID = UUID.randomUUID(),
-        tiltakskode: Tiltakstype.Tiltakskode = Tiltakstype.Tiltakskode.entries.random(),
+        tiltakskode: Tiltakstype.Tiltakskode = Tiltakstype.Tiltakskode.OPPFOLGING,
         arenaKode: Tiltakstype.ArenaKode = tiltakskode.toArenaKode(),
         navn: String = "Test tiltak $arenaKode",
         innsatsgrupper: Set<Innsatsgruppe> = setOf(Innsatsgruppe.STANDARD_INNSATS),
