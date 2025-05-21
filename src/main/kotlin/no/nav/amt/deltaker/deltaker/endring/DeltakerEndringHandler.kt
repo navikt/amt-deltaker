@@ -176,20 +176,20 @@ class DeltakerEndringHandler(
             endring.sluttdato != deltaker.sluttdato ||
             deltaker.status.aarsak != endring.aarsak.toDeltakerStatusAarsak(),
     ) {
-        if (deltaker.status.type == DeltakerStatus.Type.DELTAR || !endring.skalFortsattDelta()) {
+        if (deltaker.status.type == DeltakerStatus.Type.DELTAR || endring.skalFortsattDelta()) {
             DeltakerEndringUtfall.VellykketEndring(
                 deltaker.copy(
                     sluttdato = endring.sluttdato,
-                    status = nyDeltakerStatus(DeltakerStatus.Type.AVBRUTT),
+                    status = nyDeltakerStatus(DeltakerStatus.Type.DELTAR),
                 ),
+                nesteStatus = endring.getAvbruttStatus(),
             )
         } else {
             DeltakerEndringUtfall.VellykketEndring(
                 deltaker.copy(
                     sluttdato = endring.sluttdato,
-                    status = deltaker.status.copy(gyldigTil = endring.sluttdato.atStartOfDay()),
+                    status = nyDeltakerStatus(DeltakerStatus.Type.AVBRUTT),
                 ),
-                nesteStatus = endring.getAvbruttStatus(),
             )
         }
     }
