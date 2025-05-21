@@ -184,7 +184,7 @@ class DeltakerEndringHandler(
                 ),
             )
         } else {
-            //Status er ikke Deltar, men deltakeren skal få deltar status
+            // Status er ikke Deltar, men deltakeren skal få deltar status
             DeltakerEndringUtfall.VellykketEndring(
                 deltaker.copy(
                     sluttdato = endring.sluttdato,
