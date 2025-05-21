@@ -189,7 +189,7 @@ class DeltakerEndringHandler(
                     sluttdato = endring.sluttdato,
                     status = deltaker.status.copy(gyldigTil = endring.sluttdato.atStartOfDay()),
                 ),
-                nesteStatus = nyDeltakerStatus(DeltakerStatus.Type.AVBRUTT),
+                nesteStatus = endring.getAvbruttStatus(),
             )
         }
     }
@@ -204,6 +204,19 @@ class DeltakerEndringHandler(
         return nyDeltakerStatus(
             type = if (erFellesInntak) DeltakerStatus.Type.FULLFORT else DeltakerStatus.Type.HAR_SLUTTET,
             aarsak = aarsak?.toDeltakerStatusAarsak(),
+            gyldigFra = gyldigFra,
+        )
+    }
+
+    private fun DeltakerEndring.Endring.AvbrytDeltakelse.getAvbruttStatus(): DeltakerStatus {
+        val gyldigFra = if (skalFortsattDelta()) {
+            sluttdato.atStartOfDay().plusDays(1)
+        } else {
+            LocalDateTime.now()
+        }
+        return nyDeltakerStatus(
+            type = DeltakerStatus.Type.AVBRUTT,
+            aarsak = aarsak.toDeltakerStatusAarsak(),
             gyldigFra = gyldigFra,
         )
     }

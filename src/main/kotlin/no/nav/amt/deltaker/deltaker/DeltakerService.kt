@@ -161,7 +161,7 @@ class DeltakerService(
                 .upsertEndringPaaDeltakere(deltakere, endringsType, endretAv, endretAvEnhet)
                 .mapNotNull { it.getOrNull() }
                 .map {
-                    log.info("Utfører tiltakskoordinatorendring ${endringsType::class.simpleName} på deltaker: ${it.id}")
+                    log.info("Utfører tiltakskoordinator endring ${endringsType::class.simpleName} på deltaker: ${it.id}")
                     upsertDeltaker(it)
                 }.map {
                     if (endringsType is EndringFraTiltakskoordinator.TildelPlass && it.kilde == Kilde.KOMET) {
