@@ -59,8 +59,6 @@ spec:
           namespace: teamsykefravr
       external:
         - host: amt-unleash-api.nav.cloud.nais.io
-  secureLogs:
-    enabled: true
   leaderElection: true
   kafka:
     pool: nav-prod
