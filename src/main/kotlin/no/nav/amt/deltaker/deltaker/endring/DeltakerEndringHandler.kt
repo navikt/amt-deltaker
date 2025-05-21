@@ -172,24 +172,25 @@ class DeltakerEndringHandler(
     }
 
     private fun avbrytDeltakelse(endring: DeltakerEndring.Endring.AvbrytDeltakelse) = endreDeltaker(
-        deltaker.status.type != DeltakerStatus.Type.HAR_SLUTTET ||
+        deltaker.status.type != DeltakerStatus.Type.AVBRUTT ||
             endring.sluttdato != deltaker.sluttdato ||
             deltaker.status.aarsak != endring.aarsak.toDeltakerStatusAarsak(),
     ) {
-        if (deltaker.status.type == DeltakerStatus.Type.DELTAR || endring.skalFortsattDelta()) {
+        if (deltaker.status.type == DeltakerStatus.Type.DELTAR || !endring.skalFortsattDelta()) {
+            DeltakerEndringUtfall.VellykketEndring(
+                deltaker.copy(
+                    sluttdato = endring.sluttdato,
+                    status = endring.getAvbruttStatus(),
+                ),
+            )
+        } else {
+            //Status er ikke Deltar, men deltakeren skal få deltar status
             DeltakerEndringUtfall.VellykketEndring(
                 deltaker.copy(
                     sluttdato = endring.sluttdato,
                     status = nyDeltakerStatus(DeltakerStatus.Type.DELTAR),
                 ),
                 nesteStatus = endring.getAvbruttStatus(),
-            )
-        } else {
-            DeltakerEndringUtfall.VellykketEndring(
-                deltaker.copy(
-                    sluttdato = endring.sluttdato,
-                    status = nyDeltakerStatus(DeltakerStatus.Type.AVBRUTT),
-                ),
             )
         }
     }
@@ -226,7 +227,7 @@ class DeltakerEndringHandler(
     private fun DeltakerEndring.Endring.AvbrytDeltakelse.skalFortsattDelta(): Boolean = !sluttdato.isBefore(LocalDate.now())
 
     private fun Deltaker.getStatusEndretSluttdato(sluttdato: LocalDate): DeltakerStatus =
-        if (status.type == DeltakerStatus.Type.HAR_SLUTTET &&
+        if (status.type in listOf(DeltakerStatus.Type.HAR_SLUTTET, DeltakerStatus.Type.AVBRUTT, DeltakerStatus.Type.FULLFORT) &&
             !sluttdato.isBefore(
                 LocalDate.now(),
             )
