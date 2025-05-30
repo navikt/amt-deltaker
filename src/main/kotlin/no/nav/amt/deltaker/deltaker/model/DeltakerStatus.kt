@@ -52,7 +52,7 @@ fun DeltakerStatus.Type.getStatustekst(): String = when (this) {
     DeltakerStatus.Type.IKKE_AKTUELL -> "Ikke aktuell"
     DeltakerStatus.Type.SOKT_INN -> "Søkt inn"
     DeltakerStatus.Type.VURDERES -> "Vurderes"
-    DeltakerStatus.Type.VENTELISTE -> "På venteliste"
+    DeltakerStatus.Type.VENTELISTE -> "Venteliste"
     DeltakerStatus.Type.AVBRUTT -> "Avbrutt"
     DeltakerStatus.Type.FULLFORT -> "Fullført"
     DeltakerStatus.Type.FEILREGISTRERT -> "Feilregistrert"
