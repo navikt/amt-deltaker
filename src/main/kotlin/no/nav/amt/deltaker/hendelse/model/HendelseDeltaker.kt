@@ -16,7 +16,7 @@ fun Deltaker.toHendelseDeltaker(overordnetArrangor: Arrangor?, forsteVedtakFatte
         sluttdato = deltakerliste.sluttDato,
         oppstartstype = HendelseDeltaker.Deltakerliste.Oppstartstype.valueOf(deltakerliste.oppstart.toString()),
         tiltak = HendelseDeltaker.Deltakerliste.Tiltak(
-            navn = deltakerliste.tiltakstype.navn,
+            navn = deltakerliste.tiltakstype.visningsnavn,
             type = deltakerliste.tiltakstype.arenaKode,
             ledetekst = deltakerliste.tiltakstype.innhold?.ledetekst,
             tiltakskode = deltakerliste.tiltakstype.tiltakskode,

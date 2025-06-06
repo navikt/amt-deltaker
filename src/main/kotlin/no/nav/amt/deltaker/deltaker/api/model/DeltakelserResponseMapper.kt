@@ -132,7 +132,7 @@ class DeltakelserResponseMapper(
     }
 
     private fun Tiltakstype.toTiltakstypeRespons(): DeltakelserResponse.Tiltakstype = DeltakelserResponse.Tiltakstype(
-        navn = navn,
+        navn = visningsnavn,
         tiltakskode = arenaKode,
     )
 }
