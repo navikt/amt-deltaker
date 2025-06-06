@@ -148,6 +148,7 @@ class PameldingServiceTest {
             endringFraTiltakskoordinatorService = mockk(),
             amtTiltakClient = mockk(),
             navAnsattService = navAnsattService,
+            endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
             navEnhetService = navEnhetService,
         )
 

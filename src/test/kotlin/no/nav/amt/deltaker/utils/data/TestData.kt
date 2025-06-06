@@ -277,7 +277,7 @@ object TestData {
         type: DeltakerStatus.Type = DeltakerStatus.Type.DELTAR,
         aarsak: DeltakerStatus.Aarsak.Type? = null,
         beskrivelse: String? = null,
-        gyldigFra: LocalDateTime = LocalDateTime.now(),
+        gyldigFra: LocalDateTime = LocalDateTime.now().minusMinutes(5),
         gyldigTil: LocalDateTime? = null,
         opprettet: LocalDateTime = LocalDateTime.now(),
     ) = DeltakerStatus(

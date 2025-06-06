@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.deltaker.db
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
+import kotliquery.TransactionalSession
 import kotliquery.queryOf
 import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.utils.toPGObject
@@ -25,7 +26,7 @@ class VedtakRepository {
         sistEndretAvEnhet = row.uuid("sist_endret_av_enhet"),
     )
 
-    fun upsert(vedtak: Vedtak) = Database.query {
+    fun upsert(vedtak: Vedtak, session: TransactionalSession) {
         val sql =
             """
             insert into vedtak (id,
@@ -71,7 +72,11 @@ class VedtakRepository {
             "sist_endret_av_enhet" to vedtak.sistEndretAvEnhet,
         )
 
-        it.update(queryOf(sql, params))
+        session.update(queryOf(sql, params))
+    }
+
+    fun upsert(vedtak: Vedtak) = Database.query { session ->
+        session.transaction { upsert(vedtak, it) }
     }
 
     fun get(id: UUID) = Database.query {
