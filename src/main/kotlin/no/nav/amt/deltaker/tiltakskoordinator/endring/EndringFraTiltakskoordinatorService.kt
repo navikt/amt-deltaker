@@ -2,7 +2,6 @@ package no.nav.amt.deltaker.tiltakskoordinator.endring
 
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.nyDeltakerStatus
-import no.nav.amt.deltaker.navansatt.NavAnsatt
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhet
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -15,40 +14,11 @@ class EndringFraTiltakskoordinatorService(
     private val repository: EndringFraTiltakskoordinatorRepository,
     private val navAnsattService: NavAnsattService,
 ) {
-    fun upsertEndringPaaDeltakere(
-        deltakere: List<Deltaker>,
-        endringsType: EndringFraTiltakskoordinator.Endring,
-        endretAv: NavAnsatt,
-        endretAvEnhet: NavEnhet,
-    ): List<Result<Deltaker>> {
-        val deltakereMedEndringMap = deltakere.associateWith { deltaker ->
-            EndringFraTiltakskoordinator(
-                id = UUID.randomUUID(),
-                deltakerId = deltaker.id,
-                endring = endringsType,
-                endretAv = endretAv.id,
-                endretAvEnhet = endretAvEnhet.id,
-                endret = LocalDateTime.now(),
-            )
-        }
-
-        val tentativtEndredeDeltakere = deltakereMedEndringMap
-            .map { (deltaker, endring) -> sjekkEndringUtfall(deltaker, endring.endring) to endring }
-
-        val gyldigeEndringer = tentativtEndredeDeltakere
-            .filter { (res, _) -> res.isSuccess }
-            .map { (_, endring) -> endring }
-
-        repository.insert(gyldigeEndringer)
-
-        return tentativtEndredeDeltakere.map { it.first }
-    }
-
     fun deleteForDeltaker(deltakerId: UUID) = repository.deleteForDeltaker(deltakerId)
 
     fun getForDeltaker(deltakerId: UUID) = repository.getForDeltaker(deltakerId)
 
-    private fun sjekkEndringUtfall(deltaker: Deltaker, endring: EndringFraTiltakskoordinator.Endring): Result<Deltaker> {
+    fun sjekkEndringUtfall(deltaker: Deltaker, endring: EndringFraTiltakskoordinator.Endring): Result<Deltaker> {
         fun createResult(gyldigEndring: Boolean, deltakerOnSuccess: () -> Deltaker) = if (gyldigEndring) {
             Result.success(deltakerOnSuccess())
         } else {

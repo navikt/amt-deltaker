@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.deltaker
 
+import kotliquery.TransactionalSession
 import no.nav.amt.deltaker.deltaker.api.model.EndringRequest
 import no.nav.amt.deltaker.deltaker.api.model.toDeltakerEndringEndring
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
@@ -15,8 +16,11 @@ import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.job.DeltakerProgresjon
+import no.nav.amt.deltaker.navansatt.NavAnsatt
 import no.nav.amt.deltaker.navansatt.NavAnsattService
+import no.nav.amt.deltaker.navansatt.navenhet.NavEnhet
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
+import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorService
 import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
@@ -25,6 +29,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
+import no.nav.amt.lib.utils.database.Database
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -43,6 +48,7 @@ class DeltakerService(
     private val deltakerHistorikkService: DeltakerHistorikkService,
     private val unleashToggle: UnleashToggle,
     private val endringFraTiltakskoordinatorService: EndringFraTiltakskoordinatorService,
+    private val endringFraTiltakskoordinatorRepository: EndringFraTiltakskoordinatorRepository,
     private val amtTiltakClient: AmtTiltakClient,
     private val navAnsattService: NavAnsattService,
     private val navEnhetService: NavEnhetService,
@@ -137,66 +143,92 @@ class DeltakerService(
         )
     }
 
-    suspend fun upsertEndretDeltakere(
+    fun transactionalDeltakerUpsert(
+        deltaker: Deltaker,
+        endring: EndringFraTiltakskoordinator,
+        transactionalUpsert: (t: TransactionalSession) -> Unit = {},
+    ) = Database.query { session ->
+        try {
+            session.transaction { transaction ->
+                deltakerRepository.upsert(deltaker, null, transaction)
+                endringFraTiltakskoordinatorRepository.insert(listOf(endring), transaction)
+                transactionalUpsert(transaction)
+            }
+            return@query Result.success(deltaker)
+        } catch (ex: Exception) {
+            return@query Result.failure(ex)
+        }
+    }
+
+    fun upsertDeltaker(
+        deltaker: Deltaker,
+        endringsType: EndringFraTiltakskoordinator.Endring,
+        endretAv: NavAnsatt,
+        endretAvEnhet: NavEnhet,
+    ): DeltakerOppdateringResult {
+        val endring = EndringFraTiltakskoordinator(
+            id = UUID.randomUUID(),
+            deltakerId = deltaker.id,
+            endring = endringsType,
+            endretAv = endretAv.id,
+            endretAvEnhet = endretAvEnhet.id,
+            endret = LocalDateTime.now(),
+        )
+        val deltakerResult = endringFraTiltakskoordinatorService.sjekkEndringUtfall(deltaker, endring.endring)
+
+        if (deltakerResult.isFailure) {
+            return DeltakerOppdateringResult(
+                deltaker,
+                deltakerResult.isSuccess,
+                deltakerResult.exceptionOrNull(),
+            )
+        }
+        val result = transactionalDeltakerUpsert(deltakerResult.getOrThrow(), endring) { transaction ->
+            if (endringsType is EndringFraTiltakskoordinator.TildelPlass && deltaker.kilde == Kilde.KOMET) {
+                vedtakService.navFattVedtak(deltaker, endretAv, endretAvEnhet, transaction)
+            }
+        }
+
+        return DeltakerOppdateringResult(
+            deltakerRepository.get(deltaker.id).getOrThrow(),
+            result.isSuccess,
+            result.exceptionOrNull(),
+        )
+    }
+
+    suspend fun oppdaterDeltakere(
         deltakerIder: List<UUID>,
         endringsType: EndringFraTiltakskoordinator.Endring,
         endretAvIdent: String,
-    ): List<Deltaker> {
+    ): List<DeltakerOppdateringResult> {
         val endretAv = navAnsattService.hentEllerOpprettNavAnsatt(endretAvIdent)
 
         require(endretAv.navEnhetId != null) { "Tiltakskoordinator ${endretAv.id} mangler en tilknyttet nav-enhet" }
 
         val endretAvEnhet = navEnhetService.hentEllerOpprettNavEnhet(endretAv.navEnhetId)
         val deltakere = deltakerRepository.getMany(deltakerIder)
+        val tiltakstyper = deltakere
+            .distinctBy { it.deltakerliste.tiltakstype.tiltakskode }
+            .map { it.deltakerliste.tiltakstype.tiltakskode }
 
-        if (deltakere.isEmpty()) return emptyList()
+        require(tiltakstyper.size == 1) { "kan ikke endre på deltakere på flere tiltakstyper samtidig" }
+        require(tiltakstyper.first() in Tiltakstype.kursTiltak) { "kan ikke endre på deltakere på tiltakstypen ${tiltakstyper.first()}" }
 
-        val tiltakstype = deltakere.distinctBy { it.deltakerliste.tiltakstype.tiltakskode }.map { it.deltakerliste.tiltakstype.tiltakskode }
-
-        require(tiltakstype.size == 1) { "kan ikke endre på deltakere på flere tiltakstyper samtidig" }
-        require(tiltakstype.first() in Tiltakstype.kursTiltak) { "kan ikke endre på deltakere på tiltakstypen ${tiltakstype.first()}" }
-
-        return if (unleashToggle.erKometMasterForTiltakstype(tiltakstype.first().toArenaKode())) {
-            endringFraTiltakskoordinatorService
-                .upsertEndringPaaDeltakere(deltakere, endringsType, endretAv, endretAvEnhet)
-                .mapNotNull { it.getOrNull() }
-                .map {
-                    log.info("Utfører tiltakskoordinator endring ${endringsType::class.simpleName} på deltaker: ${it.id}")
-                    upsertDeltaker(it)
-                }.map {
-                    if (endringsType is EndringFraTiltakskoordinator.TildelPlass && it.kilde == Kilde.KOMET) {
-                        val utfall = vedtakService.navFattVedtak(
-                            deltaker = it,
-                            endretAv = endretAv,
-                            endretAvEnhet = endretAvEnhet,
-                        )
-                        when (utfall) {
-                            is Vedtaksutfall.ManglerVedtakSomKanEndres -> throw throw IllegalArgumentException(
-                                "Deltaker ${it.id} mangler et vedtak som kan fattes",
-                            )
-                            is Vedtaksutfall.VedtakAlleredeFattet -> {
-                                log.info("Vedtak allerede fattet for deltaker ${it.id}, fatter ikke nytt vedtak")
-                            }
-
-                            is Vedtaksutfall.OK -> {
-                                log.info("Fattet hovedvedtak for deltaker $it.id")
-                            }
-                        }
-                    }
-                    hendelseService.produserHendelseFraTiltaksansvarlig(it, endretAv, endretAvEnhet, endringsType)
-                    return@map it
+        return deltakere
+            .map { upsertDeltaker(it, endringsType, endretAv, endretAvEnhet) }
+            .map { deltakerOppdateringResult ->
+                if (!deltakerOppdateringResult.isSuccess) {
+                    log.error(
+                        "Kunne ikke oppdatere deltaker fra batch: $deltakerIder med endring $endringsType",
+                        deltakerOppdateringResult.exceptionOrNull,
+                    )
+                } else {
+                    val deltaker = deltakerOppdateringResult.deltaker
+                    deltakerProducerService.produce(deltaker)
+                    hendelseService.produserHendelseFraTiltaksansvarlig(deltaker, endretAv, endretAvEnhet, endringsType)
                 }
-        } else if (endringsType is EndringFraTiltakskoordinator.DelMedArrangor) {
-            amtTiltakClient.delMedArrangor(deltakere.map { it.id })
-            val endredeDeltakere = deltakere.map { it.copy(erManueltDeltMedArrangor = true) }
-            endringFraTiltakskoordinatorService.insertDelMedArrangor(endredeDeltakere, endretAvIdent, endretAvEnhet)
-            endredeDeltakere
-        } else {
-            throw NotImplementedError(
-                "Håndtering av endring fra tiltakskoordinator " +
-                    "hvor komet ikke er master og det ikke er av type del-med-arrangør er ikke støttet",
-            )
-        }
+                return@map deltakerOppdateringResult
+            }
     }
 
     suspend fun giAvslag(
@@ -204,11 +236,11 @@ class DeltakerService(
         avslag: EndringFraTiltakskoordinator.Avslag,
         endretAv: String,
     ): Deltaker {
-        val res = upsertEndretDeltakere(listOf(deltakerId), avslag, endretAv)
-        return if (res.isEmpty()) {
-            throw IllegalArgumentException("Kunne ikke gi avslag til deltaker $deltakerId")
+        val deltakerOppdateringResult = oppdaterDeltakere(listOf(deltakerId), avslag, endretAv).first()
+        if (deltakerOppdateringResult.isSuccess) {
+            return deltakerOppdateringResult.deltaker
         } else {
-            res.first()
+            throw deltakerOppdateringResult.exceptionOrNull!!
         }
     }
 
@@ -320,4 +352,10 @@ fun nyDeltakerStatus(
     gyldigFra = gyldigFra,
     gyldigTil = null,
     opprettet = LocalDateTime.now(),
+)
+
+data class DeltakerOppdateringResult(
+    val deltaker: Deltaker,
+    val isSuccess: Boolean,
+    val exceptionOrNull: Throwable?,
 )

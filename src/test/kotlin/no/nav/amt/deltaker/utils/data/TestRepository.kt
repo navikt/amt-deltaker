@@ -328,6 +328,7 @@ object TestRepository {
 
         it.update(queryOf(sql, params))
         insert(deltaker.status, deltaker.id)
+        log.info("inserted deltaker ${deltaker.id}")
 
         if (vedtak != null) {
             try {
