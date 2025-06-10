@@ -69,6 +69,7 @@ import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
+import java.util.UUID
 
 class DeltakerServiceTest {
     companion object {
@@ -678,51 +679,58 @@ class DeltakerServiceTest {
     }
 
     @Test
-    fun `upsertEndretDeltakere - sett på venteliste feiler på upsert - ruller tilbake endringer på samme deltaker`(): Unit = runBlocking {
+    fun `upsertEndretDeltakere - tildel plass feiler på upsert - ruller tilbake endringer på samme deltaker`(): Unit = runBlocking {
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet(enhetsnummer = "0326")
         val deltakerliste = TestData.lagDeltakerliste(
             tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING),
         )
-        val deltaker = TestData.lagDeltaker(deltakerliste = deltakerliste)
+        val deltaker1Id = UUID.randomUUID()
+        val vedtak = TestData.lagVedtak(deltakerId = deltaker1Id, opprettetAvEnhet = endretAvEnhet, opprettetAv = endretAv)
+        val deltaker = TestData.lagDeltaker(
+            id = deltaker1Id,
+            deltakerliste = deltakerliste,
+            vedtaksinformasjon = vedtak.tilVedtaksinformasjon(),
+        )
+
         val deltaker2 = TestData.lagDeltaker(deltakerliste = deltakerliste)
         val deltakerIder = listOf(deltaker.id, deltaker2.id)
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet(enhetsnummer = "0326")
         val innsokt = TestData.lagInnsoktPaaKurs(deltakerId = deltaker.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
         val innsokt2 = TestData.lagInnsoktPaaKurs(deltakerId = deltaker2.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
-        TestRepository.insertAll(endretAv, endretAvEnhet, deltaker, deltaker2, innsokt, innsokt2)
+        TestRepository.insertAll(endretAv, endretAvEnhet, deltaker, deltaker2, innsokt, innsokt2, vedtak)
 
         val endredeDeltakere = deltakerService.oppdaterDeltakere(
             deltakerIder,
-            EndringFraTiltakskoordinator.SettPaaVenteliste,
+            EndringFraTiltakskoordinator.TildelPlass,
             endretAv.navIdent,
         )
         endredeDeltakere.size shouldBe 2
         endredeDeltakere.first {
             it.deltaker.id == deltaker.id
         }.deltaker shouldBeComparableWith deltaker.copy(
-            status = deltaker.status.copy(type = DeltakerStatus.Type.VENTELISTE),
+            status = deltaker.status.copy(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
             startdato = null,
             sluttdato = null,
+            vedtaksinformasjon = vedtak.copy(
+                fattet = LocalDateTime.now(),
+                fattetAvNav = true,
+                sistEndret = LocalDateTime.now(),
+                sistEndretAvEnhet = vedtak.opprettetAvEnhet,
+            ).tilVedtaksinformasjon(),
         )
         endredeDeltakere.first {
             it.deltaker.id == deltaker2.id
-        }.deltaker shouldBeComparableWith deltaker2.copy(
-            status = deltaker2.status.copy(type = DeltakerStatus.Type.VENTELISTE),
-            startdato = null,
-            sluttdato = null,
-        )
+        }.deltaker shouldBeComparableWith deltaker2
 
         val historikk1 = deltakerHistorikkService.getForDeltaker(deltaker.id)
         historikk1.filterIsInstance<DeltakerHistorikk.EndringFraTiltakskoordinator>().size shouldBe 1
 
         val historikk2 = deltakerHistorikkService.getForDeltaker(deltaker2.id)
-        historikk2.filterIsInstance<DeltakerHistorikk.EndringFraTiltakskoordinator>().size shouldBe 1
+        historikk2.filterIsInstance<DeltakerHistorikk.EndringFraTiltakskoordinator>().size shouldBe 0
 
-        assertProducedHendelse(deltaker.id, HendelseType.SettPaaVenteliste::class)
+        assertProducedHendelse(deltaker.id, HendelseType.TildelPlass::class)
         assertProduced(deltaker.id)
         assertProducedDeltakerV1(deltaker.id)
-        assertProduced(deltaker2.id)
-        assertProducedDeltakerV1(deltaker2.id)
     }
 
     @Test
@@ -1276,6 +1284,10 @@ infix fun Deltaker.shouldBeComparableWith(expected: Deltaker?) {
         sistEndret = sistEndret,
         status = status.copy(id = expected!!.status.id, opprettet = statusOpprettetDay, gyldigFra = gyldigFra),
         opprettet = null,
+        vedtaksinformasjon = vedtaksinformasjon?.copy(
+            fattet = this.vedtaksinformasjon?.fattet?.atStartOfDay(),
+            sistEndret = this.vedtaksinformasjon?.sistEndret?.atStartOfDay()!!,
+        ),
     ) shouldBe expected.copy(
         sistEndret = expected.sistEndret.atStartOfDay(),
         status = expected.status.copy(
@@ -1284,5 +1296,9 @@ infix fun Deltaker.shouldBeComparableWith(expected: Deltaker?) {
             gyldigFra = expected.status.gyldigFra.atStartOfDay(),
         ),
         opprettet = null,
+        vedtaksinformasjon = vedtaksinformasjon?.copy(
+            fattet = expected.vedtaksinformasjon?.fattet?.atStartOfDay(),
+            sistEndret = expected.vedtaksinformasjon?.sistEndret?.atStartOfDay()!!,
+        ),
     )
 }
