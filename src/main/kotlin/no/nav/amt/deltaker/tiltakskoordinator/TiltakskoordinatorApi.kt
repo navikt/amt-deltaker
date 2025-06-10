@@ -104,7 +104,10 @@ fun DeltakerOppdateringResult.toDeltakerResponse(historikk: List<DeltakerHistori
         is SQLException -> DeltakerOppdateringFeilkode.UGYLDIG_STATE
         is SocketTimeoutException -> DeltakerOppdateringFeilkode.MIDLERTIDIG_FEIL
         is SocketException -> DeltakerOppdateringFeilkode.MIDLERTIDIG_FEIL
-        else -> DeltakerOppdateringFeilkode.UKJENT
+        else -> {
+            if(exceptionOrNull == null) null
+            else DeltakerOppdateringFeilkode.UKJENT
+        }
     }
     return DeltakerOppdateringResponse(
         id = deltaker.id,
