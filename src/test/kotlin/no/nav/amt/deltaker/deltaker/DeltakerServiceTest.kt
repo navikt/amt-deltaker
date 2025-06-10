@@ -718,9 +718,12 @@ class DeltakerServiceTest {
                 sistEndretAvEnhet = vedtak.opprettetAvEnhet,
             ).tilVedtaksinformasjon(),
         )
-        endredeDeltakere.first {
+        val ikkeEndretDeltaker = endredeDeltakere.first {
             it.deltaker.id == deltaker2.id
-        }.deltaker shouldBeComparableWith deltaker2
+        }
+        ikkeEndretDeltaker.deltaker shouldBeComparableWith deltaker2
+        ikkeEndretDeltaker.isSuccess shouldBe false
+        ikkeEndretDeltaker.exceptionOrNull shouldBe IllegalStateException("Deltaker ${deltaker2.id} mangler et vedtak som kan fattes")
 
         val historikk1 = deltakerHistorikkService.getForDeltaker(deltaker.id)
         historikk1.filterIsInstance<DeltakerHistorikk.EndringFraTiltakskoordinator>().size shouldBe 1
