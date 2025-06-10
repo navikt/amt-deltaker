@@ -100,6 +100,7 @@ data class AvslagRequest(
 fun DeltakerOppdateringResult.toDeltakerResponse(historikk: List<DeltakerHistorikk>): DeltakerOppdateringResponse {
     val feilkode = when (exceptionOrNull) {
         is IllegalStateException -> DeltakerOppdateringFeilkode.UGYLDIG_STATE
+        is IllegalArgumentException -> DeltakerOppdateringFeilkode.UGYLDIG_STATE
         is SQLException -> DeltakerOppdateringFeilkode.UGYLDIG_STATE
         is SocketTimeoutException -> DeltakerOppdateringFeilkode.MIDLERTIDIG_FEIL
         is SocketException -> DeltakerOppdateringFeilkode.MIDLERTIDIG_FEIL
