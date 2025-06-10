@@ -129,8 +129,10 @@ fun Deltaker.toDeltakerOppdateringResult() = DeltakerOppdateringResult(
     exceptionOrNull = null,
 )
 
-fun Deltaker.toDeltakerResponse(historikk: List<DeltakerHistorikk>): DeltakerOppdateringResponse {
-    val feilkode = DeltakerOppdateringFeilkode.UKJENT
+fun Deltaker.toDeltakerResponse(
+    historikk: List<DeltakerHistorikk>,
+    feilkode: DeltakerOppdateringFeilkode? = null,
+): DeltakerOppdateringResponse {
     return DeltakerOppdateringResponse(
         id = id,
         startdato = startdato,
