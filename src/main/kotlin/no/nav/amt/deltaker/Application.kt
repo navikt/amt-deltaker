@@ -251,6 +251,7 @@ fun Application.module() {
         deltakerHistorikkService = deltakerHistorikkService,
         unleashToggle = unleashToggle,
         endringFraTiltakskoordinatorService,
+        endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
         amtTiltakClient,
         navAnsattService,
         navEnhetService,
