@@ -28,7 +28,7 @@ jobs:
         with:
           dependency-graph: generate-and-submit
       - name: Build artifacts
-        run: ./gradlew build
+        run: ./gradlew build --info
       - name: docker-build-push
         uses: nais/docker-build-push@v0
         id: docker-build-push
