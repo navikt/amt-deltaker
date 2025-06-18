@@ -111,9 +111,9 @@ class DeltakerStatusOppdateringTest {
             hendelseService = hendelseService,
             deltakerHistorikkService = deltakerHistorikkService,
         )
-
+        private val endringFraTiltakskoordinatorRepository = EndringFraTiltakskoordinatorRepository()
         private val endringFraTiltakskoordinatorService = EndringFraTiltakskoordinatorService(
-            EndringFraTiltakskoordinatorRepository(),
+            endringFraTiltakskoordinatorRepository,
             navAnsattService,
         )
 
@@ -135,8 +135,9 @@ class DeltakerStatusOppdateringTest {
                 unleashToggle,
                 endringFraTiltakskoordinatorService,
                 amtTiltakClient = mockk(),
-                navAnsattService,
-                navEnhetService,
+                endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
+                navAnsattService = navAnsattService,
+                navEnhetService = navEnhetService,
             )
         }
     }

@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.deltaker
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.runBlocking
@@ -173,8 +174,9 @@ class VedtakServiceTest {
     fun `navFattVedtak - mangler vedtak - feiler`() {
         with(DeltakerContext()) {
             withTiltakstype(Tiltakstype.Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING)
-
-            service.navFattVedtak(deltaker, veileder, navEnhet) shouldBe Vedtaksutfall.ManglerVedtakSomKanEndres
+            shouldThrow<IllegalStateException> {
+                service.navFattVedtak(deltaker, veileder, navEnhet)
+            }
         }
     }
 

@@ -29,7 +29,7 @@ class EndringFraTiltakskoordinatorRepositoryTest {
 
     @Test
     fun `insert - ingen endring - feiler ikke`() {
-        repository.insert(emptyList()) shouldBe emptyList()
+        repository.insert(emptyList()) shouldBe Unit
     }
 
     @Test
