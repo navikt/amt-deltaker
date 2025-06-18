@@ -44,7 +44,7 @@ object TestData {
 
     fun randomNavIdent() = ('A'..'Z').random().toString() + (100_000..999_999).random().toString()
 
-    fun randomEnhetsnummer() = (1000..9999).random().toString()
+    fun randomEnhetsnummer() = (1000..9999999999).random().toString()
 
     fun randomOrgnr() = (900_000_000..999_999_998).random().toString()
 
