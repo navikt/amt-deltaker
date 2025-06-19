@@ -124,8 +124,8 @@ class DeltakerProgresjon {
             return false
         }
         return deltaker.deltakerliste.sluttDato?.let {
-                // Deltakerlister som avbrytes får ikke nødvendigvis ny sluttdato
-                deltaker.deltakerliste.sluttDato.isAfter(LocalDate.now())
+            // Deltakerlister som avbrytes får ikke nødvendigvis ny sluttdato
+            deltaker.deltakerliste.sluttDato.isAfter(LocalDate.now())
         } ?: false
     }
 
