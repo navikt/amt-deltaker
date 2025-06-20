@@ -219,7 +219,7 @@ class DeltakerService(
             .map { deltakerOppdateringResult ->
                 if (!deltakerOppdateringResult.isSuccess) {
                     log.error(
-                        "Kunne ikke oppdatere deltaker fra batch: $deltakerIder med endring $endringsType",
+                        "Kunne ikke oppdatere deltaker fra batch: $deltakerIder med endring ${endringsType::class.simpleName}",
                         deltakerOppdateringResult.exceptionOrNull,
                     )
                 } else {
