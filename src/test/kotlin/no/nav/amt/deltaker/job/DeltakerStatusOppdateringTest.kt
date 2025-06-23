@@ -316,7 +316,7 @@ class DeltakerStatusOppdateringTest {
     }
 
     @Test
-    fun `oppdaterDeltakerStatuser - sluttdato er passert og tidligere enn kursets sluttdato - setter status AVBRUTT`() {
+    fun `oppdaterDeltakerStatuser - sluttdato er passert og tidligere enn kursets sluttdato - setter status FULLFØRT`() {
         val sistEndretAv = TestData.lagNavAnsatt()
         val sistEndretAvEnhet = TestData.lagNavEnhet()
         TestRepository.insert(sistEndretAv)
@@ -343,7 +343,7 @@ class DeltakerStatusOppdateringTest {
             deltakerService.oppdaterDeltakerStatuser()
 
             val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
-            deltakerFraDb.status.type shouldBe DeltakerStatus.Type.AVBRUTT
+            deltakerFraDb.status.type shouldBe DeltakerStatus.Type.FULLFORT
             deltakerFraDb.sluttdato shouldBe deltaker.sluttdato
         }
     }

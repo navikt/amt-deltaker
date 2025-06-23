@@ -11,14 +11,21 @@ import java.util.UUID
 class DeltakerProgresjon {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun tilAvsluttendeStatusOgDatoer(deltakere: List<Deltaker>, fremtidigStatusProvider: (Deltaker) -> DeltakerStatus?): List<Deltaker> =
-        listOf(
+    fun tilAvsluttendeStatusOgDatoer(deltakere: List<Deltaker>, fremtidigStatusProvider: (Deltaker) -> DeltakerStatus?): List<Deltaker> {
+        val deltakereMedAvsluttendeStatus = listOf(
             avbrytUtkast(deltakere),
             ikkeAktuell(deltakere),
             avbryt(deltakere),
             harSluttet(deltakere, fremtidigStatusProvider),
             fullfor(deltakere),
         ).flatten()
+
+        require(deltakereMedAvsluttendeStatus.map { it.id }.toSet().size == deltakereMedAvsluttendeStatus.size) {
+            "Deltakere kunne ikke få avsluttende status fordi de fikk to statuser: ${deltakereMedAvsluttendeStatus.map { it.id }}"
+        }
+
+        return deltakereMedAvsluttendeStatus
+    }
 
     fun tilDeltar(deltakere: List<Deltaker>): List<Deltaker> = deltakere
         .map { it.medNyStatus(DeltakerStatus.Type.DELTAR) }
@@ -27,7 +34,8 @@ class DeltakerProgresjon {
     private fun fullfor(deltakere: List<Deltaker>): List<Deltaker> {
         val skalBliFullfort = deltakere
             .filter { it.status.type == DeltakerStatus.Type.DELTAR }
-            .filter { it.deltarPaKurs() && !sluttetForTidlig(it) }
+            .filter { it.deltarPaKurs() }
+            .filter { !it.deltakerliste.erAvlystEllerAvbrutt() }
             .map {
                 it
                     .medNyStatus(DeltakerStatus.Type.FULLFORT, getSluttarsak(it))
@@ -41,7 +49,8 @@ class DeltakerProgresjon {
     private fun avbryt(deltakere: List<Deltaker>): List<Deltaker> {
         val skalBliAvbrutt = deltakere
             .filter { it.status.type == DeltakerStatus.Type.DELTAR }
-            .filter { sluttetForTidlig(it) }
+            .filter { it.deltarPaKurs() }
+            .filter { it.deltakerliste.erAvlystEllerAvbrutt() }
             .map { it.medNyStatus(DeltakerStatus.Type.AVBRUTT, getSluttarsak(it)).medNySluttdato(getOppdatertSluttdato(it)) }
         log.info("Endret status til AVBRUTT for ${skalBliAvbrutt.size}")
 
@@ -117,17 +126,6 @@ class DeltakerProgresjon {
         )
     } else {
         null
-    }
-
-    private fun sluttetForTidlig(deltaker: Deltaker): Boolean {
-        if (!deltaker.deltarPaKurs()) {
-            return false
-        }
-        return deltaker.deltakerliste.sluttDato?.let {
-            deltaker.sluttdato?.isBefore(it) == true ||
-                // Deltakerlister som avbrytes får ikke nødvendigvis ny sluttdato
-                deltaker.deltakerliste.sluttDato.isAfter(LocalDate.now())
-        } ?: false
     }
 
     private fun Deltaker.medNyStatus(status: DeltakerStatus.Type, aarsak: DeltakerStatus.Aarsak? = null) = this.copy(
