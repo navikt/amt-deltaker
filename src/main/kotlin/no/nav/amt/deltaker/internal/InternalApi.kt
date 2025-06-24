@@ -226,15 +226,14 @@ fun Routing.registerInternalApi(
 
                 val deltaker = deltakerService.get(endring.deltakerId).getOrThrow()
 
-                if (request.relastDeltaker)
-                    {
-                        deltakerProducerService.produce(
-                            deltaker,
-                            forcedUpdate = request.forcedUpdate,
-                            publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
-                        )
-                        log.info("Ferdig relastet deltaker ${deltaker.id}")
-                    }
+                if (request.relastDeltaker) {
+                    deltakerProducerService.produce(
+                        deltaker,
+                        forcedUpdate = request.forcedUpdate,
+                        publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
+                    )
+                    log.info("Ferdig relastet deltaker ${deltaker.id}")
+                }
 
                 hendelseService.produserHendelseFraTiltaksansvarlig(deltaker, endring)
 
