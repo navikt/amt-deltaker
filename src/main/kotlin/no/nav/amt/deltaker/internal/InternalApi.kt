@@ -20,6 +20,8 @@ import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.nyDeltakerStatus
 import no.nav.amt.deltaker.deltaker.tilVedtaksinformasjon
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
+import no.nav.amt.deltaker.hendelse.HendelseService
+import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorService
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import org.slf4j.Logger
@@ -34,6 +36,8 @@ fun Routing.registerInternalApi(
     vedtakService: VedtakService,
     innsokPaaFellesOppstartService: InnsokPaaFellesOppstartService,
     vurderingService: VurderingService,
+    hendelseService: HendelseService,
+    endringFraTiltakskoordinatorService: EndringFraTiltakskoordinatorService,
 ) {
     val scope = CoroutineScope(Dispatchers.IO)
 
@@ -208,10 +212,49 @@ fun Routing.registerInternalApi(
 
         deltakerService.upsertDeltaker(oppdatertDeltaker)
     }
+
+    post("/internal/relast/hendelse-fra-tiltakskoordinator") {
+        if (isInternal(call.request.local.remoteAddress)) {
+            val request = call.receive<RelastHendelseRequest>()
+            scope.launch {
+                log.info("Relaster hendelse med endringid: ${request.endringId}")
+
+                val endring = endringFraTiltakskoordinatorService.get(request.endringId)
+                    ?: throw IllegalArgumentException(
+                        "Kunne ikke relaste hendelse med endring med id: ${request.endringId}, kunne ikke finne endring.",
+                    )
+
+                val deltaker = deltakerService.get(endring.deltakerId).getOrThrow()
+
+                if (request.relastDeltaker) {
+                    deltakerProducerService.produce(
+                        deltaker,
+                        forcedUpdate = request.forcedUpdate,
+                        publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
+                    )
+                    log.info("Ferdig relastet deltaker ${deltaker.id}")
+                }
+
+                hendelseService.produserHendelseFraTiltaksansvarlig(deltaker, endring)
+
+                log.info("Ferdig relastet hendelse med endringId ${request.endringId},")
+            }
+            call.respond(HttpStatusCode.OK)
+        } else {
+            throw AuthorizationException("Ikke tilgang til api")
+        }
+    }
 }
 
 data class RelastDeltakereRequest(
     val deltakere: List<UUID>,
+    val forcedUpdate: Boolean,
+    val publiserTilDeltakerV1: Boolean,
+)
+
+data class RelastHendelseRequest(
+    val endringId: UUID,
+    val relastDeltaker: Boolean,
     val forcedUpdate: Boolean,
     val publiserTilDeltakerV1: Boolean,
 )

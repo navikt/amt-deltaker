@@ -26,7 +26,9 @@ import no.nav.amt.deltaker.deltaker.api.registerPameldingApi
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
+import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.internal.registerInternalApi
+import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorService
 import no.nav.amt.deltaker.tiltakskoordinator.registerTiltakskoordinatorApi
 import no.nav.amt.deltaker.unleash.UnleashToggle
 import org.slf4j.Logger
@@ -43,6 +45,8 @@ fun Application.configureRouting(
     unleashToggle: UnleashToggle,
     innsokPaaFellesOppstartService: InnsokPaaFellesOppstartService,
     vurderingService: VurderingService,
+    hendelseService: HendelseService,
+    endringFraTiltakskoordinatorService: EndringFraTiltakskoordinatorService,
 ) {
     install(StatusPages) {
         exception<IllegalArgumentException> { call, cause ->
@@ -72,7 +76,15 @@ fun Application.configureRouting(
         registerPameldingApi(pameldingService, deltakerHistorikkService)
         registerDeltakerApi(deltakerService, deltakerHistorikkService)
         registerHentDeltakelserApi(tilgangskontrollService, deltakerService, deltakelserResponseMapper, unleashToggle)
-        registerInternalApi(deltakerService, deltakerProducerService, vedtakService, innsokPaaFellesOppstartService, vurderingService)
+        registerInternalApi(
+            deltakerService,
+            deltakerProducerService,
+            vedtakService,
+            innsokPaaFellesOppstartService,
+            vurderingService,
+            hendelseService,
+            endringFraTiltakskoordinatorService,
+        )
         registerTiltakskoordinatorApi(deltakerService)
 
         val catchAllRoute = "{...}"
