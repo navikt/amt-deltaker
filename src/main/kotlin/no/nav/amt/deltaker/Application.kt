@@ -300,6 +300,8 @@ fun Application.module() {
         unleashToggle,
         innsokPaaFellesOppstartService,
         vurderingService,
+        hendelseService,
+        endringFraTiltakskoordinatorService,
     )
     configureMonitoring()
 

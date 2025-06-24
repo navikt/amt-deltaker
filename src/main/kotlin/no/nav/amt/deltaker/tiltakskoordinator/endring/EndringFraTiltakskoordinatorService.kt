@@ -18,6 +18,8 @@ class EndringFraTiltakskoordinatorService(
 
     fun getForDeltaker(deltakerId: UUID) = repository.getForDeltaker(deltakerId)
 
+    fun get(id: UUID) = repository.get(id)
+
     fun sjekkEndringUtfall(deltaker: Deltaker, endring: EndringFraTiltakskoordinator.Endring): Result<Deltaker> {
         fun createResult(gyldigEndring: Boolean, deltakerOnSuccess: () -> Deltaker) = if (gyldigEndring) {
             Result.success(deltakerOnSuccess())

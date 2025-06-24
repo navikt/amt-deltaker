@@ -35,6 +35,12 @@ class HendelseService(
 ) {
     val log: Logger = LoggerFactory.getLogger(javaClass)
 
+    suspend fun produserHendelseFraTiltaksansvarlig(deltaker: Deltaker, endring: EndringFraTiltakskoordinator) {
+        val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(endring.endretAv)
+        val navEnhet = navEnhetService.hentEllerOpprettNavEnhet(endring.endretAvEnhet)
+        produserHendelseFraTiltaksansvarlig(deltaker, navAnsatt, navEnhet, endring.endring)
+    }
+
     fun produserHendelseFraTiltaksansvarlig(
         deltaker: Deltaker,
         navAnsatt: NavAnsatt,

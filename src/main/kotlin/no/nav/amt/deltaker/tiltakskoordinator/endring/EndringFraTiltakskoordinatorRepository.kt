@@ -69,6 +69,24 @@ class EndringFraTiltakskoordinatorRepository {
         it.run(query.map(::rowMapper).asList)
     }
 
+    fun get(id: UUID) = Database.query {
+        val query = queryOf(
+            """
+            SELECT 
+                et.id as "et.id",
+                et.deltaker_id as "et.deltaker_id",
+                et.nav_ansatt_id as "et.nav_ansatt_id",
+                et.nav_enhet_id as "et.nav_enhet_id",
+                et.endret as "et.endret",
+                et.endring as "et.endring"
+            FROM endring_fra_tiltakskoordinator et 
+            WHERE et.id = :id;
+            """.trimIndent(),
+            mapOf("id" to id),
+        )
+        it.run(query.map(::rowMapper).asSingle)
+    }
+
     fun deleteForDeltaker(deltakerId: UUID) = Database.query {
         val query = queryOf(
             """

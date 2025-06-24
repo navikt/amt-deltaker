@@ -255,6 +255,8 @@ class HentDeltakelserApiTest {
                 unleashToggle,
                 mockk(),
                 mockk(),
+                mockk(),
+                mockk(),
             )
         }
     }
