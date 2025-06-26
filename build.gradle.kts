@@ -1,6 +1,7 @@
 group = "no.nav.amt-deltaker"
 version = "1.0-SNAPSHOT"
 
+// nyeste versjon av ktlint er 1.6.0 (anbefalt), men bygget vil da knekke
 val ktlintVersion = "1.2.1"
 
 plugins {
@@ -81,6 +82,8 @@ ktlint {
     version = ktlintVersion
 }
 
+// plain-JAR benyttes sannsynligvis ikke, og body bør byttes ut med
+// enabled = false
 tasks.jar {
     manifest {
         attributes(
