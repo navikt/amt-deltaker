@@ -31,7 +31,7 @@ data class Deltaker(
 ) {
     fun harSluttet(): Boolean = status.type in AVSLUTTENDE_STATUSER
 
-    fun deltarPaKurs(): Boolean = deltakerliste.erKurs()
+    fun deltarPaKurs(): Boolean = deltakerliste.erFellesOppstart
 
     fun toDeltakerVedVedtak(): DeltakerVedVedtak = DeltakerVedVedtak(
         id = id,
