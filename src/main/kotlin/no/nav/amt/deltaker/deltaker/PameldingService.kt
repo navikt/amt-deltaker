@@ -108,7 +108,7 @@ class PameldingService(
         val endretAv = navAnsattService.hentEllerOpprettNavAnsatt(utkast.endretAv)
         val endretAvNavEnhet = navEnhetService.hentEllerOpprettNavEnhet(utkast.endretAvEnhet)
 
-        val fattet = utkast.godkjentAvNav && !oppdatertDeltaker.deltakerliste.erKurs()
+        val fattet = utkast.godkjentAvNav && !oppdatertDeltaker.deltakerliste.erFellesOppstart
 
         val vedtak = if (fattet) {
             vedtakService.navFattEksisterendeEllerOpprettVedtak(oppdatertDeltaker, endretAv, endretAvNavEnhet)
@@ -122,7 +122,7 @@ class PameldingService(
 
         val deltakerMedNyttVedtak = oppdatertDeltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksinformasjon())
 
-        if (utkast.godkjentAvNav && oppdatertDeltaker.deltakerliste.erKurs()) {
+        if (utkast.godkjentAvNav && oppdatertDeltaker.deltakerliste.erFellesOppstart) {
             innsokPaaFellesOppstartService.nyttInnsokUtkastGodkjentAvNav(deltakerMedNyttVedtak, opprinneligDeltaker.status)
         }
 
@@ -146,7 +146,7 @@ class PameldingService(
     suspend fun innbyggerGodkjennUtkast(deltakerId: UUID): Deltaker {
         val opprinneligDeltaker = deltakerService.get(deltakerId).getOrThrow()
 
-        val oppdatertDeltaker = if (opprinneligDeltaker.deltakerliste.erKurs()) {
+        val oppdatertDeltaker = if (opprinneligDeltaker.deltakerliste.erFellesOppstart) {
             innbyggerGodkjennInnsok(opprinneligDeltaker)
         } else {
             deltakerService.innbyggerFattVedtak(opprinneligDeltaker)
@@ -219,7 +219,7 @@ class PameldingService(
     )
 
     private fun getOppdatertStatus(opprinneligDeltaker: Deltaker, godkjentAvNav: Boolean): DeltakerStatus = if (godkjentAvNav) {
-        if (opprinneligDeltaker.deltakerliste.erKurs()) {
+        if (opprinneligDeltaker.deltakerliste.erFellesOppstart) {
             nyDeltakerStatus(DeltakerStatus.Type.SOKT_INN)
         } else if (opprinneligDeltaker.startdato != null && opprinneligDeltaker.startdato.isBefore(LocalDate.now())) {
             nyDeltakerStatus(DeltakerStatus.Type.DELTAR)
