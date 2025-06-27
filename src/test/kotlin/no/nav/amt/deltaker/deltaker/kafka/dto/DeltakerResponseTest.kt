@@ -17,7 +17,7 @@ import no.nav.amt.lib.testing.SingletonPostgres16Container
 import org.junit.Test
 import java.time.LocalDate
 
-class DeltakerDtoTest {
+class DeltakerResponseTest {
     @Test
     fun `DeltakerDto - deltaker med deltakelsesmengder - v1 har deltakelsesmengder`(): Unit = with(DeltakerContext()) {
         deltakerDto.v1.deltakelsesmengder shouldBe historikk.toDeltakelsesmengder().map {

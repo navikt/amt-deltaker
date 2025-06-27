@@ -6,6 +6,7 @@ import no.nav.amt.deltaker.arrangor.Arrangor
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerV2Dto
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.Kilde
+import no.nav.amt.deltaker.deltaker.model.Vedtaksinformasjon
 import no.nav.amt.deltaker.deltaker.vurdering.Vurdering
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlisteDto
@@ -250,7 +251,7 @@ object TestData {
         bakgrunnsinformasjon: String? = "Søkes inn fordi...",
         innhold: Deltakelsesinnhold? = Deltakelsesinnhold("ledetekst", emptyList()),
         status: DeltakerStatus = lagDeltakerStatus(type = DeltakerStatus.Type.HAR_SLUTTET),
-        vedtaksinformasjon: Deltaker.Vedtaksinformasjon? = null,
+        vedtaksinformasjon: Vedtaksinformasjon? = null,
         sistEndret: LocalDateTime = LocalDateTime.now(),
         kilde: Kilde = Kilde.KOMET,
         erManueltDeltMedArrangor: Boolean = false,

@@ -9,6 +9,7 @@ import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.deltaker.model.AVSLUTTENDE_STATUSER
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.Kilde
+import no.nav.amt.deltaker.deltaker.model.Vedtaksinformasjon
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.navbruker.model.Adressebeskyttelse
@@ -58,7 +59,7 @@ class DeltakerRepository {
                 opprettet = row.localDateTime("ds.created_at"),
             ),
             vedtaksinformasjon = row.localDateTimeOrNull("v.opprettet")?.let { opprettet ->
-                Deltaker.Vedtaksinformasjon(
+                Vedtaksinformasjon(
                     fattet = row.localDateTimeOrNull("v.fattet"),
                     fattetAvNav = row.boolean("v.fattet_av_nav"),
                     opprettet = opprettet,
