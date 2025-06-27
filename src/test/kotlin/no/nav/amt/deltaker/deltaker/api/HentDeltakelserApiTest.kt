@@ -19,13 +19,13 @@ import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.auth.TilgangskontrollService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerService
-import no.nav.amt.deltaker.deltaker.api.model.DeltakelserRequest
 import no.nav.amt.deltaker.deltaker.api.model.DeltakelserResponse
 import no.nav.amt.deltaker.deltaker.api.model.DeltakelserResponseMapper
 import no.nav.amt.deltaker.deltaker.api.model.DeltakerKort
 import no.nav.amt.deltaker.deltaker.api.model.Periode
 import no.nav.amt.deltaker.deltaker.api.utils.postVeilederRequest
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
+import no.nav.amt.deltaker.external.data.HentDeltakelserRequest
 import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.deltaker.utils.configureEnvForAuthentication
 import no.nav.amt.deltaker.utils.data.TestData
@@ -261,5 +261,5 @@ class HentDeltakelserApiTest {
         }
     }
 
-    private val deltakelserRequest = DeltakelserRequest(TestData.randomIdent())
+    private val deltakelserRequest = HentDeltakelserRequest(TestData.randomIdent())
 }
