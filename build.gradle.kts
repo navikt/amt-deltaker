@@ -4,13 +4,13 @@ group = "no.nav.amt-deltaker"
 version = "1.0-SNAPSHOT"
 
 plugins {
-    val kotlinVersion = "2.1.21"
+    val kotlinVersion = "2.2.0"
 
     kotlin("jvm") version kotlinVersion
     id("io.ktor.plugin") version "3.2.0"
     id("org.jetbrains.kotlin.plugin.serialization") version kotlinVersion
     id("org.jlleitschuh.gradle.ktlint") version "12.3.0"
-    id("com.gradleup.shadow") version "8.3.6"
+    id("com.gradleup.shadow") version "8.3.7"
 }
 
 repositories {
@@ -29,12 +29,12 @@ val commonVersion = "3.2024.10.25_13.44-9db48a0dbe67"
 val poaoTilgangVersion = "2024.10.29_14.10-4fff597d6e1b"
 val kafkaClientsVersion = "3.7.1"
 val kotestVersion = "5.9.1"
-val flywayVersion = "11.9.1"
+val flywayVersion = "11.10.0"
 val hikariVersion = "6.3.0"
 val kotliqueryVersion = "1.9.1"
 val postgresVersion = "42.7.7"
 val caffeineVersion = "3.2.1"
-val mockkVersion = "1.14.2"
+val mockkVersion = "1.14.4"
 val nimbusVersion = "10.3"
 val unleashVersion = "11.0.0"
 val amtLibVersion = "1.2025.06.05_08.25-2338e0f39f58"
