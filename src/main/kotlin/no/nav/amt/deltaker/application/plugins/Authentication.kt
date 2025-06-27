@@ -41,6 +41,26 @@ fun Application.configureAuthentication(environment: Environment) {
                 JWTPrincipal(credentials.payload)
             }
         }
+
+        jwt("EXTERNAL-SYSTEM") {
+            verifier(jwkProvider, environment.jwtIssuer) {
+                withAudience(environment.azureClientId)
+            }
+
+            validate { credentials ->
+                if (!erMaskinTilMaskin(credentials)) {
+                    application.log.warn("Token med sluttbrukerkontekst har ikke tilgang til api med systemkontekst")
+                    return@validate null
+                }
+                val appid: String = credentials.payload.getClaim("azp").asString()
+                val app = environment.preAuthorizedApp.firstOrNull { it.clientId == appid }
+                if (app?.appName !in listOf("veilarboppfolging", "tiltakspenger-tiltak")) {
+                    application.log.warn("App-id $appid med navn ${app?.appName} har ikke tilgang til api med systemkontekst")
+                    return@validate null
+                }
+                JWTPrincipal(credentials.payload)
+            }
+        }
         jwt("VEILEDER") {
             verifier(jwkProvider, environment.jwtIssuer) {
                 withAudience(environment.azureClientId)

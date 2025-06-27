@@ -70,15 +70,4 @@ data class Deltaker(
             forcedUpdate = false,
         )
     }
-
-    data class Vedtaksinformasjon(
-        val fattet: LocalDateTime?,
-        val fattetAvNav: Boolean,
-        val opprettet: LocalDateTime,
-        val opprettetAv: UUID,
-        val opprettetAvEnhet: UUID,
-        val sistEndret: LocalDateTime,
-        val sistEndretAv: UUID,
-        val sistEndretAvEnhet: UUID,
-    )
 }
