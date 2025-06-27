@@ -12,7 +12,7 @@ data class Deltakerliste(
     val status: Status,
     val startDato: LocalDate,
     val sluttDato: LocalDate? = null,
-    val oppstart: Oppstartstype?,
+    val oppstart: Oppstartstype,
     val apentForPamelding: Boolean,
     val arrangor: Arrangor,
 ) {
@@ -44,10 +44,4 @@ data class Deltakerliste(
     fun erAvsluttet(): Boolean = erAvlystEllerAvbrutt() || status == Status.AVSLUTTET
 
     val erFellesOppstart get() = oppstart == Oppstartstype.FELLES
-
-    fun erKurs(): Boolean = if (oppstart != null) {
-        oppstart == Oppstartstype.FELLES
-    } else {
-        tiltakstype.erKurs()
-    }
 }

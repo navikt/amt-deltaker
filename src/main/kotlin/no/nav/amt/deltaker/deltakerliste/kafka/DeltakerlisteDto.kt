@@ -13,7 +13,7 @@ data class DeltakerlisteDto(
     val sluttDato: LocalDate? = null,
     val status: String,
     val virksomhetsnummer: String,
-    val oppstart: Deltakerliste.Oppstartstype?,
+    val oppstart: Deltakerliste.Oppstartstype,
     val apentForPamelding: Boolean?,
 ) {
     data class Tiltakstype(

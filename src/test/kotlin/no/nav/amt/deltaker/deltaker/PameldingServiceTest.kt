@@ -146,7 +146,6 @@ class PameldingServiceTest {
             deltakerHistorikkService = deltakerHistorikkService,
             unleashToggle = unleashToggle,
             endringFraTiltakskoordinatorService = mockk(),
-            amtTiltakClient = mockk(),
             navAnsattService = navAnsattService,
             endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
             navEnhetService = navEnhetService,

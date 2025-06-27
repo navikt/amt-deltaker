@@ -24,7 +24,6 @@ import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.auth.AzureAdTokenClient
 import no.nav.amt.deltaker.auth.TilgangskontrollService
-import no.nav.amt.deltaker.deltaker.AmtTiltakClient
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.PameldingService
@@ -138,13 +137,6 @@ fun Application.module() {
         httpClient = httpClient,
     )
 
-    val amtTiltakClient = AmtTiltakClient(
-        baseUrl = environment.amtTiltakUrl,
-        scope = environment.amtTiltakScope,
-        azureAdTokenClient = azureAdTokenClient,
-        httpClient = httpClient,
-    )
-
     val kafkaProducer = Producer<String, String>(if (Environment.isLocal()) LocalKafkaConfig() else KafkaConfigImpl())
 
     val arrangorRepository = ArrangorRepository()
@@ -252,7 +244,6 @@ fun Application.module() {
         unleashToggle = unleashToggle,
         endringFraTiltakskoordinatorService,
         endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
-        amtTiltakClient,
         navAnsattService,
         navEnhetService,
     )
