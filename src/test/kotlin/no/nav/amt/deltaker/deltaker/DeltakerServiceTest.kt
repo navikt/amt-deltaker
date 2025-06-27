@@ -156,7 +156,6 @@ class DeltakerServiceTest {
             unleashToggle = unleashToggle,
             endringFraTiltakskoordinatorService = endringFraTiltakskoordinatorService,
             endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
-            amtTiltakClient = mockk(),
             navAnsattService = navAnsattService,
             navEnhetService = navEnhetService,
         )

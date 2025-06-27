@@ -49,7 +49,6 @@ class DeltakerService(
     private val unleashToggle: UnleashToggle,
     private val endringFraTiltakskoordinatorService: EndringFraTiltakskoordinatorService,
     private val endringFraTiltakskoordinatorRepository: EndringFraTiltakskoordinatorRepository,
-    private val amtTiltakClient: AmtTiltakClient,
     private val navAnsattService: NavAnsattService,
     private val navEnhetService: NavEnhetService,
 ) {
