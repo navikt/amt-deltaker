@@ -39,5 +39,5 @@ class ArrangorConsumer(
         }
     }
 
-    override fun run() = consumer.run()
+    override fun start() = consumer.start()
 }

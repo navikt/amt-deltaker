@@ -54,7 +54,7 @@ class NavBrukerConsumer(
         }
     }
 
-    override fun run() = consumer.run()
+    override fun start() = consumer.start()
 
     private fun harEndredePersonopplysninger(navBruker: NavBruker?, navBrukerDto: NavBrukerDto): Boolean = if (navBruker == null) {
         true

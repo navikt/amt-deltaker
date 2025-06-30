@@ -24,7 +24,7 @@ fun assertProduced(deltakerId: UUID) {
         cache[UUID.fromString(k)] = objectMapper.readValue(v)
     }
 
-    consumer.run()
+    consumer.start()
 
     AsyncUtils.eventually {
         val cachedDeltaker = cache[deltakerId]!!
@@ -41,7 +41,7 @@ fun assertProducedDeltakerV1(deltakerId: UUID) {
         cache[UUID.fromString(k)] = objectMapper.readValue(v)
     }
 
-    consumer.run()
+    consumer.start()
 
     AsyncUtils.eventually {
         val cachedDeltaker = cache[deltakerId]!!
@@ -58,7 +58,7 @@ fun assertOnProducedDeltaker(deltaker: DeltakerV2Dto) {
         cache[UUID.fromString(k)] = objectMapper.readValue(v)
     }
 
-    consumer.run()
+    consumer.start()
 
     AsyncUtils.eventually {
         val cachedDeltaker = cache[deltaker.id]!!
@@ -111,7 +111,7 @@ fun assertProducedFeilregistrert(deltakerId: UUID) {
         cache[UUID.fromString(k)] = objectMapper.readValue(v)
     }
 
-    consumer.run()
+    consumer.start()
 
     AsyncUtils.eventually {
         val cachedDeltaker = cache[deltakerId]!!
@@ -136,7 +136,7 @@ fun <T : HendelseType> assertProducedHendelse(deltakerId: UUID, hendelsetype: KC
         cache[UUID.fromString(k)] = objectMapper.readValue(v)
     }
 
-    consumer.run()
+    consumer.start()
 
     AsyncUtils.eventually {
         val cachedHendelse = cache[deltakerId]!!
@@ -154,7 +154,7 @@ fun assertProducedForslag(forslag: Forslag) {
         cache[UUID.fromString(k)] = objectMapper.readValue(v)
     }
 
-    consumer.run()
+    consumer.start()
 
     AsyncUtils.eventually {
         val cachedForslag = cache[forslag.id]!!
