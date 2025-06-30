@@ -79,5 +79,5 @@ class ArrangorMeldingConsumer(
         deltakerProducerService.produce(deltaker)
     }
 
-    override fun run() = consumer.run()
+    override fun start() = consumer.start()
 }

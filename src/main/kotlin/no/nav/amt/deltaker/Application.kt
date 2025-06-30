@@ -277,7 +277,7 @@ fun Application.module() {
         ),
         ArrangorMeldingConsumer(forslagService, deltakerService, vurderingService, deltakerProducerService, unleashToggle),
     )
-    consumers.forEach { it.run() }
+    consumers.forEach { it.start() }
 
     configureAuthentication(environment)
     configureRouting(
