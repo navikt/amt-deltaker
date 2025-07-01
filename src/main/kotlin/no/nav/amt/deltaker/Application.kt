@@ -95,11 +95,11 @@ fun main() {
                 log.info("Shutting down consumers")
                 shutdownConsumers()
 
-                log.info("Shutting down database")
-                Database.close()
-
                 log.info("Shutting down server")
                 server.stop(gracePeriodMillis = 5_000, timeoutMillis = 30_000)
+
+                log.info("Shutting down database")
+                Database.close()
             }
         },
     )
