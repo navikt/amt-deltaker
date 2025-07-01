@@ -37,6 +37,8 @@ class DeltakerlisteConsumer(
 
     override fun start() = consumer.start()
 
+    override suspend fun close() = consumer.close()
+
     override suspend fun consume(key: UUID, value: String?) {
         if (value == null) {
             repository.delete(key)

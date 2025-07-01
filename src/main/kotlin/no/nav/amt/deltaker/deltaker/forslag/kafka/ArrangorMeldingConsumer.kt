@@ -80,4 +80,6 @@ class ArrangorMeldingConsumer(
     }
 
     override fun start() = consumer.start()
+
+    override suspend fun close() = consumer.close()
 }
