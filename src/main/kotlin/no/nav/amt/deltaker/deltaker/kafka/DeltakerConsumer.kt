@@ -80,6 +80,8 @@ class DeltakerConsumer(
 
     override fun start() = consumer.start()
 
+    override suspend fun close() = consumer.close()
+
     private fun upsertImportertDeltaker(
         deltaker: Deltaker,
         importertData: ImportertFraArena,
