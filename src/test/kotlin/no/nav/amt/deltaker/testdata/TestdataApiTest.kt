@@ -76,7 +76,7 @@ class TestdataApiTest {
             personident = deltaker.navBruker.personident,
             deltakerlisteId = deltaker.deltakerliste.id,
             startdato = startdato,
-            deltakelsesprosent = deltaker.deltakelsesprosent?.toInt(),
+            deltakelsesprosent = deltaker.deltakelsesprosent?.toInt()!!,
             dagerPerUke = deltaker.dagerPerUke?.toInt(),
         )
 

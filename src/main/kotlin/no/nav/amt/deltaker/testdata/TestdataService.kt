@@ -100,7 +100,7 @@ class TestdataService(
         return UtkastRequest(
             deltakelsesinnhold = getInnhold(deltakerliste),
             bakgrunnsinformasjon = null,
-            deltakelsesprosent = opprettTestDeltakelseRequest.deltakelsesprosent?.toFloat(),
+            deltakelsesprosent = opprettTestDeltakelseRequest.deltakelsesprosent.toFloat(),
             dagerPerUke = opprettTestDeltakelseRequest.dagerPerUke?.toFloat(),
             endretAv = TESTVEILEDER,
             endretAvEnhet = TESTENHET,

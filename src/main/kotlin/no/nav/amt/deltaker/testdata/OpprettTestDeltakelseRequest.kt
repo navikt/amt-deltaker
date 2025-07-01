@@ -12,7 +12,7 @@ data class OpprettTestDeltakelseRequest(
     val personident: String,
     val deltakerlisteId: UUID,
     val startdato: LocalDate,
-    val deltakelsesprosent: Int?,
+    val deltakelsesprosent: Int,
     val dagerPerUke: Int?,
 ) {
     fun valider() {
@@ -21,10 +21,8 @@ data class OpprettTestDeltakelseRequest(
                 "Dager per uke kan ikke være mindre enn $MIN_DAGER_PER_UKE eller større enn $MAX_DAGER_PER_UKE"
             }
         }
-        deltakelsesprosent?.let {
-            require(it in MIN_DELTAKELSESPROSENT..MAX_DELTAKELSESPROSENT) {
-                "Deltakelsesprosent kan ikke være mindre enn $MIN_DELTAKELSESPROSENT eller større enn $MAX_DELTAKELSESPROSENT"
-            }
+        require(deltakelsesprosent in MIN_DELTAKELSESPROSENT..MAX_DELTAKELSESPROSENT) {
+            "Deltakelsesprosent kan ikke være mindre enn $MIN_DELTAKELSESPROSENT eller større enn $MAX_DELTAKELSESPROSENT"
         }
     }
 }

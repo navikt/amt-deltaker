@@ -234,7 +234,7 @@ class TestdataServiceTest {
             deltakerFraDb.startdato shouldBe opprettTestDeltakelseRequest.startdato
             deltakerFraDb.sluttdato shouldBe opprettTestDeltakelseRequest.startdato.plusMonths(3)
             deltakerFraDb.dagerPerUke shouldBe opprettTestDeltakelseRequest.dagerPerUke?.toFloat()
-            deltakerFraDb.deltakelsesprosent shouldBe opprettTestDeltakelseRequest.deltakelsesprosent?.toFloat()
+            deltakerFraDb.deltakelsesprosent shouldBe opprettTestDeltakelseRequest.deltakelsesprosent.toFloat()
             deltakerFraDb.bakgrunnsinformasjon shouldBe null
             deltakerFraDb.deltakelsesinnhold?.ledetekst shouldBe deltakerliste.tiltakstype.innhold!!.ledetekst
             deltakerFraDb.deltakelsesinnhold?.innhold?.size shouldBe 1
