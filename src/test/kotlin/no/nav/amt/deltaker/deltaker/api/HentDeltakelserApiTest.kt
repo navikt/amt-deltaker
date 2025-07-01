@@ -257,6 +257,7 @@ class HentDeltakelserApiTest {
                 mockk(),
                 mockk(),
                 mockk(),
+                mockk(),
             )
         }
     }

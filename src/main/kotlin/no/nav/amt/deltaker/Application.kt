@@ -67,6 +67,7 @@ import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
 import no.nav.amt.deltaker.navbruker.NavBrukerConsumer
 import no.nav.amt.deltaker.navbruker.NavBrukerRepository
 import no.nav.amt.deltaker.navbruker.NavBrukerService
+import no.nav.amt.deltaker.testdata.TestdataService
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorService
 import no.nav.amt.deltaker.unleash.UnleashToggle
@@ -215,8 +216,9 @@ fun Application.module() {
     val deltakerV1Producer = DeltakerV1Producer(kafkaProducer)
     val deltakerProducerService = DeltakerProducerService(deltakerDtoMapperService, deltakerProducer, deltakerV1Producer, unleashToggle)
 
+    val arrangorMeldingProducer = ArrangorMeldingProducer(kafkaProducer)
     val forslagService =
-        ForslagService(forslagRepository, ArrangorMeldingProducer(kafkaProducer), deltakerRepository, deltakerProducerService)
+        ForslagService(forslagRepository, arrangorMeldingProducer, deltakerRepository, deltakerProducerService)
 
     val deltakerEndringService =
         DeltakerEndringService(
@@ -260,6 +262,13 @@ fun Application.module() {
         innsokPaaFellesOppstartService = innsokPaaFellesOppstartService,
     )
 
+    val testdataService = TestdataService(
+        pameldingService = pameldingService,
+        deltakerlisteRepository = deltakerlisteRepository,
+        arrangorMeldingProducer = arrangorMeldingProducer,
+        deltakerService = deltakerService,
+    )
+
     val consumers = listOf(
         ArrangorConsumer(arrangorRepository),
         NavAnsattConsumer(navAnsattService),
@@ -293,6 +302,7 @@ fun Application.module() {
         vurderingService,
         hendelseService,
         endringFraTiltakskoordinatorService,
+        testdataService,
     )
     configureMonitoring()
 

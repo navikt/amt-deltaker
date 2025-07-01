@@ -439,6 +439,7 @@ class DeltakerApiTest {
                 mockk(),
                 mockk(),
                 mockk(),
+                mockk(),
             )
         }
     }

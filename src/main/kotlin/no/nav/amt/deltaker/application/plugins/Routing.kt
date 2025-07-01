@@ -11,6 +11,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
+import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.application.registerHealthApi
 import no.nav.amt.deltaker.auth.AuthenticationException
 import no.nav.amt.deltaker.auth.AuthorizationException
@@ -28,6 +29,8 @@ import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.internal.registerInternalApi
+import no.nav.amt.deltaker.testdata.TestdataService
+import no.nav.amt.deltaker.testdata.registerTestdataApi
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorService
 import no.nav.amt.deltaker.tiltakskoordinator.registerTiltakskoordinatorApi
 import no.nav.amt.deltaker.unleash.UnleashToggle
@@ -47,6 +50,7 @@ fun Application.configureRouting(
     vurderingService: VurderingService,
     hendelseService: HendelseService,
     endringFraTiltakskoordinatorService: EndringFraTiltakskoordinatorService,
+    testdataService: TestdataService,
 ) {
     install(StatusPages) {
         exception<IllegalArgumentException> { call, cause ->
@@ -86,6 +90,10 @@ fun Application.configureRouting(
             endringFraTiltakskoordinatorService,
         )
         registerTiltakskoordinatorApi(deltakerService)
+
+        if (!Environment.isProd()) {
+            registerTestdataApi(testdataService)
+        }
 
         val catchAllRoute = "{...}"
         route(catchAllRoute) {
