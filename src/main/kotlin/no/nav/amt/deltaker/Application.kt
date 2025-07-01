@@ -101,7 +101,6 @@ fun main() {
                 log.info("Shutting down server")
                 server.stop(gracePeriodMillis = 5_000, timeoutMillis = 20_000)
                 log.info("Shut down server completed")
-
             }
         },
     )
