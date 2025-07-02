@@ -48,6 +48,11 @@ spec:
         - application: amt-distribusjon
         - application: mulighetsrommet-api
           namespace: team-mulighetsrommet
+        - application: tiltakspenger-tiltak
+          namespace: tpts
+        - application: veilarboppfolging
+          namespace: poao
+          cluster: prod-gcp
     outbound:
       rules:
         - application: amt-person-service
