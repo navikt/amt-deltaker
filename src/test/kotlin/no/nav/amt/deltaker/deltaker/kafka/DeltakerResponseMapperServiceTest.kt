@@ -38,7 +38,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
-class DeltakerDtoMapperServiceTest {
+class DeltakerResponseMapperServiceTest {
     companion object {
         private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonClient())
         private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonClient(), navEnhetService)

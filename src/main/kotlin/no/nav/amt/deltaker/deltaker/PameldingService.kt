@@ -7,6 +7,7 @@ import no.nav.amt.deltaker.deltaker.api.model.toKladdResponse
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartService
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.Kilde
+import no.nav.amt.deltaker.deltaker.model.Vedtaksinformasjon
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.hendelse.HendelseService
@@ -257,7 +258,7 @@ class PameldingService(
     )
 }
 
-fun Vedtak.tilVedtaksinformasjon(): Deltaker.Vedtaksinformasjon = Deltaker.Vedtaksinformasjon(
+fun Vedtak.tilVedtaksinformasjon(): Vedtaksinformasjon = Vedtaksinformasjon(
     fattet = fattet,
     fattetAvNav = fattetAvNav,
     opprettet = opprettet,
