@@ -30,7 +30,9 @@ fun Routing.registerNavInternApi(deltakerService: DeltakerService) {
         post("$apiPath/deltakelser") {
             // brukes av tiltakspenger for å vise tiltak for saksbehandler og i søknadsdialog
             val request = call.receive<HentDeltakelserRequest>()
-            val deltakelser = deltakerService.getDeltakelserForPerson(request.norskIdent)
+            val deltakelser = deltakerService
+                .getDeltakelserForPerson(request.norskIdent)
+                .filter { deltaker -> deltaker.status.type != DeltakerStatus.Type.KLADD }
 
             call.respond(deltakelser.toResponse())
         }
