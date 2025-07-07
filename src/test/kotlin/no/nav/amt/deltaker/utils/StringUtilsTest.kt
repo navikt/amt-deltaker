@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.utils
 
 import io.kotest.matchers.shouldBe
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 class StringUtilsTest {
     @Test

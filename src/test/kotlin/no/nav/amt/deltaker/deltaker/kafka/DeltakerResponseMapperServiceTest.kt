@@ -31,9 +31,9 @@ import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.testing.SingletonPostgres16Container
 import no.nav.amt.lib.testing.shouldBeCloseTo
-import org.junit.Before
-import org.junit.BeforeClass
-import org.junit.Test
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -56,14 +56,14 @@ class DeltakerResponseMapperServiceTest {
         private val deltakerDtoMapperService =
             DeltakerDtoMapperService(navAnsattService, navEnhetService, deltakerHistorikkService, vurderingRepository)
 
-        @BeforeClass
+        @BeforeAll
         @JvmStatic
         fun setup() {
             SingletonPostgres16Container
         }
     }
 
-    @Before
+    @BeforeEach
     fun cleanDatabase() {
         TestRepository.cleanDatabase()
     }
@@ -111,7 +111,7 @@ class DeltakerResponseMapperServiceTest {
         deltakerV2Dto.navVeileder shouldBe veileder.toDeltakerNavVeilederDto()
         deltakerV2Dto.deltarPaKurs shouldBe deltaker.deltarPaKurs()
         deltakerV2Dto.kilde shouldBe Kilde.KOMET
-        deltakerV2Dto.innhold shouldBe Deltakelsesinnhold(deltaker.deltakelsesinnhold!!.ledetekst, deltaker.deltakelsesinnhold!!.innhold)
+        deltakerV2Dto.innhold shouldBe Deltakelsesinnhold(deltaker.deltakelsesinnhold!!.ledetekst, deltaker.deltakelsesinnhold.innhold)
         deltakerV2Dto.historikk?.size shouldBe 1
         sammenlignHistorikk(deltakerV2Dto.historikk?.first()!!, DeltakerHistorikk.Vedtak(vedtak))
         deltakerV2Dto.sistEndret shouldBeCloseTo deltaker.sistEndret
@@ -187,12 +187,12 @@ class DeltakerResponseMapperServiceTest {
         deltakerV2Dto.navVeileder shouldBe veileder.toDeltakerNavVeilederDto()
         deltakerV2Dto.deltarPaKurs shouldBe deltaker.deltarPaKurs()
         deltakerV2Dto.kilde shouldBe Kilde.KOMET
-        deltakerV2Dto.innhold shouldBe Deltakelsesinnhold(deltaker.deltakelsesinnhold!!.ledetekst, deltaker.deltakelsesinnhold!!.innhold)
+        deltakerV2Dto.innhold shouldBe Deltakelsesinnhold(deltaker.deltakelsesinnhold!!.ledetekst, deltaker.deltakelsesinnhold.innhold)
         deltakerV2Dto.historikk?.size shouldBe 4
         sammenlignHistorikk(deltakerV2Dto.historikk?.get(0)!!, DeltakerHistorikk.EndringFraArrangor(endringFraArrangor))
-        sammenlignHistorikk(deltakerV2Dto.historikk?.get(1)!!, DeltakerHistorikk.Forslag(forslag))
-        sammenlignHistorikk(deltakerV2Dto.historikk?.get(2)!!, DeltakerHistorikk.Endring(endring))
-        sammenlignHistorikk(deltakerV2Dto.historikk?.get(3)!!, DeltakerHistorikk.Vedtak(vedtak))
+        sammenlignHistorikk(deltakerV2Dto.historikk[1], DeltakerHistorikk.Forslag(forslag))
+        sammenlignHistorikk(deltakerV2Dto.historikk[2], DeltakerHistorikk.Endring(endring))
+        sammenlignHistorikk(deltakerV2Dto.historikk[3], DeltakerHistorikk.Vedtak(vedtak))
         deltakerV2Dto.sistEndret shouldBeCloseTo deltaker.sistEndret
         deltakerV2Dto.sistEndretAv shouldBe veileder.id
         deltakerV2Dto.sistEndretAvEnhet shouldBe brukersEnhet.id

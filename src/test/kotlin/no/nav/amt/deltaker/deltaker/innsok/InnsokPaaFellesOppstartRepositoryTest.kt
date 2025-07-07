@@ -7,7 +7,7 @@ import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.InnsokPaaFellesOppstart
 import no.nav.amt.lib.testing.SingletonPostgres16Container
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 import java.util.UUID
 

@@ -10,9 +10,9 @@ import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.testing.SingletonPostgres16Container
 import no.nav.amt.lib.testing.shouldBeCloseTo
-import org.junit.Before
-import org.junit.BeforeClass
-import org.junit.Test
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -21,14 +21,14 @@ class DeltakerRepositoryTest {
         lateinit var repository: DeltakerRepository
 
         @JvmStatic
-        @BeforeClass
+        @BeforeAll
         fun setup() {
             SingletonPostgres16Container
             repository = DeltakerRepository()
         }
     }
 
-    @Before
+    @BeforeEach
     fun cleanDatabase() {
         TestRepository.cleanDatabase()
     }

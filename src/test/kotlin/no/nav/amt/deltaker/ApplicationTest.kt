@@ -10,7 +10,7 @@ import no.nav.amt.deltaker.application.plugins.configureAuthentication
 import no.nav.amt.deltaker.application.plugins.configureRouting
 import no.nav.amt.deltaker.application.plugins.configureSerialization
 import no.nav.amt.deltaker.utils.configureEnvForAuthentication
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 class ApplicationTest {
     @Test

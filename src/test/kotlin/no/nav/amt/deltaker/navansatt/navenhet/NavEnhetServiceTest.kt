@@ -9,15 +9,15 @@ import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.mockAzureAdClient
 import no.nav.amt.deltaker.utils.mockHttpClient
 import no.nav.amt.lib.testing.SingletonPostgres16Container
-import org.junit.BeforeClass
-import org.junit.Test
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
 
 class NavEnhetServiceTest {
     companion object {
         lateinit var repository: NavEnhetRepository
 
         @JvmStatic
-        @BeforeClass
+        @BeforeAll
         fun setup() {
             SingletonPostgres16Container
             repository = NavEnhetRepository()

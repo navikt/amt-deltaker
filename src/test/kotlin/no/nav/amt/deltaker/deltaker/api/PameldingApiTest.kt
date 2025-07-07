@@ -32,15 +32,15 @@ import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
-import org.junit.Before
-import org.junit.Test
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import java.util.UUID
 
 class PameldingApiTest {
     private val pameldingService = mockk<PameldingService>()
     private val historikkService: DeltakerHistorikkService = mockk()
 
-    @Before
+    @BeforeEach
     fun setup() {
         configureEnvForAuthentication()
     }

@@ -5,7 +5,7 @@ import io.mockk.mockk
 import no.nav.poao_tilgang.client.Decision
 import no.nav.poao_tilgang.client.PoaoTilgangCachedClient
 import no.nav.poao_tilgang.client.api.ApiResult
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import java.util.UUID
 import kotlin.test.assertFailsWith
 

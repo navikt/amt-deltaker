@@ -7,9 +7,9 @@ import no.nav.amt.lib.models.deltaker.DeltakerVedVedtak
 import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.testing.SingletonPostgres16Container
 import no.nav.amt.lib.testing.shouldBeCloseTo
-import org.junit.Before
-import org.junit.BeforeClass
-import org.junit.Test
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
 class VedtakRepositoryTest {
@@ -17,14 +17,14 @@ class VedtakRepositoryTest {
         lateinit var repository: VedtakRepository
 
         @JvmStatic
-        @BeforeClass
+        @BeforeAll
         fun setup() {
             SingletonPostgres16Container
             repository = VedtakRepository()
         }
     }
 
-    @Before
+    @BeforeEach
     fun cleanDatabase() {
         TestRepository.cleanDatabase()
     }

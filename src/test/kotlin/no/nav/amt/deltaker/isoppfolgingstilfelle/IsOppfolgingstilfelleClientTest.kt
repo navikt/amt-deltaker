@@ -5,7 +5,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.utils.MockResponseHandler
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.mockIsOppfolgingstilfelleClient
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
 class IsOppfolgingstilfelleClientTest {

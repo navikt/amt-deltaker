@@ -24,8 +24,8 @@ import no.nav.amt.deltaker.utils.configureEnvForAuthentication
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.tiltakskoordinator.requests.DelMedArrangorRequest
-import org.junit.Before
-import org.junit.Test
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import java.util.UUID
 
 class TiltakskoordinatorApiTest {
@@ -33,7 +33,7 @@ class TiltakskoordinatorApiTest {
     private val unleashToggle = mockk<UnleashToggle>()
     private val apiPath = "/tiltakskoordinator/deltakere"
 
-    @Before
+    @BeforeEach
     fun setup() {
         configureEnvForAuthentication()
     }

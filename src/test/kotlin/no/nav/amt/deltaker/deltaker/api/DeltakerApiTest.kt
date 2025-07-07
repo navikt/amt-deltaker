@@ -36,8 +36,8 @@ import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
-import org.junit.Before
-import org.junit.Test
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
 
@@ -45,7 +45,7 @@ class DeltakerApiTest {
     private val deltakerService = mockk<DeltakerService>(relaxUnitFun = true)
     private val deltakerHistorikkService = mockk<DeltakerHistorikkService>()
 
-    @Before
+    @BeforeEach
     fun setup() {
         configureEnvForAuthentication()
     }
