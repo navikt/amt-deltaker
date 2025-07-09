@@ -4,6 +4,7 @@ import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.deltaker.navansatt.NavAnsatt
 import no.nav.amt.deltaker.navbruker.model.Adresse
 import no.nav.amt.deltaker.navbruker.model.Adressebeskyttelse
+import no.nav.amt.deltaker.navbruker.model.Oppfolgingsperiode
 import no.nav.amt.lib.models.arrangor.melding.Vurdering
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
@@ -36,6 +37,7 @@ data class DeltakerV2Dto(
     val sistEndret: LocalDateTime?,
     val forcedUpdate: Boolean? = false,
     val erManueltDeltMedArrangor: Boolean = false,
+    val oppfolgingsperioder: List<Oppfolgingsperiode> = emptyList(),
 ) {
     data class DeltakerPersonaliaDto(
         val personId: UUID?,
