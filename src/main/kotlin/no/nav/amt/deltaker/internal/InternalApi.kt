@@ -1,6 +1,8 @@
 package no.nav.amt.deltaker.internal
 
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.ApplicationCall
+import io.ktor.server.auth.authenticate
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
@@ -47,6 +49,22 @@ fun Routing.registerInternalApi(
         innsokPaaFellesOppstartService.deleteForDeltaker(deltakerId)
         vurderingService.deleteForDeltaker(deltakerId)
         deltakerService.delete(deltakerId)
+    }
+
+    suspend fun ApplicationCall.reproduserDeltakere() {
+        val request = this.receive<RelastDeltakereRequest>()
+        scope.launch {
+            log.info("Relaster ${request.deltakere.size} deltakere komet er master for på deltaker-v2")
+            request.deltakere.forEach { deltakerId ->
+                deltakerProducerService.produce(
+                    deltakerService.get(deltakerId).getOrThrow(),
+                    forcedUpdate = request.forcedUpdate,
+                    publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
+                )
+            }
+            log.info("Ferdig med reprodusering av ${request.deltakere.size} deltakere på deltaker-v2")
+        }
+        this.respond(HttpStatusCode.OK)
     }
 
     post("/internal/sett-ikke-aktuell/{fra-status}") {
@@ -158,19 +176,7 @@ fun Routing.registerInternalApi(
 
     post("/internal/relast/deltakere") {
         if (isInternal(call.request.local.remoteAddress)) {
-            val request = call.receive<RelastDeltakereRequest>()
-            scope.launch {
-                log.info("Relaster ${request.deltakere.size} deltakere komet er master for på deltaker-v2")
-                request.deltakere.forEach { deltakerId ->
-                    deltakerProducerService.produce(
-                        deltakerService.get(deltakerId).getOrThrow(),
-                        forcedUpdate = request.forcedUpdate,
-                        publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
-                    )
-                }
-                log.info("Ferdig relastet alle deltakere komet er master for på deltaker-v2")
-            }
-            call.respond(HttpStatusCode.OK)
+            call.reproduserDeltakere()
         } else {
             throw AuthorizationException("Ikke tilgang til api")
         }
@@ -242,6 +248,12 @@ fun Routing.registerInternalApi(
             call.respond(HttpStatusCode.OK)
         } else {
             throw AuthorizationException("Ikke tilgang til api")
+        }
+    }
+
+    authenticate("SYSTEM") {
+        post("internal/deltakere/reproduser") {
+            call.reproduserDeltakere()
         }
     }
 }

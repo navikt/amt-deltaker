@@ -34,7 +34,7 @@ fun Application.configureAuthentication(environment: Environment) {
                 }
                 val appid: String = credentials.payload.getClaim("azp").asString()
                 val app = environment.preAuthorizedApp.firstOrNull { it.clientId == appid }
-                if (app?.appName !in listOf("amt-deltaker-bff", "amt-distribusjon")) {
+                if (app?.appName !in listOf("amt-deltaker-bff", "amt-distribusjon", "amt-tiltaksarrangor-bff")) {
                     application.log.warn("App-id $appid med navn ${app?.appName} har ikke tilgang til api med systemkontekst")
                     return@validate null
                 }
@@ -83,9 +83,8 @@ fun erMaskinTilMaskin(credentials: JWTCredential): Boolean {
     return sub == oid
 }
 
-fun ApplicationCall.getNavAnsattAzureId(): UUID {
-    return this.principal<JWTPrincipal>()
-        ?.get("oid")
-        ?.let { UUID.fromString(it) }
-        ?: throw AuthenticationException("NavAnsattAzureId mangler i JWTPrincipal")
-}
+fun ApplicationCall.getNavAnsattAzureId(): UUID = this
+    .principal<JWTPrincipal>()
+    ?.get("oid")
+    ?.let { UUID.fromString(it) }
+    ?: throw AuthenticationException("NavAnsattAzureId mangler i JWTPrincipal")
