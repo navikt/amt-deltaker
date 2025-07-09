@@ -462,6 +462,7 @@ object TestData {
         sistEndretAvEnhet = null,
         vurderingerFraArrangor = emptyList(),
         forcedUpdate = null,
+        oppfolgingsperioder = navBruker.oppfolgingsperioder,
     )
 
     private fun finnOppstartstype(type: Tiltakstype.ArenaKode) = when (type) {
