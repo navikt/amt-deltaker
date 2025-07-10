@@ -17,11 +17,11 @@ import io.mockk.mockk
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.utils.configureEnvForAuthentication
 import no.nav.amt.deltaker.utils.generateJWT
-import org.junit.Before
-import org.junit.Test
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 
 class AuthenticationTest {
-    @Before
+    @BeforeEach
     fun setup() {
         configureEnvForAuthentication()
     }

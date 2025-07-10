@@ -18,14 +18,14 @@ import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengder
-import org.junit.Before
-import org.junit.Test
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
 class DeltakerEndringHandlerTest {
     val deltakerHistorikkServiceMock = mockk<DeltakerHistorikkService>()
 
-    @Before
+    @BeforeEach
     fun setup() {
         every { deltakerHistorikkServiceMock.getForDeltaker(any()) } returns emptyList()
     }

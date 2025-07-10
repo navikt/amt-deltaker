@@ -8,7 +8,7 @@ import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
 import no.nav.amt.deltaker.utils.mockAmtPersonClient
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 class EndringFraTiltakskoordinatorServiceTest {
     private val repository = EndringFraTiltakskoordinatorRepository()

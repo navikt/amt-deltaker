@@ -4,7 +4,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
 class DeltakerProgresjonTest {

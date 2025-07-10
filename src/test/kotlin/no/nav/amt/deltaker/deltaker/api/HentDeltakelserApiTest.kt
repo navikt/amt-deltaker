@@ -35,8 +35,8 @@ import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.poao_tilgang.client.Decision
 import no.nav.poao_tilgang.client.PoaoTilgangCachedClient
 import no.nav.poao_tilgang.client.api.ApiResult
-import org.junit.Before
-import org.junit.Test
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
 class HentDeltakelserApiTest {
@@ -50,7 +50,7 @@ class HentDeltakelserApiTest {
     private val unleashClient = FakeUnleash()
     private val unleashToggle = UnleashToggle(unleashClient)
 
-    @Before
+    @BeforeEach
     fun setup() {
         configureEnvForAuthentication()
         unleashClient.enableAll()

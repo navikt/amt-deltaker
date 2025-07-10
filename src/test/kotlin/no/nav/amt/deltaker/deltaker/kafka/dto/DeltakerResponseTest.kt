@@ -14,7 +14,7 @@ import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.lib.testing.SingletonPostgres16Container
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
 class DeltakerResponseTest {

@@ -11,8 +11,8 @@ import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.testing.SingletonPostgres16Container
-import org.junit.BeforeClass
-import org.junit.Test
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
 
 class NavAnsattConsumerTest {
     private val amtPersonServiceClient = mockk<AmtPersonServiceClient>()
@@ -23,7 +23,7 @@ class NavAnsattConsumerTest {
         lateinit var repository: NavAnsattRepository
 
         @JvmStatic
-        @BeforeClass
+        @BeforeAll
         fun setup() {
             SingletonPostgres16Container
             repository = NavAnsattRepository()
