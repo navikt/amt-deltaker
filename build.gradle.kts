@@ -9,7 +9,7 @@ plugins {
     kotlin("jvm") version kotlinVersion
     id("io.ktor.plugin") version "3.2.1"
     id("org.jetbrains.kotlin.plugin.serialization") version kotlinVersion
-    id("org.jlleitschuh.gradle.ktlint") version "12.3.0"
+    id("org.jlleitschuh.gradle.ktlint") version "13.0.0"
     id("com.gradleup.shadow") version "8.3.8"
 }
 
@@ -36,7 +36,7 @@ val postgresVersion = "42.7.7"
 val caffeineVersion = "3.2.1"
 val mockkVersion = "1.14.4"
 val nimbusVersion = "10.3.1"
-val unleashVersion = "11.0.1"
+val unleashVersion = "11.0.2"
 val amtLibVersion = "1.2025.06.30_11.34-39810db912fa"
 val awaitilityVersion = "4.3.0"
 

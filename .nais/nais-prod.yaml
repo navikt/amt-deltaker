@@ -45,6 +45,7 @@ spec:
     inbound:
       rules:
         - application: amt-deltaker-bff
+        - application: amt-tiltaksarrangor-bff
         - application: amt-distribusjon
         - application: mulighetsrommet-api
           namespace: team-mulighetsrommet

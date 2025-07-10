@@ -103,6 +103,7 @@ data class DeltakerDto(
             sistEndretAvEnhet = sisteEndring?.getSistEndretAvEnhet(),
             forcedUpdate = forcedUpdate,
             erManueltDeltMedArrangor = deltaker.erManueltDeltMedArrangor,
+            oppfolgingsperioder = deltaker.navBruker.oppfolgingsperioder,
         )
 
     private fun List<Vurdering>.toDto() = this.map {
