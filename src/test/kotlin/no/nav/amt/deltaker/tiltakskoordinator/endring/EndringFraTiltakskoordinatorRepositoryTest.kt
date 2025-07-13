@@ -6,7 +6,6 @@ import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.navansatt.NavAnsatt
 import no.nav.amt.deltaker.navansatt.navenhet.NavEnhet
-import no.nav.amt.deltaker.navbruker.model.Adressebeskyttelse
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -96,15 +95,6 @@ data class EndringFraTiltakskoordinatorCtx(
         deltakerRepository.upsert(deltaker)
     }
 
-    fun medSkjermetDeltaker() {
-        deltaker = deltaker.copy(navBruker = deltaker.navBruker.copy(erSkjermet = true))
-        deltakerRepository.upsert(deltaker)
-    }
-
-    fun medFortroligDeltaker() = adressebeskyttetDeltaker(Adressebeskyttelse.FORTROLIG)
-
-    fun medStrengtFortroligDeltaker() = adressebeskyttetDeltaker(Adressebeskyttelse.STRENGT_FORTROLIG)
-
     fun medInnsok() {
         val innsok = TestData.lagInnsoktPaaKurs(
             deltakerId = deltaker.id,
@@ -112,10 +102,5 @@ data class EndringFraTiltakskoordinatorCtx(
             innsoktAvEnhet = navEnhet.id,
         )
         TestRepository.insert(innsok)
-    }
-
-    private fun adressebeskyttetDeltaker(adressebeskyttelse: Adressebeskyttelse?) {
-        deltaker = deltaker.copy(navBruker = deltaker.navBruker.copy(adressebeskyttelse = adressebeskyttelse))
-        deltakerRepository.upsert(deltaker)
     }
 }

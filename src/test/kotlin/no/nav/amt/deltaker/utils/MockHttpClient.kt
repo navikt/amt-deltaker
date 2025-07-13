@@ -57,7 +57,7 @@ fun mockHttpClient(defaultResponse: Any? = null): HttpClient {
 
 fun mockAmtArrangorClient(arrangor: Arrangor = TestData.lagArrangor()): AmtArrangorClient {
     val overordnetArrangor = arrangor.overordnetArrangorId?.let {
-        TestData.lagArrangor(id = arrangor.overordnetArrangorId!!)
+        TestData.lagArrangor(id = arrangor.overordnetArrangorId)
     }
 
     val response = ArrangorDto(arrangor.id, arrangor.navn, arrangor.organisasjonsnummer, overordnetArrangor)
@@ -114,7 +114,7 @@ object MockResponseHandler {
     ) {
         val api = Pair(url, method)
         responses[api] = Response(
-            if (responseBody is String) responseBody else objectMapper.writeValueAsString(responseBody),
+            responseBody as? String ?: objectMapper.writeValueAsString(responseBody),
             responseCode,
         )
     }

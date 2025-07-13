@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.deltaker
 
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.every
@@ -630,7 +631,8 @@ class PameldingServiceTest {
         val oppdatertDeltaker = deltakerService.get(deltaker.id).getOrThrow()
 
         oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
-        oppdatertDeltaker.vedtaksinformasjon!!.fattet shouldBeCloseTo LocalDateTime.now()
+        oppdatertDeltaker.vedtaksinformasjon.shouldNotBeNull()
+        oppdatertDeltaker.vedtaksinformasjon.fattet shouldBeCloseTo LocalDateTime.now()
 
         innsokPaaFellesOppstartRepository.getForDeltaker(deltaker.id).isFailure shouldBe true
     }
@@ -657,7 +659,8 @@ class PameldingServiceTest {
         val oppdatertDeltaker = deltakerService.get(deltaker.id).getOrThrow()
 
         oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.SOKT_INN
-        oppdatertDeltaker.vedtaksinformasjon!!.fattet shouldBe null
+        oppdatertDeltaker.vedtaksinformasjon.shouldNotBeNull()
+        oppdatertDeltaker.vedtaksinformasjon.fattet shouldBe null
 
         val innsok = innsokPaaFellesOppstartRepository.getForDeltaker(deltaker.id).getOrThrow()
         innsok.utkastGodkjentAvNav shouldBe false

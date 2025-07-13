@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.deltaker
 
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.every
@@ -1134,7 +1135,8 @@ class DeltakerServiceTest {
         val oppdatertDeltaker = deltakerService.get(deltaker.id).getOrThrow()
 
         oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
-        oppdatertDeltaker.vedtaksinformasjon!!.fattet shouldBeCloseTo LocalDateTime.now()
+        oppdatertDeltaker.vedtaksinformasjon.shouldNotBeNull()
+        oppdatertDeltaker.vedtaksinformasjon.fattet shouldBeCloseTo LocalDateTime.now()
     }
 
     @Test
@@ -1158,7 +1160,8 @@ class DeltakerServiceTest {
         val oppdatertDeltaker = deltakerService.get(deltaker.id).getOrThrow()
 
         oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.DELTAR
-        oppdatertDeltaker.vedtaksinformasjon!!.fattet shouldBeCloseTo LocalDateTime.now()
+        oppdatertDeltaker.vedtaksinformasjon.shouldNotBeNull()
+        oppdatertDeltaker.vedtaksinformasjon.fattet shouldBeCloseTo LocalDateTime.now()
     }
 
     @Test
