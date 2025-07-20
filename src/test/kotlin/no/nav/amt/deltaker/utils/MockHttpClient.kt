@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.utils
 
+import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
@@ -32,6 +33,46 @@ const val ISOPPFOLGINGSTILFELLE_URL = "https://isoppfolgingstilfelle"
 
 private val log = LoggerFactory.getLogger("MockHttpClient")
 
+fun <T> createMockHttpClient(
+    expectedUrl: String,
+    responseBody: T?,
+    statusCode: HttpStatusCode = HttpStatusCode.OK,
+    requiresAuthHeader: Boolean = true,
+) = HttpClient(MockEngine) {
+    install(ContentNegotiation) { jackson { applicationConfig() } }
+    engine {
+        addHandler { request ->
+            request.url.toString() shouldBe expectedUrl
+            if (requiresAuthHeader) request.headers[HttpHeaders.Authorization] shouldBe "Bearer XYZ"
+
+            when (responseBody) {
+                null -> {
+                    respond(
+                        content = "",
+                        status = statusCode,
+                    )
+                }
+
+                is ByteArray -> {
+                    respond(
+                        content = responseBody,
+                        status = statusCode,
+                        headers = headersOf(HttpHeaders.ContentType, ContentType.Application.OctetStream.toString()),
+                    )
+                }
+
+                else -> {
+                    respond(
+                        content = ByteReadChannel(objectMapper.writeValueAsBytes(responseBody)),
+                        status = statusCode,
+                        headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
+                    )
+                }
+            }
+        }
+    }
+}
+
 fun mockHttpClient(defaultResponse: Any? = null): HttpClient {
     val mockEngine = MockEngine {
         val api = Pair(it.url.toString(), it.method)
@@ -57,7 +98,7 @@ fun mockHttpClient(defaultResponse: Any? = null): HttpClient {
 
 fun mockAmtArrangorClient(arrangor: Arrangor = TestData.lagArrangor()): AmtArrangorClient {
     val overordnetArrangor = arrangor.overordnetArrangorId?.let {
-        TestData.lagArrangor(id = arrangor.overordnetArrangorId!!)
+        TestData.lagArrangor(id = arrangor.overordnetArrangorId)
     }
 
     val response = ArrangorDto(arrangor.id, arrangor.navn, arrangor.organisasjonsnummer, overordnetArrangor)
@@ -69,7 +110,7 @@ fun mockAmtArrangorClient(arrangor: Arrangor = TestData.lagArrangor()): AmtArran
     )
 }
 
-fun mockIsOppfolgingstilfelleClient(): IsOppfolgingstilfelleClient = IsOppfolgingstilfelleClient(
+fun mockIsOppfolgingstilfelleClient() = IsOppfolgingstilfelleClient(
     baseUrl = ISOPPFOLGINGSTILFELLE_URL,
     scope = "isoppfolgingstilfelle.scope",
     httpClient = mockHttpClient(),
@@ -114,7 +155,7 @@ object MockResponseHandler {
     ) {
         val api = Pair(url, method)
         responses[api] = Response(
-            if (responseBody is String) responseBody else objectMapper.writeValueAsString(responseBody),
+            responseBody as? String ?: objectMapper.writeValueAsString(responseBody),
             responseCode,
         )
     }

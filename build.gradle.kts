@@ -1,5 +1,3 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-
 group = "no.nav.amt-deltaker"
 version = "1.0-SNAPSHOT"
 
@@ -26,7 +24,6 @@ val jacksonVersion = "2.19.1"
 val logstashEncoderVersion = "8.1"
 val commonVersion = "3.2024.10.25_13.44-9db48a0dbe67"
 val poaoTilgangVersion = "2024.10.29_14.10-4fff597d6e1b"
-val kafkaClientsVersion = "3.7.1"
 val kotestVersion = "5.9.1"
 val flywayVersion = "11.10.2"
 val hikariVersion = "6.3.0"
@@ -83,7 +80,7 @@ dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testImplementation("io.kotest:kotest-assertions-core-jvm:$kotestVersion")
     testImplementation("io.kotest:kotest-assertions-json-jvm:$kotestVersion")
-    testImplementation("io.mockk:mockk:$mockkVersion")
+    testImplementation("io.mockk:mockk-jvm:$mockkVersion")
     testImplementation("com.nimbusds:nimbus-jose-jwt:$nimbusVersion")
     testImplementation("no.nav.amt.lib:testing:$amtLibVersion")
     testImplementation("org.awaitility:awaitility:$awaitilityVersion")
@@ -91,6 +88,9 @@ dependencies {
 
 kotlin {
     jvmToolchain(21)
+    compilerOptions {
+        freeCompilerArgs.add("-Xjsr305=strict")
+    }
 }
 
 application {
@@ -98,6 +98,18 @@ application {
 
     val isDevelopment: Boolean = project.ext.has("development")
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
+}
+
+ktlint {
+    version = ktlintVersion
+}
+
+tasks.test {
+    useJUnitPlatform()
+    jvmArgs(
+        "-Xshare:off",
+        "-XX:+EnableDynamicAgentLoading",
+    )
 }
 
 tasks.jar {
@@ -108,14 +120,6 @@ tasks.jar {
     }
 }
 
-tasks.test {
-    useJUnitPlatform()
-}
-
-tasks.withType<ShadowJar> {
+tasks.shadowJar {
     mergeServiceFiles()
-}
-
-configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
-    version.set(ktlintVersion)
 }

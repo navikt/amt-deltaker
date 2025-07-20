@@ -1,49 +1,103 @@
 package no.nav.amt.deltaker.arrangor
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldStartWith
+import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
-import no.nav.amt.deltaker.application.plugins.objectMapper
-import no.nav.amt.deltaker.utils.data.TestData
+import no.nav.amt.deltaker.utils.createMockHttpClient
+import no.nav.amt.deltaker.utils.data.TestData.lagArrangor
+import no.nav.amt.deltaker.utils.data.TestData.randomOrgnr
 import no.nav.amt.deltaker.utils.mockAzureAdClient
-import no.nav.amt.deltaker.utils.mockHttpClient
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import java.util.UUID
 
 class AmtArrangorClientTest {
-    @Test
-    fun `hentArrangor(orgnr) - skal parse response riktig og returnere arrangor`(): Unit = runBlocking {
-        val overordnetArrangor = TestData.lagArrangor()
-        val arrangor = TestData.lagArrangor(overordnetArrangorId = overordnetArrangor.id)
+    @Nested
+    inner class HentArrangorByOrgnummer {
+        @Test
+        fun `skal kaste feil nar respons med feilkode`() {
+            val amtArrangorClient = createArrangorClient(
+                "$ARRANGOR_BASE_URL/api/service/arrangor/organisasjonsnummer/$orgnrInTest",
+                HttpStatusCode.BadRequest,
+            )
 
-        val arrangorDto = ArrangorDto(arrangor.id, arrangor.navn, arrangor.organisasjonsnummer, overordnetArrangor)
+            val thrown = runBlocking {
+                shouldThrow<IllegalStateException> {
+                    amtArrangorClient.hentArrangor(orgnrInTest)
+                }
+            }
 
-        val httpClient = mockHttpClient(objectMapper.writeValueAsString(arrangorDto))
+            thrown.message shouldStartWith "Kunne ikke hente arrangør med orgnummer $orgnrInTest"
+        }
 
-        val amtArrangorClient = AmtArrangorClient(
-            baseUrl = "http://amt-arrangor",
-            scope = "scope",
-            httpClient = httpClient,
-            azureAdTokenClient = mockAzureAdClient(),
-        )
+        @Test
+        fun `skal parse response riktig og returnere arrangor`(): Unit = runBlocking {
+            val overordnetArrangor = lagArrangor()
+            val arrangor = lagArrangor(overordnetArrangorId = overordnetArrangor.id)
 
-        amtArrangorClient.hentArrangor(arrangor.organisasjonsnummer) shouldBe arrangorDto
+            val expectedArrangor = ArrangorDto(arrangor.id, arrangor.navn, arrangor.organisasjonsnummer, overordnetArrangor)
+
+            val amtArrangorClient = createArrangorClient(
+                "$ARRANGOR_BASE_URL/api/service/arrangor/organisasjonsnummer/${expectedArrangor.organisasjonsnummer}",
+                responseBody = expectedArrangor,
+            )
+
+            val actualArrangor = amtArrangorClient.hentArrangor(expectedArrangor.organisasjonsnummer)
+            actualArrangor shouldBe expectedArrangor
+        }
     }
 
-    @Test
-    fun `hentArrangor(id) - skal parse response riktig og returnere arrangor`(): Unit = runBlocking {
-        val overordnetArrangor = TestData.lagArrangor()
-        val arrangor = TestData.lagArrangor(overordnetArrangorId = overordnetArrangor.id)
+    @Nested
+    inner class HentArrangorById {
+        @Test
+        fun `skal kaste feil nar respons med feilkode`() {
+            val amtArrangorClient = createArrangorClient(
+                "$ARRANGOR_BASE_URL/api/service/arrangor/$arrangorIdInTest",
+                HttpStatusCode.BadRequest,
+            )
 
-        val arrangorDto = ArrangorDto(arrangor.id, arrangor.navn, arrangor.organisasjonsnummer, overordnetArrangor)
+            val thrown = runBlocking {
+                shouldThrow<IllegalStateException> {
+                    amtArrangorClient.hentArrangor(arrangorIdInTest)
+                }
+            }
 
-        val httpClient = mockHttpClient(objectMapper.writeValueAsString(arrangorDto))
+            thrown.message shouldStartWith "Kunne ikke hente arrangør med id $arrangorIdInTest"
+        }
 
-        val amtArrangorClient = AmtArrangorClient(
-            baseUrl = "http://amt-arrangor",
+        @Test
+        fun `skal parse response riktig og returnere arrangor`(): Unit = runBlocking {
+            val overordnetArrangor = lagArrangor()
+            val arrangor = lagArrangor(overordnetArrangorId = overordnetArrangor.id)
+
+            val expectedArrangor = ArrangorDto(arrangor.id, arrangor.navn, arrangor.organisasjonsnummer, overordnetArrangor)
+
+            val amtArrangorClient = createArrangorClient(
+                "$ARRANGOR_BASE_URL/api/service/arrangor/${expectedArrangor.id}",
+                responseBody = expectedArrangor,
+            )
+
+            val actualArrangor = amtArrangorClient.hentArrangor(arrangor.id)
+            actualArrangor shouldBe expectedArrangor
+        }
+    }
+
+    companion object {
+        private fun createArrangorClient(
+            expectedUrl: String,
+            statusCode: HttpStatusCode = HttpStatusCode.OK,
+            responseBody: ArrangorDto? = null,
+        ) = AmtArrangorClient(
+            baseUrl = ARRANGOR_BASE_URL,
             scope = "scope",
-            httpClient = httpClient,
+            httpClient = createMockHttpClient(expectedUrl, responseBody, statusCode),
             azureAdTokenClient = mockAzureAdClient(),
         )
 
-        amtArrangorClient.hentArrangor(arrangor.id) shouldBe arrangorDto
+        private val orgnrInTest = randomOrgnr()
+        private val arrangorIdInTest: UUID = UUID.randomUUID()
+        private const val ARRANGOR_BASE_URL = "http://amt-arrangor"
     }
 }
