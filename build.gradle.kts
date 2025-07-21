@@ -5,7 +5,7 @@ plugins {
     val kotlinVersion = "2.2.0"
 
     kotlin("jvm") version kotlinVersion
-    id("io.ktor.plugin") version "3.2.1"
+    id("io.ktor.plugin") version "3.2.2"
     id("org.jetbrains.kotlin.plugin.serialization") version kotlinVersion
     id("org.jlleitschuh.gradle.ktlint") version "13.0.0"
     id("com.gradleup.shadow") version "8.3.8"
@@ -25,12 +25,12 @@ val logstashEncoderVersion = "8.1"
 val commonVersion = "3.2024.10.25_13.44-9db48a0dbe67"
 val poaoTilgangVersion = "2024.10.29_14.10-4fff597d6e1b"
 val kotestVersion = "5.9.1"
-val flywayVersion = "11.10.2"
+val flywayVersion = "11.10.3"
 val hikariVersion = "6.3.0"
 val kotliqueryVersion = "1.9.1"
 val postgresVersion = "42.7.7"
 val caffeineVersion = "3.2.2"
-val mockkVersion = "1.14.4"
+val mockkVersion = "1.14.5"
 val nimbusVersion = "10.3.1"
 val unleashVersion = "11.0.2"
 val amtLibVersion = "1.2025.06.30_11.34-39810db912fa"
