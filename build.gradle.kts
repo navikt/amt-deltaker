@@ -1,5 +1,3 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-
 group = "no.nav.amt-deltaker"
 version = "1.0-SNAPSHOT"
 
@@ -83,7 +81,7 @@ dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testImplementation("io.kotest:kotest-assertions-core-jvm:$kotestVersion")
     testImplementation("io.kotest:kotest-assertions-json-jvm:$kotestVersion")
-    testImplementation("io.mockk:mockk:$mockkVersion")
+    testImplementation("io.mockk:mockk-jvm:$mockkVersion")
     testImplementation("com.nimbusds:nimbus-jose-jwt:$nimbusVersion")
     testImplementation("no.nav.amt.lib:testing:$amtLibVersion")
     testImplementation("org.awaitility:awaitility:$awaitilityVersion")
@@ -91,6 +89,9 @@ dependencies {
 
 kotlin {
     jvmToolchain(21)
+    compilerOptions {
+        freeCompilerArgs.add("-Xjsr305=strict")
+    }
 }
 
 application {
@@ -98,6 +99,18 @@ application {
 
     val isDevelopment: Boolean = project.ext.has("development")
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
+}
+
+ktlint {
+    version = ktlintVersion
+}
+
+tasks.test {
+    useJUnitPlatform()
+    jvmArgs(
+        "-Xshare:off",
+        "-XX:+EnableDynamicAgentLoading",
+    )
 }
 
 tasks.jar {
@@ -108,14 +121,6 @@ tasks.jar {
     }
 }
 
-tasks.test {
-    useJUnitPlatform()
-}
-
-tasks.withType<ShadowJar> {
+tasks.shadowJar {
     mergeServiceFiles()
-}
-
-configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
-    version.set(ktlintVersion)
 }
