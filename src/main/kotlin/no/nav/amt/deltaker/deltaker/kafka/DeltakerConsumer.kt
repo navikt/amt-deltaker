@@ -15,17 +15,12 @@ import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.navbruker.NavBrukerService
 import no.nav.amt.deltaker.unleash.UnleashToggle
+import no.nav.amt.deltaker.utils.buildManagedKafkaConsumer
 import no.nav.amt.lib.kafka.Consumer
-import no.nav.amt.lib.kafka.ManagedKafkaConsumer
-import no.nav.amt.lib.kafka.config.KafkaConfig
-import no.nav.amt.lib.kafka.config.KafkaConfigImpl
-import no.nav.amt.lib.kafka.config.LocalKafkaConfig
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
-import org.apache.kafka.common.serialization.StringDeserializer
-import org.apache.kafka.common.serialization.UUIDDeserializer
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.util.UUID
@@ -38,17 +33,12 @@ class DeltakerConsumer(
     private val importertFraArenaRepository: ImportertFraArenaRepository,
     private val vurderingRepository: VurderingRepository,
     private val unleashToggle: UnleashToggle,
-    kafkaConfig: KafkaConfig = if (Environment.isLocal()) LocalKafkaConfig() else KafkaConfigImpl("earliest"),
 ) : Consumer<UUID, String?> {
     private val log = LoggerFactory.getLogger(javaClass)
-    private val consumer = ManagedKafkaConsumer(
+
+    private val consumer = buildManagedKafkaConsumer(
         topic = Environment.DELTAKER_V2_TOPIC,
-        config = kafkaConfig.consumerConfig(
-            keyDeserializer = UUIDDeserializer(),
-            valueDeserializer = StringDeserializer(),
-            groupId = Environment.KAFKA_CONSUMER_GROUP_ID,
-        ),
-        consume = ::consume,
+        consumeFunc = ::consume,
     )
 
     override suspend fun consume(key: UUID, value: String?) {
