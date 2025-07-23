@@ -38,8 +38,8 @@ import no.nav.amt.deltaker.kafka.utils.assertProducedFeilregistrert
 import no.nav.amt.deltaker.kafka.utils.assertProducedHendelse
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
-import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetRepository
-import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
+import no.nav.amt.deltaker.navenhet.NavEnhetRepository
+import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorCtx
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorService
@@ -656,9 +656,10 @@ class DeltakerServiceTest {
             startdato = null,
             sluttdato = null,
         )
-        endredeDeltakere.first {
-            it.deltaker.id == deltaker2.id
-        }.deltaker shouldBeComparableWith deltaker2.copy(
+        endredeDeltakere
+            .first {
+                it.deltaker.id == deltaker2.id
+            }.deltaker shouldBeComparableWith deltaker2.copy(
             status = deltaker2.status.copy(type = DeltakerStatus.Type.VENTELISTE),
             startdato = null,
             sluttdato = null,
@@ -704,18 +705,20 @@ class DeltakerServiceTest {
             endretAv.navIdent,
         )
         endredeDeltakere.size shouldBe 2
-        endredeDeltakere.first {
-            it.deltaker.id == deltaker.id
-        }.deltaker shouldBeComparableWith deltaker.copy(
+        endredeDeltakere
+            .first {
+                it.deltaker.id == deltaker.id
+            }.deltaker shouldBeComparableWith deltaker.copy(
             status = deltaker.status.copy(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
             startdato = null,
             sluttdato = null,
-            vedtaksinformasjon = vedtak.copy(
-                fattet = LocalDateTime.now(),
-                fattetAvNav = true,
-                sistEndret = LocalDateTime.now(),
-                sistEndretAvEnhet = vedtak.opprettetAvEnhet,
-            ).tilVedtaksinformasjon(),
+            vedtaksinformasjon = vedtak
+                .copy(
+                    fattet = LocalDateTime.now(),
+                    fattetAvNav = true,
+                    sistEndret = LocalDateTime.now(),
+                    sistEndretAvEnhet = vedtak.opprettetAvEnhet,
+                ).tilVedtaksinformasjon(),
         )
         val ikkeEndretDeltaker = endredeDeltakere.first {
             it.deltaker.id == deltaker2.id
@@ -782,16 +785,18 @@ class DeltakerServiceTest {
             endretAv.navIdent,
         )
         endredeDeltakere.size shouldBe 2
-        val testdeltaker = endredeDeltakere.first {
-            it.deltaker.id == deltaker.id
-        }.deltaker
+        val testdeltaker = endredeDeltakere
+            .first {
+                it.deltaker.id == deltaker.id
+            }.deltaker
         testdeltaker.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
         testdeltaker.startdato shouldBe deltakerliste.startDato
         testdeltaker.sluttdato shouldBe deltakerliste.sluttDato
 
-        val testdeltaker2 = endredeDeltakere.first {
-            it.deltaker.id == deltaker2.id
-        }.deltaker
+        val testdeltaker2 = endredeDeltakere
+            .first {
+                it.deltaker.id == deltaker2.id
+            }.deltaker
         testdeltaker2.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
         testdeltaker2.startdato shouldBe deltakerliste.startDato
         testdeltaker2.sluttdato shouldBe deltakerliste.sluttDato
@@ -1029,14 +1034,16 @@ class DeltakerServiceTest {
             endretAv.navIdent,
         )
         endredeDeltakere.size shouldBe 2
-        val testdeltaker = endredeDeltakere.first {
-            it.deltaker.id == deltaker.id
-        }.deltaker
+        val testdeltaker = endredeDeltakere
+            .first {
+                it.deltaker.id == deltaker.id
+            }.deltaker
         testdeltaker.status.type shouldBe DeltakerStatus.Type.SOKT_INN
         testdeltaker.erManueltDeltMedArrangor shouldBe true
-        val testdeltaker2 = endredeDeltakere.first {
-            it.deltaker.id == deltaker2.id
-        }.deltaker
+        val testdeltaker2 = endredeDeltakere
+            .first {
+                it.deltaker.id == deltaker2.id
+            }.deltaker
         testdeltaker2.status.type shouldBe DeltakerStatus.Type.SOKT_INN
         testdeltaker2.erManueltDeltMedArrangor shouldBe true
 

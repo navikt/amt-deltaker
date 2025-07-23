@@ -1,6 +1,6 @@
 package no.nav.amt.deltaker.amtperson.dto
 
-import no.nav.amt.deltaker.navansatt.navenhet.NavEnhet
+import no.nav.amt.deltaker.navenhet.NavEnhet
 import java.util.UUID
 
 data class NavEnhetDto(
@@ -8,11 +8,9 @@ data class NavEnhetDto(
     val enhetId: String,
     val navn: String,
 ) {
-    fun tilNavEnhet(): NavEnhet {
-        return NavEnhet(
-            id = id,
-            enhetsnummer = enhetId,
-            navn = navn,
-        )
-    }
+    fun tilNavEnhet(): NavEnhet = NavEnhet(
+        id = id,
+        enhetsnummer = enhetId,
+        navn = navn,
+    )
 }

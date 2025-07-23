@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.navansatt.navenhet
+package no.nav.amt.deltaker.navenhet
 
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk

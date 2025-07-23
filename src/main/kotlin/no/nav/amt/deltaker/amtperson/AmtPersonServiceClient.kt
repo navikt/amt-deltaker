@@ -16,8 +16,8 @@ import no.nav.amt.deltaker.amtperson.dto.NavEnhetDto
 import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.auth.AzureAdTokenClient
 import no.nav.amt.deltaker.navansatt.NavAnsatt
-import no.nav.amt.deltaker.navansatt.navenhet.NavEnhet
 import no.nav.amt.deltaker.navbruker.model.NavBruker
+import no.nav.amt.deltaker.navenhet.NavEnhet
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.UUID

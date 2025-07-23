@@ -23,8 +23,8 @@ import no.nav.amt.deltaker.auth.AzureAdTokenClient
 import no.nav.amt.deltaker.isoppfolgingstilfelle.IsOppfolgingstilfelleClient
 import no.nav.amt.deltaker.isoppfolgingstilfelle.OppfolgingstilfellePersonDTO
 import no.nav.amt.deltaker.navansatt.NavAnsatt
-import no.nav.amt.deltaker.navansatt.navenhet.NavEnhet
 import no.nav.amt.deltaker.navbruker.model.NavBruker
+import no.nav.amt.deltaker.navenhet.NavEnhet
 import no.nav.amt.deltaker.utils.data.TestData
 import org.slf4j.LoggerFactory
 

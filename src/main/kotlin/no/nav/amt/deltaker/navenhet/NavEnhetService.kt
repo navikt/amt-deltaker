@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.navansatt.navenhet
+package no.nav.amt.deltaker.navenhet
 
 import no.nav.amt.deltaker.amtperson.AmtPersonServiceClient
 import org.slf4j.LoggerFactory
@@ -15,7 +15,7 @@ class NavEnhetService(
 
         log.info("Fant ikke nav-enhet med nummer $enhetsnummer, henter fra amt-person-service")
         val navEnhet = amtPersonServiceClient.hentNavEnhet(enhetsnummer)
-        return repository.upsert(navEnhet)
+        return upsert(navEnhet)
     }
 
     suspend fun hentEllerOpprettNavEnhet(id: UUID): NavEnhet {
@@ -23,6 +23,8 @@ class NavEnhetService(
 
         log.info("Fant ikke nav-enhet med id $id, henter fra amt-person-service")
         val navEnhet = amtPersonServiceClient.hentNavEnhet(id)
-        return repository.upsert(navEnhet)
+        return upsert(navEnhet)
     }
+
+    fun upsert(enhet: NavEnhet) = repository.upsert(enhet)
 }
