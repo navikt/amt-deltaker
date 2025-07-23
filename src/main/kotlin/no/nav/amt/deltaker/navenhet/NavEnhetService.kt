@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.navansatt.navenhet
+package no.nav.amt.deltaker.navenhet
 
 import no.nav.amt.deltaker.amtperson.AmtPersonServiceClient
 import org.slf4j.LoggerFactory

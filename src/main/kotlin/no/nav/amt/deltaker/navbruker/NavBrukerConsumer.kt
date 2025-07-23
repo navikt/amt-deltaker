@@ -5,8 +5,8 @@ import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.amtperson.dto.NavBrukerDto
 import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.deltaker.DeltakerService
-import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
 import no.nav.amt.deltaker.navbruker.model.NavBruker
+import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.utils.buildManagedKafkaConsumer
 import no.nav.amt.lib.kafka.Consumer
 import org.slf4j.LoggerFactory

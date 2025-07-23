@@ -3,7 +3,7 @@ package no.nav.amt.deltaker.tiltakskoordinator.endring
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.nyDeltakerStatus
 import no.nav.amt.deltaker.navansatt.NavAnsattService
-import no.nav.amt.deltaker.navansatt.navenhet.NavEnhet
+import no.nav.amt.deltaker.navenhet.NavEnhet
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import java.time.LocalDate

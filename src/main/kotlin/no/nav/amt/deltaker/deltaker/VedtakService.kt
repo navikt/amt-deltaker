@@ -4,7 +4,7 @@ import kotliquery.TransactionalSession
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.navansatt.NavAnsatt
-import no.nav.amt.deltaker.navansatt.navenhet.NavEnhet
+import no.nav.amt.deltaker.navenhet.NavEnhet
 import no.nav.amt.lib.models.deltaker.Vedtak
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime

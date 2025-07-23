@@ -1,10 +1,12 @@
-package no.nav.amt.deltaker.navansatt.navenhet
+package no.nav.amt.deltaker.navenhet
 
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.amtperson.AmtPersonServiceClient
 import no.nav.amt.deltaker.application.plugins.objectMapper
+import no.nav.amt.deltaker.navenhet.NavEnhetRepository
+import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.mockAzureAdClient
 import no.nav.amt.deltaker.utils.mockHttpClient

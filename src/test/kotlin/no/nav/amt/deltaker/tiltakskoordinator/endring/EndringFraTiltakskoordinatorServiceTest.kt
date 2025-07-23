@@ -4,8 +4,8 @@ import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
-import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetRepository
-import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
+import no.nav.amt.deltaker.navenhet.NavEnhetRepository
+import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.utils.mockAmtPersonClient
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import org.junit.jupiter.api.Test
@@ -24,8 +24,7 @@ class EndringFraTiltakskoordinatorServiceTest {
                 .sjekkEndringUtfall(
                     deltaker,
                     EndringFraTiltakskoordinator.DelMedArrangor,
-                )
-                .getOrThrow()
+                ).getOrThrow()
 
             endretDeltaker.erManueltDeltMedArrangor shouldBe true
             endretDeltaker.status.type shouldBe deltaker.status.type

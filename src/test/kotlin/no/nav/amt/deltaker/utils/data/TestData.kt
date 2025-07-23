@@ -11,7 +11,6 @@ import no.nav.amt.deltaker.deltaker.vurdering.Vurdering
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlisteDto
 import no.nav.amt.deltaker.navansatt.NavAnsatt
-import no.nav.amt.deltaker.navansatt.navenhet.NavEnhet
 import no.nav.amt.deltaker.navbruker.model.Adresse
 import no.nav.amt.deltaker.navbruker.model.Adressebeskyttelse
 import no.nav.amt.deltaker.navbruker.model.Bostedsadresse
@@ -20,6 +19,7 @@ import no.nav.amt.deltaker.navbruker.model.Matrikkeladresse
 import no.nav.amt.deltaker.navbruker.model.NavBruker
 import no.nav.amt.deltaker.navbruker.model.Oppfolgingsperiode
 import no.nav.amt.deltaker.navbruker.model.Vegadresse
+import no.nav.amt.deltaker.navenhet.NavEnhet
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype

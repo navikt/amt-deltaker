@@ -5,7 +5,7 @@ import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
-import no.nav.amt.deltaker.navansatt.navenhet.NavEnhetService
+import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 
 class DeltakerDtoMapperService(
@@ -18,7 +18,8 @@ class DeltakerDtoMapperService(
         val deltakerhistorikk = deltakerHistorikkService.getForDeltaker(deltaker.id)
         val vurderinger = vurderingRepository.getForDeltaker(deltaker.id)
 
-        if (deltaker.kilde == Kilde.KOMET && deltakerhistorikk.filterIsInstance<DeltakerHistorikk.Vedtak>().isEmpty() &&
+        if (deltaker.kilde == Kilde.KOMET &&
+            deltakerhistorikk.filterIsInstance<DeltakerHistorikk.Vedtak>().isEmpty() &&
             deltakerhistorikk.filterIsInstance<DeltakerHistorikk.InnsokPaaFellesOppstart>().isEmpty()
         ) {
             throw IllegalStateException(
