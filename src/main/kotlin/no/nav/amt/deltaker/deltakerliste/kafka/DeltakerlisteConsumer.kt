@@ -9,13 +9,8 @@ import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.kafka.arenaKodeTilTiltakstype
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.kafka.erStottet
+import no.nav.amt.deltaker.utils.buildManagedKafkaConsumer
 import no.nav.amt.lib.kafka.Consumer
-import no.nav.amt.lib.kafka.ManagedKafkaConsumer
-import no.nav.amt.lib.kafka.config.KafkaConfig
-import no.nav.amt.lib.kafka.config.KafkaConfigImpl
-import no.nav.amt.lib.kafka.config.LocalKafkaConfig
-import org.apache.kafka.common.serialization.StringDeserializer
-import org.apache.kafka.common.serialization.UUIDDeserializer
 import java.util.UUID
 
 class DeltakerlisteConsumer(
@@ -23,16 +18,10 @@ class DeltakerlisteConsumer(
     private val tiltakstypeRepository: TiltakstypeRepository,
     private val arrangorService: ArrangorService,
     private val deltakerService: DeltakerService,
-    kafkaConfig: KafkaConfig = if (Environment.isLocal()) LocalKafkaConfig() else KafkaConfigImpl(),
 ) : Consumer<UUID, String?> {
-    private val consumer = ManagedKafkaConsumer(
+    private val consumer = buildManagedKafkaConsumer(
         topic = Environment.DELTAKERLISTE_TOPIC,
-        config = kafkaConfig.consumerConfig(
-            keyDeserializer = UUIDDeserializer(),
-            valueDeserializer = StringDeserializer(),
-            groupId = Environment.KAFKA_CONSUMER_GROUP_ID,
-        ),
-        consume = ::consume,
+        consumeFunc = ::consume,
     )
 
     override fun start() = consumer.start()
