@@ -1,5 +1,8 @@
 package no.nav.amt.deltaker.deltaker.kafka
 
+import io.kotest.assertions.nondeterministic.eventually
+import io.kotest.assertions.nondeterministic.eventuallyConfig
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.clearMocks
 import io.mockk.every
@@ -39,13 +42,12 @@ import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.lib.testing.SingletonPostgres16Container
 import no.nav.amt.lib.testing.shouldBeCloseTo
-import org.awaitility.Awaitility
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.concurrent.TimeUnit
+import kotlin.time.Duration.Companion.seconds
 
 class DeltakerConsumerTest {
     companion object {
@@ -128,9 +130,16 @@ class DeltakerConsumerTest {
         every { unleashToggle.erKometMasterForTiltakstype(Tiltakstype.ArenaKode.ARBFORB) } returns true
 
         consumer.consume(deltaker.id, objectMapper.writeValueAsString(deltakerV2Dto))
-        Awaitility.await().atLeast(5, TimeUnit.SECONDS)
-        deltakerRepository.get(deltaker.id).getOrNull() shouldBe null
-        importertFraArenaRepository.getForDeltaker(deltaker.id) shouldBe null
+
+        val eventuallyConfig = eventuallyConfig {
+            initialDelay = 5.seconds
+            duration = 5.seconds
+        }
+
+        eventually(eventuallyConfig) {
+            deltakerRepository.get(deltaker.id).getOrNull() shouldBe null
+            importertFraArenaRepository.getForDeltaker(deltaker.id) shouldBe null
+        }
     }
 
     @Test
@@ -170,9 +179,11 @@ class DeltakerConsumerTest {
         val deltakerV2Dto = deltaker.toDeltakerV2(deltakerhistorikk = listOf(importertFraArena))
 
         consumer.consume(deltaker.id, objectMapper.writeValueAsString(deltakerV2Dto))
-        Awaitility.await().atMost(5, TimeUnit.SECONDS).until {
-            deltakerRepository.get(deltaker.id).getOrNull() != null
+
+        eventually(5.seconds) {
+            deltakerRepository.get(deltaker.id).getOrNull().shouldNotBeNull()
         }
+
         val expectedHistorikk = DeltakerHistorikk.ImportertFraArena(
             importertFraArena = ImportertFraArena(
                 deltakerId = deltaker.id,
@@ -258,8 +269,8 @@ class DeltakerConsumerTest {
         val deltakerV2Dto = oppdatertDeltaker.toDeltakerV2(innsoktDato = innsoktDato, deltakerhistorikk = listOf(oppdatertHistorikk))
 
         consumer.consume(deltaker.id, objectMapper.writeValueAsString(deltakerV2Dto))
-        Awaitility.await().atMost(5, TimeUnit.SECONDS).until {
-            deltakerRepository.get(deltaker.id).getOrNull() != null
+        eventually(5.seconds) {
+            deltakerRepository.get(deltaker.id).getOrNull().shouldNotBeNull()
         }
 
         val insertedDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
