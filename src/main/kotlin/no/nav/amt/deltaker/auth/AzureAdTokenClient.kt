@@ -22,7 +22,8 @@ class AzureAdTokenClient(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    private val tokenCache = Caffeine.newBuilder()
+    private val tokenCache = Caffeine
+        .newBuilder()
         .expireAfterWrite(Duration.ofMinutes(55))
         .build<String, AzureAdToken>()
 

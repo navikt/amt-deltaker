@@ -7,7 +7,13 @@ import java.nio.file.Paths
 
 fun configureEnvForAuthentication() {
     val path = "src/test/resources/jwkset.json"
-    val uri = Paths.get(path).toUri().toURL().toString()
+
+    val uri = Paths
+        .get(path)
+        .toUri()
+        .toURL()
+        .toString()
+
     val preAuthorizedApp = PreAuthorizedApp("dev:amt:amt-deltaker-bff", "amt-deltaker-bff")
     System.setProperty(Environment.AZURE_OPENID_CONFIG_JWKS_URI_KEY, uri)
     System.setProperty(Environment.AZURE_OPENID_CONFIG_ISSUER_KEY, "issuer")

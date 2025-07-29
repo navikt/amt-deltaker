@@ -54,20 +54,18 @@ data class Deltaker(
         status = status,
     )
 
-    fun toDeltakerOppdatering(historikk: List<DeltakerHistorikk>): Deltakeroppdatering {
-        return Deltakeroppdatering(
-            id = id,
-            startdato = startdato,
-            sluttdato = sluttdato,
-            dagerPerUke = dagerPerUke,
-            deltakelsesprosent = deltakelsesprosent,
-            bakgrunnsinformasjon = bakgrunnsinformasjon,
-            deltakelsesinnhold = deltakelsesinnhold,
-            status = status,
-            historikk = historikk,
-            sistEndret = sistEndret,
-            erManueltDeltMedArrangor = erManueltDeltMedArrangor,
-            forcedUpdate = false,
-        )
-    }
+    fun toDeltakerOppdatering(historikk: List<DeltakerHistorikk>): Deltakeroppdatering = Deltakeroppdatering(
+        id = id,
+        startdato = startdato,
+        sluttdato = sluttdato,
+        dagerPerUke = dagerPerUke,
+        deltakelsesprosent = deltakelsesprosent,
+        bakgrunnsinformasjon = bakgrunnsinformasjon,
+        deltakelsesinnhold = deltakelsesinnhold,
+        status = status,
+        historikk = historikk,
+        sistEndret = sistEndret,
+        erManueltDeltMedArrangor = erManueltDeltMedArrangor,
+        forcedUpdate = false,
+    )
 }

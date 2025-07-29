@@ -10,18 +10,18 @@ val ORD_MED_SMA_BOKSTAVER = listOf(
     "og",
 )
 
-fun toTitleCase(tekst: String): String {
-    return tekst.lowercase().split(Regex("(?<=\\s|-|')")).joinToString("") {
-        when (it.trim()) {
-            in FORKORTELSER_MED_STORE_BOKSTAVER -> {
-                it.uppercase()
-            }
-            in ORD_MED_SMA_BOKSTAVER -> {
-                it
-            }
-            else -> {
-                it.replaceFirstChar(Char::uppercaseChar)
-            }
+fun toTitleCase(tekst: String): String = tekst.lowercase().split(Regex("(?<=\\s|-|')")).joinToString("") {
+    when (it.trim()) {
+        in FORKORTELSER_MED_STORE_BOKSTAVER -> {
+            it.uppercase()
+        }
+
+        in ORD_MED_SMA_BOKSTAVER -> {
+            it
+        }
+
+        else -> {
+            it.replaceFirstChar(Char::uppercaseChar)
         }
     }
 }
