@@ -30,8 +30,11 @@ class DeltakerHistorikkService(
         val endringer = deltakerEndringRepository.getForDeltaker(id).map { DeltakerHistorikk.Endring(it) }
         val vedtak = vedtakRepository.getForDeltaker(id).map { DeltakerHistorikk.Vedtak(it) }
         val forslag = forslagRepository.getForDeltaker(id).filter { it.skalInkluderesIHistorikk() }.map { DeltakerHistorikk.Forslag(it) }
-        val vurderinger = vurderingService.getForDeltaker(id)
+
+        val vurderinger = vurderingService
+            .getForDeltaker(id)
             .map { DeltakerHistorikk.VurderingFraArrangor(it.toVurderingFraArrangorData()) }
+
         val endringerFraArrangor = endringFraArrangorRepository
             .getForDeltaker(id)
             .map { DeltakerHistorikk.EndringFraArrangor(it) }

@@ -24,7 +24,8 @@ fun Routing.registerVeilederApi(
             val request = call.receive<HentDeltakelserRequest>()
             tilgangskontrollService.verifiserLesetilgang(call.getNavAnsattAzureId(), request.norskIdent)
 
-            val deltakelser = deltakerService.getDeltakelserForPerson(request.norskIdent)
+            val deltakelser = deltakerService
+                .getDeltakelserForPerson(request.norskIdent)
                 .filter {
                     unleashToggle.erKometMasterForTiltakstype(it.deltakerliste.tiltakstype.arenaKode) ||
                         (unleashToggle.skalLeseArenaDeltakereForTiltakstype(it.deltakerliste.tiltakstype.arenaKode))

@@ -10,9 +10,7 @@ class ArrangorService(
         return repository.get(orgnr) ?: return opprettArrangor(orgnr)
     }
 
-    fun hentArrangor(id: UUID): Arrangor? {
-        return repository.get(id)
-    }
+    fun hentArrangor(id: UUID): Arrangor? = repository.get(id)
 
     private suspend fun opprettArrangor(orgnr: String): Arrangor {
         val arrangor = amtArrangorClient.hentArrangor(orgnr)

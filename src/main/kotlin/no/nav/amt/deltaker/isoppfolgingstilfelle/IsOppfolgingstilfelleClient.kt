@@ -29,7 +29,9 @@ class IsOppfolgingstilfelleClient(
         if (oppfolgingstilfeller.isEmpty()) {
             return false
         }
-        return oppfolgingstilfeller.filter { it.gyldigForDato(LocalDate.now()) }
+
+        return oppfolgingstilfeller
+            .filter { it.gyldigForDato(LocalDate.now()) }
             .firstOrNull { it.arbeidstakerAtTilfelleEnd } != null
     }
 
@@ -60,7 +62,5 @@ data class OppfolgingstilfelleDTO(
     val start: LocalDate,
     val end: LocalDate,
 ) {
-    fun gyldigForDato(dato: LocalDate): Boolean {
-        return dato in start..end
-    }
+    fun gyldigForDato(dato: LocalDate): Boolean = dato in start..end
 }

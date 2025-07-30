@@ -26,7 +26,7 @@ class LeaderElection(
         try {
             val leader = httpClient.get(getHttpPath(electorPath)).body<Leader>()
             return leader.name == hostname
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             val message = "Kall mot elector path feiler"
             log.error(message)
             throw RuntimeException(message)
@@ -38,5 +38,7 @@ class LeaderElection(
         else -> "http://$url"
     }
 
-    private data class Leader(val name: String)
+    private data class Leader(
+        val name: String,
+    )
 }

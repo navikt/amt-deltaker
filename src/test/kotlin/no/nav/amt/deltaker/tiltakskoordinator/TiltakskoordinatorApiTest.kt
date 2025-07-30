@@ -134,19 +134,17 @@ fun Deltaker.toDeltakerOppdateringResult() = DeltakerOppdateringResult(
 fun Deltaker.toDeltakerResponse(
     historikk: List<DeltakerHistorikk>,
     feilkode: DeltakerOppdateringFeilkode? = null,
-): DeltakerOppdateringResponse {
-    return DeltakerOppdateringResponse(
-        id = id,
-        startdato = startdato,
-        sluttdato = sluttdato,
-        dagerPerUke = dagerPerUke,
-        deltakelsesprosent = deltakelsesprosent,
-        bakgrunnsinformasjon = bakgrunnsinformasjon,
-        deltakelsesinnhold = deltakelsesinnhold,
-        status = status,
-        historikk = historikk,
-        sistEndret = sistEndret,
-        erManueltDeltMedArrangor = erManueltDeltMedArrangor,
-        feilkode = feilkode,
-    )
-}
+): DeltakerOppdateringResponse = DeltakerOppdateringResponse(
+    id = id,
+    startdato = startdato,
+    sluttdato = sluttdato,
+    dagerPerUke = dagerPerUke,
+    deltakelsesprosent = deltakelsesprosent,
+    bakgrunnsinformasjon = bakgrunnsinformasjon,
+    deltakelsesinnhold = deltakelsesinnhold,
+    status = status,
+    historikk = historikk,
+    sistEndret = sistEndret,
+    erManueltDeltMedArrangor = erManueltDeltMedArrangor,
+    feilkode = feilkode,
+)
