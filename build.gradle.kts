@@ -5,7 +5,7 @@ plugins {
     val kotlinVersion = "2.2.0"
 
     kotlin("jvm") version kotlinVersion
-    id("io.ktor.plugin") version "3.2.2"
+    id("io.ktor.plugin") version "3.2.3"
     id("org.jetbrains.kotlin.plugin.serialization") version kotlinVersion
     id("org.jlleitschuh.gradle.ktlint") version "13.0.0"
     id("com.gradleup.shadow") version "8.3.8"
@@ -16,7 +16,7 @@ repositories {
     maven { setUrl("https://github-package-registry-mirror.gc.nav.no/cached/maven-release") }
 }
 
-val ktorVersion = "3.2.2"
+val ktorVersion = "3.2.3"
 val logbackVersion = "1.5.18"
 val prometeusVersion = "1.15.2"
 val ktlintVersion = "1.6.0"
