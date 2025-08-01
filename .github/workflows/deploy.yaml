@@ -13,6 +13,7 @@ jobs:
       contents: "write"
       id-token: "write"
       security-events: "write"
+      packages: "write"
     name: Test, build and push
     runs-on: ubuntu-latest
     steps:
@@ -37,6 +38,13 @@ jobs:
           tag: ${{ github.sha }}
           identity_provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}
           project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
+      - name: Push image to ghcr.io
+        run: |
+          # Log in to the GitHub Container Registry
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          # Tag the image, e.g. ghcr.io/owner/repo:latest
+          docker buildx imagetools create -t ghcr.io/${{ github.repository }}:latest ${{ steps.docker-build-push.outputs.image }}
+
     outputs:
       image: ${{ steps.docker-build-push.outputs.image }}
       telemetry: ${{ steps.docker-build-push.outputs.telemetry }}
