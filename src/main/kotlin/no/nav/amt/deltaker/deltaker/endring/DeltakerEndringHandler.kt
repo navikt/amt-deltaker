@@ -19,6 +19,7 @@ class DeltakerEndringHandler(
 ) {
     fun sjekkUtfall(): DeltakerEndringUtfall = when (endring) {
         is DeltakerEndring.Endring.AvsluttDeltakelse -> avsluttDeltakelse(endring)
+        is DeltakerEndring.Endring.EndreAvslutning -> endreAvslutning(endring)
         is DeltakerEndring.Endring.AvbrytDeltakelse -> avbrytDeltakelse(endring)
         is DeltakerEndring.Endring.EndreBakgrunnsinformasjon -> endreBakgrunnsinformasjon(endring)
         is DeltakerEndring.Endring.EndreDeltakelsesmengde -> endreDeltakelsesmengde(endring)
@@ -171,6 +172,18 @@ class DeltakerEndringHandler(
         }
     }
 
+    private fun endreAvslutning(endring: DeltakerEndring.Endring.EndreAvslutning) = endreDeltaker(
+        (deltaker.status.type == DeltakerStatus.Type.FULLFORT && !endring.harFullfort) ||
+            (deltaker.status.type == DeltakerStatus.Type.AVBRUTT && endring.harFullfort) ||
+            deltaker.status.aarsak != endring.aarsak?.toDeltakerStatusAarsak(),
+    ) {
+        DeltakerEndringUtfall.VellykketEndring(
+            deltaker.copy(
+                status = endring.getEndreAvslutningStatus(),
+            ),
+        )
+    }
+
     private fun avbrytDeltakelse(endring: DeltakerEndring.Endring.AvbrytDeltakelse) = endreDeltaker(
         deltaker.status.type != DeltakerStatus.Type.AVBRUTT ||
             endring.sluttdato != deltaker.sluttdato ||
@@ -219,6 +232,19 @@ class DeltakerEndringHandler(
             type = DeltakerStatus.Type.AVBRUTT,
             aarsak = aarsak.toDeltakerStatusAarsak(),
             gyldigFra = gyldigFra,
+        )
+    }
+
+    private fun DeltakerEndring.Endring.EndreAvslutning.getEndreAvslutningStatus(): DeltakerStatus {
+        val status = if (harFullfort) {
+            DeltakerStatus.Type.FULLFORT
+        } else {
+            DeltakerStatus.Type.AVBRUTT
+        }
+        return nyDeltakerStatus(
+            type = status,
+            aarsak = aarsak?.toDeltakerStatusAarsak(),
+            gyldigFra = LocalDateTime.now(),
         )
     }
 

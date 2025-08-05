@@ -6,6 +6,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.api.model.AvsluttDeltakelseRequest
+import no.nav.amt.deltaker.deltaker.api.model.EndreAvslutningRequest
 import no.nav.amt.deltaker.deltaker.api.model.ReaktiverDeltakelseRequest
 import no.nav.amt.deltaker.deltaker.api.model.SluttarsakRequest
 import no.nav.amt.deltaker.deltaker.api.model.SluttdatoRequest
@@ -466,6 +467,96 @@ class DeltakerEndringHandlerTest {
         deltakerResult.sluttdato shouldBe endringsrequest.sluttdato
 
         nesteStatus shouldBe null
+    }
+
+    @Test
+    fun `sjekkUtfall - endre avslutning til fullfort`(): Unit = runBlocking {
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.AVBRUTT),
+            sluttdato = LocalDate.now().minusDays(3),
+        )
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+        val forslag = TestData.lagForslag(
+            deltakerId = deltaker.id,
+            endring = Forslag.EndreAvslutning(EndringAarsak.FattJobb, true, true),
+        )
+        val endringsrequest = EndreAvslutningRequest(
+            endretAv = endretAv.navIdent,
+            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
+            begrunnelse = "begrunnelse",
+            harFullfort = true,
+            forslagId = forslag.id,
+        )
+
+        val deltakerEndringHandler =
+            DeltakerEndringHandler(deltaker, endringsrequest.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
+        val resultat = deltakerEndringHandler.sjekkUtfall()
+
+        resultat.erVellykket shouldBe true
+        val deltakerResult = resultat.getOrThrow()
+        deltakerResult.status.type shouldBe DeltakerStatus.Type.FULLFORT
+        deltakerResult.status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
+    }
+
+    @Test
+    fun `sjekkUtfall - endre avslutning til avbrutt`(): Unit = runBlocking {
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.FULLFORT),
+            sluttdato = LocalDate.now().minusDays(3),
+        )
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+        val forslag = TestData.lagForslag(
+            deltakerId = deltaker.id,
+            endring = Forslag.EndreAvslutning(EndringAarsak.FattJobb, null, false),
+        )
+        val endringsrequest = EndreAvslutningRequest(
+            endretAv = endretAv.navIdent,
+            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
+            begrunnelse = "begrunnelse",
+            harFullfort = false,
+            forslagId = forslag.id,
+        )
+
+        val deltakerEndringHandler =
+            DeltakerEndringHandler(deltaker, endringsrequest.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
+        val resultat = deltakerEndringHandler.sjekkUtfall()
+
+        resultat.erVellykket shouldBe true
+        val deltakerResult = resultat.getOrThrow()
+        deltakerResult.status.type shouldBe DeltakerStatus.Type.AVBRUTT
+        deltakerResult.status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
+    }
+
+    @Test
+    fun `sjekkUtfall - endre avslutning ingen endring - gir erVellykket false`(): Unit = runBlocking {
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.FULLFORT),
+            sluttdato = LocalDate.now().minusDays(3),
+        )
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+        val forslag = TestData.lagForslag(
+            deltakerId = deltaker.id,
+            endring = Forslag.EndreAvslutning(EndringAarsak.FattJobb, null, true),
+        )
+        val endringsrequest = EndreAvslutningRequest(
+            endretAv = endretAv.navIdent,
+            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            aarsak = null,
+            begrunnelse = "begrunnelse",
+            harFullfort = true,
+            forslagId = forslag.id,
+        )
+
+        val deltakerEndringHandler =
+            DeltakerEndringHandler(deltaker, endringsrequest.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
+        val resultat = deltakerEndringHandler.sjekkUtfall()
+
+        resultat.erVellykket shouldBe false
     }
 
     @Test
