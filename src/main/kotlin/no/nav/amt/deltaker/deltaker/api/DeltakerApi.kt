@@ -14,6 +14,7 @@ import no.nav.amt.deltaker.deltaker.api.model.AvbrytDeltakelseRequest
 import no.nav.amt.deltaker.deltaker.api.model.AvsluttDeltakelseRequest
 import no.nav.amt.deltaker.deltaker.api.model.BakgrunnsinformasjonRequest
 import no.nav.amt.deltaker.deltaker.api.model.DeltakelsesmengdeRequest
+import no.nav.amt.deltaker.deltaker.api.model.EndreAvslutningRequest
 import no.nav.amt.deltaker.deltaker.api.model.EndringRequest
 import no.nav.amt.deltaker.deltaker.api.model.FjernOppstartsdatoRequest
 import no.nav.amt.deltaker.deltaker.api.model.ForlengDeltakelseRequest
@@ -80,6 +81,11 @@ fun Routing.registerDeltakerApi(deltakerService: DeltakerService, historikkServi
 
         post("/deltaker/{deltakerId}/avslutt") {
             val request = call.receive<AvsluttDeltakelseRequest>()
+            call.handleDeltakerEndring(deltakerService, request, historikkService)
+        }
+
+        post("/deltaker/{deltakerId}/endre-avslutning") {
+            val request = call.receive<EndreAvslutningRequest>()
             call.handleDeltakerEndring(deltakerService, request, historikkService)
         }
 

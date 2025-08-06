@@ -19,6 +19,7 @@ import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.api.model.AvsluttDeltakelseRequest
 import no.nav.amt.deltaker.deltaker.api.model.BakgrunnsinformasjonRequest
 import no.nav.amt.deltaker.deltaker.api.model.DeltakelsesmengdeRequest
+import no.nav.amt.deltaker.deltaker.api.model.EndreAvslutningRequest
 import no.nav.amt.deltaker.deltaker.api.model.FjernOppstartsdatoRequest
 import no.nav.amt.deltaker.deltaker.api.model.ForlengDeltakelseRequest
 import no.nav.amt.deltaker.deltaker.api.model.IkkeAktuellRequest
@@ -55,6 +56,7 @@ class DeltakerApiTest {
         setUpTestApplication()
         client.post("/deltaker/${UUID.randomUUID()}/bakgrunnsinformasjon") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
         client.post("/deltaker/${UUID.randomUUID()}/innhold") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
+        client.post("/deltaker/${UUID.randomUUID()}/endre-avslutning") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
         client.post("/deltaker/${UUID.randomUUID()}/deltakelsesmengde") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
         client.post("/deltaker/${UUID.randomUUID()}/startdato") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
         client.post("/deltaker/${UUID.randomUUID()}/sluttdato") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
@@ -347,6 +349,45 @@ class DeltakerApiTest {
                         endring.sluttdato,
                         endring.aarsak,
                         endring.begrunnelse,
+                    ),
+                )
+            }.apply {
+                status shouldBe HttpStatusCode.OK
+                bodyAsText() shouldBe objectMapper.writeValueAsString(deltaker.toDeltakerEndringResponse(historikk))
+            }
+    }
+
+    @Test
+    fun `post endre avslutning - har tilgang - returnerer 200`() = testApplication {
+        setUpTestApplication()
+
+        val endring = DeltakerEndring.Endring.EndreAvslutning(
+            null,
+            true,
+            "begrunnelse",
+        )
+
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(
+                type = DeltakerStatus.Type.FULLFORT,
+                aarsak = null,
+            ),
+        )
+        val historikk = listOf(DeltakerHistorikk.Endring(TestData.lagDeltakerEndring(endring = endring)))
+
+        coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
+        coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
+
+        client
+            .post("/deltaker/${UUID.randomUUID()}/endre-avslutning") {
+                postRequest(
+                    EndreAvslutningRequest(
+                        TestData.randomIdent(),
+                        TestData.randomEnhetsnummer(),
+                        null,
+                        endring.aarsak,
+                        endring.begrunnelse,
+                        endring.harFullfort,
                     ),
                 )
             }.apply {
