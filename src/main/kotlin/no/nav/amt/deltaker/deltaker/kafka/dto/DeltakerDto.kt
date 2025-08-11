@@ -6,13 +6,13 @@ import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.getStatustekst
 import no.nav.amt.deltaker.deltaker.model.getVisningsnavn
 import no.nav.amt.deltaker.deltaker.vurdering.Vurdering
-import no.nav.amt.deltaker.navansatt.NavAnsatt
-import no.nav.amt.deltaker.navenhet.NavEnhet
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
+import no.nav.amt.lib.models.person.NavAnsatt
+import no.nav.amt.lib.models.person.NavEnhet
 import java.time.LocalDate
 import java.util.UUID
 

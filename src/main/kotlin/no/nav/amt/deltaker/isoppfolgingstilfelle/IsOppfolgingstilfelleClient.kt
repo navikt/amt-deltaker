@@ -9,7 +9,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
-import no.nav.amt.deltaker.auth.AzureAdTokenClient
+import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.LocalDate

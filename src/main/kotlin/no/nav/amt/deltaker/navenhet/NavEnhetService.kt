@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.navenhet
 
-import no.nav.amt.deltaker.amtperson.AmtPersonServiceClient
+import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
+import no.nav.amt.lib.models.person.NavEnhet
 import org.slf4j.LoggerFactory
 import java.util.UUID
 

@@ -5,9 +5,7 @@ import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
 import no.nav.amt.deltaker.hendelse.model.toHendelseDeltaker
-import no.nav.amt.deltaker.navansatt.NavAnsatt
 import no.nav.amt.deltaker.navansatt.NavAnsattService
-import no.nav.amt.deltaker.navenhet.NavEnhet
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
@@ -18,6 +16,8 @@ import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.models.hendelse.InnholdDto
 import no.nav.amt.lib.models.hendelse.UtkastDto
 import no.nav.amt.lib.models.hendelse.toHendelseEndring
+import no.nav.amt.lib.models.person.NavAnsatt
+import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -91,7 +91,7 @@ class HendelseService(
             return navEnhetService.hentEllerOpprettNavEnhet(deltaker.vedtaksinformasjon.sistEndretAvEnhet)
         } else if (deltaker.navBruker.navEnhetId != null) {
             log.info("Deltaker mangler vedtaksinformasjon, bruker oppfølgingsenhet som avsender")
-            return navEnhetService.hentEllerOpprettNavEnhet(deltaker.navBruker.navEnhetId)
+            return navEnhetService.hentEllerOpprettNavEnhet(deltaker.navBruker.navEnhetId!!)
         } else {
             throw IllegalStateException(
                 "Kan ikke produsere hendelse for endring fra arrangør for deltaker uten vedtak og uten oppfølgingsenhet, id ${deltaker.id}",

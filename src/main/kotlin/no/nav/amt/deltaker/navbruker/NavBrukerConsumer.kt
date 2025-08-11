@@ -2,13 +2,13 @@ package no.nav.amt.deltaker.navbruker
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.amt.deltaker.Environment
-import no.nav.amt.deltaker.amtperson.dto.NavBrukerDto
 import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.deltaker.DeltakerService
-import no.nav.amt.deltaker.navbruker.model.NavBruker
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.utils.buildManagedKafkaConsumer
 import no.nav.amt.lib.kafka.Consumer
+import no.nav.amt.lib.models.person.NavBruker
+import no.nav.amt.lib.models.person.dto.NavBrukerDto
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
@@ -33,7 +33,7 @@ class NavBrukerConsumer(
         val navBrukerDto = objectMapper.readValue<NavBrukerDto>(value)
         if (harEndredePersonopplysninger(lagretNavBruker, navBrukerDto)) {
             navBrukerDto.navEnhet?.let { navEnhetService.hentEllerOpprettNavEnhet(it.enhetId) }
-            repository.upsert(navBrukerDto.tilNavBruker())
+            repository.upsert(navBrukerDto.toModel())
             val harEndretPersonident = lagretNavBruker?.personident != navBrukerDto.personident
 
             deltakerService.produserDeltakereForPerson(
@@ -50,6 +50,6 @@ class NavBrukerConsumer(
     private fun harEndredePersonopplysninger(navBruker: NavBruker?, navBrukerDto: NavBrukerDto): Boolean = if (navBruker == null) {
         true
     } else {
-        navBrukerDto.tilNavBruker() != navBruker
+        navBrukerDto.toModel() != navBruker
     }
 }
