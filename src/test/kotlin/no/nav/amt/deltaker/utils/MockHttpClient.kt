@@ -12,8 +12,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import io.ktor.serialization.jackson.jackson
 import io.ktor.utils.io.ByteReadChannel
-import no.nav.amt.deltaker.application.plugins.applicationConfig
-import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.arrangor.AmtArrangorClient
 import no.nav.amt.deltaker.arrangor.Arrangor
 import no.nav.amt.deltaker.arrangor.ArrangorDto
@@ -26,6 +24,8 @@ import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.models.person.dto.NavEnhetDto
+import no.nav.amt.lib.utils.applicationConfig
+import no.nav.amt.lib.utils.objectMapper
 import org.slf4j.LoggerFactory
 
 const val AMT_PERSON_URL = "http://amt-person-service"

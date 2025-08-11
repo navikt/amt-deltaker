@@ -6,8 +6,8 @@ import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
-import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.utils.generateJWT
+import no.nav.amt.lib.utils.objectMapper
 import java.util.UUID
 
 internal fun HttpRequestBuilder.postRequest(body: Any) {
