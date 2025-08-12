@@ -12,7 +12,6 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.Environment.Companion.HTTP_CLIENT_TIMEOUT_MS
-import no.nav.amt.deltaker.application.isReadyKey
 import no.nav.amt.deltaker.application.plugins.configureAuthentication
 import no.nav.amt.deltaker.application.plugins.configureMonitoring
 import no.nav.amt.deltaker.application.plugins.configureRouting
@@ -74,6 +73,7 @@ import no.nav.amt.lib.kafka.config.KafkaConfigImpl
 import no.nav.amt.lib.kafka.config.LocalKafkaConfig
 import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
 import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
+import no.nav.amt.lib.ktor.routing.isReadyKey
 import no.nav.amt.lib.utils.applicationConfig
 import no.nav.amt.lib.utils.database.Database
 import no.nav.poao_tilgang.client.PoaoTilgangCachedClient
@@ -175,8 +175,7 @@ fun Application.module(): suspend () -> Unit {
     val poaoTilgangCachedClient = PoaoTilgangCachedClient.createDefaultCacheClient(
         PoaoTilgangHttpClient(
             baseUrl = environment.poaoTilgangUrl,
-            // TODO
-            tokenProvider = { runBlocking { azureAdTokenClient.getMachineToMachineToken(environment.poaoTilgangScope).split(" ").last() } },
+            tokenProvider = { runBlocking { azureAdTokenClient.getMachineToMachineTokenWithoutType(environment.poaoTilgangScope) } },
         ),
     )
     val tilgangskontrollService = TilgangskontrollService(poaoTilgangCachedClient)

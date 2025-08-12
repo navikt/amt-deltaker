@@ -201,10 +201,11 @@ class DeltakerService(
         endretAvIdent: String,
     ): List<DeltakerOppdateringResult> {
         val endretAv = navAnsattService.hentEllerOpprettNavAnsatt(endretAvIdent)
+        val endretAvNavEnhetId: UUID? = endretAv.navEnhetId
 
-        require(endretAv.navEnhetId != null) { "Tiltakskoordinator ${endretAv.id} mangler en tilknyttet nav-enhet" }
+        require(endretAvNavEnhetId != null) { "Tiltakskoordinator ${endretAv.id} mangler en tilknyttet nav-enhet" }
 
-        val endretAvEnhet = navEnhetService.hentEllerOpprettNavEnhet(endretAv.navEnhetId!!)
+        val endretAvEnhet = navEnhetService.hentEllerOpprettNavEnhet(endretAvNavEnhetId)
         val deltakere = deltakerRepository.getMany(deltakerIder)
         val tiltakstyper = deltakere
             .distinctBy { it.deltakerliste.tiltakstype.tiltakskode }

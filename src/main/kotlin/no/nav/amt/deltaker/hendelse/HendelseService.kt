@@ -57,6 +57,7 @@ class HendelseService(
                     HendelseType.Avslag.Vurdering(it.vurderingstype, it.begrunnelse)
                 },
             )
+
             EndringFraTiltakskoordinator.DelMedArrangor -> return
         }
 
@@ -87,11 +88,13 @@ class HendelseService(
     }
 
     private suspend fun getNavEnhet(deltaker: Deltaker): NavEnhet {
+        val navEnhetId: UUID? = deltaker.navBruker.navEnhetId
+
         if (deltaker.vedtaksinformasjon != null) {
             return navEnhetService.hentEllerOpprettNavEnhet(deltaker.vedtaksinformasjon.sistEndretAvEnhet)
-        } else if (deltaker.navBruker.navEnhetId != null) {
+        } else if (navEnhetId != null) {
             log.info("Deltaker mangler vedtaksinformasjon, bruker oppfølgingsenhet som avsender")
-            return navEnhetService.hentEllerOpprettNavEnhet(deltaker.navBruker.navEnhetId!!)
+            return navEnhetService.hentEllerOpprettNavEnhet(navEnhetId)
         } else {
             throw IllegalStateException(
                 "Kan ikke produsere hendelse for endring fra arrangør for deltaker uten vedtak og uten oppfølgingsenhet, id ${deltaker.id}",

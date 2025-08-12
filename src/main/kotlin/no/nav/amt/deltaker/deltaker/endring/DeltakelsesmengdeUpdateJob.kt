@@ -4,9 +4,9 @@ import io.ktor.util.Attributes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import no.nav.amt.deltaker.application.isReadyKey
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.job.leaderelection.LeaderElection
+import no.nav.amt.lib.ktor.routing.isReadyKey
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

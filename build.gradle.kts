@@ -33,11 +33,10 @@ val caffeineVersion = "3.2.2"
 val mockkVersion = "1.14.5"
 val nimbusVersion = "10.4.1"
 val unleashVersion = "11.0.2"
-val amtLibVersion = "1.2025.08.11_20.36-7b7732c6cd0d"
+val amtLibVersion = "1.2025.08.12_09.57-61d1b79c30eb"
 
 dependencies {
     implementation("io.ktor:ktor-server-content-negotiation-jvm")
-    implementation("io.ktor:ktor-server-core-jvm")
     implementation("io.ktor:ktor-serialization-kotlinx-json-jvm")
     implementation("io.ktor:ktor-serialization-jackson-jvm")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
