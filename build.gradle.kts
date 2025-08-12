@@ -18,7 +18,7 @@ repositories {
 
 val ktorVersion = "3.2.3"
 val logbackVersion = "1.5.18"
-val prometeusVersion = "1.15.2"
+val prometeusVersion = "1.15.3"
 val ktlintVersion = "1.6.0"
 val jacksonVersion = "2.19.2"
 val logstashEncoderVersion = "8.1"
