@@ -14,7 +14,6 @@ import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.application.plugins.configureAuthentication
 import no.nav.amt.deltaker.application.plugins.configureRouting
 import no.nav.amt.deltaker.application.plugins.configureSerialization
-import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.deltaker.DeltakerOppdateringResult
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
@@ -24,6 +23,7 @@ import no.nav.amt.deltaker.utils.configureEnvForAuthentication
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.tiltakskoordinator.requests.DelMedArrangorRequest
+import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.UUID

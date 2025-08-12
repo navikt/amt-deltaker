@@ -2,10 +2,10 @@ package no.nav.amt.deltaker.navenhet
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.amt.deltaker.Environment
-import no.nav.amt.deltaker.amtperson.dto.NavEnhetDto
-import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.utils.buildManagedKafkaConsumer
 import no.nav.amt.lib.kafka.Consumer
+import no.nav.amt.lib.models.person.dto.NavEnhetDto
+import no.nav.amt.lib.utils.objectMapper
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
@@ -31,9 +31,3 @@ class NavEnhetConsumer(
 
     override suspend fun close() = consumer.close()
 }
-
-fun NavEnhetDto.toModel() = NavEnhet(
-    id = id,
-    enhetsnummer = enhetId,
-    navn = navn,
-)

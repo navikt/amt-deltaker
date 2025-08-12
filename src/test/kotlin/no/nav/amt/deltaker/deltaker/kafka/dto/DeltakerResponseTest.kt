@@ -3,8 +3,6 @@ package no.nav.amt.deltaker.deltaker.kafka.dto
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.tilVedtaksinformasjon
-import no.nav.amt.deltaker.navansatt.NavAnsatt
-import no.nav.amt.deltaker.navenhet.NavEnhet
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
@@ -13,6 +11,8 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
+import no.nav.amt.lib.models.person.NavAnsatt
+import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.testing.SingletonPostgres16Container
 import org.junit.jupiter.api.Test
 import java.time.LocalDate

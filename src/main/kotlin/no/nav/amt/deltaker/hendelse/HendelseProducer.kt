@@ -1,9 +1,9 @@
 package no.nav.amt.deltaker.hendelse
 
 import no.nav.amt.deltaker.Environment
-import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.lib.kafka.Producer
 import no.nav.amt.lib.models.hendelse.Hendelse
+import no.nav.amt.lib.utils.objectMapper
 
 class HendelseProducer(
     private val producer: Producer<String, String>,

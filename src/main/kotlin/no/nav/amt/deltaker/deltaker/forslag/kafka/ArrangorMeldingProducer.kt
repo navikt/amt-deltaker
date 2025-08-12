@@ -1,9 +1,9 @@
 package no.nav.amt.deltaker.deltaker.forslag.kafka
 
 import no.nav.amt.deltaker.Environment
-import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.lib.kafka.Producer
 import no.nav.amt.lib.models.arrangor.melding.Forslag
+import no.nav.amt.lib.utils.objectMapper
 import org.slf4j.LoggerFactory
 
 class ArrangorMeldingProducer(
