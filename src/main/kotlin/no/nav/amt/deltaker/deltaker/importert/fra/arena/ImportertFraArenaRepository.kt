@@ -3,11 +3,11 @@ package no.nav.amt.deltaker.deltaker.importert.fra.arena
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import kotliquery.queryOf
-import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.utils.prefixColumn
 import no.nav.amt.deltaker.utils.toPGObject
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.utils.database.Database
+import no.nav.amt.lib.utils.objectMapper
 import java.util.UUID
 
 class ImportertFraArenaRepository {

@@ -1,7 +1,5 @@
 package no.nav.amt.deltaker.utils.data
 
-import no.nav.amt.deltaker.amtperson.dto.NavBrukerDto
-import no.nav.amt.deltaker.amtperson.dto.NavEnhetDto
 import no.nav.amt.deltaker.arrangor.Arrangor
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerV2Dto
 import no.nav.amt.deltaker.deltaker.model.Deltaker
@@ -10,16 +8,6 @@ import no.nav.amt.deltaker.deltaker.model.Vedtaksinformasjon
 import no.nav.amt.deltaker.deltaker.vurdering.Vurdering
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlisteDto
-import no.nav.amt.deltaker.navansatt.NavAnsatt
-import no.nav.amt.deltaker.navbruker.model.Adresse
-import no.nav.amt.deltaker.navbruker.model.Adressebeskyttelse
-import no.nav.amt.deltaker.navbruker.model.Bostedsadresse
-import no.nav.amt.deltaker.navbruker.model.Kontaktadresse
-import no.nav.amt.deltaker.navbruker.model.Matrikkeladresse
-import no.nav.amt.deltaker.navbruker.model.NavBruker
-import no.nav.amt.deltaker.navbruker.model.Oppfolgingsperiode
-import no.nav.amt.deltaker.navbruker.model.Vegadresse
-import no.nav.amt.deltaker.navenhet.NavEnhet
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
@@ -35,6 +23,18 @@ import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.DeltakerRegistreringInnhold
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Innholdselement
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
+import no.nav.amt.lib.models.person.NavAnsatt
+import no.nav.amt.lib.models.person.NavBruker
+import no.nav.amt.lib.models.person.NavEnhet
+import no.nav.amt.lib.models.person.Oppfolgingsperiode
+import no.nav.amt.lib.models.person.address.Adresse
+import no.nav.amt.lib.models.person.address.Adressebeskyttelse
+import no.nav.amt.lib.models.person.address.Bostedsadresse
+import no.nav.amt.lib.models.person.address.Kontaktadresse
+import no.nav.amt.lib.models.person.address.Matrikkeladresse
+import no.nav.amt.lib.models.person.address.Vegadresse
+import no.nav.amt.lib.models.person.dto.NavBrukerDto
+import no.nav.amt.lib.models.person.dto.NavEnhetDto
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import java.time.LocalDate
 import java.time.LocalDateTime

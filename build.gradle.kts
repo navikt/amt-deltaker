@@ -24,7 +24,6 @@ val jacksonVersion = "2.19.2"
 val logstashEncoderVersion = "8.1"
 val commonVersion = "3.2025.06.23_14.50-3af3985d8555"
 val poaoTilgangVersion = "2025.07.04_08.56-814fa50f6740"
-val kafkaClientsVersion = "3.7.1"
 val kotestVersion = "5.9.1"
 val flywayVersion = "11.11.0"
 val hikariVersion = "7.0.1"
@@ -34,11 +33,10 @@ val caffeineVersion = "3.2.2"
 val mockkVersion = "1.14.5"
 val nimbusVersion = "10.4.1"
 val unleashVersion = "11.0.2"
-val amtLibVersion = "1.2025.08.11_07.06-7e39f538c3dd"
+val amtLibVersion = "1.2025.08.12_09.57-61d1b79c30eb"
 
 dependencies {
     implementation("io.ktor:ktor-server-content-negotiation-jvm")
-    implementation("io.ktor:ktor-server-core-jvm")
     implementation("io.ktor:ktor-serialization-kotlinx-json-jvm")
     implementation("io.ktor:ktor-serialization-jackson-jvm")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
@@ -64,7 +62,7 @@ dependencies {
 
     implementation("no.nav.amt.lib:kafka:$amtLibVersion")
     implementation("no.nav.amt.lib:utils:$amtLibVersion")
-    implementation("no.nav.amt.lib:models:$amtLibVersion")
+    implementation("no.nav.amt.lib:ktor:$amtLibVersion")
 
     implementation("no.nav.poao-tilgang:client:$poaoTilgangVersion")
 

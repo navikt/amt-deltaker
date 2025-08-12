@@ -3,9 +3,9 @@ package no.nav.amt.deltaker.deltaker
 import kotliquery.TransactionalSession
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.model.Deltaker
-import no.nav.amt.deltaker.navansatt.NavAnsatt
-import no.nav.amt.deltaker.navenhet.NavEnhet
 import no.nav.amt.lib.models.deltaker.Vedtak
+import no.nav.amt.lib.models.person.NavAnsatt
+import no.nav.amt.lib.models.person.NavEnhet
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.util.UUID

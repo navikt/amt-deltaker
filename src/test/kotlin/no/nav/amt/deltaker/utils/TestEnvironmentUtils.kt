@@ -1,8 +1,8 @@
 package no.nav.amt.deltaker.utils
 
 import no.nav.amt.deltaker.Environment
-import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.auth.PreAuthorizedApp
+import no.nav.amt.lib.utils.objectMapper
 import java.nio.file.Paths
 
 fun configureEnvForAuthentication() {

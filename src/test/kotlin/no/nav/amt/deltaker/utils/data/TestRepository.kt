@@ -5,9 +5,6 @@ import no.nav.amt.deltaker.arrangor.Arrangor
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.vurdering.Vurdering
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
-import no.nav.amt.deltaker.navansatt.NavAnsatt
-import no.nav.amt.deltaker.navbruker.model.NavBruker
-import no.nav.amt.deltaker.navenhet.NavEnhet
 import no.nav.amt.deltaker.utils.data.TestData.lagNavAnsatt
 import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
 import no.nav.amt.deltaker.utils.toPGObject
@@ -19,6 +16,9 @@ import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltaker.InnsokPaaFellesOppstart
 import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
+import no.nav.amt.lib.models.person.NavAnsatt
+import no.nav.amt.lib.models.person.NavBruker
+import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.utils.database.Database
 import org.slf4j.LoggerFactory
@@ -124,7 +124,7 @@ object TestRepository {
             val navEnhet = lagNavEnhet(id = enhetId)
             try {
                 insert(navEnhet)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 log.warn("Nav-enhet med id ${bruker.navEnhetId} er allerede opprettet")
             }
         }
@@ -133,7 +133,7 @@ object TestRepository {
             val navAnsatt = lagNavAnsatt(id = veilederId)
             try {
                 insert(navAnsatt)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 log.warn("Nav-ansatt med id ${bruker.navVeilederId} er allerede opprettet")
             }
         }
@@ -202,7 +202,7 @@ object TestRepository {
                     ),
                 ),
             )
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             log.warn("Tiltakstype ${tiltakstype.navn} er allerede opprettet")
         }
     }
@@ -210,13 +210,13 @@ object TestRepository {
     fun insert(deltakerliste: Deltakerliste) {
         try {
             insert(deltakerliste.arrangor)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             log.warn("Arrangor med id ${deltakerliste.arrangor.id} er allerede opprettet")
         }
 
         try {
             insert(deltakerliste.tiltakstype)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             log.warn("Tiltakstype med id ${deltakerliste.tiltakstype.id} er allerede opprettet")
         }
 
@@ -238,7 +238,7 @@ object TestRepository {
                         "tiltakstype_id" to deltakerliste.tiltakstype.id,
                         "start_dato" to deltakerliste.startDato,
                         "slutt_dato" to deltakerliste.sluttDato,
-                        "oppstart" to deltakerliste.oppstart?.name,
+                        "oppstart" to deltakerliste.oppstart.name,
                         "apent_for_pamelding" to deltakerliste.apentForPamelding,
                     ),
                 ),
@@ -287,13 +287,13 @@ object TestRepository {
     fun insert(deltaker: Deltaker, vedtak: Vedtak? = null) = Database.query {
         try {
             insert(deltaker.navBruker)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             log.warn("Nav-bruker med id ${deltaker.navBruker.personId} er allerede opprettet")
         }
 
         try {
             insert(deltaker.deltakerliste)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             log.warn("Deltakerliste med id ${deltaker.deltakerliste.id} er allerede opprettet")
         }
 
@@ -333,7 +333,7 @@ object TestRepository {
         if (vedtak != null) {
             try {
                 insert(vedtak)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 log.warn("Vedtak med id ${vedtak.id} er allerede opprettet")
             }
         }
