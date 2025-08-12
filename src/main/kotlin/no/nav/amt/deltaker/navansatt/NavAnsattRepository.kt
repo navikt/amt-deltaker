@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.navansatt
 
 import kotliquery.Row
 import kotliquery.queryOf
+import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.utils.database.Database
 import java.time.LocalDateTime
 import java.util.UUID

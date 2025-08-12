@@ -3,7 +3,6 @@ package no.nav.amt.deltaker.kafka.utils
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.Environment
-import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerV1Dto
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerV2Dto
 import no.nav.amt.lib.kafka.utils.stringStringConsumer
@@ -14,6 +13,7 @@ import no.nav.amt.lib.models.hendelse.Hendelse
 import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.testing.AsyncUtils
 import no.nav.amt.lib.testing.shouldBeCloseTo
+import no.nav.amt.lib.utils.objectMapper
 import java.util.UUID
 import kotlin.reflect.KClass
 

@@ -2,7 +2,6 @@ package no.nav.amt.deltaker.deltakerliste.kafka
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.amt.deltaker.Environment
-import no.nav.amt.deltaker.application.plugins.objectMapper
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
@@ -11,6 +10,7 @@ import no.nav.amt.deltaker.deltakerliste.tiltakstype.kafka.arenaKodeTilTiltaksty
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.kafka.erStottet
 import no.nav.amt.deltaker.utils.buildManagedKafkaConsumer
 import no.nav.amt.lib.kafka.Consumer
+import no.nav.amt.lib.utils.objectMapper
 import java.util.UUID
 
 class DeltakerlisteConsumer(

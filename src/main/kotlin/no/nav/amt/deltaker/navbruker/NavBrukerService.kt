@@ -1,9 +1,9 @@
 package no.nav.amt.deltaker.navbruker
 
-import no.nav.amt.deltaker.amtperson.AmtPersonServiceClient
 import no.nav.amt.deltaker.navansatt.NavAnsattService
-import no.nav.amt.deltaker.navbruker.model.NavBruker
 import no.nav.amt.deltaker.navenhet.NavEnhetService
+import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
+import no.nav.amt.lib.models.person.NavBruker
 import org.slf4j.LoggerFactory
 
 class NavBrukerService(

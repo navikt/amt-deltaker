@@ -1,14 +1,14 @@
 package no.nav.amt.deltaker.deltaker.kafka.dto
 
 import no.nav.amt.deltaker.deltaker.model.Kilde
-import no.nav.amt.deltaker.navansatt.NavAnsatt
-import no.nav.amt.deltaker.navbruker.model.Adresse
-import no.nav.amt.deltaker.navbruker.model.Adressebeskyttelse
-import no.nav.amt.deltaker.navbruker.model.Oppfolgingsperiode
 import no.nav.amt.lib.models.arrangor.melding.Vurdering
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.person.NavAnsatt
+import no.nav.amt.lib.models.person.Oppfolgingsperiode
+import no.nav.amt.lib.models.person.address.Adresse
+import no.nav.amt.lib.models.person.address.Adressebeskyttelse
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
