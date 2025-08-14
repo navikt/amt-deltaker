@@ -103,18 +103,19 @@ class TiltakskoordinatorApiTest {
             configureSerialization()
             configureAuthentication(Environment())
             configureRouting(
-                mockk(),
-                deltakerService,
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                unleashToggle,
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
+                opprettKladdRequestValidator = mockk(),
+                pameldingService = mockk(),
+                deltakerService = deltakerService,
+                deltakerHistorikkService = mockk(),
+                tilgangskontrollService = mockk(),
+                deltakelserResponseMapper = mockk(),
+                deltakerProducerService = mockk(),
+                vedtakService = mockk(),
+                unleashToggle = unleashToggle,
+                innsokPaaFellesOppstartService = mockk(),
+                vurderingService = mockk(),
+                hendelseService = mockk(),
+                endringFraTiltakskoordinatorService = mockk(),
             )
         }
     }

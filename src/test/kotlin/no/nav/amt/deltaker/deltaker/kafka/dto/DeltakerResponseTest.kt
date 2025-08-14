@@ -2,7 +2,7 @@ package no.nav.amt.deltaker.deltaker.kafka.dto
 
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.deltaker.model.Deltaker
-import no.nav.amt.deltaker.deltaker.tilVedtaksinformasjon
+import no.nav.amt.deltaker.deltaker.tilVedtaksInformasjon
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
@@ -63,7 +63,7 @@ data class DeltakerContext(
         status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
         startdato = LocalDate.now().minusMonths(1),
         sluttdato = LocalDate.now().plusMonths(3),
-        deltakerliste = TestData.lagDeltakerliste(
+        deltakerliste = TestData.lagDeltakerListe(
             tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
         ),
         navBruker = TestData.lagNavBruker(navVeilederId = veileder.id, navEnhetId = navEnhet.id),
@@ -79,6 +79,7 @@ data class DeltakerContext(
     val vurderinger = listOf(TestData.lagVurdering())
 
     init {
+        @Suppress("UnusedExpression")
         SingletonPostgres16Container
         TestRepository.insert(veileder)
         TestRepository.insert(navEnhet)
@@ -111,7 +112,7 @@ data class DeltakerContext(
 
     fun withTiltakstype(tiltakskode: Tiltakstype.Tiltakskode) {
         deltaker = deltaker.copy(
-            deltakerliste = TestData.lagDeltakerliste(tiltakstype = TestData.lagTiltakstype(tiltakskode = tiltakskode)),
+            deltakerliste = TestData.lagDeltakerListe(tiltakstype = TestData.lagTiltakstype(tiltakskode = tiltakskode)),
         )
     }
 
@@ -119,6 +120,6 @@ data class DeltakerContext(
         vedtak = vedtak.copy(fattet = if (fattet) deltaker.sistEndret.minusMonths(3) else null)
         TestRepository.insert(deltaker)
         TestRepository.insert(vedtak)
-        deltaker = deltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksinformasjon())
+        deltaker = deltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksInformasjon())
     }
 }

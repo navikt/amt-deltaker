@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.deltaker.api.model
 
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
+import no.nav.amt.deltaker.deltaker.api.model.response.DeltakelserResponse
 import no.nav.amt.deltaker.deltaker.getInnsoktDato
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.getStatustekst
@@ -16,34 +17,6 @@ class DeltakelserResponseMapper(
     private val deltakerHistorikkService: DeltakerHistorikkService,
     private val arrangorService: ArrangorService,
 ) {
-    private val skalViseSistEndretDatoStatuser = listOf(
-        DeltakerStatus.Type.KLADD,
-        DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
-        DeltakerStatus.Type.AVBRUTT_UTKAST,
-    )
-    private val skalViseInnsoktDatoStatuser = listOf(
-        DeltakerStatus.Type.VENTER_PA_OPPSTART,
-        DeltakerStatus.Type.DELTAR,
-        DeltakerStatus.Type.HAR_SLUTTET,
-        DeltakerStatus.Type.IKKE_AKTUELL,
-        DeltakerStatus.Type.FEILREGISTRERT,
-    )
-    private val skalVisePeriodeStatuser = listOf(
-        DeltakerStatus.Type.VENTER_PA_OPPSTART,
-        DeltakerStatus.Type.DELTAR,
-        DeltakerStatus.Type.SOKT_INN,
-        DeltakerStatus.Type.VURDERES,
-        DeltakerStatus.Type.VENTELISTE,
-        DeltakerStatus.Type.HAR_SLUTTET,
-        DeltakerStatus.Type.FULLFORT,
-        DeltakerStatus.Type.AVBRUTT,
-    )
-    private val skalViseArsakStatuser = listOf(
-        DeltakerStatus.Type.HAR_SLUTTET,
-        DeltakerStatus.Type.IKKE_AKTUELL,
-        DeltakerStatus.Type.AVBRUTT,
-    )
-
     fun toDeltakelserResponse(deltakelser: List<Deltaker>): DeltakelserResponse {
         val aktive = deltakelser
             .filter { it.status.type in AKTIVE_STATUSER }
@@ -135,4 +108,37 @@ class DeltakelserResponseMapper(
         navn = visningsnavn,
         tiltakskode = arenaKode,
     )
+
+    companion object {
+        private val skalViseSistEndretDatoStatuser = listOf(
+            DeltakerStatus.Type.KLADD,
+            DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
+            DeltakerStatus.Type.AVBRUTT_UTKAST,
+        )
+
+        private val skalViseInnsoktDatoStatuser = listOf(
+            DeltakerStatus.Type.VENTER_PA_OPPSTART,
+            DeltakerStatus.Type.DELTAR,
+            DeltakerStatus.Type.HAR_SLUTTET,
+            DeltakerStatus.Type.IKKE_AKTUELL,
+            DeltakerStatus.Type.FEILREGISTRERT,
+        )
+
+        private val skalVisePeriodeStatuser = listOf(
+            DeltakerStatus.Type.VENTER_PA_OPPSTART,
+            DeltakerStatus.Type.DELTAR,
+            DeltakerStatus.Type.SOKT_INN,
+            DeltakerStatus.Type.VURDERES,
+            DeltakerStatus.Type.VENTELISTE,
+            DeltakerStatus.Type.HAR_SLUTTET,
+            DeltakerStatus.Type.FULLFORT,
+            DeltakerStatus.Type.AVBRUTT,
+        )
+
+        private val skalViseArsakStatuser = listOf(
+            DeltakerStatus.Type.HAR_SLUTTET,
+            DeltakerStatus.Type.IKKE_AKTUELL,
+            DeltakerStatus.Type.AVBRUTT,
+        )
+    }
 }

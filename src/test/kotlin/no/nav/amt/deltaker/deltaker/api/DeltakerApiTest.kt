@@ -15,18 +15,18 @@ import no.nav.amt.deltaker.application.plugins.configureRouting
 import no.nav.amt.deltaker.application.plugins.configureSerialization
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerService
-import no.nav.amt.deltaker.deltaker.api.model.AvsluttDeltakelseRequest
-import no.nav.amt.deltaker.deltaker.api.model.BakgrunnsinformasjonRequest
-import no.nav.amt.deltaker.deltaker.api.model.DeltakelsesmengdeRequest
-import no.nav.amt.deltaker.deltaker.api.model.EndreAvslutningRequest
-import no.nav.amt.deltaker.deltaker.api.model.FjernOppstartsdatoRequest
-import no.nav.amt.deltaker.deltaker.api.model.ForlengDeltakelseRequest
-import no.nav.amt.deltaker.deltaker.api.model.IkkeAktuellRequest
-import no.nav.amt.deltaker.deltaker.api.model.InnholdRequest
-import no.nav.amt.deltaker.deltaker.api.model.ReaktiverDeltakelseRequest
-import no.nav.amt.deltaker.deltaker.api.model.SluttarsakRequest
-import no.nav.amt.deltaker.deltaker.api.model.SluttdatoRequest
-import no.nav.amt.deltaker.deltaker.api.model.StartdatoRequest
+import no.nav.amt.deltaker.deltaker.api.model.request.AvsluttDeltakelseRequest
+import no.nav.amt.deltaker.deltaker.api.model.request.BakgrunnsinformasjonRequest
+import no.nav.amt.deltaker.deltaker.api.model.request.DeltakelsesmengdeRequest
+import no.nav.amt.deltaker.deltaker.api.model.request.EndreAvslutningRequest
+import no.nav.amt.deltaker.deltaker.api.model.request.FjernOppstartsdatoRequest
+import no.nav.amt.deltaker.deltaker.api.model.request.ForlengDeltakelseRequest
+import no.nav.amt.deltaker.deltaker.api.model.request.IkkeAktuellRequest
+import no.nav.amt.deltaker.deltaker.api.model.request.InnholdRequest
+import no.nav.amt.deltaker.deltaker.api.model.request.ReaktiverDeltakelseRequest
+import no.nav.amt.deltaker.deltaker.api.model.request.SluttarsakRequest
+import no.nav.amt.deltaker.deltaker.api.model.request.SluttdatoRequest
+import no.nav.amt.deltaker.deltaker.api.model.request.StartdatoRequest
 import no.nav.amt.deltaker.deltaker.api.model.toDeltakerEndringResponse
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
 import no.nav.amt.deltaker.utils.configureEnvForAuthentication
@@ -468,18 +468,19 @@ class DeltakerApiTest {
             configureSerialization()
             configureAuthentication(Environment())
             configureRouting(
-                mockk(),
-                deltakerService,
-                deltakerHistorikkService,
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
+                opprettKladdRequestValidator = mockk(),
+                pameldingService = mockk(),
+                deltakerService = deltakerService,
+                deltakerHistorikkService = deltakerHistorikkService,
+                tilgangskontrollService = mockk(),
+                deltakelserResponseMapper = mockk(),
+                deltakerProducerService = mockk(),
+                vedtakService = mockk(),
+                unleashToggle = mockk(),
+                innsokPaaFellesOppstartService = mockk(),
+                vurderingService = mockk(),
+                hendelseService = mockk(),
+                endringFraTiltakskoordinatorService = mockk(),
             )
         }
     }

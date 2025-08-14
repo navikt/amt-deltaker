@@ -23,6 +23,7 @@ class DeltakerRepositoryTest {
         @JvmStatic
         @BeforeAll
         fun setup() {
+            @Suppress("UnusedExpression")
             SingletonPostgres16Container
             repository = DeltakerRepository()
         }
@@ -321,7 +322,7 @@ class DeltakerRepositoryTest {
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
             startdato = LocalDate.now().minusDays(10),
             sluttdato = LocalDate.now().plusDays(2),
-            deltakerliste = TestData.lagDeltakerliste(status = Deltakerliste.Status.AVSLUTTET),
+            deltakerliste = TestData.lagDeltakerListe(status = Deltakerliste.Status.AVSLUTTET),
         )
         TestRepository.insert(deltaker)
 
@@ -337,7 +338,7 @@ class DeltakerRepositoryTest {
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.HAR_SLUTTET),
             startdato = LocalDate.now().minusDays(10),
             sluttdato = LocalDate.now(),
-            deltakerliste = TestData.lagDeltakerliste(status = Deltakerliste.Status.AVSLUTTET),
+            deltakerliste = TestData.lagDeltakerListe(status = Deltakerliste.Status.AVSLUTTET),
         )
         TestRepository.insert(deltaker)
 

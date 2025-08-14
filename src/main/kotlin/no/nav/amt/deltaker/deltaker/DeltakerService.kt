@@ -1,8 +1,8 @@
 package no.nav.amt.deltaker.deltaker
 
 import kotliquery.TransactionalSession
-import no.nav.amt.deltaker.deltaker.api.model.EndringRequest
-import no.nav.amt.deltaker.deltaker.api.model.toDeltakerEndringEndring
+import no.nav.amt.deltaker.deltaker.api.model.request.EndringRequest
+import no.nav.amt.deltaker.deltaker.api.model.request.toDeltakerEndringEndring
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringHandler
 import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringService
@@ -310,7 +310,7 @@ class DeltakerService(
 
         hendelseService.hendelseFraSystem(deltaker) { HendelseType.AvbrytUtkast(it) }
 
-        deltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksinformasjon())
+        deltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksInformasjon())
     } else {
         deltaker
     }

@@ -21,7 +21,7 @@ import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.deltaker.deltaker.sammenlignHistorikk
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
-import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
+import no.nav.amt.deltaker.deltakerliste.DeltakerListeRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navbruker.NavBrukerRepository
 import no.nav.amt.deltaker.navbruker.NavBrukerService
@@ -29,7 +29,7 @@ import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.deltaker.utils.data.TestData
-import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerListe
 import no.nav.amt.deltaker.utils.data.TestData.lagNavBruker
 import no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype
 import no.nav.amt.deltaker.utils.data.TestData.toDeltakerV2
@@ -53,7 +53,7 @@ class DeltakerConsumerTest {
     companion object {
         lateinit var deltakerRepository: DeltakerRepository
         lateinit var importertFraArenaRepository: ImportertFraArenaRepository
-        lateinit var deltakerlisteRepository: DeltakerlisteRepository
+        lateinit var deltakerlisteRepository: DeltakerListeRepository
         lateinit var navBrukerService: NavBrukerService
         lateinit var navBrukerRepository: NavBrukerRepository
         lateinit var amtPersonServiceClient: AmtPersonServiceClient
@@ -72,10 +72,11 @@ class DeltakerConsumerTest {
         @JvmStatic
         @BeforeAll
         fun setup() {
+            @Suppress("UnusedExpression")
             SingletonPostgres16Container
             deltakerRepository = DeltakerRepository()
             importertFraArenaRepository = ImportertFraArenaRepository()
-            deltakerlisteRepository = DeltakerlisteRepository()
+            deltakerlisteRepository = DeltakerListeRepository()
             navBrukerRepository = NavBrukerRepository()
             amtPersonServiceClient = mockk()
             navEnhetService = mockk()
@@ -119,7 +120,7 @@ class DeltakerConsumerTest {
 
     @Test
     fun `consumeDeltaker - ny KOMET deltaker - lagrer ikke deltaker`(): Unit = runBlocking {
-        val deltakerliste = lagDeltakerliste(
+        val deltakerliste = lagDeltakerListe(
             tiltakstype = lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
         )
         TestRepository.insert(deltakerliste)
@@ -144,7 +145,7 @@ class DeltakerConsumerTest {
 
     @Test
     fun `consumeDeltaker - ny kurs ARENA deltaker - lagrer deltaker`(): Unit = runBlocking {
-        val deltakerliste = lagDeltakerliste(
+        val deltakerliste = lagDeltakerListe(
             tiltakstype = lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.JOBBKLUBB),
         )
 
@@ -224,7 +225,7 @@ class DeltakerConsumerTest {
 
     @Test
     fun `consumeDeltaker - oppdatert ARENA kurs deltaker - lagrer deltaker uten bakgrunnsinfo`(): Unit = runBlocking {
-        val deltakerliste = lagDeltakerliste(
+        val deltakerliste = lagDeltakerListe(
             tiltakstype = lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.JOBBKLUBB),
         )
         val statusOpprettet = LocalDateTime.now().minusWeeks(1)

@@ -8,8 +8,8 @@ import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerService
+import no.nav.amt.deltaker.deltakerliste.DeltakerListeRepository
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
-import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
@@ -23,15 +23,16 @@ import java.time.LocalDate
 
 class DeltakerlisteConsumerTest {
     companion object {
-        lateinit var deltakerlisteRepository: DeltakerlisteRepository
+        lateinit var deltakerlisteRepository: DeltakerListeRepository
         lateinit var tiltakstypeRepository: TiltakstypeRepository
         lateinit var deltakerService: DeltakerService
 
         @JvmStatic
         @BeforeAll
         fun setup() {
+            @Suppress("UnusedExpression")
             SingletonPostgres16Container
-            deltakerlisteRepository = DeltakerlisteRepository()
+            deltakerlisteRepository = DeltakerListeRepository()
             tiltakstypeRepository = TiltakstypeRepository()
             deltakerService = mockk<DeltakerService>(relaxed = true)
         }
@@ -48,7 +49,7 @@ class DeltakerlisteConsumerTest {
         val arrangor = TestData.lagArrangor()
         val tiltakstype = TestData.lagTiltakstype()
         TestRepository.insert(tiltakstype)
-        val deltakerliste = TestData.lagDeltakerliste(arrangor = arrangor, tiltakstype = tiltakstype)
+        val deltakerliste = TestData.lagDeltakerListe(arrangor = arrangor, tiltakstype = tiltakstype)
         val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient(arrangor))
         val consumer =
             DeltakerlisteConsumer(deltakerlisteRepository, tiltakstypeRepository, arrangorService, deltakerService)
@@ -68,7 +69,7 @@ class DeltakerlisteConsumerTest {
     @Test
     fun `consumeDeltakerliste - ny sluttdato - oppdaterer deltakerliste`() {
         val arrangor = TestData.lagArrangor()
-        val deltakerliste = TestData.lagDeltakerliste(arrangor = arrangor)
+        val deltakerliste = TestData.lagDeltakerListe(arrangor = arrangor)
         val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
         TestRepository.insert(deltakerliste)
 
@@ -92,7 +93,7 @@ class DeltakerlisteConsumerTest {
     @Test
     fun `consumeDeltakerliste - avbrutt - oppdaterer deltakerliste og avslutter deltakere`() {
         val arrangor = TestData.lagArrangor()
-        val deltakerliste = TestData.lagDeltakerliste(arrangor = arrangor)
+        val deltakerliste = TestData.lagDeltakerListe(arrangor = arrangor)
         val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
         TestRepository.insert(deltakerliste)
 
@@ -115,7 +116,7 @@ class DeltakerlisteConsumerTest {
 
     @Test
     fun `consumeDeltakerliste - tombstone - sletter deltakerliste`() {
-        val deltakerliste = TestData.lagDeltakerliste()
+        val deltakerliste = TestData.lagDeltakerListe()
         val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
 
         TestRepository.insert(deltakerliste)
@@ -135,7 +136,7 @@ class DeltakerlisteConsumerTest {
     @Test
     fun `consumeDeltakerliste - redusert sluttdato - oppdaterer deltakerliste og oppdaterer sluttdato på deltakere`() {
         val arrangor = TestData.lagArrangor()
-        val deltakerliste = TestData.lagDeltakerliste(arrangor = arrangor)
+        val deltakerliste = TestData.lagDeltakerListe(arrangor = arrangor)
         val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
         TestRepository.insert(deltakerliste)
 

@@ -10,8 +10,8 @@ import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.deltaker.deltaker.vurdering.Vurdering
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
+import no.nav.amt.deltaker.deltakerliste.DeltakerListeRepository
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
-import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.navbruker.NavBrukerService
 import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.deltaker.utils.buildManagedKafkaConsumer
@@ -27,7 +27,7 @@ import java.util.UUID
 
 class DeltakerConsumer(
     private val deltakerRepository: DeltakerRepository,
-    private val deltakerlisteRepository: DeltakerlisteRepository,
+    private val deltakerlisteRepository: DeltakerListeRepository,
     private val navBrukerService: NavBrukerService,
     private val deltakerEndringService: DeltakerEndringService,
     private val importertFraArenaRepository: ImportertFraArenaRepository,

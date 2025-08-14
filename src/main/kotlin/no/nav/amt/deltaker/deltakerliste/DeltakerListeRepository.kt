@@ -9,7 +9,7 @@ import no.nav.amt.lib.utils.database.Database
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
-class DeltakerlisteRepository {
+class DeltakerListeRepository {
     private val log = LoggerFactory.getLogger(javaClass)
 
     companion object {
@@ -80,7 +80,7 @@ class DeltakerlisteRepository {
                     "tiltakstype_id" to deltakerliste.tiltakstype.id,
                     "start_dato" to deltakerliste.startDato,
                     "slutt_dato" to deltakerliste.sluttDato,
-                    "oppstart" to deltakerliste.oppstart?.name,
+                    "oppstart" to deltakerliste.oppstart.name,
                     "apent_for_pamelding" to deltakerliste.apentForPamelding,
                 ),
             ),
@@ -99,7 +99,7 @@ class DeltakerlisteRepository {
         log.info("Slettet deltakerliste med id $id")
     }
 
-    fun get(id: UUID) = Database.query {
+    fun get(id: UUID): Result<Deltakerliste> = Database.query {
         val query = queryOf(
             """
             SELECT 

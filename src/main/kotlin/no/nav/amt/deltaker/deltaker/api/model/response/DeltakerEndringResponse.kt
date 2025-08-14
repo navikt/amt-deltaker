@@ -1,6 +1,5 @@
-package no.nav.amt.deltaker.deltaker.api.model
+package no.nav.amt.deltaker.deltaker.api.model.response
 
-import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -17,16 +16,4 @@ data class DeltakerEndringResponse(
     val deltakelsesinnhold: Deltakelsesinnhold?,
     val status: DeltakerStatus,
     val historikk: List<DeltakerHistorikk>,
-)
-
-fun Deltaker.toDeltakerEndringResponse(historikk: List<DeltakerHistorikk>) = DeltakerEndringResponse(
-    id = id,
-    startdato = startdato,
-    sluttdato = sluttdato,
-    dagerPerUke = dagerPerUke,
-    deltakelsesprosent = deltakelsesprosent,
-    bakgrunnsinformasjon = bakgrunnsinformasjon,
-    deltakelsesinnhold = deltakelsesinnhold,
-    status = status,
-    historikk = historikk,
 )

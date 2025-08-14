@@ -1,32 +1,44 @@
 package no.nav.amt.deltaker.deltaker.api
 
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.call
 import io.ktor.server.auth.authenticate
+import io.ktor.server.plugins.requestvalidation.RequestValidationException
+import io.ktor.server.plugins.requestvalidation.ValidationResult
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.delete
 import io.ktor.server.routing.post
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
+import no.nav.amt.deltaker.deltaker.OpprettKladdRequestValidator
 import no.nav.amt.deltaker.deltaker.PameldingService
-import no.nav.amt.deltaker.deltaker.api.model.AvbrytUtkastRequest
-import no.nav.amt.deltaker.deltaker.api.model.OpprettKladdRequest
-import no.nav.amt.deltaker.deltaker.api.model.UtkastRequest
+import no.nav.amt.deltaker.deltaker.api.model.request.AvbrytUtkastRequest
+import no.nav.amt.deltaker.deltaker.api.model.request.OpprettKladdRequest
+import no.nav.amt.deltaker.deltaker.api.model.request.UtkastRequest
 import no.nav.amt.deltaker.deltaker.api.model.toDeltakerEndringResponse
+import no.nav.amt.deltaker.deltaker.api.model.toKladdResponse
 import java.util.UUID
 
-fun Routing.registerPameldingApi(pameldingService: PameldingService, historikkService: DeltakerHistorikkService) {
+fun Routing.registerPameldingApi(
+    opprettKladdRequestValidator: OpprettKladdRequestValidator,
+    pameldingService: PameldingService,
+    historikkService: DeltakerHistorikkService,
+) {
     authenticate("SYSTEM") {
         post("/pamelding") {
-            val request = call.receive<OpprettKladdRequest>()
+            val opprettKladdRequest = call.receive<OpprettKladdRequest>()
 
-            val deltaker = pameldingService.opprettKladd(
-                deltakerlisteId = request.deltakerlisteId,
-                personident = request.personident,
+            val validationResult = opprettKladdRequestValidator.validateRequest(opprettKladdRequest)
+            if (validationResult is ValidationResult.Invalid) {
+                throw RequestValidationException(opprettKladdRequest, validationResult.reasons)
+            }
+
+            val deltaker = pameldingService.opprettDeltaker(
+                deltakerListeId = opprettKladdRequest.deltakerlisteId,
+                personIdent = opprettKladdRequest.personident,
             )
 
-            call.respond(deltaker)
+            call.respond(deltaker.toKladdResponse())
         }
 
         post("/pamelding/{deltakerId}") {

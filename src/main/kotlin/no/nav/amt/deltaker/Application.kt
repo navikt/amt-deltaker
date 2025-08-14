@@ -23,6 +23,7 @@ import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.auth.TilgangskontrollService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerService
+import no.nav.amt.deltaker.deltaker.OpprettKladdRequestValidator
 import no.nav.amt.deltaker.deltaker.PameldingService
 import no.nav.amt.deltaker.deltaker.VedtakService
 import no.nav.amt.deltaker.deltaker.api.model.DeltakelserResponseMapper
@@ -47,7 +48,7 @@ import no.nav.amt.deltaker.deltaker.kafka.DeltakerV1Producer
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerDtoMapperService
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
-import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
+import no.nav.amt.deltaker.deltakerliste.DeltakerListeRepository
 import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlisteConsumer
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.kafka.TiltakstypeConsumer
@@ -149,7 +150,7 @@ fun Application.module(): suspend () -> Unit {
         azureAdTokenClient = azureAdTokenClient,
     )
 
-    val isOppfolgingstilfelleClient = IsOppfolgingstilfelleClient(
+    val isOppfolgingsTilfelleClient = IsOppfolgingstilfelleClient(
         baseUrl = environment.isOppfolgingstilfelleUrl,
         scope = environment.isOppfolgingstilfelleScope,
         azureAdTokenClient = azureAdTokenClient,
@@ -163,7 +164,7 @@ fun Application.module(): suspend () -> Unit {
     val navEnhetRepository = NavEnhetRepository()
     val navBrukerRepository = NavBrukerRepository()
     val tiltakstypeRepository = TiltakstypeRepository()
-    val deltakerlisteRepository = DeltakerlisteRepository()
+    val deltakerlisteRepository = DeltakerListeRepository()
     val deltakerRepository = DeltakerRepository()
     val deltakerEndringRepository = DeltakerEndringRepository()
     val vedtakRepository = VedtakRepository()
@@ -267,14 +268,21 @@ fun Application.module(): suspend () -> Unit {
         navEnhetService,
     )
 
+    val opprettKladdRequestValidator = OpprettKladdRequestValidator(
+        deltakerRepository = deltakerRepository,
+        deltakerListeRepository = deltakerlisteRepository,
+        brukerService = navBrukerService,
+        personServiceClient = amtPersonServiceClient,
+        isOppfolgingsTilfelleClient = isOppfolgingsTilfelleClient,
+    )
+
     val pameldingService = PameldingService(
         deltakerService = deltakerService,
-        deltakerlisteRepository = deltakerlisteRepository,
+        deltakerListeRepository = deltakerlisteRepository,
         navBrukerService = navBrukerService,
         navAnsattService = navAnsattService,
         navEnhetService = navEnhetService,
         vedtakService = vedtakService,
-        isOppfolgingstilfelleClient = isOppfolgingstilfelleClient,
         hendelseService = hendelseService,
         innsokPaaFellesOppstartService = innsokPaaFellesOppstartService,
     )
@@ -301,18 +309,19 @@ fun Application.module(): suspend () -> Unit {
 
     configureAuthentication(environment)
     configureRouting(
-        pameldingService,
-        deltakerService,
-        deltakerHistorikkService,
-        tilgangskontrollService,
-        deltakelserResponseMapper,
-        deltakerProducerService,
-        vedtakService,
-        unleashToggle,
-        innsokPaaFellesOppstartService,
-        vurderingService,
-        hendelseService,
-        endringFraTiltakskoordinatorService,
+        opprettKladdRequestValidator = opprettKladdRequestValidator,
+        pameldingService = pameldingService,
+        deltakerService = deltakerService,
+        deltakerHistorikkService = deltakerHistorikkService,
+        tilgangskontrollService = tilgangskontrollService,
+        deltakelserResponseMapper = deltakelserResponseMapper,
+        deltakerProducerService = deltakerProducerService,
+        vedtakService = vedtakService,
+        unleashToggle = unleashToggle,
+        innsokPaaFellesOppstartService = innsokPaaFellesOppstartService,
+        vurderingService = vurderingService,
+        hendelseService = hendelseService,
+        endringFraTiltakskoordinatorService = endringFraTiltakskoordinatorService,
     )
     configureMonitoring()
 

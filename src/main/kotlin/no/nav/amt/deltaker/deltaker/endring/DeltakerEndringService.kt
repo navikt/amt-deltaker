@@ -1,8 +1,8 @@
 package no.nav.amt.deltaker.deltaker.endring
 
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
-import no.nav.amt.deltaker.deltaker.api.model.EndringRequest
-import no.nav.amt.deltaker.deltaker.api.model.getForslagId
+import no.nav.amt.deltaker.deltaker.api.model.request.EndringRequest
+import no.nav.amt.deltaker.deltaker.api.model.request.getForslagId
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.deltaker.model.Deltaker

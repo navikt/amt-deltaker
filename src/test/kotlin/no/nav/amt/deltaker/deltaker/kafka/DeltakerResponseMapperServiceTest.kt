@@ -23,7 +23,7 @@ import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
-import no.nav.amt.deltaker.utils.mockAmtPersonClient
+import no.nav.amt.deltaker.utils.mockPersonServiceClient
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
@@ -40,8 +40,8 @@ import java.util.UUID
 
 class DeltakerResponseMapperServiceTest {
     companion object {
-        private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonClient())
-        private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonClient(), navEnhetService)
+        private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockPersonServiceClient())
+        private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockPersonServiceClient(), navEnhetService)
         private val vurderingRepository = VurderingRepository()
         private val deltakerHistorikkService = DeltakerHistorikkService(
             DeltakerEndringRepository(),
@@ -59,6 +59,7 @@ class DeltakerResponseMapperServiceTest {
         @BeforeAll
         @JvmStatic
         fun setup() {
+            @Suppress("UnusedExpression")
             SingletonPostgres16Container
         }
     }

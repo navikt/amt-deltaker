@@ -18,10 +18,10 @@ import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.auth.TilgangskontrollService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerService
-import no.nav.amt.deltaker.deltaker.api.model.DeltakelserResponse
 import no.nav.amt.deltaker.deltaker.api.model.DeltakelserResponseMapper
 import no.nav.amt.deltaker.deltaker.api.model.DeltakerKort
 import no.nav.amt.deltaker.deltaker.api.model.Periode
+import no.nav.amt.deltaker.deltaker.api.model.response.DeltakelserResponse
 import no.nav.amt.deltaker.deltaker.api.utils.postVeilederRequest
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.external.data.HentDeltakelserRequest
@@ -79,7 +79,7 @@ class HentDeltakelserApiTest {
 
         val innsoktDato = LocalDate.now().minusDays(4)
         val deltaker = TestData.lagDeltaker(
-            deltakerliste = TestData.lagDeltakerliste(
+            deltakerliste = TestData.lagDeltakerListe(
                 arrangor = TestData.lagArrangor(overordnetArrangorId = null, navn = "ARRANGØR AS"),
                 tiltakstype = TestData.lagTiltakstype(
                     tiltakskode = Tiltakstype.Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
@@ -138,7 +138,7 @@ class HentDeltakelserApiTest {
 
         val innsoktDato = LocalDate.now().minusDays(4)
         val deltakerKladd = TestData.lagDeltaker(
-            deltakerliste = TestData.lagDeltakerliste(
+            deltakerliste = TestData.lagDeltakerListe(
                 arrangor = TestData.lagArrangor(overordnetArrangorId = null, navn = "ARRANGØR AS"),
                 tiltakstype = TestData.lagTiltakstype(
                     tiltakskode = Tiltakstype.Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
@@ -148,7 +148,7 @@ class HentDeltakelserApiTest {
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.KLADD),
         )
         val avsluttetDeltaker = TestData.lagDeltaker(
-            deltakerliste = TestData.lagDeltakerliste(
+            deltakerliste = TestData.lagDeltakerListe(
                 arrangor = TestData.lagArrangor(overordnetArrangorId = null, navn = "ARRANGØR OG SØNN AS"),
                 tiltakstype = TestData.lagTiltakstype(
                     tiltakskode = Tiltakstype.Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
@@ -245,18 +245,19 @@ class HentDeltakelserApiTest {
             configureSerialization()
             configureAuthentication(Environment())
             configureRouting(
-                mockk(),
-                deltakerService,
-                deltakerHistorikkService,
-                tilgangskontrollService,
-                deltakelserResponseMapper,
-                deltakerProducerService,
-                mockk(),
-                unleashToggle,
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
+                opprettKladdRequestValidator = mockk(),
+                pameldingService = mockk(),
+                deltakerService = deltakerService,
+                deltakerHistorikkService = deltakerHistorikkService,
+                tilgangskontrollService = tilgangskontrollService,
+                deltakelserResponseMapper = deltakelserResponseMapper,
+                deltakerProducerService = deltakerProducerService,
+                vedtakService = mockk(),
+                unleashToggle = unleashToggle,
+                innsokPaaFellesOppstartService = mockk(),
+                vurderingService = mockk(),
+                hendelseService = mockk(),
+                endringFraTiltakskoordinatorService = mockk(),
             )
         }
     }

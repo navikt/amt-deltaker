@@ -9,8 +9,8 @@ import no.nav.amt.deltaker.deltaker.model.AVSLUTTENDE_STATUSER
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.deltaker.deltaker.model.Vedtaksinformasjon
+import no.nav.amt.deltaker.deltakerliste.DeltakerListeRepository
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
-import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.utils.toPGObject
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
@@ -43,7 +43,7 @@ class DeltakerRepository {
                 oppfolgingsperioder = row.stringOrNull("nb.oppfolgingsperioder")?.let { objectMapper.readValue(it) } ?: emptyList(),
                 innsatsgruppe = row.stringOrNull("nb.innsatsgruppe")?.let { Innsatsgruppe.valueOf(it) },
             ),
-            deltakerliste = DeltakerlisteRepository.rowMapper(row),
+            deltakerliste = DeltakerListeRepository.rowMapper(row),
             startdato = row.localDateOrNull("d.startdato"),
             sluttdato = row.localDateOrNull("d.sluttdato"),
             dagerPerUke = row.floatOrNull("d.dager_per_uke"),
@@ -160,6 +160,24 @@ class DeltakerRepository {
             ?: Result.failure(NoSuchElementException("Ingen deltaker med id $id"))
     }
 
+    fun getMany(personident: String, deltakerlisteId: UUID): List<Deltaker> = Database.query {
+        val sql = getDeltakerSql(
+            """ where nb.personident = :personident 
+                    and d.deltakerliste_id = :deltakerliste_id 
+                    and ds.gyldig_til is null
+            """.trimMargin(),
+        )
+
+        val query = queryOf(
+            sql,
+            mapOf(
+                "personident" to personident,
+                "deltakerliste_id" to deltakerlisteId,
+            ),
+        ).map(::rowMapper).asList
+        it.run(query)
+    }
+
     fun getMany(deltakerIder: List<UUID>) = Database.query {
         val sql = getDeltakerSql(
             """ where ds.gyldig_til is null
@@ -226,27 +244,6 @@ class DeltakerRepository {
             ),
         ).map {
             it.uuid("d.id")
-        }.asList
-        session.run(query)
-    }
-
-    fun getDeltakerIder(personId: UUID, deltakerlisteId: UUID) = Database.query { session ->
-        val sql =
-            """ 
-                select id as "id"
-                from deltaker
-                where person_id = :person_id
-                and deltakerliste_id = :deltakerliste_id;
-            """.trimMargin()
-
-        val query = queryOf(
-            sql,
-            mapOf(
-                "person_id" to personId,
-                "deltakerliste_id" to deltakerlisteId,
-            ),
-        ).map {
-            it.uuid("id")
         }.asList
         session.run(query)
     }

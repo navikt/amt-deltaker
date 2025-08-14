@@ -16,6 +16,7 @@ import no.nav.amt.deltaker.auth.AuthorizationException
 import no.nav.amt.deltaker.auth.TilgangskontrollService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerService
+import no.nav.amt.deltaker.deltaker.OpprettKladdRequestValidator
 import no.nav.amt.deltaker.deltaker.PameldingService
 import no.nav.amt.deltaker.deltaker.VedtakService
 import no.nav.amt.deltaker.deltaker.api.model.DeltakelserResponseMapper
@@ -36,6 +37,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 fun Application.configureRouting(
+    opprettKladdRequestValidator: OpprettKladdRequestValidator,
     pameldingService: PameldingService,
     deltakerService: DeltakerService,
     deltakerHistorikkService: DeltakerHistorikkService,
@@ -74,7 +76,11 @@ fun Application.configureRouting(
     routing {
         registerHealthApi()
 
-        registerPameldingApi(pameldingService, deltakerHistorikkService)
+        registerPameldingApi(
+            opprettKladdRequestValidator = opprettKladdRequestValidator,
+            pameldingService = pameldingService,
+            historikkService = deltakerHistorikkService,
+        )
         registerDeltakerApi(deltakerService, deltakerHistorikkService)
         registerVeilederApi(tilgangskontrollService, deltakerService, deltakelserResponseMapper, unleashToggle)
         registerInternalApi(

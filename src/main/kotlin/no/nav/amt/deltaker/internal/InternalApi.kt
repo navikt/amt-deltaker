@@ -20,7 +20,7 @@ import no.nav.amt.deltaker.deltaker.getVedtakOrThrow
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.nyDeltakerStatus
-import no.nav.amt.deltaker.deltaker.tilVedtaksinformasjon
+import no.nav.amt.deltaker.deltaker.tilVedtaksInformasjon
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorService
@@ -214,7 +214,7 @@ fun Routing.registerInternalApi(
             DeltakerStatus.Aarsak(type = DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT, beskrivelse = null),
         )
 
-        val oppdatertDeltaker = deltaker.copy(status = status, vedtaksinformasjon = vedtak.tilVedtaksinformasjon())
+        val oppdatertDeltaker = deltaker.copy(status = status, vedtaksinformasjon = vedtak.tilVedtaksInformasjon())
 
         deltakerService.upsertDeltaker(oppdatertDeltaker)
     }

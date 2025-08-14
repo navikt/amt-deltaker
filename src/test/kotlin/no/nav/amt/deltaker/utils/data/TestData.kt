@@ -85,7 +85,7 @@ object TestData {
         adresse: Adresse? = lagAdresse(),
         adressebeskyttelse: Adressebeskyttelse? = null,
         oppfolgingsperioder: List<Oppfolgingsperiode> = listOf(lagOppfolgingsperiode()),
-        innsatsgruppe: Innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS,
+        innsatsgruppe: Innsatsgruppe? = Innsatsgruppe.STANDARD_INNSATS,
     ) = NavBruker(
         personId,
         personident,
@@ -135,7 +135,7 @@ object TestData {
         ledetekst: String = "Beskrivelse av tilaket",
     ) = DeltakerRegistreringInnhold(innholdselementer, ledetekst)
 
-    fun lagDeltakerliste(
+    fun lagDeltakerListe(
         id: UUID = UUID.randomUUID(),
         arrangor: Arrangor = lagArrangor(),
         tiltakstype: Tiltakstype = lagTiltakstype(),
@@ -149,17 +149,17 @@ object TestData {
 
     fun lagDeltakerlisteMedLopendeOppstart(
         tiltakstype: Tiltakstype = lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
-    ) = lagDeltakerliste(
+    ) = lagDeltakerListe(
         tiltakstype = tiltakstype,
     )
 
     fun lagDeltakerlisteMedFellesOppstart(
         tiltakstype: Tiltakstype = lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING),
-    ) = lagDeltakerliste(
+    ) = lagDeltakerListe(
         tiltakstype = tiltakstype,
     )
 
-    fun lagDeltakerlisteDto(arrangor: Arrangor = lagArrangor(), deltakerliste: Deltakerliste = lagDeltakerliste(arrangor = arrangor)) =
+    fun lagDeltakerlisteDto(arrangor: Arrangor = lagArrangor(), deltakerliste: Deltakerliste = lagDeltakerListe(arrangor = arrangor)) =
         DeltakerlisteDto(
             id = deltakerliste.id,
             tiltakstype = DeltakerlisteDto.Tiltakstype(
@@ -226,7 +226,7 @@ object TestData {
     fun lagDeltakerKladd(
         id: UUID = UUID.randomUUID(),
         navBruker: NavBruker = lagNavBruker(),
-        deltakerliste: Deltakerliste = lagDeltakerliste(),
+        deltakerliste: Deltakerliste = lagDeltakerListe(),
     ) = lagDeltaker(
         id = id,
         navBruker = navBruker,
@@ -243,7 +243,7 @@ object TestData {
     fun lagDeltaker(
         id: UUID = UUID.randomUUID(),
         navBruker: NavBruker = lagNavBruker(),
-        deltakerliste: Deltakerliste = lagDeltakerliste(),
+        deltakerliste: Deltakerliste = lagDeltakerListe(),
         startdato: LocalDate? = LocalDate.now().minusMonths(3),
         sluttdato: LocalDate? = LocalDate.now().minusDays(1),
         dagerPerUke: Float? = 5F,
@@ -256,21 +256,21 @@ object TestData {
         kilde: Kilde = Kilde.KOMET,
         erManueltDeltMedArrangor: Boolean = false,
     ) = Deltaker(
-        id,
-        navBruker,
-        deltakerliste,
-        startdato,
-        sluttdato,
-        dagerPerUke,
-        deltakelsesprosent,
-        bakgrunnsinformasjon,
-        innhold,
-        status,
-        vedtaksinformasjon,
-        sistEndret,
-        kilde,
-        erManueltDeltMedArrangor,
-        null,
+        id = id,
+        navBruker = navBruker,
+        deltakerliste = deltakerliste,
+        startdato = startdato,
+        sluttdato = sluttdato,
+        dagerPerUke = dagerPerUke,
+        deltakelsesprosent = deltakelsesprosent,
+        bakgrunnsinformasjon = bakgrunnsinformasjon,
+        deltakelsesinnhold = innhold,
+        status = status,
+        vedtaksinformasjon = vedtaksinformasjon,
+        sistEndret = sistEndret,
+        kilde = kilde,
+        erManueltDeltMedArrangor = erManueltDeltMedArrangor,
+        opprettet = null,
     )
 
     fun lagDeltakerStatus(

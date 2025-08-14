@@ -53,6 +53,7 @@ dependencies {
     implementation("io.ktor:ktor-client-core:$ktorVersion")
     implementation("io.ktor:ktor-client-apache:$ktorVersion")
     implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
+    implementation("io.ktor:ktor-server-request-validation:$ktorVersion")
 
     implementation("com.github.ben-manes.caffeine:caffeine:$caffeineVersion")
 

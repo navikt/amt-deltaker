@@ -117,7 +117,7 @@ fun mockIsOppfolgingstilfelleClient() = IsOppfolgingstilfelleClient(
     azureAdTokenClient = mockAzureAdClient(),
 )
 
-fun mockAmtPersonClient() = AmtPersonServiceClient(
+fun mockPersonServiceClient() = AmtPersonServiceClient(
     baseUrl = AMT_PERSON_URL,
     scope = "amt.person-service.scope",
     httpClient = mockHttpClient(),
