@@ -46,6 +46,7 @@ data class DeltakerDto(
                         .getVisningsnavn()
                 },
                 opprettetDato = deltaker.status.opprettet,
+                gyldigFraDato = deltaker.status.gyldigFra
             ),
             registrertDato = innsoktDato.atStartOfDay(),
             dagerPerUke = deltaker.dagerPerUke,
