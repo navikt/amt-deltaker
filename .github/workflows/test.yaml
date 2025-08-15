@@ -18,7 +18,9 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
           cache: 'gradle'
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
+
       - name: Run tests
-        run: ./gradlew check --info
+        run: ./gradlew check --no-daemon
