@@ -46,7 +46,7 @@ jobs:
 
   check_codeql_status:
     name: Check CodeQL Status
-    needs: Analyze
+    needs: analyze
     permissions:
       contents: read
       checks: read
