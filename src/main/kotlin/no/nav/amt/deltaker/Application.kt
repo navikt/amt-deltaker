@@ -270,7 +270,6 @@ fun Application.module(): suspend () -> Unit {
     )
 
     val opprettKladdRequestValidator = OpprettKladdRequestValidator(
-        deltakerRepository = deltakerRepository,
         deltakerListeRepository = deltakerlisteRepository,
         brukerService = navBrukerService,
         personServiceClient = amtPersonServiceClient,

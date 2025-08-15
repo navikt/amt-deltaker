@@ -46,11 +46,13 @@ import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.deltaker.utils.MockResponseHandler
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestData.lagArrangor
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerListe
 import no.nav.amt.deltaker.utils.data.TestData.lagNavAnsatt
 import no.nav.amt.deltaker.utils.data.TestData.lagNavBruker
 import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
 import no.nav.amt.deltaker.utils.data.TestRepository
+import no.nav.amt.deltaker.utils.data.TestRepository.cleanDatabase
 import no.nav.amt.deltaker.utils.mockAmtArrangorClient
 import no.nav.amt.deltaker.utils.mockPersonServiceClient
 import no.nav.amt.lib.kafka.Producer
@@ -78,9 +80,25 @@ import kotlin.test.assertFailsWith
 
 class PameldingServiceTest {
     @BeforeEach
-    fun cleanDatabase() {
-        TestRepository.cleanDatabase()
+    fun setup() {
+        cleanDatabase()
         every { unleashToggle.erKometMasterForTiltakstype(any()) } returns true
+    }
+
+    @Test
+    fun `opprettKladd - deltaker finnes og deltar fortsatt - returnerer eksisterende deltaker`(): Unit = runBlocking {
+        val expectedDeltaker = lagDeltaker(
+            sluttdato = null,
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+        )
+        TestRepository.insert(expectedDeltaker)
+
+        val actualDeltaker = pameldingService.opprettDeltaker(
+            expectedDeltaker.deltakerliste.id,
+            expectedDeltaker.navBruker.personident,
+        )
+
+        actualDeltaker shouldBe expectedDeltaker.copy(opprettet = actualDeltaker.opprettet)
     }
 
     @Test
@@ -192,7 +210,7 @@ class PameldingServiceTest {
 
     @Test
     fun `opprettKladd - deltaker finnes men har sluttet - oppretter ny deltaker`() {
-        val deltaker = TestData.lagDeltaker(
+        val deltaker = lagDeltaker(
             sluttdato = LocalDate.now().minusMonths(3),
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.HAR_SLUTTET),
         )
@@ -212,7 +230,7 @@ class PameldingServiceTest {
 
     @Test
     fun `upsertUtkast - deltaker finnes - oppdaterer deltaker og oppretter vedtak`() {
-        val deltaker = TestData.lagDeltaker(
+        val deltaker = lagDeltaker(
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.KLADD),
             vedtaksinformasjon = null,
         )
@@ -251,7 +269,7 @@ class PameldingServiceTest {
 
     @Test
     fun `upsertUtkast - deltaker med lopende oppstart, godkjent av NAV - oppdaterer deltaker og oppretter fattet vedtak`() {
-        val deltaker = TestData.lagDeltaker(
+        val deltaker = lagDeltaker(
             deltakerliste = TestData.lagDeltakerlisteMedLopendeOppstart(),
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.KLADD),
             vedtaksinformasjon = null,
@@ -295,7 +313,7 @@ class PameldingServiceTest {
 
     @Test
     fun `upsertUtkast - deltaker med felles oppstart, godkjent av NAV - oppdaterer deltaker`() {
-        val deltaker = TestData.lagDeltaker(
+        val deltaker = lagDeltaker(
             deltakerliste = TestData.lagDeltakerlisteMedFellesOppstart(),
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.KLADD),
             vedtaksinformasjon = null,
@@ -344,7 +362,7 @@ class PameldingServiceTest {
         val sistEndretAvEnhet = lagNavEnhet()
         TestRepository.insert(sistEndretAv)
         TestRepository.insert(sistEndretAvEnhet)
-        val deltaker = TestData.lagDeltaker(
+        val deltaker = lagDeltaker(
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
             startdato = null,
             sluttdato = null,
@@ -382,7 +400,7 @@ class PameldingServiceTest {
 
     @Test
     fun `innbyggerFattVedtak - deltaker med lopende oppstart - vedtak fattes og ny status er godkjent utkast`() {
-        val deltaker = TestData.lagDeltaker(
+        val deltaker = lagDeltaker(
             deltakerliste = TestData.lagDeltakerlisteMedLopendeOppstart(),
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
         )
@@ -409,7 +427,7 @@ class PameldingServiceTest {
 
     @Test
     fun `innbyggerFattVedtak - deltaker med felles oppstart - vedtak fattes ikke ny status er sokt inn`() {
-        val deltaker = TestData.lagDeltaker(
+        val deltaker = lagDeltaker(
             deltakerliste = TestData.lagDeltakerlisteMedFellesOppstart(),
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
         )
@@ -439,7 +457,7 @@ class PameldingServiceTest {
 
     @Test
     fun `innbyggerFattVedtak - vedtak kunne ikke fattes - upserter ikke`() {
-        val deltaker = TestData.lagDeltaker(
+        val deltaker = lagDeltaker(
             deltakerliste = TestData.lagDeltakerlisteMedLopendeOppstart(),
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
         )
@@ -553,7 +571,7 @@ class PameldingServiceTest {
 
         @JvmStatic
         @BeforeAll
-        fun setup() {
+        fun setupAll() {
             @Suppress("UnusedExpression")
             SingletonPostgres16Container
         }

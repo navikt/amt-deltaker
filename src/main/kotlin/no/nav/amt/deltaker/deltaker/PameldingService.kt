@@ -34,15 +34,26 @@ class PameldingService(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    suspend fun opprettDeltaker(deltakerListeId: UUID, personIdent: String): Deltaker = deltakerService
-        .upsertDeltaker(
-            lagDeltaker(
-                navBrukerService.get(personIdent).getOrThrow(),
-                deltakerListeRepository.get(deltakerListeId).getOrThrow(),
-            ),
-        ).also { deltaker ->
-            log.info("Lagret kladd for deltaker med id ${deltaker.id}")
+    suspend fun opprettDeltaker(deltakerListeId: UUID, personIdent: String): Deltaker {
+        val eksisterendeDeltaker = deltakerService
+            .getDeltakelserForPerson(personIdent, deltakerListeId)
+            .firstOrNull { !it.harSluttet() }
+
+        if (eksisterendeDeltaker != null) {
+            log.warn("Deltakeren ${eksisterendeDeltaker.id} er allerede opprettet og deltar fortsatt")
+            return eksisterendeDeltaker
         }
+
+        return deltakerService
+            .upsertDeltaker(
+                lagDeltaker(
+                    navBrukerService.get(personIdent).getOrThrow(),
+                    deltakerListeRepository.get(deltakerListeId).getOrThrow(),
+                ),
+            ).also { deltaker ->
+                log.info("Lagret kladd for deltaker med id ${deltaker.id}")
+            }
+    }
 
     fun slettKladd(deltakerId: UUID) {
         val opprinneligDeltaker = deltakerService.get(deltakerId).getOrThrow()

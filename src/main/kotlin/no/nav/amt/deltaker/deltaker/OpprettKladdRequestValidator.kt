@@ -2,7 +2,6 @@ package no.nav.amt.deltaker.deltaker
 
 import io.ktor.server.plugins.requestvalidation.ValidationResult
 import no.nav.amt.deltaker.deltaker.api.model.request.OpprettKladdRequest
-import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltakerliste.DeltakerListeRepository
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.isoppfolgingstilfelle.IsOppfolgingstilfelleClient
@@ -11,20 +10,14 @@ import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import java.time.Year
-import java.util.UUID
 
 class OpprettKladdRequestValidator(
-    private val deltakerRepository: DeltakerRepository,
     private val deltakerListeRepository: DeltakerListeRepository,
     private val brukerService: NavBrukerService,
     private val personServiceClient: AmtPersonServiceClient,
     private val isOppfolgingsTilfelleClient: IsOppfolgingstilfelleClient,
 ) {
     suspend fun validateRequest(request: OpprettKladdRequest): ValidationResult {
-        if (deltakerAlleredeOpprettet(request.personident, request.deltakerlisteId)) {
-            return ValidationResult.Invalid("Deltakeren er allerede opprettet og deltar fortsatt")
-        }
-
         val deltakerListe = deltakerListeRepository.get(request.deltakerlisteId).getOrThrow()
 
         if (deltakerListe.erAvsluttet()) {
@@ -45,10 +38,6 @@ class OpprettKladdRequestValidator(
 
         return ValidationResult.Valid
     }
-
-    private fun deltakerAlleredeOpprettet(personIdent: String, deltakerListeId: UUID): Boolean = deltakerRepository
-        .getMany(personIdent, deltakerListeId)
-        .any { !it.harSluttet() }
 
     private suspend fun harRiktigInnsatsGruppe(personIdent: String, deltakerListe: Deltakerliste): Boolean {
         val navBruker = brukerService.get(personIdent).getOrThrow()
