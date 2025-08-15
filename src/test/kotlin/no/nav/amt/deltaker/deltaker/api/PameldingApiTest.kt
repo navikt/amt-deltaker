@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.deltaker.api
 
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import io.ktor.client.request.delete
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -15,6 +16,7 @@ import io.mockk.just
 import io.mockk.mockk
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.application.plugins.configureAuthentication
+import no.nav.amt.deltaker.application.plugins.configureRequestValidation
 import no.nav.amt.deltaker.application.plugins.configureRouting
 import no.nav.amt.deltaker.application.plugins.configureSerialization
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
@@ -59,6 +61,20 @@ class PameldingApiTest {
             HttpStatusCode.Unauthorized
         client.post("/pamelding/${UUID.randomUUID()}/avbryt") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
         client.delete("/pamelding/${UUID.randomUUID()}").status shouldBe HttpStatusCode.Unauthorized
+    }
+
+    @Test
+    fun `post pamelding - request med valideringsfeil - returnerer 400 BadRequest`() = testApplication {
+        coEvery {
+            opprettKladdRequestValidator.validateRequest(any())
+        } returns ValidationResult.Invalid(listOf("~some error~", "~some other error~"))
+
+        setUpTestApplication()
+
+        val response = client.post("/pamelding") { postRequest(opprettKladdRequest) }
+
+        response.status shouldBe HttpStatusCode.BadRequest
+        response.bodyAsText() shouldContain ("~some error~, ~some other error~")
     }
 
     @Test
@@ -157,8 +173,8 @@ class PameldingApiTest {
         application {
             configureSerialization()
             configureAuthentication(Environment())
+            configureRequestValidation(opprettKladdRequestValidator = opprettKladdRequestValidator)
             configureRouting(
-                opprettKladdRequestValidator = opprettKladdRequestValidator,
                 pameldingService = pameldingService,
                 deltakerService = mockk(),
                 deltakerHistorikkService = historikkService,

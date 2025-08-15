@@ -103,7 +103,6 @@ class TiltakskoordinatorApiTest {
             configureSerialization()
             configureAuthentication(Environment())
             configureRouting(
-                opprettKladdRequestValidator = mockk(),
                 pameldingService = mockk(),
                 deltakerService = deltakerService,
                 deltakerHistorikkService = mockk(),

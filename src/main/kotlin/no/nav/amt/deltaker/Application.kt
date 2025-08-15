@@ -14,6 +14,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.Environment.Companion.HTTP_CLIENT_TIMEOUT_MS
 import no.nav.amt.deltaker.application.plugins.configureAuthentication
 import no.nav.amt.deltaker.application.plugins.configureMonitoring
+import no.nav.amt.deltaker.application.plugins.configureRequestValidation
 import no.nav.amt.deltaker.application.plugins.configureRouting
 import no.nav.amt.deltaker.application.plugins.configureSerialization
 import no.nav.amt.deltaker.arrangor.AmtArrangorClient
@@ -308,8 +309,12 @@ fun Application.module(): suspend () -> Unit {
     consumers.forEach { it.start() }
 
     configureAuthentication(environment)
-    configureRouting(
+
+    configureRequestValidation(
         opprettKladdRequestValidator = opprettKladdRequestValidator,
+    )
+
+    configureRouting(
         pameldingService = pameldingService,
         deltakerService = deltakerService,
         deltakerHistorikkService = deltakerHistorikkService,

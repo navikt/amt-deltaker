@@ -245,7 +245,6 @@ class HentDeltakelserApiTest {
             configureSerialization()
             configureAuthentication(Environment())
             configureRouting(
-                opprettKladdRequestValidator = mockk(),
                 pameldingService = mockk(),
                 deltakerService = deltakerService,
                 deltakerHistorikkService = deltakerHistorikkService,

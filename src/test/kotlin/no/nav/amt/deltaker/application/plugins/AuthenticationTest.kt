@@ -108,7 +108,6 @@ class AuthenticationTest {
             configureSerialization()
             configureAuthentication(Environment())
             configureRouting(
-                opprettKladdRequestValidator = mockk(),
                 pameldingService = mockk(),
                 deltakerService = mockk(),
                 deltakerHistorikkService = mockk(),

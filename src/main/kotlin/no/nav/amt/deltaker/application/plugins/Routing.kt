@@ -4,6 +4,8 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.install
+import io.ktor.server.plugins.requestvalidation.RequestValidation
+import io.ktor.server.plugins.requestvalidation.RequestValidationException
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.request.httpMethod
 import io.ktor.server.request.path
@@ -20,6 +22,7 @@ import no.nav.amt.deltaker.deltaker.OpprettKladdRequestValidator
 import no.nav.amt.deltaker.deltaker.PameldingService
 import no.nav.amt.deltaker.deltaker.VedtakService
 import no.nav.amt.deltaker.deltaker.api.model.DeltakelserResponseMapper
+import no.nav.amt.deltaker.deltaker.api.model.request.OpprettKladdRequest
 import no.nav.amt.deltaker.deltaker.api.registerDeltakerApi
 import no.nav.amt.deltaker.deltaker.api.registerPameldingApi
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartService
@@ -36,8 +39,15 @@ import no.nav.amt.lib.ktor.routing.registerHealthApi
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+fun Application.configureRequestValidation(opprettKladdRequestValidator: OpprettKladdRequestValidator) {
+    install(RequestValidation) {
+        validate<OpprettKladdRequest> { request ->
+            opprettKladdRequestValidator.validateRequest(request)
+        }
+    }
+}
+
 fun Application.configureRouting(
-    opprettKladdRequestValidator: OpprettKladdRequestValidator,
     pameldingService: PameldingService,
     deltakerService: DeltakerService,
     deltakerHistorikkService: DeltakerHistorikkService,
@@ -72,12 +82,14 @@ fun Application.configureRouting(
             StatusPageLogger.log(HttpStatusCode.InternalServerError, call, cause)
             call.respondText(text = "500: ${cause.message}", status = HttpStatusCode.InternalServerError)
         }
+        exception<RequestValidationException> { call, cause ->
+            call.respond(HttpStatusCode.BadRequest, cause.reasons.joinToString())
+        }
     }
     routing {
         registerHealthApi()
 
         registerPameldingApi(
-            opprettKladdRequestValidator = opprettKladdRequestValidator,
             pameldingService = pameldingService,
             historikkService = deltakerHistorikkService,
         )
