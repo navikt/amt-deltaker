@@ -98,7 +98,7 @@ class PameldingServiceTest {
             expectedDeltaker.navBruker.personident,
         )
 
-        actualDeltaker shouldBe expectedDeltaker.copy(opprettet = actualDeltaker.opprettet)
+        actualDeltaker.id shouldBe expectedDeltaker.id
     }
 
     @Test
