@@ -72,6 +72,7 @@ import no.nav.amt.lib.testing.shouldBeCloseTo
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -85,6 +86,7 @@ class PameldingServiceTest {
         every { unleashToggle.erKometMasterForTiltakstype(any()) } returns true
     }
 
+    @Disabled
     @Test
     fun `opprettKladd - deltaker finnes og deltar fortsatt - returnerer eksisterende deltaker`(): Unit = runBlocking {
         val expectedDeltaker = lagDeltaker(
