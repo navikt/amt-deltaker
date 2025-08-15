@@ -30,6 +30,7 @@ class DeltakerlisteConsumerTest {
         @JvmStatic
         @BeforeAll
         fun setup() {
+            @Suppress("UnusedExpression")
             SingletonPostgres16Container
             deltakerlisteRepository = DeltakerlisteRepository()
             tiltakstypeRepository = TiltakstypeRepository()

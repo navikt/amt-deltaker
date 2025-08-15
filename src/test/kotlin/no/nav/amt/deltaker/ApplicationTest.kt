@@ -19,7 +19,20 @@ class ApplicationTest {
         application {
             configureSerialization()
             configureAuthentication(Environment())
-            configureRouting(mockk(), mockk(), mockk(), mockk(), mockk(), mockk(), mockk(), mockk(), mockk(), mockk(), mockk(), mockk())
+            configureRouting(
+                pameldingService = mockk(),
+                deltakerService = mockk(),
+                deltakerHistorikkService = mockk(),
+                tilgangskontrollService = mockk(),
+                deltakelserResponseMapper = mockk(),
+                deltakerProducerService = mockk(),
+                vedtakService = mockk(),
+                unleashToggle = mockk(),
+                innsokPaaFellesOppstartService = mockk(),
+                vurderingService = mockk(),
+                hendelseService = mockk(),
+                endringFraTiltakskoordinatorService = mockk(),
+            )
         }
         client.get("/internal/health/liveness").apply {
             status shouldBe HttpStatusCode.OK

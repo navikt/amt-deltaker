@@ -11,7 +11,7 @@ import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.utils.MockResponseHandler
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
-import no.nav.amt.deltaker.utils.mockAmtPersonClient
+import no.nav.amt.deltaker.utils.mockPersonServiceClient
 import no.nav.amt.lib.testing.SingletonPostgres16Container
 import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.BeforeAll
@@ -27,6 +27,7 @@ class NavBrukerConsumerTest {
         @JvmStatic
         @BeforeAll
         fun setup() {
+            @Suppress("UnusedExpression")
             SingletonPostgres16Container
             navBrukerRepository = NavBrukerRepository()
             navEnhetRepository = NavEnhetRepository()
@@ -48,7 +49,7 @@ class NavBrukerConsumerTest {
         val navBruker = TestData.lagNavBruker(navEnhetId = navEnhet.id, navVeilederId = navAnsatt.id)
         val navBrukerConsumer = NavBrukerConsumer(
             navBrukerRepository,
-            NavEnhetService(navEnhetRepository, mockAmtPersonClient()),
+            NavEnhetService(navEnhetRepository, mockPersonServiceClient()),
             deltakerService,
         )
 
@@ -77,7 +78,7 @@ class NavBrukerConsumerTest {
 
         val navBrukerConsumer = NavBrukerConsumer(
             navBrukerRepository,
-            NavEnhetService(navEnhetRepository, mockAmtPersonClient()),
+            NavEnhetService(navEnhetRepository, mockPersonServiceClient()),
             deltakerService,
         )
 
@@ -106,7 +107,7 @@ class NavBrukerConsumerTest {
 
         val navBrukerConsumer = NavBrukerConsumer(
             navBrukerRepository,
-            NavEnhetService(navEnhetRepository, mockAmtPersonClient()),
+            NavEnhetService(navEnhetRepository, mockPersonServiceClient()),
             deltakerService,
         )
 
@@ -131,7 +132,7 @@ class NavBrukerConsumerTest {
         val navBruker = TestData.lagNavBruker(navEnhetId = navEnhet.id, navVeilederId = navAnsatt.id)
         val navBrukerConsumer = NavBrukerConsumer(
             navBrukerRepository,
-            NavEnhetService(navEnhetRepository, mockAmtPersonClient()),
+            NavEnhetService(navEnhetRepository, mockPersonServiceClient()),
             deltakerService,
         )
 
@@ -158,7 +159,7 @@ class NavBrukerConsumerTest {
 
         val navBrukerConsumer = NavBrukerConsumer(
             navBrukerRepository,
-            NavEnhetService(navEnhetRepository, mockAmtPersonClient()),
+            NavEnhetService(navEnhetRepository, mockPersonServiceClient()),
             deltakerService,
         )
 

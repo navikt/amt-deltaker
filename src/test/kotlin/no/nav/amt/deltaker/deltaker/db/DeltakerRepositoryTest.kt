@@ -23,6 +23,7 @@ class DeltakerRepositoryTest {
         @JvmStatic
         @BeforeAll
         fun setup() {
+            @Suppress("UnusedExpression")
             SingletonPostgres16Container
             repository = DeltakerRepository()
         }

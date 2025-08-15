@@ -40,7 +40,7 @@ import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.utils.mockAmtArrangorClient
-import no.nav.amt.deltaker.utils.mockAmtPersonClient
+import no.nav.amt.deltaker.utils.mockPersonServiceClient
 import no.nav.amt.lib.kafka.Producer
 import no.nav.amt.lib.kafka.config.LocalKafkaConfig
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -58,8 +58,8 @@ class DeltakerStatusOppdateringTest {
         private val deltakerRepository: DeltakerRepository = DeltakerRepository()
         private lateinit var deltakerService: DeltakerService
 
-        private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonClient())
-        private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonClient(), navEnhetService)
+        private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockPersonServiceClient())
+        private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockPersonServiceClient(), navEnhetService)
         private val deltakerEndringRepository = DeltakerEndringRepository()
         private val vedtakRepository = VedtakRepository()
         private val forslagRepository = ForslagRepository()
@@ -120,6 +120,7 @@ class DeltakerStatusOppdateringTest {
         @JvmStatic
         @BeforeAll
         fun setup() {
+            @Suppress("UnusedExpression")
             SingletonPostgres16Container
 
             deltakerService = DeltakerService(

@@ -6,14 +6,14 @@ import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetService
-import no.nav.amt.deltaker.utils.mockAmtPersonClient
+import no.nav.amt.deltaker.utils.mockPersonServiceClient
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import org.junit.jupiter.api.Test
 
 class EndringFraTiltakskoordinatorServiceTest {
     private val repository = EndringFraTiltakskoordinatorRepository()
-    private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonClient())
-    private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockAmtPersonClient(), navEnhetService)
+    private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockPersonServiceClient())
+    private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockPersonServiceClient(), navEnhetService)
 
     private val service = EndringFraTiltakskoordinatorService(repository, navAnsattService)
 

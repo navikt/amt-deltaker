@@ -24,7 +24,7 @@ import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinat
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.utils.mockAmtArrangorClient
-import no.nav.amt.deltaker.utils.mockAmtPersonClient
+import no.nav.amt.deltaker.utils.mockPersonServiceClient
 import no.nav.amt.lib.kafka.Producer
 import no.nav.amt.lib.kafka.config.LocalKafkaConfig
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
@@ -39,7 +39,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 class EndringFraArrangorServiceTest {
-    private val amtPersonClient = mockAmtPersonClient()
+    private val amtPersonClient = mockPersonServiceClient()
     private val navEnhetService = NavEnhetService(NavEnhetRepository(), amtPersonClient)
     private val navAnsattService = NavAnsattService(NavAnsattRepository(), amtPersonClient, navEnhetService)
     private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
@@ -76,6 +76,7 @@ class EndringFraArrangorServiceTest {
         @JvmStatic
         @BeforeAll
         fun setup() {
+            @Suppress("UnusedExpression")
             SingletonPostgres16Container
         }
     }

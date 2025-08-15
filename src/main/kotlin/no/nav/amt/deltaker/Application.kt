@@ -14,6 +14,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.Environment.Companion.HTTP_CLIENT_TIMEOUT_MS
 import no.nav.amt.deltaker.application.plugins.configureAuthentication
 import no.nav.amt.deltaker.application.plugins.configureMonitoring
+import no.nav.amt.deltaker.application.plugins.configureRequestValidation
 import no.nav.amt.deltaker.application.plugins.configureRouting
 import no.nav.amt.deltaker.application.plugins.configureSerialization
 import no.nav.amt.deltaker.arrangor.AmtArrangorClient
@@ -23,6 +24,7 @@ import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.auth.TilgangskontrollService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerService
+import no.nav.amt.deltaker.deltaker.OpprettKladdRequestValidator
 import no.nav.amt.deltaker.deltaker.PameldingService
 import no.nav.amt.deltaker.deltaker.VedtakService
 import no.nav.amt.deltaker.deltaker.api.model.DeltakelserResponseMapper
@@ -149,7 +151,7 @@ fun Application.module(): suspend () -> Unit {
         azureAdTokenClient = azureAdTokenClient,
     )
 
-    val isOppfolgingstilfelleClient = IsOppfolgingstilfelleClient(
+    val isOppfolgingsTilfelleClient = IsOppfolgingstilfelleClient(
         baseUrl = environment.isOppfolgingstilfelleUrl,
         scope = environment.isOppfolgingstilfelleScope,
         azureAdTokenClient = azureAdTokenClient,
@@ -267,14 +269,20 @@ fun Application.module(): suspend () -> Unit {
         navEnhetService,
     )
 
+    val opprettKladdRequestValidator = OpprettKladdRequestValidator(
+        deltakerlisteRepository = deltakerlisteRepository,
+        brukerService = navBrukerService,
+        personServiceClient = amtPersonServiceClient,
+        isOppfolgingsTilfelleClient = isOppfolgingsTilfelleClient,
+    )
+
     val pameldingService = PameldingService(
         deltakerService = deltakerService,
-        deltakerlisteRepository = deltakerlisteRepository,
+        deltakerListeRepository = deltakerlisteRepository,
         navBrukerService = navBrukerService,
         navAnsattService = navAnsattService,
         navEnhetService = navEnhetService,
         vedtakService = vedtakService,
-        isOppfolgingstilfelleClient = isOppfolgingstilfelleClient,
         hendelseService = hendelseService,
         innsokPaaFellesOppstartService = innsokPaaFellesOppstartService,
     )
@@ -300,19 +308,24 @@ fun Application.module(): suspend () -> Unit {
     consumers.forEach { it.start() }
 
     configureAuthentication(environment)
+
+    configureRequestValidation(
+        opprettKladdRequestValidator = opprettKladdRequestValidator,
+    )
+
     configureRouting(
-        pameldingService,
-        deltakerService,
-        deltakerHistorikkService,
-        tilgangskontrollService,
-        deltakelserResponseMapper,
-        deltakerProducerService,
-        vedtakService,
-        unleashToggle,
-        innsokPaaFellesOppstartService,
-        vurderingService,
-        hendelseService,
-        endringFraTiltakskoordinatorService,
+        pameldingService = pameldingService,
+        deltakerService = deltakerService,
+        deltakerHistorikkService = deltakerHistorikkService,
+        tilgangskontrollService = tilgangskontrollService,
+        deltakelserResponseMapper = deltakelserResponseMapper,
+        deltakerProducerService = deltakerProducerService,
+        vedtakService = vedtakService,
+        unleashToggle = unleashToggle,
+        innsokPaaFellesOppstartService = innsokPaaFellesOppstartService,
+        vurderingService = vurderingService,
+        hendelseService = hendelseService,
+        endringFraTiltakskoordinatorService = endringFraTiltakskoordinatorService,
     )
     configureMonitoring()
 

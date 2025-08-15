@@ -108,18 +108,18 @@ class AuthenticationTest {
             configureSerialization()
             configureAuthentication(Environment())
             configureRouting(
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
+                pameldingService = mockk(),
+                deltakerService = mockk(),
+                deltakerHistorikkService = mockk(),
+                tilgangskontrollService = mockk(),
+                deltakelserResponseMapper = mockk(),
+                deltakerProducerService = mockk(),
+                vedtakService = mockk(),
+                unleashToggle = mockk(),
+                innsokPaaFellesOppstartService = mockk(),
+                vurderingService = mockk(),
+                hendelseService = mockk(),
+                endringFraTiltakskoordinatorService = mockk(),
             )
             setUpTestRoute()
         }
