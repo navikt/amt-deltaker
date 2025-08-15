@@ -30,11 +30,15 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 21
+          java-version: '21'
+          cache: 'gradle'
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
+
       - name: Build artifacts
-        run: ./gradlew build --no-build-cache -x test
+        run: ./gradlew clean build --no-build-cache --no-daemon -x test
+
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
         with:
@@ -42,7 +46,7 @@ jobs:
 
   check_codeql_status:
     name: Check CodeQL Status
-    needs: Analyze
+    needs: analyze
     permissions:
       contents: read
       checks: read
