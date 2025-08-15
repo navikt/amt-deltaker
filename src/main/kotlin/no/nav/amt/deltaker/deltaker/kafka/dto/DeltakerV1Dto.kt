@@ -27,6 +27,7 @@ data class DeltakerV1Dto(
         val aarsak: DeltakerStatus.Aarsak.Type?,
         val aarsakTekst: String?,
         val opprettetDato: LocalDateTime,
+        val gyldigFraDato: LocalDateTime,
     )
 
     data class DeltakelsesinnholdDto(
