@@ -27,7 +27,7 @@ import no.nav.amt.deltaker.deltaker.kafka.DeltakerV1Producer
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerDtoMapperService
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
-import no.nav.amt.deltaker.deltakerliste.DeltakerListeRepository
+import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.hendelse.HendelseProducer
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.isoppfolgingstilfelle.OppfolgingstilfelleDTO
@@ -47,7 +47,7 @@ import no.nav.amt.deltaker.utils.MockResponseHandler
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestData.lagArrangor
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
-import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerListe
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestData.lagNavAnsatt
 import no.nav.amt.deltaker.utils.data.TestData.lagNavBruker
 import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
@@ -104,7 +104,7 @@ class PameldingServiceTest {
     @Test
     fun `opprettKladd - deltaker finnes ikke - oppretter ny deltaker`() {
         val arrangor = lagArrangor()
-        val deltakerListe = lagDeltakerListe(arrangor = arrangor)
+        val deltakerListe = lagDeltakerliste(arrangor = arrangor)
         val opprettetAv = lagNavAnsatt()
         val opprettetAvEnhet = lagNavEnhet()
         val navBruker = lagNavBruker(
@@ -143,7 +143,7 @@ class PameldingServiceTest {
             innsatsgrupper = setOf(Innsatsgruppe.VARIG_TILPASSET_INNSATS, Innsatsgruppe.SPESIELT_TILPASSET_INNSATS),
         )
         val arrangor = lagArrangor()
-        val deltakerListe = lagDeltakerListe(arrangor = arrangor, tiltakstype = tiltakstype)
+        val deltakerListe = lagDeltakerliste(arrangor = arrangor, tiltakstype = tiltakstype)
         val opprettetAv = lagNavAnsatt()
         val opprettetAvEnhet = lagNavEnhet()
         val navBruker = lagNavBruker(
@@ -555,7 +555,7 @@ class PameldingServiceTest {
 
         private var pameldingService = PameldingService(
             deltakerService = deltakerService,
-            deltakerListeRepository = DeltakerListeRepository(),
+            deltakerListeRepository = DeltakerlisteRepository(),
             navBrukerService = NavBrukerService(
                 NavBrukerRepository(),
                 mockPersonServiceClient(),

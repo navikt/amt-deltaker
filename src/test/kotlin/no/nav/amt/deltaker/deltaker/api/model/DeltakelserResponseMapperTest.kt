@@ -60,7 +60,7 @@ class DeltakelserResponseMapperTest {
         TestRepository.insert(arrangor)
 
         val deltaker = TestData.lagDeltaker(
-            deltakerliste = TestData.lagDeltakerListe(
+            deltakerliste = TestData.lagDeltakerliste(
                 arrangor = arrangor,
                 tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
             ),
@@ -100,7 +100,7 @@ class DeltakelserResponseMapperTest {
         TestRepository.insert(arrangor)
 
         val deltaker = TestData.lagDeltaker(
-            deltakerliste = TestData.lagDeltakerListe(
+            deltakerliste = TestData.lagDeltakerliste(
                 arrangor = arrangor,
                 tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
             ),
@@ -146,7 +146,7 @@ class DeltakelserResponseMapperTest {
         TestRepository.insert(navEnhet)
 
         val deltaker = TestData.lagDeltaker(
-            deltakerliste = TestData.lagDeltakerListe(
+            deltakerliste = TestData.lagDeltakerliste(
                 arrangor = arrangor,
                 tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
             ),
@@ -194,7 +194,7 @@ class DeltakelserResponseMapperTest {
         TestRepository.insert(navEnhet)
 
         val deltaker = TestData.lagDeltaker(
-            deltakerliste = TestData.lagDeltakerListe(
+            deltakerliste = TestData.lagDeltakerliste(
                 arrangor = arrangor,
                 tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
             ),
@@ -240,7 +240,7 @@ class DeltakelserResponseMapperTest {
         TestRepository.insert(arrangor)
 
         val deltaker = TestData.lagDeltaker(
-            deltakerliste = TestData.lagDeltakerListe(
+            deltakerliste = TestData.lagDeltakerliste(
                 arrangor = arrangor,
                 tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
             ),
@@ -290,7 +290,7 @@ class DeltakelserResponseMapperTest {
         TestRepository.insert(arrangor)
 
         val deltaker = TestData.lagDeltaker(
-            deltakerliste = TestData.lagDeltakerListe(
+            deltakerliste = TestData.lagDeltakerliste(
                 arrangor = arrangor,
                 tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
             ),
@@ -340,7 +340,7 @@ class DeltakelserResponseMapperTest {
         TestRepository.insert(arrangor)
 
         val deltaker = TestData.lagDeltaker(
-            deltakerliste = TestData.lagDeltakerListe(
+            deltakerliste = TestData.lagDeltakerliste(
                 arrangor = arrangor,
                 tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
             ),
@@ -388,7 +388,7 @@ class DeltakelserResponseMapperTest {
         TestRepository.insert(navEnhet)
         val arrangor = TestData.lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null)
         TestRepository.insert(arrangor)
-        val deltakerliste = TestData.lagDeltakerListe(
+        val deltakerliste = TestData.lagDeltakerliste(
             arrangor = arrangor,
             tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
         )
@@ -446,7 +446,7 @@ class DeltakelserResponseMapperTest {
         TestRepository.insert(arrangor)
 
         val deltaker = TestData.lagDeltaker(
-            deltakerliste = TestData.lagDeltakerListe(
+            deltakerliste = TestData.lagDeltakerliste(
                 arrangor = arrangor,
                 tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
             ),

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerService
-import no.nav.amt.deltaker.deltakerliste.DeltakerListeRepository
+import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.kafka.arenaKodeTilTiltakstype
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.kafka.erStottet
@@ -14,7 +14,7 @@ import no.nav.amt.lib.utils.objectMapper
 import java.util.UUID
 
 class DeltakerlisteConsumer(
-    private val repository: DeltakerListeRepository,
+    private val repository: DeltakerlisteRepository,
     private val tiltakstypeRepository: TiltakstypeRepository,
     private val arrangorService: ArrangorService,
     private val deltakerService: DeltakerService,

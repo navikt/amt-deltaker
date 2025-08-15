@@ -49,7 +49,7 @@ import no.nav.amt.deltaker.deltaker.kafka.DeltakerV1Producer
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerDtoMapperService
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
-import no.nav.amt.deltaker.deltakerliste.DeltakerListeRepository
+import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlisteConsumer
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.kafka.TiltakstypeConsumer
@@ -165,7 +165,7 @@ fun Application.module(): suspend () -> Unit {
     val navEnhetRepository = NavEnhetRepository()
     val navBrukerRepository = NavBrukerRepository()
     val tiltakstypeRepository = TiltakstypeRepository()
-    val deltakerlisteRepository = DeltakerListeRepository()
+    val deltakerlisteRepository = DeltakerlisteRepository()
     val deltakerRepository = DeltakerRepository()
     val deltakerEndringRepository = DeltakerEndringRepository()
     val vedtakRepository = VedtakRepository()
@@ -270,7 +270,7 @@ fun Application.module(): suspend () -> Unit {
     )
 
     val opprettKladdRequestValidator = OpprettKladdRequestValidator(
-        deltakerListeRepository = deltakerlisteRepository,
+        deltakerlisteRepository = deltakerlisteRepository,
         brukerService = navBrukerService,
         personServiceClient = amtPersonServiceClient,
         isOppfolgingsTilfelleClient = isOppfolgingsTilfelleClient,

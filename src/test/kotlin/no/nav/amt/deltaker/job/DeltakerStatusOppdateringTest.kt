@@ -218,7 +218,7 @@ class DeltakerStatusOppdateringTest {
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
             startdato = LocalDate.now().minusWeeks(1),
             sluttdato = LocalDate.now().minusDays(2),
-            deltakerliste = TestData.lagDeltakerListe(
+            deltakerliste = TestData.lagDeltakerliste(
                 oppstart = Deltakerliste.Oppstartstype.LOPENDE,
                 sluttDato = LocalDate.now().plusMonths(3),
             ),
@@ -251,7 +251,7 @@ class DeltakerStatusOppdateringTest {
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
             startdato = LocalDate.now().minusWeeks(1),
             sluttdato = LocalDate.now().minusDays(2),
-            deltakerliste = TestData.lagDeltakerListe(
+            deltakerliste = TestData.lagDeltakerliste(
                 oppstart = Deltakerliste.Oppstartstype.LOPENDE,
                 sluttDato = LocalDate.now().plusMonths(3),
             ),
@@ -292,7 +292,7 @@ class DeltakerStatusOppdateringTest {
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
             startdato = LocalDate.now().minusWeeks(1),
             sluttdato = LocalDate.now().minusDays(2),
-            deltakerliste = TestData.lagDeltakerListe(
+            deltakerliste = TestData.lagDeltakerliste(
                 oppstart = Deltakerliste.Oppstartstype.FELLES,
                 sluttDato = LocalDate.now().minusDays(2),
             ),
@@ -325,7 +325,7 @@ class DeltakerStatusOppdateringTest {
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
             startdato = LocalDate.now().minusWeeks(1),
             sluttdato = LocalDate.now().minusDays(2),
-            deltakerliste = TestData.lagDeltakerListe(
+            deltakerliste = TestData.lagDeltakerliste(
                 oppstart = Deltakerliste.Oppstartstype.FELLES,
                 sluttDato = LocalDate.now().plusDays(2),
             ),
@@ -358,7 +358,7 @@ class DeltakerStatusOppdateringTest {
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
             startdato = LocalDate.now().minusMonths(1),
             sluttdato = LocalDate.now().plusDays(2),
-            deltakerliste = TestData.lagDeltakerListe(
+            deltakerliste = TestData.lagDeltakerliste(
                 oppstart = Deltakerliste.Oppstartstype.LOPENDE,
                 sluttDato = LocalDate.now().minusDays(2),
                 status = Deltakerliste.Status.AVSLUTTET,
@@ -393,7 +393,7 @@ class DeltakerStatusOppdateringTest {
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
             startdato = null,
             sluttdato = null,
-            deltakerliste = TestData.lagDeltakerListe(
+            deltakerliste = TestData.lagDeltakerliste(
                 oppstart = Deltakerliste.Oppstartstype.LOPENDE,
                 sluttDato = LocalDate.now().minusDays(2),
                 status = Deltakerliste.Status.AVSLUTTET,
@@ -428,7 +428,7 @@ class DeltakerStatusOppdateringTest {
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
             startdato = LocalDate.now().minusMonths(1),
             sluttdato = LocalDate.now().plusDays(2),
-            deltakerliste = TestData.lagDeltakerListe(
+            deltakerliste = TestData.lagDeltakerliste(
                 oppstart = Deltakerliste.Oppstartstype.LOPENDE,
                 sluttDato = LocalDate.now().minusDays(2),
                 status = Deltakerliste.Status.AVLYST,
@@ -463,7 +463,7 @@ class DeltakerStatusOppdateringTest {
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
             startdato = null,
             sluttdato = null,
-            deltakerliste = TestData.lagDeltakerListe(
+            deltakerliste = TestData.lagDeltakerliste(
                 oppstart = Deltakerliste.Oppstartstype.LOPENDE,
                 sluttDato = LocalDate.now().minusDays(2),
                 status = Deltakerliste.Status.AVBRUTT,
@@ -498,7 +498,7 @@ class DeltakerStatusOppdateringTest {
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
             startdato = null,
             sluttdato = null,
-            deltakerliste = TestData.lagDeltakerListe(
+            deltakerliste = TestData.lagDeltakerliste(
                 oppstart = Deltakerliste.Oppstartstype.LOPENDE,
                 sluttDato = LocalDate.now().minusDays(2),
                 status = Deltakerliste.Status.AVBRUTT,
@@ -529,7 +529,7 @@ class DeltakerStatusOppdateringTest {
         val sistEndretAvEnhet = TestData.lagNavEnhet()
         TestRepository.insert(sistEndretAv)
         TestRepository.insert(sistEndretAvEnhet)
-        val deltakerliste = TestData.lagDeltakerListe(
+        val deltakerliste = TestData.lagDeltakerliste(
             oppstart = Deltakerliste.Oppstartstype.LOPENDE,
             sluttDato = LocalDate.now().minusDays(2),
             status = Deltakerliste.Status.AVLYST,

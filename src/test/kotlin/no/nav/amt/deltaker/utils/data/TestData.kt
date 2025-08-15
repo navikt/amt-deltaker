@@ -135,7 +135,7 @@ object TestData {
         ledetekst: String = "Beskrivelse av tilaket",
     ) = DeltakerRegistreringInnhold(innholdselementer, ledetekst)
 
-    fun lagDeltakerListe(
+    fun lagDeltakerliste(
         id: UUID = UUID.randomUUID(),
         arrangor: Arrangor = lagArrangor(),
         tiltakstype: Tiltakstype = lagTiltakstype(),
@@ -149,17 +149,17 @@ object TestData {
 
     fun lagDeltakerlisteMedLopendeOppstart(
         tiltakstype: Tiltakstype = lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
-    ) = lagDeltakerListe(
+    ) = lagDeltakerliste(
         tiltakstype = tiltakstype,
     )
 
     fun lagDeltakerlisteMedFellesOppstart(
         tiltakstype: Tiltakstype = lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING),
-    ) = lagDeltakerListe(
+    ) = lagDeltakerliste(
         tiltakstype = tiltakstype,
     )
 
-    fun lagDeltakerlisteDto(arrangor: Arrangor = lagArrangor(), deltakerliste: Deltakerliste = lagDeltakerListe(arrangor = arrangor)) =
+    fun lagDeltakerlisteDto(arrangor: Arrangor = lagArrangor(), deltakerliste: Deltakerliste = lagDeltakerliste(arrangor = arrangor)) =
         DeltakerlisteDto(
             id = deltakerliste.id,
             tiltakstype = DeltakerlisteDto.Tiltakstype(
@@ -226,7 +226,7 @@ object TestData {
     fun lagDeltakerKladd(
         id: UUID = UUID.randomUUID(),
         navBruker: NavBruker = lagNavBruker(),
-        deltakerliste: Deltakerliste = lagDeltakerListe(),
+        deltakerliste: Deltakerliste = lagDeltakerliste(),
     ) = lagDeltaker(
         id = id,
         navBruker = navBruker,
@@ -243,7 +243,7 @@ object TestData {
     fun lagDeltaker(
         id: UUID = UUID.randomUUID(),
         navBruker: NavBruker = lagNavBruker(),
-        deltakerliste: Deltakerliste = lagDeltakerListe(),
+        deltakerliste: Deltakerliste = lagDeltakerliste(),
         startdato: LocalDate? = LocalDate.now().minusMonths(3),
         sluttdato: LocalDate? = LocalDate.now().minusDays(1),
         dagerPerUke: Float? = 5F,

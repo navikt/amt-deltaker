@@ -79,7 +79,7 @@ class HentDeltakelserApiTest {
 
         val innsoktDato = LocalDate.now().minusDays(4)
         val deltaker = TestData.lagDeltaker(
-            deltakerliste = TestData.lagDeltakerListe(
+            deltakerliste = TestData.lagDeltakerliste(
                 arrangor = TestData.lagArrangor(overordnetArrangorId = null, navn = "ARRANGØR AS"),
                 tiltakstype = TestData.lagTiltakstype(
                     tiltakskode = Tiltakstype.Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
@@ -138,7 +138,7 @@ class HentDeltakelserApiTest {
 
         val innsoktDato = LocalDate.now().minusDays(4)
         val deltakerKladd = TestData.lagDeltaker(
-            deltakerliste = TestData.lagDeltakerListe(
+            deltakerliste = TestData.lagDeltakerliste(
                 arrangor = TestData.lagArrangor(overordnetArrangorId = null, navn = "ARRANGØR AS"),
                 tiltakstype = TestData.lagTiltakstype(
                     tiltakskode = Tiltakstype.Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
@@ -148,7 +148,7 @@ class HentDeltakelserApiTest {
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.KLADD),
         )
         val avsluttetDeltaker = TestData.lagDeltaker(
-            deltakerliste = TestData.lagDeltakerListe(
+            deltakerliste = TestData.lagDeltakerliste(
                 arrangor = TestData.lagArrangor(overordnetArrangorId = null, navn = "ARRANGØR OG SØNN AS"),
                 tiltakstype = TestData.lagTiltakstype(
                     tiltakskode = Tiltakstype.Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,

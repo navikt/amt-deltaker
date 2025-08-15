@@ -6,8 +6,8 @@ import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartService
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.deltaker.deltaker.model.Vedtaksinformasjon
-import no.nav.amt.deltaker.deltakerliste.DeltakerListeRepository
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
+import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navbruker.NavBrukerService
@@ -24,7 +24,7 @@ import java.util.UUID
 
 class PameldingService(
     private val deltakerService: DeltakerService,
-    private val deltakerListeRepository: DeltakerListeRepository,
+    private val deltakerListeRepository: DeltakerlisteRepository,
     private val navBrukerService: NavBrukerService,
     private val navAnsattService: NavAnsattService,
     private val navEnhetService: NavEnhetService,

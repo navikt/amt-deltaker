@@ -9,7 +9,7 @@ import no.nav.amt.lib.utils.database.Database
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
-class DeltakerListeRepository {
+class DeltakerlisteRepository {
     private val log = LoggerFactory.getLogger(javaClass)
 
     companion object {

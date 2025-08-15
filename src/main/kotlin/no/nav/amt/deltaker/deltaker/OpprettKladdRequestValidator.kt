@@ -2,8 +2,8 @@ package no.nav.amt.deltaker.deltaker
 
 import io.ktor.server.plugins.requestvalidation.ValidationResult
 import no.nav.amt.deltaker.deltaker.api.model.request.OpprettKladdRequest
-import no.nav.amt.deltaker.deltakerliste.DeltakerListeRepository
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
+import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.isoppfolgingstilfelle.IsOppfolgingstilfelleClient
 import no.nav.amt.deltaker.navbruker.NavBrukerService
 import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
@@ -12,13 +12,13 @@ import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import java.time.Year
 
 class OpprettKladdRequestValidator(
-    private val deltakerListeRepository: DeltakerListeRepository,
+    private val deltakerlisteRepository: DeltakerlisteRepository,
     private val brukerService: NavBrukerService,
     private val personServiceClient: AmtPersonServiceClient,
     private val isOppfolgingsTilfelleClient: IsOppfolgingstilfelleClient,
 ) {
     suspend fun validateRequest(request: OpprettKladdRequest): ValidationResult {
-        val deltakerListe = deltakerListeRepository.get(request.deltakerlisteId).getOrThrow()
+        val deltakerListe = deltakerlisteRepository.get(request.deltakerlisteId).getOrThrow()
 
         if (deltakerListe.erAvsluttet()) {
             return ValidationResult.Invalid("Deltakerliste er avsluttet")

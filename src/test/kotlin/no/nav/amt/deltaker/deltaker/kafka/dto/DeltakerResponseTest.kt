@@ -63,7 +63,7 @@ data class DeltakerContext(
         status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
         startdato = LocalDate.now().minusMonths(1),
         sluttdato = LocalDate.now().plusMonths(3),
-        deltakerliste = TestData.lagDeltakerListe(
+        deltakerliste = TestData.lagDeltakerliste(
             tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
         ),
         navBruker = TestData.lagNavBruker(navVeilederId = veileder.id, navEnhetId = navEnhet.id),
@@ -112,7 +112,7 @@ data class DeltakerContext(
 
     fun withTiltakstype(tiltakskode: Tiltakstype.Tiltakskode) {
         deltaker = deltaker.copy(
-            deltakerliste = TestData.lagDeltakerListe(tiltakstype = TestData.lagTiltakstype(tiltakskode = tiltakskode)),
+            deltakerliste = TestData.lagDeltakerliste(tiltakstype = TestData.lagTiltakstype(tiltakskode = tiltakskode)),
         )
     }
 

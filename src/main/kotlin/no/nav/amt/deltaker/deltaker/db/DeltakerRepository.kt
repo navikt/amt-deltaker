@@ -9,8 +9,8 @@ import no.nav.amt.deltaker.deltaker.model.AVSLUTTENDE_STATUSER
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.deltaker.deltaker.model.Vedtaksinformasjon
-import no.nav.amt.deltaker.deltakerliste.DeltakerListeRepository
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
+import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.utils.toPGObject
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
@@ -43,7 +43,7 @@ class DeltakerRepository {
                 oppfolgingsperioder = row.stringOrNull("nb.oppfolgingsperioder")?.let { objectMapper.readValue(it) } ?: emptyList(),
                 innsatsgruppe = row.stringOrNull("nb.innsatsgruppe")?.let { Innsatsgruppe.valueOf(it) },
             ),
-            deltakerliste = DeltakerListeRepository.rowMapper(row),
+            deltakerliste = DeltakerlisteRepository.rowMapper(row),
             startdato = row.localDateOrNull("d.startdato"),
             sluttdato = row.localDateOrNull("d.sluttdato"),
             dagerPerUke = row.floatOrNull("d.dager_per_uke"),
