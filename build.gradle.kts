@@ -120,5 +120,6 @@ tasks.jar {
 }
 
 tasks.shadowJar {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
     mergeServiceFiles()
 }
