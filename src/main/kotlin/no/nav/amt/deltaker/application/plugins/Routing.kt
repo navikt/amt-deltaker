@@ -13,8 +13,6 @@ import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
-import no.nav.amt.deltaker.auth.AuthenticationException
-import no.nav.amt.deltaker.auth.AuthorizationException
 import no.nav.amt.deltaker.auth.TilgangskontrollService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerService
@@ -35,6 +33,8 @@ import no.nav.amt.deltaker.internal.registerInternalApi
 import no.nav.amt.deltaker.tiltakskoordinator.api.registerTiltakskoordinatorApi
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorService
 import no.nav.amt.deltaker.unleash.UnleashToggle
+import no.nav.amt.lib.ktor.auth.exceptions.AuthenticationException
+import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.ktor.routing.registerHealthApi
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
