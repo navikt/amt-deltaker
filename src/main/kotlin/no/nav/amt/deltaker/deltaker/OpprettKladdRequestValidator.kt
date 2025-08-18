@@ -1,10 +1,10 @@
 package no.nav.amt.deltaker.deltaker
 
 import io.ktor.server.plugins.requestvalidation.ValidationResult
-import no.nav.amt.deltaker.deltaker.api.model.request.OpprettKladdRequest
+import no.nav.amt.deltaker.apiclients.oppfolgingstilfelle.IsOppfolgingstilfelleClient
+import no.nav.amt.deltaker.deltaker.api.paamelding.request.OpprettKladdRequest
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
-import no.nav.amt.deltaker.isoppfolgingstilfelle.IsOppfolgingstilfelleClient
 import no.nav.amt.deltaker.navbruker.NavBrukerService
 import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe

@@ -12,11 +12,11 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import io.ktor.serialization.jackson.jackson
 import io.ktor.utils.io.ByteReadChannel
-import no.nav.amt.deltaker.arrangor.AmtArrangorClient
+import no.nav.amt.deltaker.apiclients.arrangor.AmtArrangorClient
+import no.nav.amt.deltaker.apiclients.arrangor.ArrangorResponse
+import no.nav.amt.deltaker.apiclients.oppfolgingstilfelle.IsOppfolgingstilfelleClient
+import no.nav.amt.deltaker.apiclients.oppfolgingstilfelle.OppfolgingstilfellePersonResponse
 import no.nav.amt.deltaker.arrangor.Arrangor
-import no.nav.amt.deltaker.arrangor.ArrangorDto
-import no.nav.amt.deltaker.isoppfolgingstilfelle.IsOppfolgingstilfelleClient
-import no.nav.amt.deltaker.isoppfolgingstilfelle.OppfolgingstilfellePersonDTO
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
 import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
@@ -101,7 +101,7 @@ fun mockAmtArrangorClient(arrangor: Arrangor = TestData.lagArrangor()): AmtArran
         TestData.lagArrangor(id = arrangor.overordnetArrangorId)
     }
 
-    val response = ArrangorDto(arrangor.id, arrangor.navn, arrangor.organisasjonsnummer, overordnetArrangor)
+    val response = ArrangorResponse(arrangor.id, arrangor.navn, arrangor.organisasjonsnummer, overordnetArrangor)
     return AmtArrangorClient(
         baseUrl = "https://amt-arrangor",
         scope = "amt.arrangor.scope",
@@ -185,8 +185,8 @@ object MockResponseHandler {
         addResponse(url, HttpMethod.Post, navBruker)
     }
 
-    fun addOppfolgingstilfelleRespons(oppfolgingstilfellePersonDTO: OppfolgingstilfellePersonDTO) {
+    fun addOppfolgingstilfelleRespons(oppfolgingstilfellePersonResponse: OppfolgingstilfellePersonResponse) {
         val url = "$ISOPPFOLGINGSTILFELLE_URL/api/system/v1/oppfolgingstilfelle/personident"
-        addResponse(url, HttpMethod.Get, oppfolgingstilfellePersonDTO)
+        addResponse(url, HttpMethod.Get, oppfolgingstilfellePersonResponse)
     }
 }

@@ -6,16 +6,19 @@ import io.kotest.matchers.shouldNotBe
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
+import no.nav.amt.deltaker.apiclients.oppfolgingstilfelle.OppfolgingstilfelleDTO
+import no.nav.amt.deltaker.apiclients.oppfolgingstilfelle.OppfolgingstilfellePersonResponse
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
-import no.nav.amt.deltaker.deltaker.api.model.request.AvbrytUtkastRequest
-import no.nav.amt.deltaker.deltaker.api.model.request.UtkastRequest
+import no.nav.amt.deltaker.deltaker.api.paamelding.request.AvbrytUtkastRequest
+import no.nav.amt.deltaker.deltaker.api.paamelding.request.UtkastRequest
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringService
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorService
+import no.nav.amt.deltaker.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
@@ -30,8 +33,6 @@ import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.hendelse.HendelseProducer
 import no.nav.amt.deltaker.hendelse.HendelseService
-import no.nav.amt.deltaker.isoppfolgingstilfelle.OppfolgingstilfelleDTO
-import no.nav.amt.deltaker.isoppfolgingstilfelle.OppfolgingstilfellePersonDTO
 import no.nav.amt.deltaker.kafka.utils.assertProduced
 import no.nav.amt.deltaker.kafka.utils.assertProducedDeltakerV1
 import no.nav.amt.deltaker.kafka.utils.assertProducedHendelse
@@ -154,7 +155,7 @@ class PameldingServiceTest {
 
         mockResponses(opprettetAvEnhet, opprettetAv, navBruker)
         MockResponseHandler.addOppfolgingstilfelleRespons(
-            OppfolgingstilfellePersonDTO(
+            OppfolgingstilfellePersonResponse(
                 listOf(
                     OppfolgingstilfelleDTO(
                         arbeidstakerAtTilfelleEnd = true,

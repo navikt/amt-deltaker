@@ -1,13 +1,16 @@
 package no.nav.amt.deltaker.deltaker
 
 import kotliquery.TransactionalSession
-import no.nav.amt.deltaker.deltaker.api.model.request.EndringRequest
-import no.nav.amt.deltaker.deltaker.api.model.request.toDeltakerEndringEndring
+import no.nav.amt.deltaker.deltaker.DeltakerUtils.nyDeltakerStatus
+import no.nav.amt.deltaker.deltaker.api.deltaker.request.EndringRequest
+import no.nav.amt.deltaker.deltaker.api.deltaker.toDeltakerEndringEndring
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringHandler
 import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringService
 import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringUtfall
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorService
+import no.nav.amt.deltaker.deltaker.extensions.getVedtakOrThrow
+import no.nav.amt.deltaker.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
@@ -340,22 +343,3 @@ class DeltakerService(
         }
     }
 }
-
-fun nyDeltakerStatus(
-    type: DeltakerStatus.Type,
-    aarsak: DeltakerStatus.Aarsak? = null,
-    gyldigFra: LocalDateTime = LocalDateTime.now(),
-) = DeltakerStatus(
-    id = UUID.randomUUID(),
-    type = type,
-    aarsak = aarsak,
-    gyldigFra = gyldigFra,
-    gyldigTil = null,
-    opprettet = LocalDateTime.now(),
-)
-
-data class DeltakerOppdateringResult(
-    val deltaker: Deltaker,
-    val isSuccess: Boolean,
-    val exceptionOrNull: Throwable?,
-)

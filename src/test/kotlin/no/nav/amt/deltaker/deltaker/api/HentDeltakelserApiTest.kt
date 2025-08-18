@@ -18,10 +18,10 @@ import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.auth.TilgangskontrollService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerService
-import no.nav.amt.deltaker.deltaker.api.model.DeltakelserResponseMapper
-import no.nav.amt.deltaker.deltaker.api.model.DeltakerKort
-import no.nav.amt.deltaker.deltaker.api.model.Periode
-import no.nav.amt.deltaker.deltaker.api.model.response.DeltakelserResponse
+import no.nav.amt.deltaker.deltaker.api.deltaker.DeltakelserResponseMapper
+import no.nav.amt.deltaker.deltaker.api.deltaker.DeltakerKort
+import no.nav.amt.deltaker.deltaker.api.deltaker.Periode
+import no.nav.amt.deltaker.deltaker.api.deltaker.response.DeltakelserResponse
 import no.nav.amt.deltaker.deltaker.api.utils.postVeilederRequest
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.external.data.HentDeltakelserRequest

@@ -8,10 +8,10 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
-import no.nav.amt.deltaker.deltaker.api.model.request.OpprettKladdRequest
+import no.nav.amt.deltaker.apiclients.oppfolgingstilfelle.IsOppfolgingstilfelleClient
+import no.nav.amt.deltaker.deltaker.api.paamelding.request.OpprettKladdRequest
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste.Status
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
-import no.nav.amt.deltaker.isoppfolgingstilfelle.IsOppfolgingstilfelleClient
 import no.nav.amt.deltaker.navbruker.NavBrukerService
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestData.lagNavBruker

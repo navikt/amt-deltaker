@@ -11,7 +11,6 @@ import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaReposit
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerDtoMapperService
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerV2Dto
-import no.nav.amt.deltaker.deltaker.kafka.dto.toDeltakerNavVeilederDto
 import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.deltaker.deltaker.sammenlignHistorikk
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
@@ -109,7 +108,7 @@ class DeltakerResponseMapperServiceTest {
         deltakerV2Dto.forsteVedtakFattet shouldBe null
         deltakerV2Dto.bestillingTekst shouldBe deltaker.bakgrunnsinformasjon
         deltakerV2Dto.navKontor shouldBe brukersEnhet.navn
-        deltakerV2Dto.navVeileder shouldBe veileder.toDeltakerNavVeilederDto()
+        deltakerV2Dto.navVeileder shouldBe DeltakerV2Dto.DeltakerNavVeilederDto.fromNavAnsatt(veileder)
         deltakerV2Dto.deltarPaKurs shouldBe deltaker.deltarPaKurs()
         deltakerV2Dto.kilde shouldBe Kilde.KOMET
         deltakerV2Dto.innhold shouldBe Deltakelsesinnhold(deltaker.deltakelsesinnhold!!.ledetekst, deltaker.deltakelsesinnhold.innhold)
@@ -185,7 +184,7 @@ class DeltakerResponseMapperServiceTest {
         deltakerV2Dto.forsteVedtakFattet shouldBe LocalDateTime.now().minusWeeks(1).toLocalDate()
         deltakerV2Dto.bestillingTekst shouldBe deltaker.bakgrunnsinformasjon
         deltakerV2Dto.navKontor shouldBe brukersEnhet.navn
-        deltakerV2Dto.navVeileder shouldBe veileder.toDeltakerNavVeilederDto()
+        deltakerV2Dto.navVeileder shouldBe DeltakerV2Dto.DeltakerNavVeilederDto.fromNavAnsatt(veileder)
         deltakerV2Dto.deltarPaKurs shouldBe deltaker.deltarPaKurs()
         deltakerV2Dto.kilde shouldBe Kilde.KOMET
         deltakerV2Dto.innhold shouldBe Deltakelsesinnhold(deltaker.deltakelsesinnhold!!.ledetekst, deltaker.deltakelsesinnhold.innhold)
@@ -241,7 +240,7 @@ class DeltakerResponseMapperServiceTest {
         deltakerV2Dto.forsteVedtakFattet shouldBe innsoktDato
         deltakerV2Dto.bestillingTekst shouldBe deltaker.bakgrunnsinformasjon
         deltakerV2Dto.navKontor shouldBe brukersEnhet.navn
-        deltakerV2Dto.navVeileder shouldBe veileder.toDeltakerNavVeilederDto()
+        deltakerV2Dto.navVeileder shouldBe DeltakerV2Dto.DeltakerNavVeilederDto.fromNavAnsatt(veileder)
         deltakerV2Dto.deltarPaKurs shouldBe deltaker.deltarPaKurs()
         deltakerV2Dto.kilde shouldBe Kilde.ARENA
         deltakerV2Dto.innhold shouldBe deltaker.deltakelsesinnhold
@@ -302,7 +301,7 @@ class DeltakerResponseMapperServiceTest {
         deltakerV2Dto.forsteVedtakFattet shouldBe innsoktDato
         deltakerV2Dto.bestillingTekst shouldBe deltaker.bakgrunnsinformasjon
         deltakerV2Dto.navKontor shouldBe brukersEnhet.navn
-        deltakerV2Dto.navVeileder shouldBe veileder.toDeltakerNavVeilederDto()
+        deltakerV2Dto.navVeileder shouldBe DeltakerV2Dto.DeltakerNavVeilederDto.fromNavAnsatt(veileder)
         deltakerV2Dto.deltarPaKurs shouldBe deltaker.deltarPaKurs()
         deltakerV2Dto.kilde shouldBe Kilde.ARENA
         deltakerV2Dto.innhold shouldBe deltaker.deltakelsesinnhold

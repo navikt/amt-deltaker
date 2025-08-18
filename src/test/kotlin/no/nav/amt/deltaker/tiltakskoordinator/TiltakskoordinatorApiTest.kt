@@ -18,6 +18,9 @@ import no.nav.amt.deltaker.deltaker.DeltakerOppdateringResult
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
 import no.nav.amt.deltaker.deltaker.model.Deltaker
+import no.nav.amt.deltaker.tiltakskoordinator.api.request.DeltakereRequest
+import no.nav.amt.deltaker.tiltakskoordinator.api.response.DeltakerOppdateringFeilkode
+import no.nav.amt.deltaker.tiltakskoordinator.api.response.DeltakerOppdateringResponse
 import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.deltaker.utils.configureEnvForAuthentication
 import no.nav.amt.deltaker.utils.data.TestData

@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.arrangor
 
+import no.nav.amt.deltaker.apiclients.arrangor.AmtArrangorClient
 import java.util.UUID
 
 class ArrangorService(

@@ -1,10 +1,10 @@
 package no.nav.amt.deltaker.deltaker.kafka.dto
 
-import no.nav.amt.deltaker.deltaker.getInnsoktDato
-import no.nav.amt.deltaker.deltaker.getInnsoktDatoFraImportertDeltaker
+import no.nav.amt.deltaker.deltaker.extensions.getInnsoktDato
+import no.nav.amt.deltaker.deltaker.extensions.getInnsoktDatoFraImportertDeltaker
+import no.nav.amt.deltaker.deltaker.extensions.getStatustekst
+import no.nav.amt.deltaker.deltaker.extensions.getVisningsnavn
 import no.nav.amt.deltaker.deltaker.model.Deltaker
-import no.nav.amt.deltaker.deltaker.model.getStatustekst
-import no.nav.amt.deltaker.deltaker.model.getVisningsnavn
 import no.nav.amt.deltaker.deltaker.vurdering.Vurdering
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
@@ -92,7 +92,7 @@ data class DeltakerDto(
             forsteVedtakFattet = deltakerhistorikk.getForsteVedtakFattet(),
             bestillingTekst = deltaker.bakgrunnsinformasjon,
             navKontor = navEnhet?.navn,
-            navVeileder = navAnsatt?.toDeltakerNavVeilederDto(),
+            navVeileder = navAnsatt?.let { DeltakerV2Dto.DeltakerNavVeilederDto.fromNavAnsatt(it) },
             deltarPaKurs = deltaker.deltarPaKurs(),
             kilde = deltaker.kilde,
             innhold = deltaker.deltakelsesinnhold,

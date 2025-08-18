@@ -22,11 +22,11 @@ import no.nav.amt.deltaker.application.plugins.configureSerialization
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.OpprettKladdRequestValidator
 import no.nav.amt.deltaker.deltaker.PameldingService
-import no.nav.amt.deltaker.deltaker.api.model.request.AvbrytUtkastRequest
-import no.nav.amt.deltaker.deltaker.api.model.request.OpprettKladdRequest
-import no.nav.amt.deltaker.deltaker.api.model.request.UtkastRequest
-import no.nav.amt.deltaker.deltaker.api.model.toDeltakerEndringResponse
-import no.nav.amt.deltaker.deltaker.api.model.toKladdResponse
+import no.nav.amt.deltaker.deltaker.api.paamelding.request.AvbrytUtkastRequest
+import no.nav.amt.deltaker.deltaker.api.paamelding.request.OpprettKladdRequest
+import no.nav.amt.deltaker.deltaker.api.paamelding.request.UtkastRequest
+import no.nav.amt.deltaker.deltaker.api.paamelding.response.OpprettKladdResponse
+import no.nav.amt.deltaker.deltaker.api.shared.response.DeltakerEndringResponse
 import no.nav.amt.deltaker.deltaker.api.utils.noBodyRequest
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
 import no.nav.amt.deltaker.utils.configureEnvForAuthentication
@@ -94,7 +94,7 @@ class PameldingApiTest {
         val response = client.post("/pamelding") { postRequest(opprettKladdRequest) }
 
         response.status shouldBe HttpStatusCode.OK
-        response.bodyAsText() shouldBe objectMapper.writeValueAsString(deltaker.toKladdResponse())
+        response.bodyAsText() shouldBe objectMapper.writeValueAsString(OpprettKladdResponse.fromDeltaker(deltaker))
     }
 
     @Test
@@ -129,7 +129,7 @@ class PameldingApiTest {
 
         client.post("/pamelding/${deltaker.id}") { postRequest(utkastRequest) }.apply {
             status shouldBe HttpStatusCode.OK
-            bodyAsText() shouldBe objectMapper.writeValueAsString(deltaker.toDeltakerEndringResponse(historikk))
+            bodyAsText() shouldBe objectMapper.writeValueAsString(DeltakerEndringResponse.fromDeltaker(deltaker, historikk))
         }
     }
 

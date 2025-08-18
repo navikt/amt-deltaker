@@ -5,6 +5,8 @@ import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.db.sammenlignDeltakereVedVedtak
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
+import no.nav.amt.deltaker.deltaker.extensions.getInnsoktDato
+import no.nav.amt.deltaker.deltaker.extensions.toVurderingFraArrangorData
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
@@ -43,6 +45,7 @@ class DeltakerHistorikkServiceTest {
         @BeforeAll
         @JvmStatic
         fun setup() {
+            @Suppress("UnusedExpression")
             SingletonPostgres16Container
         }
     }
