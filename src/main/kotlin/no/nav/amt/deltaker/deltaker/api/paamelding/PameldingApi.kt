@@ -9,11 +9,11 @@ import io.ktor.server.routing.delete
 import io.ktor.server.routing.post
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.PameldingService
-import no.nav.amt.deltaker.deltaker.api.paamelding.request.AvbrytUtkastRequest
-import no.nav.amt.deltaker.deltaker.api.paamelding.request.OpprettKladdRequest
-import no.nav.amt.deltaker.deltaker.api.paamelding.request.UtkastRequest
-import no.nav.amt.deltaker.deltaker.api.paamelding.response.OpprettKladdResponse
-import no.nav.amt.deltaker.deltaker.api.shared.response.DeltakerEndringResponse
+import no.nav.amt.deltaker.deltaker.api.DtoMappers.opprettKladdResponseFromDeltaker
+import no.nav.amt.deltaker.deltaker.api.DtoMappers.utkastResponseFromDeltaker
+import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.AvbrytUtkastRequest
+import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.OpprettKladdRequest
+import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.UtkastRequest
 import java.util.UUID
 
 fun Routing.registerPameldingApi(pameldingService: PameldingService, historikkService: DeltakerHistorikkService) {
@@ -26,7 +26,7 @@ fun Routing.registerPameldingApi(pameldingService: PameldingService, historikkSe
                 personIdent = opprettKladdRequest.personident,
             )
 
-            call.respond(OpprettKladdResponse.fromDeltaker(deltaker))
+            call.respond(opprettKladdResponseFromDeltaker(deltaker))
         }
 
         post("/pamelding/{deltakerId}") {
@@ -35,7 +35,7 @@ fun Routing.registerPameldingApi(pameldingService: PameldingService, historikkSe
 
             val deltaker = pameldingService.upsertUtkast(deltakerId, request)
             val historikk = historikkService.getForDeltaker(deltaker.id)
-            call.respond(DeltakerEndringResponse.fromDeltaker(deltaker, historikk))
+            call.respond(utkastResponseFromDeltaker(deltaker, historikk))
         }
 
         post("/pamelding/{deltakerId}/innbygger/godkjenn-utkast") {
@@ -44,7 +44,7 @@ fun Routing.registerPameldingApi(pameldingService: PameldingService, historikkSe
             val oppdatertDeltaker = pameldingService.innbyggerGodkjennUtkast(deltakerId)
             val historikk = historikkService.getForDeltaker(oppdatertDeltaker.id)
 
-            call.respond(DeltakerEndringResponse.fromDeltaker(oppdatertDeltaker, historikk))
+            call.respond(utkastResponseFromDeltaker(oppdatertDeltaker, historikk))
         }
 
         post("/pamelding/{deltakerId}/avbryt") {

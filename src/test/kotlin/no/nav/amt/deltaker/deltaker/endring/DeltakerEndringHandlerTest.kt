@@ -5,12 +5,6 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
-import no.nav.amt.deltaker.deltaker.api.deltaker.request.AvsluttDeltakelseRequest
-import no.nav.amt.deltaker.deltaker.api.deltaker.request.EndreAvslutningRequest
-import no.nav.amt.deltaker.deltaker.api.deltaker.request.ReaktiverDeltakelseRequest
-import no.nav.amt.deltaker.deltaker.api.deltaker.request.SluttarsakRequest
-import no.nav.amt.deltaker.deltaker.api.deltaker.request.SluttdatoRequest
-import no.nav.amt.deltaker.deltaker.api.deltaker.request.StartdatoRequest
 import no.nav.amt.deltaker.deltaker.api.deltaker.toDeltakerEndringEndring
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.lib.models.arrangor.melding.EndringAarsak
@@ -19,6 +13,12 @@ import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengder
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.AvsluttDeltakelseRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.EndreAvslutningRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.ReaktiverDeltakelseRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.SluttarsakRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.SluttdatoRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.StartdatoRequest
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate

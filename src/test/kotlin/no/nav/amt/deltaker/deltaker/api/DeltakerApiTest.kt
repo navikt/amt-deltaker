@@ -15,19 +15,7 @@ import no.nav.amt.deltaker.application.plugins.configureRouting
 import no.nav.amt.deltaker.application.plugins.configureSerialization
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerService
-import no.nav.amt.deltaker.deltaker.api.deltaker.request.AvsluttDeltakelseRequest
-import no.nav.amt.deltaker.deltaker.api.deltaker.request.BakgrunnsinformasjonRequest
-import no.nav.amt.deltaker.deltaker.api.deltaker.request.DeltakelsesmengdeRequest
-import no.nav.amt.deltaker.deltaker.api.deltaker.request.EndreAvslutningRequest
-import no.nav.amt.deltaker.deltaker.api.deltaker.request.FjernOppstartsdatoRequest
-import no.nav.amt.deltaker.deltaker.api.deltaker.request.ForlengDeltakelseRequest
-import no.nav.amt.deltaker.deltaker.api.deltaker.request.IkkeAktuellRequest
-import no.nav.amt.deltaker.deltaker.api.deltaker.request.InnholdRequest
-import no.nav.amt.deltaker.deltaker.api.deltaker.request.ReaktiverDeltakelseRequest
-import no.nav.amt.deltaker.deltaker.api.deltaker.request.SluttarsakRequest
-import no.nav.amt.deltaker.deltaker.api.deltaker.request.SluttdatoRequest
-import no.nav.amt.deltaker.deltaker.api.deltaker.request.StartdatoRequest
-import no.nav.amt.deltaker.deltaker.api.shared.response.DeltakerEndringResponse
+import no.nav.amt.deltaker.deltaker.api.DtoMappers.deltakerEndringResponseFromDeltaker
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
 import no.nav.amt.deltaker.utils.configureEnvForAuthentication
 import no.nav.amt.deltaker.utils.data.TestData
@@ -36,6 +24,18 @@ import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.AvsluttDeltakelseRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.BakgrunnsinformasjonRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.DeltakelsesmengdeRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.EndreAvslutningRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.FjernOppstartsdatoRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.ForlengDeltakelseRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.IkkeAktuellRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.InnholdRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.ReaktiverDeltakelseRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.SluttarsakRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.SluttdatoRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.StartdatoRequest
 import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -91,7 +91,7 @@ class DeltakerApiTest {
                 )
             }.apply {
                 status shouldBe HttpStatusCode.OK
-                bodyAsText() shouldBe objectMapper.writeValueAsString(DeltakerEndringResponse.fromDeltaker(deltaker, historikk))
+                bodyAsText() shouldBe objectMapper.writeValueAsString(deltakerEndringResponseFromDeltaker(deltaker, historikk))
             }
     }
 
@@ -119,7 +119,7 @@ class DeltakerApiTest {
                 )
             }.apply {
                 status shouldBe HttpStatusCode.OK
-                bodyAsText() shouldBe objectMapper.writeValueAsString(DeltakerEndringResponse.fromDeltaker(deltaker, historikk))
+                bodyAsText() shouldBe objectMapper.writeValueAsString(deltakerEndringResponseFromDeltaker(deltaker, historikk))
             }
     }
 
@@ -153,7 +153,7 @@ class DeltakerApiTest {
                 )
             }.apply {
                 status shouldBe HttpStatusCode.OK
-                bodyAsText() shouldBe objectMapper.writeValueAsString(DeltakerEndringResponse.fromDeltaker(deltaker, historikk))
+                bodyAsText() shouldBe objectMapper.writeValueAsString(deltakerEndringResponseFromDeltaker(deltaker, historikk))
             }
     }
 
@@ -183,7 +183,7 @@ class DeltakerApiTest {
                 )
             }.apply {
                 status shouldBe HttpStatusCode.OK
-                bodyAsText() shouldBe objectMapper.writeValueAsString(DeltakerEndringResponse.fromDeltaker(deltaker, historikk))
+                bodyAsText() shouldBe objectMapper.writeValueAsString(deltakerEndringResponseFromDeltaker(deltaker, historikk))
             }
     }
 
@@ -212,7 +212,7 @@ class DeltakerApiTest {
                 )
             }.apply {
                 status shouldBe HttpStatusCode.OK
-                bodyAsText() shouldBe objectMapper.writeValueAsString(DeltakerEndringResponse.fromDeltaker(deltaker, historikk))
+                bodyAsText() shouldBe objectMapper.writeValueAsString(deltakerEndringResponseFromDeltaker(deltaker, historikk))
             }
     }
 
@@ -247,7 +247,7 @@ class DeltakerApiTest {
                 )
             }.apply {
                 status shouldBe HttpStatusCode.OK
-                bodyAsText() shouldBe objectMapper.writeValueAsString(DeltakerEndringResponse.fromDeltaker(deltaker, historikk))
+                bodyAsText() shouldBe objectMapper.writeValueAsString(deltakerEndringResponseFromDeltaker(deltaker, historikk))
             }
     }
 
@@ -276,7 +276,7 @@ class DeltakerApiTest {
                 )
             }.apply {
                 status shouldBe HttpStatusCode.OK
-                bodyAsText() shouldBe objectMapper.writeValueAsString(DeltakerEndringResponse.fromDeltaker(deltaker, historikk))
+                bodyAsText() shouldBe objectMapper.writeValueAsString(deltakerEndringResponseFromDeltaker(deltaker, historikk))
             }
     }
 
@@ -313,7 +313,7 @@ class DeltakerApiTest {
                 )
             }.apply {
                 status shouldBe HttpStatusCode.OK
-                bodyAsText() shouldBe objectMapper.writeValueAsString(DeltakerEndringResponse.fromDeltaker(deltaker, historikk))
+                bodyAsText() shouldBe objectMapper.writeValueAsString(deltakerEndringResponseFromDeltaker(deltaker, historikk))
             }
     }
 
@@ -353,7 +353,7 @@ class DeltakerApiTest {
                 )
             }.apply {
                 status shouldBe HttpStatusCode.OK
-                bodyAsText() shouldBe objectMapper.writeValueAsString(DeltakerEndringResponse.fromDeltaker(deltaker, historikk))
+                bodyAsText() shouldBe objectMapper.writeValueAsString(deltakerEndringResponseFromDeltaker(deltaker, historikk))
             }
     }
 
@@ -392,7 +392,7 @@ class DeltakerApiTest {
                 )
             }.apply {
                 status shouldBe HttpStatusCode.OK
-                bodyAsText() shouldBe objectMapper.writeValueAsString(DeltakerEndringResponse.fromDeltaker(deltaker, historikk))
+                bodyAsText() shouldBe objectMapper.writeValueAsString(deltakerEndringResponseFromDeltaker(deltaker, historikk))
             }
     }
 
@@ -425,7 +425,7 @@ class DeltakerApiTest {
                 )
             }.apply {
                 status shouldBe HttpStatusCode.OK
-                bodyAsText() shouldBe objectMapper.writeValueAsString(DeltakerEndringResponse.fromDeltaker(deltaker, historikk))
+                bodyAsText() shouldBe objectMapper.writeValueAsString(deltakerEndringResponseFromDeltaker(deltaker, historikk))
             }
     }
 
@@ -459,7 +459,7 @@ class DeltakerApiTest {
                 )
             }.apply {
                 status shouldBe HttpStatusCode.OK
-                bodyAsText() shouldBe objectMapper.writeValueAsString(DeltakerEndringResponse.fromDeltaker(deltaker, historikk))
+                bodyAsText() shouldBe objectMapper.writeValueAsString(deltakerEndringResponseFromDeltaker(deltaker, historikk))
             }
     }
 

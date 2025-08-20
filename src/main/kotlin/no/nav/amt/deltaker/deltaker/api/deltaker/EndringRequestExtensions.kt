@@ -1,21 +1,21 @@
 package no.nav.amt.deltaker.deltaker.api.deltaker
 
-import no.nav.amt.deltaker.deltaker.api.deltaker.request.AvbrytDeltakelseRequest
-import no.nav.amt.deltaker.deltaker.api.deltaker.request.AvsluttDeltakelseRequest
-import no.nav.amt.deltaker.deltaker.api.deltaker.request.BakgrunnsinformasjonRequest
-import no.nav.amt.deltaker.deltaker.api.deltaker.request.DeltakelsesmengdeRequest
-import no.nav.amt.deltaker.deltaker.api.deltaker.request.EndreAvslutningRequest
-import no.nav.amt.deltaker.deltaker.api.deltaker.request.EndringForslagRequest
-import no.nav.amt.deltaker.deltaker.api.deltaker.request.EndringRequest
-import no.nav.amt.deltaker.deltaker.api.deltaker.request.FjernOppstartsdatoRequest
-import no.nav.amt.deltaker.deltaker.api.deltaker.request.ForlengDeltakelseRequest
-import no.nav.amt.deltaker.deltaker.api.deltaker.request.IkkeAktuellRequest
-import no.nav.amt.deltaker.deltaker.api.deltaker.request.InnholdRequest
-import no.nav.amt.deltaker.deltaker.api.deltaker.request.ReaktiverDeltakelseRequest
-import no.nav.amt.deltaker.deltaker.api.deltaker.request.SluttarsakRequest
-import no.nav.amt.deltaker.deltaker.api.deltaker.request.SluttdatoRequest
-import no.nav.amt.deltaker.deltaker.api.deltaker.request.StartdatoRequest
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.AvbrytDeltakelseRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.AvsluttDeltakelseRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.BakgrunnsinformasjonRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.DeltakelsesmengdeRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.EndreAvslutningRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.EndringForslagRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.EndringRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.FjernOppstartsdatoRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.ForlengDeltakelseRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.IkkeAktuellRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.InnholdRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.ReaktiverDeltakelseRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.SluttarsakRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.SluttdatoRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.StartdatoRequest
 import java.time.LocalDate
 import java.util.UUID
 

@@ -3,7 +3,6 @@ package no.nav.amt.deltaker.deltaker.endring
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerUtils.nyDeltakerStatus
 import no.nav.amt.deltaker.deltaker.api.deltaker.getForslagId
-import no.nav.amt.deltaker.deltaker.api.deltaker.request.EndringRequest
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.deltaker.model.Deltaker
@@ -14,6 +13,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengde
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.EndringRequest
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.time.LocalDateTime

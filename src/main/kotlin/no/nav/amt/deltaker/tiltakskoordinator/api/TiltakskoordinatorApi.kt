@@ -7,17 +7,17 @@ import io.ktor.server.routing.Routing
 import io.ktor.server.routing.post
 import no.nav.amt.deltaker.deltaker.DeltakerOppdateringResult
 import no.nav.amt.deltaker.deltaker.DeltakerService
-import no.nav.amt.deltaker.tiltakskoordinator.api.request.AvslagRequest
-import no.nav.amt.deltaker.tiltakskoordinator.api.request.DeltakereRequest
-import no.nav.amt.deltaker.tiltakskoordinator.api.response.DeltakerOppdateringResponse
+import no.nav.amt.deltaker.tiltakskoordinator.api.DtoMappers.fromDeltakerOppdateringResult
+import no.nav.amt.lib.models.deltaker.internalapis.tiltakskoordinator.request.DeltakereRequest
+import no.nav.amt.lib.models.deltaker.internalapis.tiltakskoordinator.request.GiAvslagRequest
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.models.tiltakskoordinator.requests.DelMedArrangorRequest
 
 fun Routing.registerTiltakskoordinatorApi(deltakerService: DeltakerService) {
     val apiPath = "/tiltakskoordinator/deltakere"
 
-    fun List<DeltakerOppdateringResult>.toDeltakereResponse() = this.map {
-        DeltakerOppdateringResponse.fromDeltakerOppdateringResult(
+    fun List<DeltakerOppdateringResult>.toDeltakerOppdateringResult() = this.map {
+        fromDeltakerOppdateringResult(
             oppdateringResult = it,
             historikk = deltakerService.getHistorikk(it.deltaker.id),
         )
@@ -32,7 +32,7 @@ fun Routing.registerTiltakskoordinatorApi(deltakerService: DeltakerService) {
                     request.deltakerIder,
                     EndringFraTiltakskoordinator.DelMedArrangor,
                     request.endretAv,
-                ).toDeltakereResponse()
+                ).toDeltakerOppdateringResult()
             call.respond(oppdaterteDeltakere)
         }
 
@@ -44,7 +44,7 @@ fun Routing.registerTiltakskoordinatorApi(deltakerService: DeltakerService) {
                     deltakerIder,
                     EndringFraTiltakskoordinator.TildelPlass,
                     request.endretAv,
-                ).toDeltakereResponse()
+                ).toDeltakerOppdateringResult()
 
             call.respond(oppdaterteDeltakere)
         }
@@ -57,13 +57,13 @@ fun Routing.registerTiltakskoordinatorApi(deltakerService: DeltakerService) {
                     deltakerIder,
                     EndringFraTiltakskoordinator.SettPaaVenteliste,
                     request.endretAv,
-                ).toDeltakereResponse()
+                ).toDeltakerOppdateringResult()
 
             call.respond(oppdaterteDeltakere)
         }
 
         post("$apiPath/gi-avslag") {
-            val request = call.receive<AvslagRequest>()
+            val request = call.receive<GiAvslagRequest>()
             val deltakeroppdatering = deltakerService
                 .giAvslag(
                     request.deltakerId,
