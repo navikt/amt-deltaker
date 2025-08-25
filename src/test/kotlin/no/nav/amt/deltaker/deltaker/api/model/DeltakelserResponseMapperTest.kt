@@ -5,6 +5,9 @@ import io.mockk.mockk
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
+import no.nav.amt.deltaker.deltaker.api.deltaker.DeltakelserResponseMapper
+import no.nav.amt.deltaker.deltaker.api.deltaker.Periode
+import no.nav.amt.deltaker.deltaker.api.deltaker.response.DeltakelserResponse
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
@@ -43,6 +46,7 @@ class DeltakelserResponseMapperTest {
         @BeforeAll
         @JvmStatic
         fun setup() {
+            @Suppress("UnusedExpression")
             SingletonPostgres16Container
         }
     }

@@ -13,17 +13,17 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import no.nav.amt.deltaker.Environment
-import no.nav.amt.deltaker.auth.AuthorizationException
 import no.nav.amt.deltaker.deltaker.DeltakerService
+import no.nav.amt.deltaker.deltaker.DeltakerUtils.nyDeltakerStatus
 import no.nav.amt.deltaker.deltaker.VedtakService
-import no.nav.amt.deltaker.deltaker.getVedtakOrThrow
+import no.nav.amt.deltaker.deltaker.extensions.getVedtakOrThrow
+import no.nav.amt.deltaker.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
-import no.nav.amt.deltaker.deltaker.nyDeltakerStatus
-import no.nav.amt.deltaker.deltaker.tilVedtaksinformasjon
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorService
+import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import org.slf4j.Logger
@@ -214,7 +214,7 @@ fun Routing.registerInternalApi(
             DeltakerStatus.Aarsak(type = DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT, beskrivelse = null),
         )
 
-        val oppdatertDeltaker = deltaker.copy(status = status, vedtaksinformasjon = vedtak.tilVedtaksinformasjon())
+        val oppdatertDeltaker = deltaker.copy(status = status, vedtaksinformasjon = vedtak.tilVedtaksInformasjon())
 
         deltakerService.upsertDeltaker(oppdatertDeltaker)
     }

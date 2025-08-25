@@ -22,6 +22,9 @@ import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.deltaker.utils.configureEnvForAuthentication
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
+import no.nav.amt.lib.models.deltaker.internalapis.tiltakskoordinator.request.DeltakereRequest
+import no.nav.amt.lib.models.deltaker.internalapis.tiltakskoordinator.response.DeltakerOppdateringFeilkode
+import no.nav.amt.lib.models.deltaker.internalapis.tiltakskoordinator.response.DeltakerOppdateringResponse
 import no.nav.amt.lib.models.tiltakskoordinator.requests.DelMedArrangorRequest
 import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.BeforeEach
@@ -103,18 +106,18 @@ class TiltakskoordinatorApiTest {
             configureSerialization()
             configureAuthentication(Environment())
             configureRouting(
-                mockk(),
-                deltakerService,
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                unleashToggle,
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
+                pameldingService = mockk(),
+                deltakerService = deltakerService,
+                deltakerHistorikkService = mockk(),
+                tilgangskontrollService = mockk(),
+                deltakelserResponseMapper = mockk(),
+                deltakerProducerService = mockk(),
+                vedtakService = mockk(),
+                unleashToggle = unleashToggle,
+                innsokPaaFellesOppstartService = mockk(),
+                vurderingService = mockk(),
+                hendelseService = mockk(),
+                endringFraTiltakskoordinatorService = mockk(),
             )
         }
     }

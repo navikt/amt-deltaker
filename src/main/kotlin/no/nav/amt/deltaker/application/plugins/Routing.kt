@@ -4,6 +4,8 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.install
+import io.ktor.server.plugins.requestvalidation.RequestValidation
+import io.ktor.server.plugins.requestvalidation.RequestValidationException
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.request.httpMethod
 import io.ktor.server.request.path
@@ -11,16 +13,15 @@ import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
-import no.nav.amt.deltaker.auth.AuthenticationException
-import no.nav.amt.deltaker.auth.AuthorizationException
 import no.nav.amt.deltaker.auth.TilgangskontrollService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerService
+import no.nav.amt.deltaker.deltaker.OpprettKladdRequestValidator
 import no.nav.amt.deltaker.deltaker.PameldingService
 import no.nav.amt.deltaker.deltaker.VedtakService
-import no.nav.amt.deltaker.deltaker.api.model.DeltakelserResponseMapper
-import no.nav.amt.deltaker.deltaker.api.registerDeltakerApi
-import no.nav.amt.deltaker.deltaker.api.registerPameldingApi
+import no.nav.amt.deltaker.deltaker.api.deltaker.DeltakelserResponseMapper
+import no.nav.amt.deltaker.deltaker.api.deltaker.registerDeltakerApi
+import no.nav.amt.deltaker.deltaker.api.paamelding.registerPameldingApi
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
@@ -28,12 +29,23 @@ import no.nav.amt.deltaker.external.api.registerNavInternApi
 import no.nav.amt.deltaker.external.api.registerVeilederApi
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.internal.registerInternalApi
+import no.nav.amt.deltaker.tiltakskoordinator.api.registerTiltakskoordinatorApi
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorService
-import no.nav.amt.deltaker.tiltakskoordinator.registerTiltakskoordinatorApi
 import no.nav.amt.deltaker.unleash.UnleashToggle
+import no.nav.amt.lib.ktor.auth.exceptions.AuthenticationException
+import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.ktor.routing.registerHealthApi
+import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.OpprettKladdRequest
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+
+fun Application.configureRequestValidation(opprettKladdRequestValidator: OpprettKladdRequestValidator) {
+    install(RequestValidation) {
+        validate<OpprettKladdRequest> { request ->
+            opprettKladdRequestValidator.validateRequest(request)
+        }
+    }
+}
 
 fun Application.configureRouting(
     pameldingService: PameldingService,
@@ -55,7 +67,7 @@ fun Application.configureRouting(
             call.respondText(text = "400: ${cause.message}", status = HttpStatusCode.BadRequest)
         }
         exception<AuthenticationException> { call, cause ->
-            StatusPageLogger.log(HttpStatusCode.Forbidden, call, cause)
+            StatusPageLogger.log(HttpStatusCode.Unauthorized, call, cause)
             call.respondText(text = "401: ${cause.message}", status = HttpStatusCode.Unauthorized)
         }
         exception<AuthorizationException> { call, cause ->
@@ -70,11 +82,17 @@ fun Application.configureRouting(
             StatusPageLogger.log(HttpStatusCode.InternalServerError, call, cause)
             call.respondText(text = "500: ${cause.message}", status = HttpStatusCode.InternalServerError)
         }
+        exception<RequestValidationException> { call, cause ->
+            call.respond(HttpStatusCode.BadRequest, cause.reasons.joinToString())
+        }
     }
     routing {
         registerHealthApi()
 
-        registerPameldingApi(pameldingService, deltakerHistorikkService)
+        registerPameldingApi(
+            pameldingService = pameldingService,
+            historikkService = deltakerHistorikkService,
+        )
         registerDeltakerApi(deltakerService, deltakerHistorikkService)
         registerVeilederApi(tilgangskontrollService, deltakerService, deltakelserResponseMapper, unleashToggle)
         registerInternalApi(

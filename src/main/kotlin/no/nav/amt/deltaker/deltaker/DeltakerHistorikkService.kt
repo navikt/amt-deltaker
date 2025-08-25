@@ -3,16 +3,15 @@ package no.nav.amt.deltaker.deltaker
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
+import no.nav.amt.deltaker.deltaker.extensions.getInnsoktDatoFraImportertDeltaker
+import no.nav.amt.deltaker.deltaker.extensions.skalInkluderesIHistorikk
+import no.nav.amt.deltaker.deltaker.extensions.toVurderingFraArrangorData
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
-import no.nav.amt.deltaker.deltaker.vurdering.Vurdering
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
-import no.nav.amt.lib.models.arrangor.melding.Forslag
-import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
-import no.nav.amt.lib.models.deltaker.VurderingFraArrangorData
 import java.time.LocalDate
 import java.util.UUID
 
@@ -88,44 +87,4 @@ class DeltakerHistorikkService(
 
         return forsteVedtak?.fattet?.toLocalDate()
     }
-}
-
-fun List<DeltakerHistorikk>.getInnsoktDato(): LocalDate? {
-    getInnsoktDatoFraImportertDeltaker()?.let { return it }
-    getInnsoktDatoFraInnsok()?.let { return it }
-
-    val vedtak = filterIsInstance<DeltakerHistorikk.Vedtak>().map { it.vedtak }
-    return vedtak.minByOrNull { it.opprettet }?.opprettet?.toLocalDate()
-}
-
-fun Vurdering.toVurderingFraArrangorData() = VurderingFraArrangorData(
-    id = id,
-    deltakerId = deltakerId,
-    vurderingstype = Vurderingstype.valueOf(vurderingstype.name),
-    begrunnelse = begrunnelse,
-    opprettetAvArrangorAnsattId = opprettetAvArrangorAnsattId,
-    opprettet = gyldigFra,
-)
-
-fun List<DeltakerHistorikk>.getInnsoktDatoFraImportertDeltaker(): LocalDate? = filterIsInstance<DeltakerHistorikk.ImportertFraArena>()
-    .firstOrNull()
-    ?.importertFraArena
-    ?.deltakerVedImport
-    ?.innsoktDato
-
-fun List<DeltakerHistorikk>.getInnsoktDatoFraInnsok(): LocalDate? = filterIsInstance<DeltakerHistorikk.InnsokPaaFellesOppstart>()
-    .firstOrNull()
-    ?.data
-    ?.innsokt
-    ?.toLocalDate()
-
-fun Forslag.skalInkluderesIHistorikk() = when (this.status) {
-    is Forslag.Status.Avvist,
-    is Forslag.Status.Erstattet,
-    is Forslag.Status.Tilbakekalt,
-    -> true
-
-    is Forslag.Status.Godkjent,
-    Forslag.Status.VenterPaSvar,
-    -> false
 }
