@@ -34,3 +34,14 @@ spec:
           labels:
             namespace: amt
             severity: warning
+
+        - alert: ConsumerLag
+          expr: sum(kafka_consumergroup_group_lag{group="amt-deltaker-consumer"}) by (topic) > 100
+          for: 5m
+          annotations:
+            summary: "Høy Kafka consumer lag for consumer group amt-deltaker-consumer"
+            consequence: "Consumer group amt-deltaker-consumer har akkumulert mer enn 100 meldinger i kø på topic *{{ $labels.topic }}*."
+            action: "Undersøk hvorfor applikasjonen ikke prosesserer meldinger raskt nok."
+          labels:
+            namespace: amt
+            severity: warning
