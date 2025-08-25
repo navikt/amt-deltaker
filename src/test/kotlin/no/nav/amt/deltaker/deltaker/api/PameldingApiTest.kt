@@ -1,11 +1,13 @@
 package no.nav.amt.deltaker.deltaker.api
 
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import io.ktor.client.request.delete
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.plugins.requestvalidation.ValidationResult
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import io.mockk.Runs
@@ -14,29 +16,34 @@ import io.mockk.just
 import io.mockk.mockk
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.application.plugins.configureAuthentication
+import no.nav.amt.deltaker.application.plugins.configureRequestValidation
 import no.nav.amt.deltaker.application.plugins.configureRouting
 import no.nav.amt.deltaker.application.plugins.configureSerialization
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
+import no.nav.amt.deltaker.deltaker.OpprettKladdRequestValidator
 import no.nav.amt.deltaker.deltaker.PameldingService
-import no.nav.amt.deltaker.deltaker.api.model.AvbrytUtkastRequest
-import no.nav.amt.deltaker.deltaker.api.model.OpprettKladdRequest
-import no.nav.amt.deltaker.deltaker.api.model.UtkastRequest
-import no.nav.amt.deltaker.deltaker.api.model.toDeltakerEndringResponse
-import no.nav.amt.deltaker.deltaker.api.model.toKladdResponse
+import no.nav.amt.deltaker.deltaker.api.DtoMappers.opprettKladdResponseFromDeltaker
+import no.nav.amt.deltaker.deltaker.api.DtoMappers.utkastResponseFromDeltaker
 import no.nav.amt.deltaker.deltaker.api.utils.noBodyRequest
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
 import no.nav.amt.deltaker.utils.configureEnvForAuthentication
 import no.nav.amt.deltaker.utils.data.TestData
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
+import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.AvbrytUtkastRequest
+import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.OpprettKladdRequest
+import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.UtkastRequest
 import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
 class PameldingApiTest {
+    private val opprettKladdRequestValidator = mockk<OpprettKladdRequestValidator>()
     private val pameldingService = mockk<PameldingService>()
     private val historikkService: DeltakerHistorikkService = mockk()
 
@@ -57,36 +64,61 @@ class PameldingApiTest {
     }
 
     @Test
-    fun `post pamelding - har tilgang - returnerer deltaker`() = testApplication {
-        val deltaker = TestData.lagDeltaker().toKladdResponse()
-
-        coEvery { pameldingService.opprettKladd(any(), any()) } returns deltaker
+    fun `post pamelding - request med valideringsfeil - returnerer 400 BadRequest`() = testApplication {
+        coEvery {
+            opprettKladdRequestValidator.validateRequest(any())
+        } returns ValidationResult.Invalid(listOf("~some error~", "~some other error~"))
 
         setUpTestApplication()
 
-        client.post("/pamelding") { postRequest(opprettKladdRequest) }.apply {
-            status shouldBe HttpStatusCode.OK
-            bodyAsText() shouldBe objectMapper.writeValueAsString(deltaker)
-        }
+        val response = client.post("/pamelding") { postRequest(opprettKladdRequest) }
+
+        response.status shouldBe HttpStatusCode.BadRequest
+        response.bodyAsText() shouldContain ("~some error~, ~some other error~")
     }
 
     @Test
-    fun `post pamelding - deltakerliste finnes ikke - reurnerer 404`() = testApplication {
+    fun `post pamelding - har tilgang - returnerer deltaker`() = testApplication {
+        val deltaker = lagDeltaker()
+
         coEvery {
-            pameldingService.opprettKladd(
-                any(),
-                any(),
-            )
-        } throws NoSuchElementException("Fant ikke deltakerliste")
+            opprettKladdRequestValidator.validateRequest(any())
+        } returns ValidationResult.Valid
+
+        coEvery {
+            pameldingService.opprettDeltaker(any(), any())
+        } returns deltaker
+
         setUpTestApplication()
-        client.post("/pamelding") { postRequest(opprettKladdRequest) }.apply {
-            status shouldBe HttpStatusCode.NotFound
+
+        val response = client.post("/pamelding") { postRequest(opprettKladdRequest) }
+
+        response.status shouldBe HttpStatusCode.OK
+        response.bodyAsText() shouldBe objectMapper.writeValueAsString(opprettKladdResponseFromDeltaker(deltaker))
+    }
+
+    @Test
+    fun `post pamelding - deltakerliste finnes ikke - returnerer 404`() = testApplication {
+        coEvery {
+            opprettKladdRequestValidator.validateRequest(any())
+        } returns ValidationResult.Valid
+
+        coEvery {
+            pameldingService.opprettDeltaker(any(), any())
+        } throws NoSuchElementException("Fant ikke deltakerliste")
+
+        setUpTestApplication()
+
+        val response = client.post("/pamelding") {
+            postRequest(opprettKladdRequest)
         }
+
+        response.status shouldBe HttpStatusCode.NotFound
     }
 
     @Test
     fun `post pamelding utkast - har tilgang - returnerer 200`() = testApplication {
-        val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING))
+        val deltaker = lagDeltaker(status = lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING))
         val historikk: List<DeltakerHistorikk> = listOf(DeltakerHistorikk.Vedtak(TestData.lagVedtak(deltakerVedVedtak = deltaker)))
 
         coEvery { historikkService.getForDeltaker(deltaker.id) } returns historikk
@@ -97,7 +129,7 @@ class PameldingApiTest {
 
         client.post("/pamelding/${deltaker.id}") { postRequest(utkastRequest) }.apply {
             status shouldBe HttpStatusCode.OK
-            bodyAsText() shouldBe objectMapper.writeValueAsString(deltaker.toDeltakerEndringResponse(historikk))
+            bodyAsText() shouldBe objectMapper.writeValueAsString(utkastResponseFromDeltaker(deltaker, historikk))
         }
     }
 
@@ -141,24 +173,26 @@ class PameldingApiTest {
         application {
             configureSerialization()
             configureAuthentication(Environment())
+            configureRequestValidation(opprettKladdRequestValidator = opprettKladdRequestValidator)
             configureRouting(
-                pameldingService,
+                pameldingService = pameldingService,
                 deltakerService = mockk(),
-                historikkService,
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
-                mockk(),
+                deltakerHistorikkService = historikkService,
+                tilgangskontrollService = mockk(),
+                deltakelserResponseMapper = mockk(),
+                deltakerProducerService = mockk(),
+                vedtakService = mockk(),
+                unleashToggle = mockk(),
+                innsokPaaFellesOppstartService = mockk(),
+                vurderingService = mockk(),
+                hendelseService = mockk(),
+                endringFraTiltakskoordinatorService = mockk(),
             )
         }
     }
 
     private val opprettKladdRequest = OpprettKladdRequest(UUID.randomUUID(), "1234")
+
     private val utkastRequest = UtkastRequest(
         Deltakelsesinnhold("test", listOf(Innhold("Tekst", "kode", true, null))),
         "bakgrunn og sånn",

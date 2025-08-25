@@ -1,25 +1,21 @@
 package no.nav.amt.deltaker.deltaker
 
-import no.nav.amt.deltaker.deltaker.api.model.AvbrytUtkastRequest
-import no.nav.amt.deltaker.deltaker.api.model.KladdResponse
-import no.nav.amt.deltaker.deltaker.api.model.UtkastRequest
-import no.nav.amt.deltaker.deltaker.api.model.toKladdResponse
+import no.nav.amt.deltaker.deltaker.DeltakerUtils.nyDeltakerStatus
+import no.nav.amt.deltaker.deltaker.extensions.getVedtakOrThrow
+import no.nav.amt.deltaker.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartService
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.Kilde
-import no.nav.amt.deltaker.deltaker.model.Vedtaksinformasjon
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.hendelse.HendelseService
-import no.nav.amt.deltaker.isoppfolgingstilfelle.IsOppfolgingstilfelleClient
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navbruker.NavBrukerService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
-import no.nav.amt.lib.models.deltaker.Innsatsgruppe
-import no.nav.amt.lib.models.deltaker.Vedtak
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
+import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.AvbrytUtkastRequest
+import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.UtkastRequest
 import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.models.person.NavBruker
 import org.slf4j.LoggerFactory
@@ -29,50 +25,35 @@ import java.util.UUID
 
 class PameldingService(
     private val deltakerService: DeltakerService,
-    private val deltakerlisteRepository: DeltakerlisteRepository,
+    private val deltakerListeRepository: DeltakerlisteRepository,
     private val navBrukerService: NavBrukerService,
     private val navAnsattService: NavAnsattService,
     private val navEnhetService: NavEnhetService,
     private val vedtakService: VedtakService,
-    private val isOppfolgingstilfelleClient: IsOppfolgingstilfelleClient,
     private val hendelseService: HendelseService,
     private val innsokPaaFellesOppstartService: InnsokPaaFellesOppstartService,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    suspend fun opprettKladd(deltakerlisteId: UUID, personident: String): KladdResponse {
+    suspend fun opprettDeltaker(deltakerListeId: UUID, personIdent: String): Deltaker {
         val eksisterendeDeltaker = deltakerService
-            .getDeltakelserForPerson(personident, deltakerlisteId)
+            .getDeltakelserForPerson(personIdent, deltakerListeId)
             .firstOrNull { !it.harSluttet() }
 
         if (eksisterendeDeltaker != null) {
             log.warn("Deltakeren ${eksisterendeDeltaker.id} er allerede opprettet og deltar fortsatt")
-            return eksisterendeDeltaker.toKladdResponse()
+            return eksisterendeDeltaker
         }
 
-        val deltakerliste = deltakerlisteRepository.get(deltakerlisteId).getOrThrow()
-        if (deltakerliste.erAvsluttet()) {
-            log.warn("Deltakerliste med id $deltakerlisteId er avsluttet")
-            throw IllegalArgumentException("Deltakerliste er avsluttet")
-        }
-        if (!deltakerliste.apentForPamelding) {
-            log.warn("Deltakerliste med id $deltakerlisteId er ikke åpen for påmelding")
-            throw IllegalArgumentException("Deltakerliste er ikke åpen for påmelding")
-        }
-        val navBruker = navBrukerService.get(personident).getOrThrow()
-
-        if (!harRiktigInnsatsgruppe(navBruker, deltakerliste)) {
-            log.warn("Bruker med id ${navBruker.personId} har ikke riktig innsatsgruppe")
-            throw IllegalArgumentException("Bruker har ikke riktig innsatsgruppe")
-        }
-
-        val deltaker = nyDeltakerKladd(navBruker, deltakerliste)
-
-        val oppdatertDeltaker = deltakerService.upsertDeltaker(deltaker)
-
-        log.info("Lagret kladd for deltaker med id ${deltaker.id}")
-
-        return oppdatertDeltaker.toKladdResponse()
+        return deltakerService
+            .upsertDeltaker(
+                lagDeltaker(
+                    navBrukerService.get(personIdent).getOrThrow(),
+                    deltakerListeRepository.get(deltakerListeId).getOrThrow(),
+                ),
+            ).also { deltaker ->
+                log.info("Lagret kladd for deltaker med id ${deltaker.id}")
+            }
     }
 
     fun slettKladd(deltakerId: UUID) {
@@ -121,7 +102,7 @@ class PameldingService(
             )
         }.getVedtakOrThrow(deltakerId.toString())
 
-        val deltakerMedNyttVedtak = oppdatertDeltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksinformasjon())
+        val deltakerMedNyttVedtak = oppdatertDeltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksInformasjon())
 
         if (utkast.godkjentAvNav && oppdatertDeltaker.deltakerliste.erFellesOppstart) {
             innsokPaaFellesOppstartService.nyttInnsokUtkastGodkjentAvNav(deltakerMedNyttVedtak, opprinneligDeltaker.status)
@@ -195,24 +176,12 @@ class PameldingService(
             .avbrytVedtak(oppdatertDeltaker, endretAv, endretAvNavEnhet)
             .getVedtakOrThrow("Kunne ikke avbryte vedtak for deltaker $deltakerId")
 
-        deltakerService.upsertDeltaker(oppdatertDeltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksinformasjon()))
+        deltakerService.upsertDeltaker(oppdatertDeltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksInformasjon()))
 
         hendelseService.hendelseForUtkast(oppdatertDeltaker, endretAv, endretAvNavEnhet) { HendelseType.AvbrytUtkast(it) }
 
         log.info("Avbrutt utkast for deltaker med id $deltakerId")
     }
-
-    private suspend fun harRiktigInnsatsgruppe(navBruker: NavBruker, deltakerliste: Deltakerliste): Boolean =
-        if (navBruker.innsatsgruppe in deltakerliste.tiltakstype.innsatsgrupper) {
-            true
-        } else if (deltakerliste.tiltakstype.tiltakskode == Tiltakstype.Tiltakskode.ARBEIDSRETTET_REHABILITERING &&
-            navBruker.innsatsgruppe == Innsatsgruppe.SITUASJONSBESTEMT_INNSATS
-        ) {
-            log.info("Sjekker om bruker er sykmeldt med arbeidsgiver")
-            isOppfolgingstilfelleClient.erSykmeldtMedArbeidsgiver(navBruker.personident)
-        } else {
-            false
-        }
 
     private fun kanUpserteUtkast(opprinneligDeltakerStatus: DeltakerStatus) = opprinneligDeltakerStatus.type in listOf(
         DeltakerStatus.Type.KLADD,
@@ -239,16 +208,16 @@ class PameldingService(
         }
     }
 
-    private fun nyDeltakerKladd(navBruker: NavBruker, deltakerliste: Deltakerliste) = Deltaker(
+    private fun lagDeltaker(navBruker: NavBruker, deltakerListe: Deltakerliste) = Deltaker(
         id = UUID.randomUUID(),
         navBruker = navBruker,
-        deltakerliste = deltakerliste,
+        deltakerliste = deltakerListe,
         startdato = null,
         sluttdato = null,
         dagerPerUke = null,
         deltakelsesprosent = null,
         bakgrunnsinformasjon = null,
-        deltakelsesinnhold = Deltakelsesinnhold(deltakerliste.tiltakstype.innhold?.ledetekst, emptyList()),
+        deltakelsesinnhold = Deltakelsesinnhold(deltakerListe.tiltakstype.innhold?.ledetekst, emptyList()),
         status = nyDeltakerStatus(DeltakerStatus.Type.KLADD),
         vedtaksinformasjon = null,
         sistEndret = LocalDateTime.now(),
@@ -257,14 +226,3 @@ class PameldingService(
         opprettet = LocalDateTime.now(),
     )
 }
-
-fun Vedtak.tilVedtaksinformasjon(): Vedtaksinformasjon = Vedtaksinformasjon(
-    fattet = fattet,
-    fattetAvNav = fattetAvNav,
-    opprettet = opprettet,
-    opprettetAv = opprettetAv,
-    opprettetAvEnhet = opprettetAvEnhet,
-    sistEndret = sistEndret,
-    sistEndretAv = sistEndretAv,
-    sistEndretAvEnhet = sistEndretAvEnhet,
-)

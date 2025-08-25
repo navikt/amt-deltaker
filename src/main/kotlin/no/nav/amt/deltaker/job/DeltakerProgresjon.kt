@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.job
 
+import no.nav.amt.deltaker.deltaker.extensions.harIkkeStartet
 import no.nav.amt.deltaker.deltaker.model.Deltaker
-import no.nav.amt.deltaker.deltaker.model.harIkkeStartet
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import org.slf4j.LoggerFactory
 import java.time.LocalDate

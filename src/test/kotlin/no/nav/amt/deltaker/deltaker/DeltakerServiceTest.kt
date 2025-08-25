@@ -7,17 +7,14 @@ import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
-import no.nav.amt.deltaker.deltaker.api.model.AvsluttDeltakelseRequest
-import no.nav.amt.deltaker.deltaker.api.model.BakgrunnsinformasjonRequest
-import no.nav.amt.deltaker.deltaker.api.model.DeltakelsesmengdeRequest
-import no.nav.amt.deltaker.deltaker.api.model.ForlengDeltakelseRequest
-import no.nav.amt.deltaker.deltaker.api.model.StartdatoRequest
+import no.nav.amt.deltaker.deltaker.DeltakerUtils.nyDeltakerStatus
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringService
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorService
+import no.nav.amt.deltaker.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.deltaker.forslag.kafka.ArrangorMeldingProducer
@@ -49,12 +46,17 @@ import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagEndringFraTiltakskoordinator
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.utils.mockAmtArrangorClient
-import no.nav.amt.deltaker.utils.mockAmtPersonClient
+import no.nav.amt.deltaker.utils.mockPersonServiceClient
 import no.nav.amt.lib.kafka.Producer
 import no.nav.amt.lib.kafka.config.LocalKafkaConfig
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.AvsluttDeltakelseRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.BakgrunnsinformasjonRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.DeltakelsesmengdeRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.ForlengDeltakelseRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.StartdatoRequest
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
@@ -73,7 +75,7 @@ import java.util.UUID
 
 class DeltakerServiceTest {
     companion object {
-        private val amtPersonClientMock = mockAmtPersonClient()
+        private val amtPersonClientMock = mockPersonServiceClient()
         private val navEnhetService = NavEnhetService(NavEnhetRepository(), amtPersonClientMock)
         private val navAnsattService = NavAnsattService(NavAnsattRepository(), amtPersonClientMock, navEnhetService)
         private val deltakerRepository = DeltakerRepository()
@@ -163,6 +165,7 @@ class DeltakerServiceTest {
         @JvmStatic
         @BeforeAll
         fun setup() {
+            @Suppress("UnusedExpression")
             SingletonPostgres16Container
         }
     }
@@ -198,7 +201,7 @@ class DeltakerServiceTest {
         )
         TestRepository.insert(vedtak)
         val oppdatertDeltaker = deltakerMedOppdatertStatus.copy(
-            vedtaksinformasjon = vedtak.tilVedtaksinformasjon(),
+            vedtaksinformasjon = vedtak.tilVedtaksInformasjon(),
         )
 
         runBlocking {
@@ -690,7 +693,7 @@ class DeltakerServiceTest {
         val deltaker = TestData.lagDeltaker(
             id = deltaker1Id,
             deltakerliste = deltakerliste,
-            vedtaksinformasjon = vedtak.tilVedtaksinformasjon(),
+            vedtaksinformasjon = vedtak.tilVedtaksInformasjon(),
         )
 
         val deltaker2 = TestData.lagDeltaker(deltakerliste = deltakerliste)
@@ -718,7 +721,7 @@ class DeltakerServiceTest {
                     fattetAvNav = true,
                     sistEndret = LocalDateTime.now(),
                     sistEndretAvEnhet = vedtak.opprettetAvEnhet,
-                ).tilVedtaksinformasjon(),
+                ).tilVedtaksInformasjon(),
         )
         val ikkeEndretDeltaker = endredeDeltakere.first {
             it.deltaker.id == deltaker2.id

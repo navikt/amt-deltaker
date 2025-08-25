@@ -210,29 +210,3 @@ class VedtakService(
         sistEndret = LocalDateTime.now(),
     )
 }
-
-sealed interface Vedtaksutfall {
-    data class OK(
-        val vedtak: Vedtak,
-    ) : Vedtaksutfall
-
-    data object ManglerVedtakSomKanEndres : Vedtaksutfall
-
-    data object VedtakAlleredeFattet : Vedtaksutfall
-}
-
-fun Vedtaksutfall.getVedtakOrThrow(msg: String = ""): Vedtak = when (this) {
-    is Vedtaksutfall.OK -> vedtak
-    else -> throw toException(msg)
-}
-
-private fun Vedtaksutfall.toException(detaljer: String = ""): Exception = when (this) {
-    Vedtaksutfall.ManglerVedtakSomKanEndres ->
-        IllegalArgumentException("Deltaker har ikke vedtak som kan endres $detaljer")
-
-    Vedtaksutfall.VedtakAlleredeFattet ->
-        IllegalArgumentException("Deltaker har allerede et fattet vedtak $detaljer")
-
-    is Vedtaksutfall.OK ->
-        IllegalStateException("Prøvde å behandle OK utfall som et exception: ${vedtak.id}")
-}

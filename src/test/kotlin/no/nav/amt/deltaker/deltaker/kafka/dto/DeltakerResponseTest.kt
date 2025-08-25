@@ -1,8 +1,8 @@
 package no.nav.amt.deltaker.deltaker.kafka.dto
 
 import io.kotest.matchers.shouldBe
+import no.nav.amt.deltaker.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.deltaker.model.Deltaker
-import no.nav.amt.deltaker.deltaker.tilVedtaksinformasjon
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
@@ -79,6 +79,7 @@ data class DeltakerContext(
     val vurderinger = listOf(TestData.lagVurdering())
 
     init {
+        @Suppress("UnusedExpression")
         SingletonPostgres16Container
         TestRepository.insert(veileder)
         TestRepository.insert(navEnhet)
@@ -119,6 +120,6 @@ data class DeltakerContext(
         vedtak = vedtak.copy(fattet = if (fattet) deltaker.sistEndret.minusMonths(3) else null)
         TestRepository.insert(deltaker)
         TestRepository.insert(vedtak)
-        deltaker = deltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksinformasjon())
+        deltaker = deltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksInformasjon())
     }
 }
