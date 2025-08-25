@@ -2,12 +2,12 @@ group = "no.nav.amt-deltaker"
 version = "1.0-SNAPSHOT"
 
 plugins {
-    val kotlinVersion = "2.2.0"
+    val kotlinVersion = "2.2.10"
 
     kotlin("jvm") version kotlinVersion
     id("io.ktor.plugin") version "3.2.3"
     id("org.jetbrains.kotlin.plugin.serialization") version kotlinVersion
-    id("org.jlleitschuh.gradle.ktlint") version "13.0.0"
+    id("org.jlleitschuh.gradle.ktlint") version "13.1.0"
     id("com.gradleup.shadow") version "9.0.2"
 }
 
@@ -18,6 +18,7 @@ repositories {
 
 val ktorVersion = "3.2.3"
 val logbackVersion = "1.5.18"
+val slf4jVersion = "2.0.17"
 val prometeusVersion = "1.15.3"
 val ktlintVersion = "1.6.0"
 val jacksonVersion = "2.19.2"
@@ -25,13 +26,13 @@ val logstashEncoderVersion = "8.1"
 val commonVersion = "3.2025.06.23_14.50-3af3985d8555"
 val poaoTilgangVersion = "2025.07.04_08.56-814fa50f6740"
 val kotestVersion = "5.9.1"
-val flywayVersion = "11.11.0"
-val hikariVersion = "7.0.1"
+val flywayVersion = "11.11.2"
+val hikariVersion = "7.0.2"
 val kotliqueryVersion = "1.9.1"
 val postgresVersion = "42.7.7"
 val caffeineVersion = "3.2.2"
 val mockkVersion = "1.14.5"
-val nimbusVersion = "10.4.1"
+val nimbusVersion = "10.4.2"
 val unleashVersion = "11.1.0"
 val amtLibVersion = "1.2025.08.20_15.50-3010e3ffdb61"
 
@@ -58,6 +59,7 @@ dependencies {
     implementation("com.github.ben-manes.caffeine:caffeine:$caffeineVersion")
 
     implementation("ch.qos.logback:logback-classic:$logbackVersion")
+    implementation("org.slf4j:jul-to-slf4j:$slf4jVersion")
     implementation("net.logstash.logback:logstash-logback-encoder:$logstashEncoderVersion")
     implementation("no.nav.common:log:$commonVersion")
 
