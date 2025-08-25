@@ -83,6 +83,7 @@ fun Application.configureRouting(
             call.respondText(text = "500: ${cause.message}", status = HttpStatusCode.InternalServerError)
         }
         exception<RequestValidationException> { call, cause ->
+            StatusPageLogger.log(HttpStatusCode.BadRequest, call, cause)
             call.respond(HttpStatusCode.BadRequest, cause.reasons.joinToString())
         }
     }
