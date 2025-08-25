@@ -30,11 +30,10 @@ spec:
     cpuThresholdPercentage: 75
   resources:
     limits:
-      cpu: "1"
       memory: 2048Mi
     requests:
       cpu: 10m
-      memory: 512Mi
+      memory: 128Mi
   envFrom:
     - secret: amt-deltaker-unleash-api-token
   azure:
