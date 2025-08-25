@@ -1,6 +1,5 @@
 package no.nav.amt.deltaker.utils.data
 
-import no.nav.amt.deltaker.arrangor.Arrangor
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerV2Dto
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.Kilde
@@ -11,6 +10,7 @@ import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlisteDto
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
+import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
@@ -85,7 +85,7 @@ object TestData {
         adresse: Adresse? = lagAdresse(),
         adressebeskyttelse: Adressebeskyttelse? = null,
         oppfolgingsperioder: List<Oppfolgingsperiode> = listOf(lagOppfolgingsperiode()),
-        innsatsgruppe: Innsatsgruppe = Innsatsgruppe.STANDARD_INNSATS,
+        innsatsgruppe: Innsatsgruppe? = Innsatsgruppe.STANDARD_INNSATS,
     ) = NavBruker(
         personId,
         personident,
@@ -256,21 +256,21 @@ object TestData {
         kilde: Kilde = Kilde.KOMET,
         erManueltDeltMedArrangor: Boolean = false,
     ) = Deltaker(
-        id,
-        navBruker,
-        deltakerliste,
-        startdato,
-        sluttdato,
-        dagerPerUke,
-        deltakelsesprosent,
-        bakgrunnsinformasjon,
-        innhold,
-        status,
-        vedtaksinformasjon,
-        sistEndret,
-        kilde,
-        erManueltDeltMedArrangor,
-        null,
+        id = id,
+        navBruker = navBruker,
+        deltakerliste = deltakerliste,
+        startdato = startdato,
+        sluttdato = sluttdato,
+        dagerPerUke = dagerPerUke,
+        deltakelsesprosent = deltakelsesprosent,
+        bakgrunnsinformasjon = bakgrunnsinformasjon,
+        deltakelsesinnhold = innhold,
+        status = status,
+        vedtaksinformasjon = vedtaksinformasjon,
+        sistEndret = sistEndret,
+        kilde = kilde,
+        erManueltDeltMedArrangor = erManueltDeltMedArrangor,
+        opprettet = null,
     )
 
     fun lagDeltakerStatus(

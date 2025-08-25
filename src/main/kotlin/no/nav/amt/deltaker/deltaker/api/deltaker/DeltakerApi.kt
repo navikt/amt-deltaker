@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.deltaker.api
+package no.nav.amt.deltaker.deltaker.api.deltaker
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
@@ -10,21 +10,21 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerService
-import no.nav.amt.deltaker.deltaker.api.model.AvbrytDeltakelseRequest
-import no.nav.amt.deltaker.deltaker.api.model.AvsluttDeltakelseRequest
-import no.nav.amt.deltaker.deltaker.api.model.BakgrunnsinformasjonRequest
-import no.nav.amt.deltaker.deltaker.api.model.DeltakelsesmengdeRequest
-import no.nav.amt.deltaker.deltaker.api.model.EndreAvslutningRequest
-import no.nav.amt.deltaker.deltaker.api.model.EndringRequest
-import no.nav.amt.deltaker.deltaker.api.model.FjernOppstartsdatoRequest
-import no.nav.amt.deltaker.deltaker.api.model.ForlengDeltakelseRequest
-import no.nav.amt.deltaker.deltaker.api.model.IkkeAktuellRequest
-import no.nav.amt.deltaker.deltaker.api.model.InnholdRequest
-import no.nav.amt.deltaker.deltaker.api.model.ReaktiverDeltakelseRequest
-import no.nav.amt.deltaker.deltaker.api.model.SluttarsakRequest
-import no.nav.amt.deltaker.deltaker.api.model.SluttdatoRequest
-import no.nav.amt.deltaker.deltaker.api.model.StartdatoRequest
-import no.nav.amt.deltaker.deltaker.api.model.toDeltakerEndringResponse
+import no.nav.amt.deltaker.deltaker.api.DtoMappers.deltakerEndringResponseFromDeltaker
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.AvbrytDeltakelseRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.AvsluttDeltakelseRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.BakgrunnsinformasjonRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.DeltakelsesmengdeRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.EndreAvslutningRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.EndringRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.FjernOppstartsdatoRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.ForlengDeltakelseRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.IkkeAktuellRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.InnholdRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.ReaktiverDeltakelseRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.SluttarsakRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.SluttdatoRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.StartdatoRequest
 import java.time.ZonedDateTime
 import java.util.UUID
 
@@ -79,6 +79,11 @@ fun Routing.registerDeltakerApi(deltakerService: DeltakerService, historikkServi
             call.handleDeltakerEndring(deltakerService, request, historikkService)
         }
 
+        post("/deltaker/{deltakerId}/avbryt") {
+            val request = call.receive<AvbrytDeltakelseRequest>()
+            call.handleDeltakerEndring(deltakerService, request, historikkService)
+        }
+
         post("/deltaker/{deltakerId}/avslutt") {
             val request = call.receive<AvsluttDeltakelseRequest>()
             call.handleDeltakerEndring(deltakerService, request, historikkService)
@@ -86,11 +91,6 @@ fun Routing.registerDeltakerApi(deltakerService: DeltakerService, historikkServi
 
         post("/deltaker/{deltakerId}/endre-avslutning") {
             val request = call.receive<EndreAvslutningRequest>()
-            call.handleDeltakerEndring(deltakerService, request, historikkService)
-        }
-
-        post("/deltaker/{deltakerId}/avbryt") {
-            val request = call.receive<AvbrytDeltakelseRequest>()
             call.handleDeltakerEndring(deltakerService, request, historikkService)
         }
 
@@ -124,5 +124,5 @@ private suspend fun ApplicationCall.handleDeltakerEndring(
     val deltaker = deltakerService.upsertEndretDeltaker(deltakerId, request)
     val historikk = historikkService.getForDeltaker(deltaker.id)
 
-    this.respond(deltaker.toDeltakerEndringResponse(historikk))
+    this.respond(deltakerEndringResponseFromDeltaker(deltaker, historikk))
 }

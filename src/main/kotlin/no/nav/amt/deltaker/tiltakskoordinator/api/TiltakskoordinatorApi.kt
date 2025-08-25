@@ -1,6 +1,5 @@
-package no.nav.amt.deltaker.tiltakskoordinator
+package no.nav.amt.deltaker.tiltakskoordinator.api
 
-import io.ktor.network.sockets.SocketTimeoutException
 import io.ktor.server.auth.authenticate
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
@@ -8,18 +7,21 @@ import io.ktor.server.routing.Routing
 import io.ktor.server.routing.post
 import no.nav.amt.deltaker.deltaker.DeltakerOppdateringResult
 import no.nav.amt.deltaker.deltaker.DeltakerService
-import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
+import no.nav.amt.deltaker.tiltakskoordinator.api.DtoMappers.fromDeltakerOppdateringResult
+import no.nav.amt.lib.models.deltaker.internalapis.tiltakskoordinator.request.DeltakereRequest
+import no.nav.amt.lib.models.deltaker.internalapis.tiltakskoordinator.request.GiAvslagRequest
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.models.tiltakskoordinator.requests.DelMedArrangorRequest
-import java.net.SocketException
-import java.sql.SQLException
-import java.util.UUID
 
 fun Routing.registerTiltakskoordinatorApi(deltakerService: DeltakerService) {
     val apiPath = "/tiltakskoordinator/deltakere"
 
-    fun List<DeltakerOppdateringResult>.toDeltakereResponse() =
-        this.map { it.toDeltakerResponse(deltakerService.getHistorikk(it.deltaker.id)) }
+    fun List<DeltakerOppdateringResult>.toDeltakerOppdateringResult() = this.map {
+        fromDeltakerOppdateringResult(
+            oppdateringResult = it,
+            historikk = deltakerService.getHistorikk(it.deltaker.id),
+        )
+    }
 
     authenticate("SYSTEM") {
         post("$apiPath/del-med-arrangor") {
@@ -30,7 +32,7 @@ fun Routing.registerTiltakskoordinatorApi(deltakerService: DeltakerService) {
                     request.deltakerIder,
                     EndringFraTiltakskoordinator.DelMedArrangor,
                     request.endretAv,
-                ).toDeltakereResponse()
+                ).toDeltakerOppdateringResult()
             call.respond(oppdaterteDeltakere)
         }
 
@@ -42,7 +44,7 @@ fun Routing.registerTiltakskoordinatorApi(deltakerService: DeltakerService) {
                     deltakerIder,
                     EndringFraTiltakskoordinator.TildelPlass,
                     request.endretAv,
-                ).toDeltakereResponse()
+                ).toDeltakerOppdateringResult()
 
             call.respond(oppdaterteDeltakere)
         }
@@ -55,13 +57,13 @@ fun Routing.registerTiltakskoordinatorApi(deltakerService: DeltakerService) {
                     deltakerIder,
                     EndringFraTiltakskoordinator.SettPaaVenteliste,
                     request.endretAv,
-                ).toDeltakereResponse()
+                ).toDeltakerOppdateringResult()
 
             call.respond(oppdaterteDeltakere)
         }
 
         post("$apiPath/gi-avslag") {
-            val request = call.receive<AvslagRequest>()
+            val request = call.receive<GiAvslagRequest>()
             val deltakeroppdatering = deltakerService
                 .giAvslag(
                     request.deltakerId,
@@ -72,41 +74,4 @@ fun Routing.registerTiltakskoordinatorApi(deltakerService: DeltakerService) {
             call.respond(deltakeroppdatering)
         }
     }
-}
-
-data class DeltakereRequest(
-    val deltakere: List<UUID>,
-    val endretAv: String,
-)
-
-data class AvslagRequest(
-    val deltakerId: UUID,
-    val avslag: EndringFraTiltakskoordinator.Avslag,
-    val endretAv: String,
-)
-
-fun DeltakerOppdateringResult.toDeltakerResponse(historikk: List<DeltakerHistorikk>): DeltakerOppdateringResponse {
-    val feilkode = when (exceptionOrNull) {
-        is IllegalStateException -> DeltakerOppdateringFeilkode.UGYLDIG_STATE
-        is IllegalArgumentException -> DeltakerOppdateringFeilkode.UGYLDIG_STATE
-        is SQLException -> DeltakerOppdateringFeilkode.UGYLDIG_STATE
-        is SocketTimeoutException -> DeltakerOppdateringFeilkode.MIDLERTIDIG_FEIL
-        is SocketException -> DeltakerOppdateringFeilkode.MIDLERTIDIG_FEIL
-        is Exception -> null
-        else -> null
-    }
-    return DeltakerOppdateringResponse(
-        id = deltaker.id,
-        startdato = deltaker.startdato,
-        sluttdato = deltaker.sluttdato,
-        dagerPerUke = deltaker.dagerPerUke,
-        deltakelsesprosent = deltaker.deltakelsesprosent,
-        bakgrunnsinformasjon = deltaker.bakgrunnsinformasjon,
-        deltakelsesinnhold = deltaker.deltakelsesinnhold,
-        status = deltaker.status,
-        historikk = historikk,
-        sistEndret = deltaker.sistEndret,
-        erManueltDeltMedArrangor = deltaker.erManueltDeltMedArrangor,
-        feilkode = feilkode,
-    )
 }

@@ -160,6 +160,24 @@ class DeltakerRepository {
             ?: Result.failure(NoSuchElementException("Ingen deltaker med id $id"))
     }
 
+    fun getMany(personident: String, deltakerlisteId: UUID): List<Deltaker> = Database.query {
+        val sql = getDeltakerSql(
+            """ where nb.personident = :personident 
+                    and d.deltakerliste_id = :deltakerliste_id 
+                    and ds.gyldig_til is null
+            """.trimMargin(),
+        )
+
+        val query = queryOf(
+            sql,
+            mapOf(
+                "personident" to personident,
+                "deltakerliste_id" to deltakerlisteId,
+            ),
+        ).map(::rowMapper).asList
+        it.run(query)
+    }
+
     fun getMany(deltakerIder: List<UUID>) = Database.query {
         val sql = getDeltakerSql(
             """ where ds.gyldig_til is null
@@ -226,27 +244,6 @@ class DeltakerRepository {
             ),
         ).map {
             it.uuid("d.id")
-        }.asList
-        session.run(query)
-    }
-
-    fun getDeltakerIder(personId: UUID, deltakerlisteId: UUID) = Database.query { session ->
-        val sql =
-            """ 
-                select id as "id"
-                from deltaker
-                where person_id = :person_id
-                and deltakerliste_id = :deltakerliste_id;
-            """.trimMargin()
-
-        val query = queryOf(
-            sql,
-            mapOf(
-                "person_id" to personId,
-                "deltakerliste_id" to deltakerlisteId,
-            ),
-        ).map {
-            it.uuid("id")
         }.asList
         session.run(query)
     }

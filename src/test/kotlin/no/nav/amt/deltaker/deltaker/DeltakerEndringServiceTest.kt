@@ -5,12 +5,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
-import no.nav.amt.deltaker.deltaker.api.model.BakgrunnsinformasjonRequest
-import no.nav.amt.deltaker.deltaker.api.model.FjernOppstartsdatoRequest
-import no.nav.amt.deltaker.deltaker.api.model.ForlengDeltakelseRequest
-import no.nav.amt.deltaker.deltaker.api.model.IkkeAktuellRequest
-import no.nav.amt.deltaker.deltaker.api.model.InnholdRequest
-import no.nav.amt.deltaker.deltaker.api.model.toDeltakerEndringEndring
+import no.nav.amt.deltaker.deltaker.api.deltaker.toDeltakerEndringEndring
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
@@ -37,7 +32,7 @@ import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinat
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.utils.mockAmtArrangorClient
-import no.nav.amt.deltaker.utils.mockAmtPersonClient
+import no.nav.amt.deltaker.utils.mockPersonServiceClient
 import no.nav.amt.lib.kafka.Producer
 import no.nav.amt.lib.kafka.config.LocalKafkaConfig
 import no.nav.amt.lib.models.arrangor.melding.EndringAarsak
@@ -48,6 +43,11 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengde
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.BakgrunnsinformasjonRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.FjernOppstartsdatoRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.ForlengDeltakelseRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.IkkeAktuellRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.InnholdRequest
 import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.testing.SingletonKafkaProvider
 import no.nav.amt.lib.testing.SingletonPostgres16Container
@@ -59,7 +59,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 class DeltakerEndringServiceTest {
-    private val amtPersonClient = mockAmtPersonClient()
+    private val amtPersonClient = mockPersonServiceClient()
     private val navEnhetService = NavEnhetService(NavEnhetRepository(), amtPersonClient)
     private val navAnsattService = NavAnsattService(NavAnsattRepository(), amtPersonClient, navEnhetService)
     private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
@@ -105,6 +105,7 @@ class DeltakerEndringServiceTest {
         @JvmStatic
         @BeforeAll
         fun setup() {
+            @Suppress("UnusedExpression")
             SingletonPostgres16Container
         }
     }

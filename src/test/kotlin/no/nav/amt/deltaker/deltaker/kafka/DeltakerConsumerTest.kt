@@ -72,6 +72,7 @@ class DeltakerConsumerTest {
         @JvmStatic
         @BeforeAll
         fun setup() {
+            @Suppress("UnusedExpression")
             SingletonPostgres16Container
             deltakerRepository = DeltakerRepository()
             importertFraArenaRepository = ImportertFraArenaRepository()
