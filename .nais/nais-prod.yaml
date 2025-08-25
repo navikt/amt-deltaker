@@ -32,8 +32,8 @@ spec:
     limits:
       memory: 2048Mi
     requests:
-      cpu: 50m
-      memory: 256Mi
+      cpu: 100m
+      memory: 512Mi
   envFrom:
     - secret: amt-deltaker-unleash-api-token
   azure:
