@@ -8,7 +8,7 @@ plugins {
     id("io.ktor.plugin") version "3.2.3"
     id("org.jetbrains.kotlin.plugin.serialization") version kotlinVersion
     id("org.jlleitschuh.gradle.ktlint") version "13.1.0"
-    id("com.gradleup.shadow") version "8.3.9"
+    id("com.gradleup.shadow") version "9.0.2"
 }
 
 repositories {
@@ -68,7 +68,6 @@ dependencies {
     implementation("no.nav.amt.lib:ktor:$amtLibVersion")
 
     implementation("no.nav.poao-tilgang:client:$poaoTilgangVersion")
-
     implementation("com.zaxxer:HikariCP:$hikariVersion")
     implementation("org.flywaydb:flyway-core:$flywayVersion")
     implementation("org.flywaydb:flyway-database-postgresql:$flywayVersion")
@@ -124,5 +123,6 @@ tasks.jar {
 }
 
 tasks.shadowJar {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
     mergeServiceFiles()
 }
