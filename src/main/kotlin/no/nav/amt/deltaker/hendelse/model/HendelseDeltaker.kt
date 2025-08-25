@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.hendelse.model
 
-import no.nav.amt.deltaker.arrangor.Arrangor
 import no.nav.amt.deltaker.deltaker.model.Deltaker
+import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.hendelse.HendelseDeltaker
 import java.time.LocalDate
 

@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.auth
 
 import io.mockk.every
 import io.mockk.mockk
+import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.poao_tilgang.client.Decision
 import no.nav.poao_tilgang.client.PoaoTilgangCachedClient
 import no.nav.poao_tilgang.client.api.ApiResult

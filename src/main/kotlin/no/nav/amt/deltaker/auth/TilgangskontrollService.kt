@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.auth
 
+import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.poao_tilgang.client.Decision
 import no.nav.poao_tilgang.client.NavAnsattTilgangTilEksternBrukerPolicyInput
 import no.nav.poao_tilgang.client.PoaoTilgangCachedClient

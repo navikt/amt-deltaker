@@ -4,6 +4,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringService
+import no.nav.amt.deltaker.deltaker.extensions.toVurdering
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerV2Dto
 import no.nav.amt.deltaker.deltaker.model.Deltaker
@@ -18,7 +19,6 @@ import no.nav.amt.deltaker.utils.buildManagedKafkaConsumer
 import no.nav.amt.lib.kafka.Consumer
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
-import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.utils.objectMapper
 import org.slf4j.LoggerFactory
@@ -106,30 +106,3 @@ class DeltakerConsumer(
         it.endring is DeltakerEndring.Endring.EndreBakgrunnsinformasjon
     }
 }
-
-fun DeltakerV2Dto.DeltakerStatusDto.toDeltakerStatus(deltakerId: UUID) = DeltakerStatus(
-    id = id ?: throw IllegalStateException("Deltakerstatus mangler id. deltakerId: $deltakerId"),
-    type = type,
-    aarsak = aarsak?.let { DeltakerStatus.Aarsak(it.toDeltakerstatusArsak(), aarsaksbeskrivelse) },
-    gyldigFra = gyldigFra,
-    gyldigTil = null,
-    opprettet = opprettetDato,
-)
-
-fun DeltakerStatus.Aarsak.Type.toDeltakerstatusArsak(): DeltakerStatus.Aarsak.Type {
-    // AVLYST_KONTRAKT er erstattet av SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT
-    return if (this == DeltakerStatus.Aarsak.Type.AVLYST_KONTRAKT) {
-        DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT
-    } else {
-        this
-    }
-}
-
-fun no.nav.amt.lib.models.arrangor.melding.Vurdering.toVurdering() = Vurdering(
-    id = id,
-    deltakerId = deltakerId,
-    vurderingstype = vurderingstype,
-    begrunnelse = begrunnelse,
-    opprettetAvArrangorAnsattId = opprettetAvArrangorAnsattId,
-    gyldigFra = opprettet,
-)
