@@ -7,7 +7,7 @@ import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.utils.MockResponseHandler
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
-import no.nav.amt.deltaker.utils.mockAmtPersonClient
+import no.nav.amt.deltaker.utils.mockPersonServiceClient
 import no.nav.amt.lib.testing.SingletonPostgres16Container
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -15,12 +15,13 @@ import org.junit.jupiter.api.Test
 class NavAnsattServiceTest {
     companion object {
         private val repository: NavAnsattRepository = NavAnsattRepository()
-        private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockAmtPersonClient())
-        private val service: NavAnsattService = NavAnsattService(repository, mockAmtPersonClient(), navEnhetService)
+        private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockPersonServiceClient())
+        private val service: NavAnsattService = NavAnsattService(repository, mockPersonServiceClient(), navEnhetService)
 
         @JvmStatic
         @BeforeAll
         fun setup() {
+            @Suppress("UnusedExpression")
             SingletonPostgres16Container
         }
     }

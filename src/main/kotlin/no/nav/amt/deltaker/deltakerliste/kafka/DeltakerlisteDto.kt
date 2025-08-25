@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.deltakerliste.kafka
 
-import no.nav.amt.deltaker.arrangor.Arrangor
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
+import no.nav.amt.lib.models.deltaker.Arrangor
 import java.time.LocalDate
 import java.util.UUID
 

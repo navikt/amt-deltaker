@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.isoppfolgingstilfelle
+package no.nav.amt.deltaker.apiclients.oppfolgingstilfelle
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -35,7 +35,7 @@ class IsOppfolgingstilfelleClient(
             .firstOrNull { it.arbeidstakerAtTilfelleEnd } != null
     }
 
-    private suspend fun hentOppfolgingstilfeller(personident: String): OppfolgingstilfellePersonDTO {
+    private suspend fun hentOppfolgingstilfeller(personident: String): OppfolgingstilfellePersonResponse {
         val token = azureAdTokenClient.getMachineToMachineToken(scope)
         val response = httpClient.get("$baseUrl/api/system/v1/oppfolgingstilfelle/personident") {
             header(HttpHeaders.Authorization, token)
@@ -49,18 +49,6 @@ class IsOppfolgingstilfelleClient(
             )
             throw RuntimeException("Kunne ikke hente oppfølgingstilfelle fra isoppfolgingstilfelle")
         }
-        return response.body<OppfolgingstilfellePersonDTO>()
+        return response.body<OppfolgingstilfellePersonResponse>()
     }
-}
-
-data class OppfolgingstilfellePersonDTO(
-    val oppfolgingstilfelleList: List<OppfolgingstilfelleDTO>,
-)
-
-data class OppfolgingstilfelleDTO(
-    val arbeidstakerAtTilfelleEnd: Boolean,
-    val start: LocalDate,
-    val end: LocalDate,
-) {
-    fun gyldigForDato(dato: LocalDate): Boolean = dato in start..end
 }

@@ -12,14 +12,14 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import io.ktor.serialization.jackson.jackson
 import io.ktor.utils.io.ByteReadChannel
-import no.nav.amt.deltaker.arrangor.AmtArrangorClient
-import no.nav.amt.deltaker.arrangor.Arrangor
-import no.nav.amt.deltaker.arrangor.ArrangorDto
-import no.nav.amt.deltaker.isoppfolgingstilfelle.IsOppfolgingstilfelleClient
-import no.nav.amt.deltaker.isoppfolgingstilfelle.OppfolgingstilfellePersonDTO
+import no.nav.amt.deltaker.apiclients.oppfolgingstilfelle.IsOppfolgingstilfelleClient
+import no.nav.amt.deltaker.apiclients.oppfolgingstilfelle.OppfolgingstilfellePersonResponse
+import no.nav.amt.deltaker.bff.apiclients.arrangor.ArrangorResponse
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
 import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
+import no.nav.amt.lib.ktor.clients.arrangor.AmtArrangorClient
+import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.NavEnhet
@@ -98,10 +98,10 @@ fun mockHttpClient(defaultResponse: Any? = null): HttpClient {
 
 fun mockAmtArrangorClient(arrangor: Arrangor = TestData.lagArrangor()): AmtArrangorClient {
     val overordnetArrangor = arrangor.overordnetArrangorId?.let {
-        TestData.lagArrangor(id = arrangor.overordnetArrangorId)
+        TestData.lagArrangor(id = it)
     }
 
-    val response = ArrangorDto(arrangor.id, arrangor.navn, arrangor.organisasjonsnummer, overordnetArrangor)
+    val response = ArrangorResponse(arrangor.id, arrangor.navn, arrangor.organisasjonsnummer, overordnetArrangor)
     return AmtArrangorClient(
         baseUrl = "https://amt-arrangor",
         scope = "amt.arrangor.scope",
@@ -117,7 +117,7 @@ fun mockIsOppfolgingstilfelleClient() = IsOppfolgingstilfelleClient(
     azureAdTokenClient = mockAzureAdClient(),
 )
 
-fun mockAmtPersonClient() = AmtPersonServiceClient(
+fun mockPersonServiceClient() = AmtPersonServiceClient(
     baseUrl = AMT_PERSON_URL,
     scope = "amt.person-service.scope",
     httpClient = mockHttpClient(),
@@ -185,8 +185,8 @@ object MockResponseHandler {
         addResponse(url, HttpMethod.Post, navBruker)
     }
 
-    fun addOppfolgingstilfelleRespons(oppfolgingstilfellePersonDTO: OppfolgingstilfellePersonDTO) {
+    fun addOppfolgingstilfelleRespons(oppfolgingstilfellePersonResponse: OppfolgingstilfellePersonResponse) {
         val url = "$ISOPPFOLGINGSTILFELLE_URL/api/system/v1/oppfolgingstilfelle/personident"
-        addResponse(url, HttpMethod.Get, oppfolgingstilfellePersonDTO)
+        addResponse(url, HttpMethod.Get, oppfolgingstilfellePersonResponse)
     }
 }
