@@ -18,7 +18,6 @@ repositories {
 
 val ktorVersion = "3.2.3"
 val logbackVersion = "1.5.18"
-val slf4jVersion = "2.0.17"
 val prometeusVersion = "1.15.3"
 val ktlintVersion = "1.6.0"
 val jacksonVersion = "2.19.2"
@@ -59,7 +58,6 @@ dependencies {
     implementation("com.github.ben-manes.caffeine:caffeine:$caffeineVersion")
 
     implementation("ch.qos.logback:logback-classic:$logbackVersion")
-    implementation("org.slf4j:jul-to-slf4j:$slf4jVersion")
     implementation("net.logstash.logback:logstash-logback-encoder:$logstashEncoderVersion")
     implementation("no.nav.common:log:$commonVersion")
 
