@@ -50,7 +50,7 @@ data class DeltakerDto(
             registrertDato = innsoktDato.atStartOfDay(),
             dagerPerUke = deltaker.dagerPerUke,
             prosentStilling = deltaker.deltakelsesprosent,
-            endretDato = deltaker.sistEndret,
+            endretDato = maxOf(deltaker.status.opprettet, deltaker.sistEndret),
             kilde = deltaker.kilde,
             innhold = deltaker.deltakelsesinnhold?.toDeltakelsesinnholdDto(),
             deltakelsesmengder = deltakelsesmengderDto(deltaker, deltakerhistorikk),
