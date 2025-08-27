@@ -1,3 +1,5 @@
+import com.github.jengelman.gradle.plugins.shadow.transformers.PreserveFirstFoundResourceTransformer
+
 group = "no.nav.amt-deltaker"
 version = "1.0-SNAPSHOT"
 
@@ -123,4 +125,7 @@ tasks.jar {
 tasks.shadowJar {
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
     mergeServiceFiles()
+    transform<PreserveFirstFoundResourceTransformer> {
+        resources.add("logback.xml")
+    }
 }
