@@ -31,7 +31,8 @@ fun Routing.registerVeilederApi(
                         (unleashToggle.skalLeseArenaDeltakereForTiltakstype(it.deltakerliste.tiltakstype.arenaKode))
                 }
 
-            call.respond(deltakelserResponseMapper.toDeltakelserResponse(deltakelser))
+            val responseBody = deltakelserResponseMapper.toDeltakelserResponse(deltakelser)
+            call.respond(responseBody)
         }
     }
 }

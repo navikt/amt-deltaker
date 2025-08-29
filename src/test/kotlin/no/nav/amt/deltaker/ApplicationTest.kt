@@ -4,39 +4,17 @@ import io.kotest.matchers.shouldBe
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.testApplication
-import io.mockk.mockk
-import no.nav.amt.deltaker.application.plugins.configureAuthentication
-import no.nav.amt.deltaker.application.plugins.configureRouting
-import no.nav.amt.deltaker.application.plugins.configureSerialization
-import no.nav.amt.deltaker.utils.configureEnvForAuthentication
+import no.nav.amt.deltaker.utils.RouteTestBase
 import org.junit.jupiter.api.Test
 
-class ApplicationTest {
+class ApplicationTest : RouteTestBase() {
     @Test
-    fun testRoot() = testApplication {
-        configureEnvForAuthentication()
-        application {
-            configureSerialization()
-            configureAuthentication(Environment())
-            configureRouting(
-                pameldingService = mockk(),
-                deltakerService = mockk(),
-                deltakerHistorikkService = mockk(),
-                tilgangskontrollService = mockk(),
-                deltakelserResponseMapper = mockk(),
-                deltakerProducerService = mockk(),
-                vedtakService = mockk(),
-                unleashToggle = mockk(),
-                innsokPaaFellesOppstartService = mockk(),
-                vurderingService = mockk(),
-                hendelseService = mockk(),
-                endringFraTiltakskoordinatorService = mockk(),
-            )
-        }
-        client.get("/internal/health/liveness").apply {
-            status shouldBe HttpStatusCode.OK
-            bodyAsText() shouldBe "I'm alive!"
+    fun testRoot() {
+        withTestApplicationContext { client ->
+            val response = client.get("/internal/health/liveness")
+
+            response.status shouldBe HttpStatusCode.OK
+            response.bodyAsText() shouldBe "I'm alive!"
         }
     }
 }
