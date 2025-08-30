@@ -27,13 +27,15 @@ spec:
   replicas:
     min: 2
     max: 4
-    cpuThresholdPercentage: 75
+    scalingStrategy:
+      cpu:
+        thresholdPercentage: 75
   resources:
+    requests:
+      cpu: 50m
+      memory: 512Mi
     limits:
       memory: 2048Mi
-    requests:
-      cpu: 100m
-      memory: 512Mi
   envFrom:
     - secret: amt-deltaker-unleash-api-token
   azure:
