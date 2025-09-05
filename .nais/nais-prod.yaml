@@ -15,25 +15,22 @@ spec:
     path: /internal/prometheus
   readiness:
     path: /internal/health/readiness
-    initialDelay: 20
+    initialDelay: 30
   liveness:
     path: /internal/health/liveness
-    initialDelay: 20
-  startup:
-    path: /internal/health/liveness
     initialDelay: 30
-    failureThreshold: 45
-    periodSeconds: 5
   replicas:
     min: 2
     max: 4
-    cpuThresholdPercentage: 75
+    scalingStrategy:
+      cpu:
+        thresholdPercentage: 400
   resources:
+    requests:
+      cpu: 50m
+      memory: 800Mi
     limits:
       memory: 2048Mi
-    requests:
-      cpu: 100m
-      memory: 512Mi
   envFrom:
     - secret: amt-deltaker-unleash-api-token
   azure:
