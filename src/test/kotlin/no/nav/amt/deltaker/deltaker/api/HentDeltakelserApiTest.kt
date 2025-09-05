@@ -1,80 +1,61 @@
 package no.nav.amt.deltaker.deltaker.api
 
-import io.getunleash.FakeUnleash
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.ApplicationTestBuilder
-import io.ktor.server.testing.testApplication
 import io.mockk.coEvery
-import io.mockk.mockk
-import no.nav.amt.deltaker.Environment
-import no.nav.amt.deltaker.application.plugins.configureAuthentication
-import no.nav.amt.deltaker.application.plugins.configureRouting
-import no.nav.amt.deltaker.application.plugins.configureSerialization
-import no.nav.amt.deltaker.arrangor.ArrangorService
-import no.nav.amt.deltaker.auth.TilgangskontrollService
-import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
-import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.api.deltaker.DeltakelserResponseMapper
 import no.nav.amt.deltaker.deltaker.api.deltaker.DeltakerKort
 import no.nav.amt.deltaker.deltaker.api.deltaker.Periode
 import no.nav.amt.deltaker.deltaker.api.deltaker.response.DeltakelserResponse
 import no.nav.amt.deltaker.deltaker.api.utils.postVeilederRequest
-import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.external.data.HentDeltakelserRequest
-import no.nav.amt.deltaker.unleash.UnleashToggle
-import no.nav.amt.deltaker.utils.configureEnvForAuthentication
+import no.nav.amt.deltaker.utils.RouteTestBase
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.poao_tilgang.client.Decision
-import no.nav.poao_tilgang.client.PoaoTilgangCachedClient
 import no.nav.poao_tilgang.client.api.ApiResult
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
-class HentDeltakelserApiTest {
-    private val poaoTilgangCachedClient = mockk<PoaoTilgangCachedClient>()
-    private val tilgangskontrollService = TilgangskontrollService(poaoTilgangCachedClient)
-    private val deltakerService = mockk<DeltakerService>(relaxUnitFun = true)
-    private val deltakerHistorikkService = mockk<DeltakerHistorikkService>()
-    private val arrangorService = mockk<ArrangorService>()
-    private val deltakelserResponseMapper = DeltakelserResponseMapper(deltakerHistorikkService, arrangorService)
-    private val deltakerProducerService = mockk<DeltakerProducerService>()
-    private val unleashClient = FakeUnleash()
-    private val unleashToggle = UnleashToggle(unleashClient)
+class HentDeltakelserApiTest : RouteTestBase() {
+    override val deltakelserResponseMapper = DeltakelserResponseMapper(deltakerHistorikkService, arrangorService)
 
     @BeforeEach
-    fun setup() {
-        configureEnvForAuthentication()
-        unleashClient.enableAll()
+    fun setup() = unleashClient.enableAll()
+
+    @Test
+    fun `skal teste autentisering - mangler token - returnerer 401`() {
+        withTestApplicationContext { client ->
+            client
+                .post("/deltakelser") {
+                    setBody("foo")
+                }.status shouldBe HttpStatusCode.Unauthorized
+        }
     }
 
     @Test
-    fun `skal teste autentisering - mangler token - returnerer 401`() = testApplication {
-        setUpTestApplication()
-        client.post("/deltakelser") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
+    fun `skal teste tilgangskontroll - har ikke tilgang - returnerer 403`() {
+        coEvery {
+            poaoTilgangCachedClient.evaluatePolicy(any())
+        } returns ApiResult(null, Decision.Deny("Ikke tilgang", ""))
+
+        withTestApplicationContext { client ->
+            client
+                .post("/deltakelser") {
+                    postVeilederRequest(deltakelserRequest)
+                }.status shouldBe HttpStatusCode.Forbidden
+        }
     }
 
     @Test
-    fun `skal teste tilgangskontroll - har ikke tilgang - returnerer 403`() = testApplication {
-        coEvery { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(
-            null,
-            Decision.Deny("Ikke tilgang", ""),
-        )
-
-        setUpTestApplication()
-        client.post("/deltakelser") { postVeilederRequest(deltakelserRequest) }.status shouldBe HttpStatusCode.Forbidden
-    }
-
-    @Test
-    fun `post deltakelser - har tilgang, deltaker deltar - returnerer 200`() = testApplication {
+    fun `post deltakelser - har tilgang, deltaker deltar - returnerer 200`() {
         coEvery { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
 
         val innsoktDato = LocalDate.now().minusDays(4)
@@ -125,15 +106,16 @@ class HentDeltakelserApiTest {
             historikk = emptyList(),
         )
 
-        setUpTestApplication()
-        client.post("/deltakelser") { postVeilederRequest(deltakelserRequest) }.apply {
-            status shouldBe HttpStatusCode.OK
-            bodyAsText() shouldBe objectMapper.writeValueAsString(forventetRespons)
+        withTestApplicationContext { client ->
+            client.post("/deltakelser") { postVeilederRequest(deltakelserRequest) }.apply {
+                status shouldBe HttpStatusCode.OK
+                bodyAsText() shouldBe objectMapper.writeValueAsString(forventetRespons)
+            }
         }
     }
 
     @Test
-    fun `post deltakelser - har tilgang, kladd og avsluttet deltakelse - returnerer 200`() = testApplication {
+    fun `post deltakelser - har tilgang, kladd og avsluttet deltakelse - returnerer 200`() {
         coEvery { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
 
         val innsoktDato = LocalDate.now().minusDays(4)
@@ -215,15 +197,16 @@ class HentDeltakelserApiTest {
             ),
         )
 
-        setUpTestApplication()
-        client.post("/deltakelser") { postVeilederRequest(deltakelserRequest) }.apply {
-            status shouldBe HttpStatusCode.OK
-            bodyAsText() shouldBe objectMapper.writeValueAsString(forventetRespons)
+        withTestApplicationContext { client ->
+            client.post("/deltakelser") { postVeilederRequest(deltakelserRequest) }.apply {
+                status shouldBe HttpStatusCode.OK
+                bodyAsText() shouldBe objectMapper.writeValueAsString(forventetRespons)
+            }
         }
     }
 
     @Test
-    fun `post deltakelser - har tilgang, ingen deltakelser - returnerer 200`() = testApplication {
+    fun `post deltakelser - har tilgang, ingen deltakelser - returnerer 200`() {
         coEvery { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
 
         coEvery { deltakerService.getDeltakelserForPerson(any()) } returns emptyList()
@@ -233,33 +216,15 @@ class HentDeltakelserApiTest {
             historikk = emptyList(),
         )
 
-        setUpTestApplication()
-        client.post("/deltakelser") { postVeilederRequest(deltakelserRequest) }.apply {
-            status shouldBe HttpStatusCode.OK
-            bodyAsText() shouldBe objectMapper.writeValueAsString(forventetRespons)
+        withTestApplicationContext { client ->
+            client.post("/deltakelser") { postVeilederRequest(deltakelserRequest) }.apply {
+                status shouldBe HttpStatusCode.OK
+                bodyAsText() shouldBe objectMapper.writeValueAsString(forventetRespons)
+            }
         }
     }
 
-    private fun ApplicationTestBuilder.setUpTestApplication() {
-        application {
-            configureSerialization()
-            configureAuthentication(Environment())
-            configureRouting(
-                pameldingService = mockk(),
-                deltakerService = deltakerService,
-                deltakerHistorikkService = deltakerHistorikkService,
-                tilgangskontrollService = tilgangskontrollService,
-                deltakelserResponseMapper = deltakelserResponseMapper,
-                deltakerProducerService = deltakerProducerService,
-                vedtakService = mockk(),
-                unleashToggle = unleashToggle,
-                innsokPaaFellesOppstartService = mockk(),
-                vurderingService = mockk(),
-                hendelseService = mockk(),
-                endringFraTiltakskoordinatorService = mockk(),
-            )
-        }
+    companion object {
+        private val deltakelserRequest = HentDeltakelserRequest(TestData.randomIdent())
     }
-
-    private val deltakelserRequest = HentDeltakelserRequest(TestData.randomIdent())
 }

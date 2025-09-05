@@ -26,7 +26,7 @@ fun generateJWT(
     expiry: LocalDateTime? = LocalDateTime.now().plusHours(1),
     subject: String = "subject",
     issuer: String = "issuer",
-): String? {
+): String {
     val now = Date()
     val key = getDefaultRSAKey()
     val alg = Algorithm.RSA256(key.toRSAPublicKey(), key.toRSAPrivateKey())
