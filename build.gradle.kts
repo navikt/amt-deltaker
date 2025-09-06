@@ -34,7 +34,7 @@ val caffeineVersion = "3.2.2"
 val mockkVersion = "1.14.5"
 val nimbusVersion = "10.4.2"
 val unleashVersion = "11.1.0"
-val amtLibVersion = "1.2025.09.05_08.24-2bd638d77442"
+val amtLibVersion = "1.2025.09.06_18.23-b4fd91a51a24"
 
 dependencies {
     implementation("io.ktor:ktor-server-content-negotiation-jvm")
