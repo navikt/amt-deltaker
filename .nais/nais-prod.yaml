@@ -91,7 +91,7 @@ spec:
       - name: amt-deltaker
         collation: nb_NO.UTF8
         tier: db-custom-2-5120
-        type: POSTGRES_16
+        type: POSTGRES_17
         databases:
           - name: amt-deltaker
             envVarPrefix: DB
