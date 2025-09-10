@@ -2,7 +2,6 @@ package no.nav.amt.deltaker.internal
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
-import io.ktor.server.auth.authenticate
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
@@ -28,7 +27,6 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.lang.IllegalStateException
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -248,12 +246,6 @@ fun Routing.registerInternalApi(
             call.respond(HttpStatusCode.OK)
         } else {
             throw AuthorizationException("Ikke tilgang til api")
-        }
-    }
-
-    authenticate("SYSTEM") {
-        post("internal/deltakere/reproduser") {
-            call.reproduserDeltakere()
         }
     }
 }
