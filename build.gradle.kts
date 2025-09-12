@@ -5,7 +5,7 @@ plugins {
     val kotlinVersion = "2.2.20"
 
     kotlin("jvm") version kotlinVersion
-    id("io.ktor.plugin") version "3.2.3"
+    id("io.ktor.plugin") version "3.3.0"
     id("org.jetbrains.kotlin.plugin.serialization") version kotlinVersion
     id("org.jlleitschuh.gradle.ktlint") version "13.1.0"
     application
