@@ -351,19 +351,19 @@ fun Application.module(): ShutdownHandlers {
     attributes.put(isReadyKey, true)
 
     fun shutdownKafkaProducers() {
-        try {
+        runCatching {
             kafkaProducer.close()
-        } catch (e: Exception) {
-            log.error("Error shutting down producers", e)
+        }.onFailure { throwable ->
+            log.error("Error shutting down producers", throwable)
         }
     }
 
     suspend fun shutdownKafkaConsumers() {
         consumers.forEach {
-            try {
+            runCatching {
                 it.close()
-            } catch (e: Exception) {
-                log.error("Error shutting down consumer", e)
+            }.onFailure { throwable ->
+                log.error("Error shutting down consumer", throwable)
             }
         }
     }
