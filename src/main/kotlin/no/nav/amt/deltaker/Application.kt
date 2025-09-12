@@ -81,12 +81,14 @@ import no.nav.amt.lib.utils.database.Database
 import no.nav.poao_tilgang.client.PoaoTilgangCachedClient
 import no.nav.poao_tilgang.client.PoaoTilgangHttpClient
 import org.slf4j.LoggerFactory
+import java.util.concurrent.TimeUnit
 
 fun main() {
     val log = LoggerFactory.getLogger("shutdownlogger")
-    var shutdownConsumers: suspend () -> Unit = {}
+    lateinit var shutdownHandlers: ShutdownHandlers
+
     val server = embeddedServer(Netty, port = 8080) {
-        shutdownConsumers = module()
+        shutdownHandlers = module()
     }
 
     Runtime.getRuntime().addShutdownHook(
@@ -95,22 +97,29 @@ fun main() {
             server.application.attributes.put(isReadyKey, false)
 
             runBlocking {
-                log.info("Shutting down consumers")
-                shutdownConsumers()
+                log.info("Shutting down Kafka consumers")
+                shutdownHandlers.shutdownConsumers()
+
+                log.info("Shutting down server")
+                server.stop(
+                    shutdownGracePeriod = 5,
+                    shutdownTimeout = 20,
+                    timeUnit = TimeUnit.SECONDS,
+                )
+                log.info("Shut down server completed")
 
                 log.info("Shutting down database")
                 Database.close()
 
-                log.info("Shutting down server")
-                server.stop(gracePeriodMillis = 5_000, timeoutMillis = 20_000)
-                log.info("Shut down server completed")
+                log.info("Shutting down producers")
+                shutdownHandlers.shutdownProducers()
             }
         },
     )
     server.start(wait = true)
 }
 
-fun Application.module(): suspend () -> Unit {
+fun Application.module(): ShutdownHandlers {
     configureSerialization()
 
     val environment = Environment()
@@ -158,7 +167,10 @@ fun Application.module(): suspend () -> Unit {
         httpClient = httpClient,
     )
 
-    val kafkaProducer = Producer<String, String>(if (Environment.isLocal()) LocalKafkaConfig() else KafkaConfigImpl())
+    val kafkaProducer = Producer<String, String>(
+        kafkaConfig = if (Environment.isLocal()) LocalKafkaConfig() else KafkaConfigImpl(),
+        addShutdownHook = false,
+    )
 
     val arrangorRepository = ArrangorRepository()
     val navAnsattRepository = NavAnsattRepository()
@@ -337,7 +349,15 @@ fun Application.module(): suspend () -> Unit {
 
     attributes.put(isReadyKey, true)
 
-    suspend fun shutdownConsumers() {
+    fun shutdownKafkaProducers() {
+        try {
+            kafkaProducer.close()
+        } catch (e: Exception) {
+            log.error("Error shutting down producers", e)
+        }
+    }
+
+    suspend fun shutdownKafkaConsumers() {
         consumers.forEach {
             try {
                 it.close()
@@ -347,5 +367,5 @@ fun Application.module(): suspend () -> Unit {
         }
     }
 
-    return { shutdownConsumers() }
+    return ShutdownHandlers(shutdownProducers = { shutdownKafkaProducers() }, shutdownConsumers = { shutdownKafkaConsumers() })
 }
