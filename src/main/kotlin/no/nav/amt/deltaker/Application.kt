@@ -330,6 +330,8 @@ fun Application.module() {
     attributes.put(isReadyKey, true)
 
     monitor.subscribe(ApplicationStopping) {
+        attributes.put(isReadyKey, false)
+
         runBlocking {
             log.info("Shutting down consumers")
             consumers.forEach {
