@@ -5,7 +5,7 @@ plugins {
     val kotlinVersion = "2.2.20"
 
     kotlin("jvm") version kotlinVersion
-    id("io.ktor.plugin") version "3.2.3"
+    id("io.ktor.plugin") version "3.3.0"
     id("org.jetbrains.kotlin.plugin.serialization") version kotlinVersion
     id("org.jlleitschuh.gradle.ktlint") version "13.1.0"
     application
@@ -34,7 +34,7 @@ val caffeineVersion = "3.2.2"
 val mockkVersion = "1.14.5"
 val nimbusVersion = "10.5"
 val unleashVersion = "11.1.0"
-val amtLibVersion = "1.2025.09.06_18.23-b4fd91a51a24"
+val amtLibVersion = "1.2025.09.12_16.01-9b5d825e8e20"
 
 dependencies {
     implementation("io.ktor:ktor-server-content-negotiation-jvm")
