@@ -149,8 +149,7 @@ fun Application.module() {
     )
 
     val kafkaProducer = Producer<String, String>(
-        kafkaConfig = if (Environment.isLocal()) LocalKafkaConfig() else KafkaConfigImpl(),
-        addShutdownHook = false,
+        if (Environment.isLocal()) LocalKafkaConfig() else KafkaConfigImpl(),
     )
 
     val arrangorRepository = ArrangorRepository()
