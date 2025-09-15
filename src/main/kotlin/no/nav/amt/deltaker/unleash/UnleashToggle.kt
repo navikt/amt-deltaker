@@ -13,13 +13,12 @@ class UnleashToggle(
         Tiltakstype.ArenaKode.ARBRRHDAG,
         Tiltakstype.ArenaKode.DIGIOPPARB,
         Tiltakstype.ArenaKode.VASV,
-    )
-
-    private val tiltakstyperKometSkalLese = listOf(
         Tiltakstype.ArenaKode.GRUPPEAMO,
         Tiltakstype.ArenaKode.JOBBK,
         Tiltakstype.ArenaKode.GRUFAGYRKE,
     )
+
+    private val tiltakstyperKometSkalLese = emptyList<Tiltakstype.ArenaKode>()
 
     private val tiltakstyperKometKanskjeErMasterFor = tiltakstyperKometSkalLese
 
