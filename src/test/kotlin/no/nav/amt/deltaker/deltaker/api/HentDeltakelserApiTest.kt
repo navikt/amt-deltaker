@@ -6,12 +6,12 @@ import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
-import no.nav.amt.deltaker.deltaker.api.deltaker.DeltakelserResponseMapper
-import no.nav.amt.deltaker.deltaker.api.deltaker.DeltakerKort
-import no.nav.amt.deltaker.deltaker.api.deltaker.Periode
-import no.nav.amt.deltaker.deltaker.api.deltaker.response.DeltakelserResponse
 import no.nav.amt.deltaker.deltaker.api.utils.postVeilederRequest
+import no.nav.amt.deltaker.external.data.DeltakelserResponse
+import no.nav.amt.deltaker.external.data.DeltakelserResponseMapper
+import no.nav.amt.deltaker.external.data.DeltakerKort
 import no.nav.amt.deltaker.external.data.HentDeltakelserRequest
+import no.nav.amt.deltaker.external.data.Periode
 import no.nav.amt.deltaker.utils.RouteTestBase
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk

@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.deltaker.api.deltaker
+package no.nav.amt.deltaker.external.data
 
 import java.time.LocalDate
 

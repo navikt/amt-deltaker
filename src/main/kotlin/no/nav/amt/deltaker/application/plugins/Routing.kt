@@ -19,7 +19,6 @@ import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.OpprettKladdRequestValidator
 import no.nav.amt.deltaker.deltaker.PameldingService
 import no.nav.amt.deltaker.deltaker.VedtakService
-import no.nav.amt.deltaker.deltaker.api.deltaker.DeltakelserResponseMapper
 import no.nav.amt.deltaker.deltaker.api.deltaker.registerDeltakerApi
 import no.nav.amt.deltaker.deltaker.api.paamelding.registerPameldingApi
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartService
@@ -27,6 +26,7 @@ import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
 import no.nav.amt.deltaker.external.api.registerNavInternApi
 import no.nav.amt.deltaker.external.api.registerVeilederApi
+import no.nav.amt.deltaker.external.data.DeltakelserResponseMapper
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.internal.registerInternalApi
 import no.nav.amt.deltaker.tiltakskoordinator.api.registerTiltakskoordinatorApi

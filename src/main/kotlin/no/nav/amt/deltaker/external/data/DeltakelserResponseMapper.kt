@@ -1,8 +1,9 @@
-package no.nav.amt.deltaker.deltaker.api.deltaker
+package no.nav.amt.deltaker.external.data
 
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
-import no.nav.amt.deltaker.deltaker.api.deltaker.response.DeltakelserResponse
+import no.nav.amt.deltaker.deltaker.api.deltaker.AKTIVE_STATUSER
+import no.nav.amt.deltaker.deltaker.api.deltaker.HISTORISKE_STATUSER
 import no.nav.amt.deltaker.deltaker.extensions.getInnsoktDato
 import no.nav.amt.deltaker.deltaker.extensions.getStatustekst
 import no.nav.amt.deltaker.deltaker.extensions.getVisningsnavn
@@ -34,7 +35,9 @@ class DeltakelserResponseMapper(
     private fun toDeltakerKort(deltaker: Deltaker): DeltakerKort = DeltakerKort(
         deltakerId = deltaker.id,
         deltakerlisteId = deltaker.deltakerliste.id,
-        tittel = lagTittel(deltaker),
+        tittel = lagTittel(
+            deltaker,
+        ),
         tiltakstype = deltaker.deltakerliste.tiltakstype.toTiltakstypeRespons(),
         status = deltaker.getStatus(),
         innsoktDato = deltaker.getInnsoktDato(),

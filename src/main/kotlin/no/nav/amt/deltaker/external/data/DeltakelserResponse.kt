@@ -1,6 +1,4 @@
-package no.nav.amt.deltaker.deltaker.api.deltaker.response
-
-import no.nav.amt.deltaker.deltaker.api.deltaker.DeltakerKort
+package no.nav.amt.deltaker.external.data
 
 data class DeltakelserResponse(
     val aktive: List<DeltakerKort>,

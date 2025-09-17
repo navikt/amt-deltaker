@@ -1,6 +1,5 @@
-package no.nav.amt.deltaker.deltaker.api.deltaker
+package no.nav.amt.deltaker.external.data
 
-import no.nav.amt.deltaker.deltaker.api.deltaker.response.DeltakelserResponse
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import java.time.LocalDate
 import java.util.UUID
