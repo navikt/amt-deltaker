@@ -29,6 +29,7 @@ import no.nav.amt.deltaker.external.api.registerVeilederApi
 import no.nav.amt.deltaker.external.data.DeltakelserResponseMapper
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.internal.registerInternalApi
+import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.tiltakskoordinator.api.registerTiltakskoordinatorApi
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorService
 import no.nav.amt.deltaker.unleash.UnleashToggle
@@ -60,6 +61,7 @@ fun Application.configureRouting(
     vurderingService: VurderingService,
     hendelseService: HendelseService,
     endringFraTiltakskoordinatorService: EndringFraTiltakskoordinatorService,
+    navEnhetService: NavEnhetService,
 ) {
     install(StatusPages) {
         exception<IllegalArgumentException> { call, cause ->
@@ -106,7 +108,7 @@ fun Application.configureRouting(
             endringFraTiltakskoordinatorService,
         )
         registerTiltakskoordinatorApi(deltakerService)
-        registerNavInternApi(deltakerService)
+        registerNavInternApi(deltakerService, navEnhetService)
 
         val catchAllRoute = "{...}"
         route(catchAllRoute) {
