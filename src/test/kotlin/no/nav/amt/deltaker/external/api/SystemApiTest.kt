@@ -1,19 +1,23 @@
 package no.nav.amt.deltaker.external.api
 
 import io.kotest.matchers.shouldBe
+import io.ktor.client.HttpClient
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
+import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.external.data.DeltakerPersonaliaResponse
 import no.nav.amt.deltaker.utils.RouteTestBase
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.generateJWT
+import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.models.person.address.Adressebeskyttelse
 import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.BeforeEach
@@ -24,185 +28,129 @@ class SystemApiTest : RouteTestBase() {
     @BeforeEach
     fun setup() = unleashClient.enableAll()
 
-    @Test
-    fun `skal teste autentisering - mangler token - returnerer 401`() {
-        val deltakerIds = listOf(UUID.randomUUID())
+    private fun createStandardRequest(deltakerIds: List<UUID>) = objectMapper.writeValueAsString(deltakerIds)
 
-        withTestApplicationContext { client ->
-            client
-                .post("/external/deltaker/personalia") {
-                    setBody(objectMapper.writeValueAsString(deltakerIds))
-                    header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                }.status shouldBe HttpStatusCode.Unauthorized
-        }
-    }
-
-    @Test
-    fun `skal teste autentisering - ugyldig token - returnerer 401`() {
-        val deltakerIds = listOf(UUID.randomUUID())
-
-        withTestApplicationContext { client ->
-            client
-                .post("/external/deltaker/personalia") {
-                    setBody(objectMapper.writeValueAsString(deltakerIds))
-                    header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                    bearerAuth("invalid-token")
-                }.status shouldBe HttpStatusCode.Unauthorized
-        }
-    }
-
-    @Test
-    fun `skal teste autentisering - feil consumer app - returnerer 401`() {
-        val deltakerIds = listOf(UUID.randomUUID())
-        val token = generateJWT(
-            consumerClientId = "wrong-app",
-            audience = "amt-deltaker",
-        )
-
-        withTestApplicationContext { client ->
-            client
-                .post("/external/deltaker/personalia") {
-                    setBody(objectMapper.writeValueAsString(deltakerIds))
-                    header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                    bearerAuth(token)
-                }.status shouldBe HttpStatusCode.Unauthorized
-        }
-    }
-
-    @Test
-    fun `post deltaker personalia - har tilgang - returnerer personalia`() {
-        val navEnhet = TestData.lagNavEnhet(
-            enhetsnummer = "1234",
-            navn = "NAV Testheim",
-        )
+    private fun createDeltakerWithNavEnhet(
+        personident: String,
+        fornavn: String,
+        etternavn: String,
+        mellomnavn: String? = null,
+        enhetsnummer: String = "1234",
+        enhetsnavn: String = "NAV Test",
+        erSkjermet: Boolean = false,
+        adressebeskyttelse: Adressebeskyttelse? = null,
+        navEnhetId: UUID? = null,
+    ): Pair<Deltaker, NavEnhet?> {
+        val navEnhet = if (navEnhetId != null) null else TestData.lagNavEnhet(enhetsnummer = enhetsnummer, navn = enhetsnavn)
         val deltaker = TestData.lagDeltaker(
             navBruker = TestData.lagNavBruker(
-                personident = "12345678901",
-                fornavn = "Test",
-                mellomnavn = "Midt",
-                etternavn = "Testesen",
-                navEnhetId = navEnhet.id,
-                erSkjermet = false,
-                adressebeskyttelse = null,
+                personident = personident,
+                fornavn = fornavn,
+                mellomnavn = mellomnavn,
+                etternavn = etternavn,
+                navEnhetId = navEnhetId ?: navEnhet?.id,
+                erSkjermet = erSkjermet,
+                adressebeskyttelse = adressebeskyttelse,
             ),
         )
+        return deltaker to navEnhet
+    }
 
-        coEvery { deltakerService.getDeltakelser(listOf(deltaker.id)) } returns listOf(deltaker)
-        coEvery { navEnhetService.getEnheter(setOf(navEnhet.id)) } returns mapOf(navEnhet.id to navEnhet)
+    private suspend fun HttpClient.postPersonalia(deltakerIds: List<UUID>, token: String? = mulighetsrommetSystemToken): HttpResponse =
+        post("/external/deltaker/personalia") {
+            setBody(createStandardRequest(deltakerIds))
+            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            token?.let { bearerAuth(it) }
+        }
 
-        val forventetRespons = listOf(
-            DeltakerPersonaliaResponse(
-                deltakerId = deltaker.id,
-                personident = "12345678901",
-                fornavn = "Test",
-                mellomnavn = "Midt",
-                etternavn = "Testesen",
-                navEnhetsnummer = "1234",
-                erSkjermet = false,
-                adressebeskyttelse = null,
-            ),
-        )
+    private fun mockServices(deltakere: List<Deltaker>, navEnheter: Map<UUID, NavEnhet> = emptyMap()) {
+        coEvery { deltakerService.getDeltakelser(any()) } returns deltakere
+        coEvery { navEnhetService.getEnheter(any()) } returns navEnheter
+    }
+
+    @Test
+    fun `autentisering tester - ulike scenarioer`() {
+        val deltakerIds = listOf(UUID.randomUUID())
 
         withTestApplicationContext { client ->
-            client
-                .post("/external/deltaker/personalia") {
-                    setBody(objectMapper.writeValueAsString(listOf(deltaker.id)))
-                    header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                    bearerAuth(mulighetsrommetSystemToken)
-                }.apply {
-                    status shouldBe HttpStatusCode.OK
-                    bodyAsText() shouldBe objectMapper.writeValueAsString(forventetRespons)
-                }
+            val tomtToken = null
+            client.postPersonalia(deltakerIds, tomtToken).status shouldBe HttpStatusCode.Unauthorized
+
+            val ugyldigToken = "ugyldig-token"
+            client.postPersonalia(deltakerIds, ugyldigToken).status shouldBe HttpStatusCode.Unauthorized
+
+            val feilApp = "feil-app"
+            val wrongToken = generateJWT(consumerClientId = feilApp, audience = "amt-deltaker")
+            client.postPersonalia(deltakerIds, wrongToken).status shouldBe HttpStatusCode.Unauthorized
+        }
+    }
+
+    @Test
+    fun `post deltaker personalia - standard scenario`() {
+        val (deltaker, navEnhet) = createDeltakerWithNavEnhet("12345678901", "Test", "Testesen", "Midt")
+
+        mockServices(listOf(deltaker), navEnhet?.let { mapOf(it.id to it) } ?: emptyMap())
+
+        val forventetRespons = forventetResponse(deltaker, navEnhet)
+
+        withTestApplicationContext { client ->
+            client.postPersonalia(listOf(deltaker.id)).apply {
+                status shouldBe HttpStatusCode.OK
+                bodyAsText() shouldBe objectMapper.writeValueAsString(forventetRespons)
+            }
         }
     }
 
     @Test
     fun `post deltaker personalia - deltaker med adressebeskyttelse - returnerer korrekt adressebeskyttelse`() {
-        val navEnhet = TestData.lagNavEnhet(
+        val (deltaker, navEnhet) = createDeltakerWithNavEnhet(
+            personident = "98765432109",
+            fornavn = "Fortrolig",
+            etternavn = "Person",
+            mellomnavn = null,
             enhetsnummer = "5678",
-            navn = "NAV Fortrolig",
-        )
-        val deltaker = TestData.lagDeltaker(
-            navBruker = TestData.lagNavBruker(
-                personident = "98765432109",
-                fornavn = "Fortrolig",
-                mellomnavn = null,
-                etternavn = "Person",
-                navEnhetId = navEnhet.id,
-                erSkjermet = true,
-                adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG,
-            ),
+            enhetsnavn = "NAV Fortrolig",
+            erSkjermet = true,
+            adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG,
         )
 
-        coEvery { deltakerService.getDeltakelser(listOf(deltaker.id)) } returns listOf(deltaker)
-        coEvery { navEnhetService.getEnheter(setOf(navEnhet.id)) } returns mapOf(navEnhet.id to navEnhet)
+        mockServices(listOf(deltaker), navEnhet?.let { mapOf(it.id to it) } ?: emptyMap())
 
-        val forventetRespons = listOf(
-            DeltakerPersonaliaResponse(
-                deltakerId = deltaker.id,
-                personident = "98765432109",
-                fornavn = "Fortrolig",
-                mellomnavn = null,
-                etternavn = "Person",
-                navEnhetsnummer = "5678",
-                erSkjermet = true,
-                adressebeskyttelse = DeltakerPersonaliaResponse.AdressebeskyttelseResponse.STRENGT_FORTROLIG,
-            ),
-        )
+        val forventetRespons = forventetResponse(deltaker, navEnhet)
 
         withTestApplicationContext { client ->
-            client
-                .post("/external/deltaker/personalia") {
-                    setBody(objectMapper.writeValueAsString(listOf(deltaker.id)))
-                    header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                    bearerAuth(mulighetsrommetSystemToken)
-                }.apply {
-                    status shouldBe HttpStatusCode.OK
-                    bodyAsText() shouldBe objectMapper.writeValueAsString(forventetRespons)
-                }
+            client.postPersonalia(listOf(deltaker.id)).apply {
+                status shouldBe HttpStatusCode.OK
+                bodyAsText() shouldBe objectMapper.writeValueAsString(forventetRespons)
+            }
         }
+    }
+
+    private fun forventetResponse(deltaker: Deltaker, navEnhet: NavEnhet?): List<DeltakerPersonaliaResponse> {
+        val forventetRespons = listOf(
+            DeltakerPersonaliaResponse.from(deltaker, navEnhet?.let { mapOf(navEnhet.id to navEnhet) } ?: emptyMap()),
+        )
+        return forventetRespons
     }
 
     @Test
     fun `post deltaker personalia - deltaker uten navEnhet - returnerer null for navEnhetsnummer`() {
-        val deltaker = TestData.lagDeltaker(
-            navBruker = TestData.lagNavBruker(
-                personident = "11223344556",
-                fornavn = "Uten",
-                mellomnavn = null,
-                etternavn = "NavEnhet",
-                navEnhetId = null,
-                erSkjermet = false,
-                adressebeskyttelse = null,
-            ),
+        val (deltaker, _) = createDeltakerWithNavEnhet(
+            personident = "11223344556",
+            fornavn = "Uten",
+            etternavn = "NavEnhet",
+            navEnhetId = null,
         )
 
-        coEvery { deltakerService.getDeltakelser(listOf(deltaker.id)) } returns listOf(deltaker)
-        coEvery { navEnhetService.getEnheter(emptySet()) } returns emptyMap()
+        mockServices(listOf(deltaker), emptyMap())
 
-        val forventetRespons = listOf(
-            DeltakerPersonaliaResponse(
-                deltakerId = deltaker.id,
-                personident = "11223344556",
-                fornavn = "Uten",
-                mellomnavn = null,
-                etternavn = "NavEnhet",
-                navEnhetsnummer = null,
-                erSkjermet = false,
-                adressebeskyttelse = null,
-            ),
-        )
+        val forventetRespons = forventetResponse(deltaker, null)
 
         withTestApplicationContext { client ->
-            client
-                .post("/external/deltaker/personalia") {
-                    setBody(objectMapper.writeValueAsString(listOf(deltaker.id)))
-                    header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                    bearerAuth(mulighetsrommetSystemToken)
-                }.apply {
-                    status shouldBe HttpStatusCode.OK
-                    bodyAsText() shouldBe objectMapper.writeValueAsString(forventetRespons)
-                }
+            client.postPersonalia(listOf(deltaker.id)).apply {
+                status shouldBe HttpStatusCode.OK
+                bodyAsText() shouldBe objectMapper.writeValueAsString(forventetRespons)
+            }
         }
     }
 
@@ -228,25 +176,19 @@ class SystemApiTest : RouteTestBase() {
             ),
         )
 
-        coEvery { deltakerService.getDeltakelser(listOf(deltaker1.id, deltaker2.id)) } returns listOf(deltaker1, deltaker2)
-        coEvery { navEnhetService.getEnheter(setOf(navEnhet1.id, navEnhet2.id)) } returns mapOf(
-            navEnhet1.id to navEnhet1,
-            navEnhet2.id to navEnhet2,
+        mockServices(
+            listOf(deltaker1, deltaker2),
+            mapOf(navEnhet1.id to navEnhet1, navEnhet2.id to navEnhet2),
         )
 
         withTestApplicationContext { client ->
-            client
-                .post("/external/deltaker/personalia") {
-                    setBody(objectMapper.writeValueAsString(listOf(deltaker1.id, deltaker2.id)))
-                    header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                    bearerAuth(mulighetsrommetSystemToken)
-                }.apply {
-                    status shouldBe HttpStatusCode.OK
-                    val response = objectMapper.readValue(bodyAsText(), Array<DeltakerPersonaliaResponse>::class.java).toList()
-                    response.size shouldBe 2
-                    response.find { it.deltakerId == deltaker1.id }?.navEnhetsnummer shouldBe "1111"
-                    response.find { it.deltakerId == deltaker2.id }?.navEnhetsnummer shouldBe "2222"
-                }
+            client.postPersonalia(listOf(deltaker1.id, deltaker2.id)).apply {
+                status shouldBe HttpStatusCode.OK
+                val response = objectMapper.readValue(bodyAsText(), Array<DeltakerPersonaliaResponse>::class.java).toList()
+                response.size shouldBe 2
+                response.find { it.deltakerId == deltaker1.id }?.navEnhetsnummer shouldBe "1111"
+                response.find { it.deltakerId == deltaker2.id }?.navEnhetsnummer shouldBe "2222"
+            }
         }
     }
 
@@ -254,19 +196,13 @@ class SystemApiTest : RouteTestBase() {
     fun `post deltaker personalia - tom liste - returnerer tom liste`() {
         val deltakerIds = emptyList<UUID>()
 
-        coEvery { deltakerService.getDeltakelser(deltakerIds) } returns emptyList()
-        coEvery { navEnhetService.getEnheter(emptySet()) } returns emptyMap()
+        mockServices(emptyList(), emptyMap())
 
         withTestApplicationContext { client ->
-            client
-                .post("/external/deltaker/personalia") {
-                    setBody(objectMapper.writeValueAsString(deltakerIds))
-                    header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                    bearerAuth(mulighetsrommetSystemToken)
-                }.apply {
-                    status shouldBe HttpStatusCode.OK
-                    bodyAsText() shouldBe "[ ]"
-                }
+            client.postPersonalia(deltakerIds).apply {
+                status shouldBe HttpStatusCode.OK
+                bodyAsText() shouldBe "[ ]"
+            }
         }
     }
 
