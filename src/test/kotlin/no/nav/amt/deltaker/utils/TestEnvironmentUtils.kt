@@ -13,10 +13,13 @@ fun configureEnvForAuthentication() {
         .toURL()
         .toString()
 
-    val preAuthorizedApp = PreAuthorizedApp("dev:amt:amt-deltaker-bff", "amt-deltaker-bff")
+    val preAuthorizedApps = listOf(
+        PreAuthorizedApp("dev:amt:amt-deltaker-bff", "amt-deltaker-bff"),
+        PreAuthorizedApp("dev:mulighetsrommet:mulighetsrommet-api", "mulighetsrommet-api"),
+    )
 
     setProperty(Environment.AZURE_OPENID_CONFIG_JWKS_URI_KEY, uri)
     setProperty(Environment.AZURE_OPENID_CONFIG_ISSUER_KEY, "issuer")
     setProperty(Environment.AZURE_APP_CLIENT_ID_KEY, "amt-deltaker")
-    setProperty(Environment.AZURE_APP_PRE_AUTHORIZED_APPS, objectMapper.writeValueAsString(listOf(preAuthorizedApp)))
+    setProperty(Environment.AZURE_APP_PRE_AUTHORIZED_APPS, objectMapper.writeValueAsString(preAuthorizedApps))
 }
