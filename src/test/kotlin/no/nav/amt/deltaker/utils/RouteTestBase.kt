@@ -29,6 +29,7 @@ import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
 import no.nav.amt.deltaker.external.data.DeltakelserResponseMapper
 import no.nav.amt.deltaker.hendelse.HendelseService
+import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorService
 import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.lib.utils.applicationConfig
@@ -48,6 +49,7 @@ abstract class RouteTestBase {
     protected val hendelseService: HendelseService = mockk(relaxed = true)
     protected val endringFraTiltakskoordinatorService: EndringFraTiltakskoordinatorService = mockk(relaxed = true)
     protected val arrangorService = mockk<ArrangorService>()
+    protected val navEnhetService = mockk<NavEnhetService>()
 
     protected val poaoTilgangCachedClient = mockk<PoaoTilgangCachedClient>()
     protected val tilgangskontrollService = TilgangskontrollService(poaoTilgangCachedClient)
@@ -86,6 +88,7 @@ abstract class RouteTestBase {
                     vurderingService,
                     hendelseService,
                     endringFraTiltakskoordinatorService,
+                    navEnhetService,
                 )
                 setUpTestRoute()
             }

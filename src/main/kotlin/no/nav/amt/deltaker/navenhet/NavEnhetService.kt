@@ -28,4 +28,6 @@ class NavEnhetService(
     }
 
     fun upsert(enhet: NavEnhet) = repository.upsert(enhet)
+
+    fun getEnheter(ider: Set<UUID>) = repository.getMany(ider).associateBy { it.id }
 }

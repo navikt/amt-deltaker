@@ -16,7 +16,7 @@ data class Environment(
     val amtPersonServiceScope: String = getEnvVar(AMT_PERSONSERVICE_SCOPE_KEY),
     val amtArrangorUrl: String = getEnvVar(AMT_ARRANGOR_URL_KEY),
     val amtArrangorScope: String = getEnvVar(AMT_ARRANGOR_SCOPE_KEY),
-    val preAuthorizedApp: List<PreAuthorizedApp> = getEnvVar(
+    val preAuthorizedApps: List<PreAuthorizedApp> = getEnvVar(
         AZURE_APP_PRE_AUTHORIZED_APPS,
         objectMapper.writeValueAsString(
             emptyList<PreAuthorizedApp>(),

@@ -58,4 +58,13 @@ class NavEnhetRepository {
 
         it.run(query)
     }
+
+    fun getMany(ider: Set<UUID>) = Database.query {
+        val query = queryOf(
+            """select * from nav_enhet where id = any(:ider)""",
+            mapOf("ider" to ider.toTypedArray()),
+        ).map(::rowMapper).asList
+
+        it.run(query)
+    }
 }
