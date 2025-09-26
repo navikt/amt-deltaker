@@ -80,8 +80,12 @@ class SystemApiTest : RouteTestBase() {
             client.postPersonalia(deltakerIds, ugyldigToken).status shouldBe HttpStatusCode.Unauthorized
 
             val feilApp = "feil-app"
-            val wrongToken = generateJWT(consumerClientId = feilApp, audience = "amt-deltaker")
-            client.postPersonalia(deltakerIds, wrongToken).status shouldBe HttpStatusCode.Unauthorized
+            val feilToken = generateJWT(consumerClientId = feilApp, audience = "amt-deltaker")
+            client.postPersonalia(deltakerIds, feilToken).status shouldBe HttpStatusCode.Unauthorized
+
+            val preauthorizedAppUtenTilgang = "amt-deltaker-bff"
+            val utenTilgangToken = generateJWT(consumerClientId = preauthorizedAppUtenTilgang, audience = "amt-deltaker")
+            client.postPersonalia(deltakerIds, utenTilgangToken).status shouldBe HttpStatusCode.Unauthorized
         }
     }
 

@@ -60,18 +60,28 @@ private fun JWTAuthenticationProvider.Config.validerPreAuthorizedApps(
     verifier(jwkProvider, environment.jwtIssuer) {
         withAudience(environment.azureClientId)
     }
-
     validate { credentials ->
+        fun reject(warning: String): Nothing? {
+            application.log.warn(warning)
+            return null
+        }
+
         if (!erMaskinTilMaskin(credentials)) {
-            application.log.warn("Token med sluttbrukerkontekst har ikke tilgang til api med systemkontekst")
-            return@validate null
+            return@validate reject("Token med sluttbrukerkontekst har ikke tilgang til api med systemkontekst")
         }
-        val appid: String = credentials.payload.getClaim("azp").asString()
-        val app = environment.preAuthorizedApps.firstOrNull { it.clientId == appid }
-        if (app?.appName !in apperMedTilgang) {
-            application.log.warn("App-id $appid med navn ${app?.appName} har ikke tilgang til api med systemkontekst")
-            return@validate null
+
+        val azpClaim: String = credentials.payload.getClaim("azp").asString()
+        val preAuthorizedApp = environment.preAuthorizedApps
+            .firstOrNull { it.clientId == azpClaim }
+
+        if (preAuthorizedApp == null) {
+            return@validate reject("azp-claim $azpClaim matcher ingen applikasjoner i listen med preauthorized-apps")
         }
+
+        if (preAuthorizedApp.appName !in apperMedTilgang) {
+            return@validate reject("App-id $azpClaim med navn ${preAuthorizedApp.appName} har ikke tilgang til api med systemkontekst")
+        }
+
         JWTPrincipal(credentials.payload)
     }
 }
