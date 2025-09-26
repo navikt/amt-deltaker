@@ -25,15 +25,15 @@ fun Application.configureAuthentication(environment: Environment) {
 
     install(Authentication) {
         jwt("SYSTEM") {
-            validerPreAuthorizedApp(jwkProvider, listOf("amt-deltaker-bff", "amt-distribusjon", "amt-tiltaksarrangor-bff"), environment)
+            validerPreAuthorizedApps(jwkProvider, setOf("amt-deltaker-bff", "amt-distribusjon", "amt-tiltaksarrangor-bff"), environment)
         }
 
         jwt("EXTERNAL-SYSTEM") {
-            validerPreAuthorizedApp(jwkProvider, listOf("veilarboppfolging", "tiltakspenger-tiltak"), environment)
+            validerPreAuthorizedApps(jwkProvider, setOf("veilarboppfolging", "tiltakspenger-tiltak"), environment)
         }
 
         jwt("MULIGHETSROMMET-SYSTEM") {
-            validerPreAuthorizedApp(jwkProvider, listOf("mulighetsrommet-api"), environment)
+            validerPreAuthorizedApps(jwkProvider, setOf("mulighetsrommet-api"), environment)
         }
 
         jwt("VEILEDER") {
@@ -52,9 +52,9 @@ fun Application.configureAuthentication(environment: Environment) {
     }
 }
 
-private fun JWTAuthenticationProvider.Config.validerPreAuthorizedApp(
+private fun JWTAuthenticationProvider.Config.validerPreAuthorizedApps(
     jwkProvider: JwkProvider,
-    apperMedTilgang: List<String>,
+    apperMedTilgang: Set<String>,
     environment: Environment,
 ) {
     verifier(jwkProvider, environment.jwtIssuer) {
@@ -67,7 +67,7 @@ private fun JWTAuthenticationProvider.Config.validerPreAuthorizedApp(
             return@validate null
         }
         val appid: String = credentials.payload.getClaim("azp").asString()
-        val app = environment.preAuthorizedApp.firstOrNull { it.clientId == appid }
+        val app = environment.preAuthorizedApps.firstOrNull { it.clientId == appid }
         if (app?.appName !in apperMedTilgang) {
             application.log.warn("App-id $appid med navn ${app?.appName} har ikke tilgang til api med systemkontekst")
             return@validate null
