@@ -318,6 +318,7 @@ fun Application.module() {
         vurderingService = vurderingService,
         hendelseService = hendelseService,
         endringFraTiltakskoordinatorService = endringFraTiltakskoordinatorService,
+        navEnhetService = navEnhetService,
     )
     configureMonitoring()
 

@@ -9,13 +9,16 @@ import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.external.data.ArrangorResponse
+import no.nav.amt.deltaker.external.data.DeltakerPersonaliaResponse
 import no.nav.amt.deltaker.external.data.DeltakerResponse
 import no.nav.amt.deltaker.external.data.GjennomforingResponse
 import no.nav.amt.deltaker.external.data.HarAktiveDeltakelserResponse
 import no.nav.amt.deltaker.external.data.HentDeltakelserRequest
+import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import java.util.UUID
 
-fun Routing.registerNavInternApi(deltakerService: DeltakerService) {
+fun Routing.registerNavInternApi(deltakerService: DeltakerService, navEnhetService: NavEnhetService) {
     val apiPath = "/external"
 
     authenticate("EXTERNAL-SYSTEM") {
@@ -37,7 +40,21 @@ fun Routing.registerNavInternApi(deltakerService: DeltakerService) {
             call.respond(deltakelser.toResponse())
         }
     }
+
+    authenticate("MULIGHETSROMMET-SYSTEM") {
+        // Brukes av mulighetsrommet for å hente personalia på deltakere i deres økonomi-løsning
+        // Dokumentasjon: docs/external-deltakere-personalia.md
+        post("$apiPath/deltakere/personalia") {
+            val request = call.receive<List<DeltakerID>>()
+            val deltakere: List<Deltaker> = deltakerService.getDeltakelser(request)
+            val navEnheter = navEnhetService.getEnheter(deltakere.mapNotNull { it.navBruker.navEnhetId }.toSet())
+
+            call.respond(deltakere.map { DeltakerPersonaliaResponse.from(it, navEnheter) })
+        }
+    }
 }
+
+private typealias DeltakerID = UUID
 
 fun DeltakerStatus.erAktiv() = this.type in listOf(
     DeltakerStatus.Type.UTKAST_TIL_PAMELDING,

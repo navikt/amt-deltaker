@@ -1,11 +1,13 @@
 package no.nav.amt.deltaker.application.plugins
 
+import com.auth0.jwk.JwkProvider
 import com.auth0.jwk.JwkProviderBuilder
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.install
 import io.ktor.server.application.log
 import io.ktor.server.auth.Authentication
+import io.ktor.server.auth.jwt.JWTAuthenticationProvider
 import io.ktor.server.auth.jwt.JWTCredential
 import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.jwt.jwt
@@ -23,44 +25,17 @@ fun Application.configureAuthentication(environment: Environment) {
 
     install(Authentication) {
         jwt("SYSTEM") {
-            verifier(jwkProvider, environment.jwtIssuer) {
-                withAudience(environment.azureClientId)
-            }
-
-            validate { credentials ->
-                if (!erMaskinTilMaskin(credentials)) {
-                    application.log.warn("Token med sluttbrukerkontekst har ikke tilgang til api med systemkontekst")
-                    return@validate null
-                }
-                val appid: String = credentials.payload.getClaim("azp").asString()
-                val app = environment.preAuthorizedApp.firstOrNull { it.clientId == appid }
-                if (app?.appName !in listOf("amt-deltaker-bff", "amt-distribusjon", "amt-tiltaksarrangor-bff")) {
-                    application.log.warn("App-id $appid med navn ${app?.appName} har ikke tilgang til api med systemkontekst")
-                    return@validate null
-                }
-                JWTPrincipal(credentials.payload)
-            }
+            validerPreAuthorizedApps(jwkProvider, setOf("amt-deltaker-bff", "amt-distribusjon", "amt-tiltaksarrangor-bff"), environment)
         }
 
         jwt("EXTERNAL-SYSTEM") {
-            verifier(jwkProvider, environment.jwtIssuer) {
-                withAudience(environment.azureClientId)
-            }
-
-            validate { credentials ->
-                if (!erMaskinTilMaskin(credentials)) {
-                    application.log.warn("Token med sluttbrukerkontekst har ikke tilgang til api med systemkontekst")
-                    return@validate null
-                }
-                val appid: String = credentials.payload.getClaim("azp").asString()
-                val app = environment.preAuthorizedApp.firstOrNull { it.clientId == appid }
-                if (app?.appName !in listOf("veilarboppfolging", "tiltakspenger-tiltak")) {
-                    application.log.warn("App-id $appid med navn ${app?.appName} har ikke tilgang til api med systemkontekst")
-                    return@validate null
-                }
-                JWTPrincipal(credentials.payload)
-            }
+            validerPreAuthorizedApps(jwkProvider, setOf("veilarboppfolging", "tiltakspenger-tiltak"), environment)
         }
+
+        jwt("MULIGHETSROMMET-SYSTEM") {
+            validerPreAuthorizedApps(jwkProvider, setOf("mulighetsrommet-api"), environment)
+        }
+
         jwt("VEILEDER") {
             verifier(jwkProvider, environment.jwtIssuer) {
                 withAudience(environment.azureClientId)
@@ -74,6 +49,40 @@ fun Application.configureAuthentication(environment: Environment) {
                 JWTPrincipal(credentials.payload)
             }
         }
+    }
+}
+
+private fun JWTAuthenticationProvider.Config.validerPreAuthorizedApps(
+    jwkProvider: JwkProvider,
+    apperMedTilgang: Set<String>,
+    environment: Environment,
+) {
+    verifier(jwkProvider, environment.jwtIssuer) {
+        withAudience(environment.azureClientId)
+    }
+    validate { credentials ->
+        fun reject(warning: String): Nothing? {
+            application.log.warn(warning)
+            return null
+        }
+
+        if (!erMaskinTilMaskin(credentials)) {
+            return@validate reject("Token med sluttbrukerkontekst har ikke tilgang til api med systemkontekst")
+        }
+
+        val azpClaim: String = credentials.payload.getClaim("azp").asString()
+        val preAuthorizedApp = environment.preAuthorizedApps
+            .firstOrNull { it.clientId == azpClaim }
+
+        if (preAuthorizedApp == null) {
+            return@validate reject("azp-claim $azpClaim matcher ingen applikasjoner i listen med preauthorized-apps")
+        }
+
+        if (preAuthorizedApp.appName !in apperMedTilgang) {
+            return@validate reject("App-id $azpClaim med navn ${preAuthorizedApp.appName} har ikke tilgang til api med systemkontekst")
+        }
+
+        JWTPrincipal(credentials.payload)
     }
 }
 
