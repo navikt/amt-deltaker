@@ -43,7 +43,8 @@ fun Routing.registerNavInternApi(deltakerService: DeltakerService, navEnhetServi
 
     authenticate("MULIGHETSROMMET-SYSTEM") {
         // Brukes av mulighetsrommet for å hente personalia på deltakere i deres økonomi-løsning
-        post("$apiPath/deltaker/personalia") {
+        // Dokumentasjon: docs/external-deltakere-personalia.md
+        post("$apiPath/deltakere/personalia") {
             val request = call.receive<List<DeltakerID>>()
             val deltakere: List<Deltaker> = deltakerService.getDeltakelser(request)
             val navEnheter = navEnhetService.getEnheter(deltakere.mapNotNull { it.navBruker.navEnhetId }.toSet())

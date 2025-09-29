@@ -57,7 +57,7 @@ class SystemApiTest : RouteTestBase() {
     }
 
     private suspend fun HttpClient.postPersonalia(deltakerIds: List<UUID>, token: String? = mulighetsrommetSystemToken): HttpResponse =
-        post("/external/deltaker/personalia") {
+        post("/external/deltakere/personalia") {
             setBody(createStandardRequest(deltakerIds))
             header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
             token?.let { bearerAuth(it) }
