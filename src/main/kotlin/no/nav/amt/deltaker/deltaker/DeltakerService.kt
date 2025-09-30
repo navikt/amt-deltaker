@@ -34,7 +34,6 @@ import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.utils.database.Database
 import org.slf4j.LoggerFactory
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import java.util.UUID
@@ -297,15 +296,9 @@ class DeltakerService(
 
     private suspend fun avsluttDeltakere(deltakereSomSkalAvsluttes: List<Deltaker>) {
         DeltakerProgresjon()
-            .tilAvsluttendeStatusOgDatoer(deltakereSomSkalAvsluttes, ::getFremtidigStatus)
+            .tilAvsluttendeStatusOgDatoer(deltakereSomSkalAvsluttes, deltakerRepository.getAvsluttendeDeltakerStatuserForOppdatering())
             .map { oppdaterVedtakForAvbruttUtkast(it) }
             .forEach { upsertDeltaker(it) }
-    }
-
-    private fun getFremtidigStatus(deltaker: Deltaker) = deltakerRepository.getDeltakerStatuser(deltaker.id).firstOrNull { status ->
-        status.gyldigTil == null &&
-            !status.gyldigFra.toLocalDate().isAfter(LocalDate.now()) &&
-            status.type == DeltakerStatus.Type.HAR_SLUTTET
     }
 
     private fun oppdaterVedtakForAvbruttUtkast(deltaker: Deltaker) = if (deltaker.status.type == DeltakerStatus.Type.AVBRUTT_UTKAST) {
