@@ -35,7 +35,7 @@ class DeltakerProgresjonTest {
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
         )
 
-        val oppdatertDeltaker = DeltakerProgresjon().tilAvsluttendeStatusOgDatoer(listOf(deltaker), emptyList()) .first()
+        val oppdatertDeltaker = DeltakerProgresjon().tilAvsluttendeStatusOgDatoer(listOf(deltaker), emptyList()).first()
 
         oppdatertDeltaker.startdato shouldBe null
         oppdatertDeltaker.sluttdato shouldBe null
