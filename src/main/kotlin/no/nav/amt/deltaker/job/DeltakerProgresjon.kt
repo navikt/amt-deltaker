@@ -18,6 +18,7 @@ class DeltakerProgresjon {
     ): List<Deltaker> {
         val deltakereMedFremtidigeAvsluttendeStatus = deltakere
             .mapNotNull { deltaker ->
+                log.info("Endret til avsluttende status for ${deltaker.id}.")
                 fremtidigAvsluttendeStatus
                     .find { status -> status.deltakerId == deltaker.id }
                     ?.let { deltaker.copy(status = it.deltakerStatus, sluttdato = getOppdatertSluttdato(deltaker)) }
