@@ -11,7 +11,7 @@ import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerContext
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.models.deltaker.Vedtak
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.testing.SingletonPostgres16Container
 import no.nav.amt.lib.testing.shouldBeCloseTo
 import org.junit.jupiter.api.Test
@@ -162,7 +162,7 @@ class VedtakServiceTest {
     fun `navFattVedtak - fatter vedtak`() {
         with(DeltakerContext()) {
             medVedtak(fattet = false)
-            withTiltakstype(Tiltakstype.Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING)
+            withTiltakstype(Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING)
             service.navFattVedtak(deltaker, veileder, navEnhet)::class shouldBe Vedtaksutfall.OK::class
 
             val deltakersVedtak = repository.getForDeltaker(deltaker.id)
@@ -175,7 +175,7 @@ class VedtakServiceTest {
     @Test
     fun `navFattVedtak - mangler vedtak - feiler`() {
         with(DeltakerContext()) {
-            withTiltakstype(Tiltakstype.Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING)
+            withTiltakstype(Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING)
             shouldThrow<IllegalStateException> {
                 service.navFattVedtak(deltaker, veileder, navEnhet)
             }
@@ -186,7 +186,7 @@ class VedtakServiceTest {
     fun `navFattVedtak - vedtak allerede fattet - fatter ikke nytt vedtak`() {
         with(DeltakerContext()) {
             medVedtak(fattet = true)
-            withTiltakstype(Tiltakstype.Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING)
+            withTiltakstype(Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING)
 
             service.navFattVedtak(deltaker, veileder, navEnhet) shouldBe Vedtaksutfall.VedtakAlleredeFattet
 

@@ -57,7 +57,7 @@ import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.Bakgrunnsinf
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.DeltakelsesmengdeRequest
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.ForlengDeltakelseRequest
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.StartdatoRequest
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.testing.SingletonKafkaProvider
@@ -311,7 +311,7 @@ class DeltakerServiceTest {
             status = lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
             sluttdato = LocalDate.now().plusMonths(1),
             deltakerliste = TestData.lagDeltakerliste(
-                tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING),
+                tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING),
             ),
         )
         val endretAv = TestData.lagNavAnsatt()
@@ -636,7 +636,7 @@ class DeltakerServiceTest {
     @Test
     fun `upsertEndretDeltakere - sett på venteliste - upserter endring`(): Unit = runBlocking {
         val deltakerliste = TestData.lagDeltakerliste(
-            tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING),
+            tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING),
         )
         val deltaker = TestData.lagDeltaker(deltakerliste = deltakerliste)
         val deltaker2 = TestData.lagDeltaker(deltakerliste = deltakerliste)
@@ -686,7 +686,7 @@ class DeltakerServiceTest {
         val endretAv = TestData.lagNavAnsatt()
         val endretAvEnhet = TestData.lagNavEnhet(enhetsnummer = "0326")
         val deltakerliste = TestData.lagDeltakerliste(
-            tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING),
+            tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING),
         )
         val deltaker1Id = UUID.randomUUID()
         val vedtak = TestData.lagVedtak(deltakerId = deltaker1Id, opprettetAvEnhet = endretAvEnhet, opprettetAv = endretAv)
@@ -744,7 +744,7 @@ class DeltakerServiceTest {
     @Test
     fun `upsertEndretDeltakere - tildel plass - upserter endring, bruker deltakerliste sin start og sluttdato`(): Unit = runBlocking {
         val deltakerliste = TestData.lagDeltakerliste(
-            tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING),
+            tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING),
             startDato = LocalDate.now().plusDays(2),
             sluttDato = LocalDate.now().plusDays(30),
         )
@@ -820,7 +820,7 @@ class DeltakerServiceTest {
     @Test
     fun `upsertEndretDeltakere - tildel plass - upserter endring, dato passert får start og sluttdato null`(): Unit = runBlocking {
         val deltakerliste = TestData.lagDeltakerliste(
-            tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING),
+            tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING),
             startDato = LocalDate.now().minusDays(2),
             sluttDato = LocalDate.now().plusDays(30),
         )
@@ -894,7 +894,7 @@ class DeltakerServiceTest {
     @Test
     fun `upsertDeltaker - tildel plass feiler på siste insert - ruller tilbake alle endringer`(): Unit = runBlocking {
         val deltakerliste = TestData.lagDeltakerliste(
-            tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING),
+            tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING),
             startDato = LocalDate.now().plusDays(2),
             sluttDato = LocalDate.now().plusDays(30),
         )
@@ -939,7 +939,7 @@ class DeltakerServiceTest {
     @Test
     fun `upsertEndretDeltakere - tildel plass feiler på siste deltaker - ruller tilbake en deltaker`(): Unit = runBlocking {
         val deltakerliste = TestData.lagDeltakerliste(
-            tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING),
+            tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING),
             startDato = LocalDate.now().plusDays(2),
             sluttDato = LocalDate.now().plusDays(30),
         )
@@ -1001,7 +1001,7 @@ class DeltakerServiceTest {
         val deltakerliste = TestData.lagDeltakerliste(
             tiltakstype = TestData.lagTiltakstype(
                 tiltakskode =
-                    Tiltakstype.Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
+                    Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
             ),
         )
         val endretAv = TestData.lagNavAnsatt()

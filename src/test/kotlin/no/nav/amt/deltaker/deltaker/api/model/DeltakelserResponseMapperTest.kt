@@ -20,7 +20,7 @@ import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinat
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.testing.SingletonPostgres16Container
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
@@ -64,7 +64,7 @@ class DeltakelserResponseMapperTest {
         val deltaker = TestData.lagDeltaker(
             deltakerliste = TestData.lagDeltakerliste(
                 arrangor = arrangor,
-                tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
+                tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
             ),
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.KLADD),
         )
@@ -104,7 +104,7 @@ class DeltakelserResponseMapperTest {
         val deltaker = TestData.lagDeltaker(
             deltakerliste = TestData.lagDeltakerliste(
                 arrangor = arrangor,
-                tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
+                tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
             ),
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
         )
@@ -150,7 +150,7 @@ class DeltakelserResponseMapperTest {
         val deltaker = TestData.lagDeltaker(
             deltakerliste = TestData.lagDeltakerliste(
                 arrangor = arrangor,
-                tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
+                tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
             ),
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
             startdato = LocalDate.now().plusWeeks(1),
@@ -198,7 +198,7 @@ class DeltakelserResponseMapperTest {
         val deltaker = TestData.lagDeltaker(
             deltakerliste = TestData.lagDeltakerliste(
                 arrangor = arrangor,
-                tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
+                tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
             ),
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
         )
@@ -244,7 +244,7 @@ class DeltakelserResponseMapperTest {
         val deltaker = TestData.lagDeltaker(
             deltakerliste = TestData.lagDeltakerliste(
                 arrangor = arrangor,
-                tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
+                tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
             ),
             status = TestData.lagDeltakerStatus(
                 type = DeltakerStatus.Type.IKKE_AKTUELL,
@@ -294,7 +294,7 @@ class DeltakelserResponseMapperTest {
         val deltaker = TestData.lagDeltaker(
             deltakerliste = TestData.lagDeltakerliste(
                 arrangor = arrangor,
-                tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
+                tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
             ),
             status = TestData.lagDeltakerStatus(
                 type = DeltakerStatus.Type.HAR_SLUTTET,
@@ -344,7 +344,7 @@ class DeltakelserResponseMapperTest {
         val deltaker = TestData.lagDeltaker(
             deltakerliste = TestData.lagDeltakerliste(
                 arrangor = arrangor,
-                tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
+                tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
             ),
             status = TestData.lagDeltakerStatus(
                 type = DeltakerStatus.Type.AVBRUTT_UTKAST,
@@ -392,7 +392,7 @@ class DeltakelserResponseMapperTest {
         TestRepository.insert(arrangor)
         val deltakerliste = TestData.lagDeltakerliste(
             arrangor = arrangor,
-            tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
+            tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
         )
         TestRepository.insert(deltakerliste)
 
@@ -450,7 +450,7 @@ class DeltakelserResponseMapperTest {
         val deltaker = TestData.lagDeltaker(
             deltakerliste = TestData.lagDeltakerliste(
                 arrangor = arrangor,
-                tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
+                tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
             ),
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.PABEGYNT_REGISTRERING),
         )

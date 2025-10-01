@@ -10,7 +10,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.testing.SingletonPostgres16Container
@@ -33,11 +33,11 @@ class DeltakerResponseTest {
     @Test
     fun `DeltakerDto - deltaker med på tiltak som ikke skal ha deltakelsesmengder - v1 har ikke deltakelsesmengder`(): Unit =
         with(DeltakerContext()) {
-            Tiltakstype.Tiltakskode.entries
+            Tiltakskode.entries
                 .filter {
                     it !in setOf(
-                        Tiltakstype.Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
-                        Tiltakstype.Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
+                        Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
+                        Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
                     )
                 }.forEach {
                     withTiltakstype(it)
@@ -64,7 +64,7 @@ data class DeltakerContext(
         startdato = LocalDate.now().minusMonths(1),
         sluttdato = LocalDate.now().plusMonths(3),
         deltakerliste = TestData.lagDeltakerliste(
-            tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
+            tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
         ),
         navBruker = TestData.lagNavBruker(navVeilederId = veileder.id, navEnhetId = navEnhet.id),
     ),
@@ -110,7 +110,7 @@ data class DeltakerContext(
         historikk.add(DeltakerHistorikk.Endring(endring))
     }
 
-    fun withTiltakstype(tiltakskode: Tiltakstype.Tiltakskode) {
+    fun withTiltakstype(tiltakskode: Tiltakskode) {
         deltaker = deltaker.copy(
             deltakerliste = TestData.lagDeltakerliste(tiltakstype = TestData.lagTiltakstype(tiltakskode = tiltakskode)),
         )

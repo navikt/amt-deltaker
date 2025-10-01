@@ -18,7 +18,7 @@ import no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype
 import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.OpprettKladdRequest
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -44,7 +44,7 @@ class OpprettKladdRequestValidatorTest {
         clearAllMocks()
 
         every { deltakerListeRepository.get(any()) } returns Result.success(
-            lagDeltakerliste(tiltakstype = lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING)),
+            lagDeltakerliste(tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING)),
         )
 
         coEvery { brukerService.get(any()) } returns Result.success(lagNavBruker())
@@ -88,7 +88,7 @@ class OpprettKladdRequestValidatorTest {
 
     @Test
     fun `validateRequest - bruker sin innsatsgruppe i deltakerliste - skal returnere Valid`(): Unit = runBlocking {
-        val tiltakstype = lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING)
+        val tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING)
 
         coEvery { brukerService.get(any()) } returns
             Result.success(lagNavBruker(innsatsgruppe = tiltakstype.innsatsgrupper.first()))
@@ -116,7 +116,7 @@ class OpprettKladdRequestValidatorTest {
     @Test
     fun `validateRequest - ARBEIDSRETTET_REHABILITERING og ikke SITUASJONSBESTEMT_INNSATS - skal returnere Invalid`(): Unit = runBlocking {
         every { deltakerListeRepository.get(any()) } returns Result.success(
-            lagDeltakerliste(tiltakstype = lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.ARBEIDSRETTET_REHABILITERING)),
+            lagDeltakerliste(tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSRETTET_REHABILITERING)),
         )
 
         coEvery { brukerService.get(any()) } returns
@@ -132,7 +132,7 @@ class OpprettKladdRequestValidatorTest {
     fun `validateRequest - ARBEIDSRETTET_REHABILITERING og SITUASJONSBESTEMT_INNSATS ikke sykmeldt - skal returnere Invalid`(): Unit =
         runBlocking {
             every { deltakerListeRepository.get(any()) } returns Result.success(
-                lagDeltakerliste(tiltakstype = lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.ARBEIDSRETTET_REHABILITERING)),
+                lagDeltakerliste(tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSRETTET_REHABILITERING)),
             )
 
             coEvery { brukerService.get(any()) } returns
@@ -148,7 +148,7 @@ class OpprettKladdRequestValidatorTest {
     fun `validateRequest - ARBEIDSRETTET_REHABILITERING og SITUASJONSBESTEMT_INNSATS sykmeldt - skal returnere Valid`(): Unit =
         runBlocking {
             every { deltakerListeRepository.get(any()) } returns Result.success(
-                lagDeltakerliste(tiltakstype = lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.ARBEIDSRETTET_REHABILITERING)),
+                lagDeltakerliste(tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSRETTET_REHABILITERING)),
             )
 
             coEvery { brukerService.get(any()) } returns

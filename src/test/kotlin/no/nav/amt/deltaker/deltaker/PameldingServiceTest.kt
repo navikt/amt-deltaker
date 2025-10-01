@@ -62,7 +62,7 @@ import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.AvbrytUtkastRequest
 import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.UtkastRequest
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavBruker
@@ -140,7 +140,7 @@ class PameldingServiceTest {
     @Test
     fun `opprettKladd - ARR, deltaker har situasjonsbetinget inns og sykmeldt - oppretter ny deltaker`() {
         val tiltakstype = TestData.lagTiltakstype(
-            tiltakskode = Tiltakstype.Tiltakskode.ARBEIDSRETTET_REHABILITERING,
+            tiltakskode = Tiltakskode.ARBEIDSRETTET_REHABILITERING,
             innsatsgrupper = setOf(Innsatsgruppe.VARIG_TILPASSET_INNSATS, Innsatsgruppe.SPESIELT_TILPASSET_INNSATS),
         )
         val arrangor = lagArrangor()

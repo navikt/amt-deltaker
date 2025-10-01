@@ -38,7 +38,8 @@ import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.ArenaKode
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.testing.SingletonPostgres16Container
 import no.nav.amt.lib.testing.shouldBeCloseTo
 import no.nav.amt.lib.utils.objectMapper
@@ -121,14 +122,14 @@ class DeltakerConsumerTest {
     @Test
     fun `consumeDeltaker - ny KOMET deltaker - lagrer ikke deltaker`(): Unit = runBlocking {
         val deltakerliste = lagDeltakerliste(
-            tiltakstype = lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
+            tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
         )
         TestRepository.insert(deltakerliste)
         val deltaker = TestData.lagDeltaker(kilde = Kilde.KOMET, deltakerliste = deltakerliste)
 
         val deltakerV2Dto = deltaker.toDeltakerV2()
 
-        every { unleashToggle.erKometMasterForTiltakstype(Tiltakstype.ArenaKode.ARBFORB) } returns true
+        every { unleashToggle.erKometMasterForTiltakstype(ArenaKode.ARBFORB) } returns true
 
         consumer.consume(deltaker.id, objectMapper.writeValueAsString(deltakerV2Dto))
 
@@ -146,7 +147,7 @@ class DeltakerConsumerTest {
     @Test
     fun `consumeDeltaker - ny kurs ARENA deltaker - lagrer deltaker`(): Unit = runBlocking {
         val deltakerliste = lagDeltakerliste(
-            tiltakstype = lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.JOBBKLUBB),
+            tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.JOBBKLUBB),
         )
 
         TestRepository.insert(deltakerliste)
@@ -174,8 +175,8 @@ class DeltakerConsumerTest {
         every { vedtakRepository.getForDeltaker(deltaker.id) } returns emptyList()
         every { forslagRepository.getForDeltaker(deltaker.id) } returns emptyList()
         every { endringFraArrangorRepository.getForDeltaker(deltaker.id) } returns emptyList()
-        every { unleashToggle.erKometMasterForTiltakstype(Tiltakstype.ArenaKode.JOBBK) } returns false
-        every { unleashToggle.skalLeseArenaDeltakereForTiltakstype(Tiltakstype.ArenaKode.JOBBK) } returns true
+        every { unleashToggle.erKometMasterForTiltakstype(ArenaKode.JOBBK) } returns false
+        every { unleashToggle.skalLeseArenaDeltakereForTiltakstype(ArenaKode.JOBBK) } returns true
 
         val deltakerV2Dto = deltaker.toDeltakerV2(deltakerhistorikk = listOf(importertFraArena))
 
@@ -226,7 +227,7 @@ class DeltakerConsumerTest {
     @Test
     fun `consumeDeltaker - oppdatert ARENA kurs deltaker - lagrer deltaker uten bakgrunnsinfo`(): Unit = runBlocking {
         val deltakerliste = lagDeltakerliste(
-            tiltakstype = lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.JOBBKLUBB),
+            tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.JOBBKLUBB),
         )
         val statusOpprettet = LocalDateTime.now().minusWeeks(1)
         val sistEndret = LocalDateTime.now().minusDays(1)
@@ -254,7 +255,7 @@ class DeltakerConsumerTest {
         every { vedtakRepository.getForDeltaker(deltaker.id) } returns emptyList()
         every { forslagRepository.getForDeltaker(deltaker.id) } returns emptyList()
         every { endringFraArrangorRepository.getForDeltaker(deltaker.id) } returns emptyList()
-        every { unleashToggle.skalLeseArenaDeltakereForTiltakstype(Tiltakstype.ArenaKode.JOBBK) } returns true
+        every { unleashToggle.skalLeseArenaDeltakereForTiltakstype(ArenaKode.JOBBK) } returns true
 
         val oppdatertDeltaker = deltaker.copy(
             bakgrunnsinformasjon = "Test",
