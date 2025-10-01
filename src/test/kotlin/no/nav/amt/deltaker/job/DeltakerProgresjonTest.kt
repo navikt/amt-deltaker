@@ -9,7 +9,7 @@ import java.time.LocalDate
 
 class DeltakerProgresjonTest {
     @Test
-    fun `tilAvsluttendeStatusOgDatoer - deltar avbrutt deltakerliste - får riktig status og årsak`() {
+    fun `tilAvsluttendeStatusOgDatoer - deltar avbrutt deltakerliste - far riktig status og arsak`() {
         val deltakerliste = TestData.lagDeltakerlisteMedFellesOppstart().copy(status = Deltakerliste.Status.AVBRUTT)
         val deltaker = TestData.lagDeltaker(
             deltakerliste = deltakerliste,
@@ -18,7 +18,7 @@ class DeltakerProgresjonTest {
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
         )
 
-        val oppdatertDeltaker = DeltakerProgresjon().tilAvsluttendeStatusOgDatoer(listOf(deltaker)) { null }.first()
+        val oppdatertDeltaker = DeltakerProgresjon().tilAvsluttendeStatusOgDatoer(listOf(deltaker), emptyList()).first()
 
         oppdatertDeltaker.sluttdato shouldBe LocalDate.now()
         oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.AVBRUTT
@@ -26,7 +26,7 @@ class DeltakerProgresjonTest {
     }
 
     @Test
-    fun `tilAvsluttendeStatusOgDatoer - venter avbrutt deltakerliste - får riktig status og årsak`() {
+    fun `tilAvsluttendeStatusOgDatoer - venter avbrutt deltakerliste - far riktig status og arsak`() {
         val deltakerliste = TestData.lagDeltakerlisteMedFellesOppstart().copy(status = Deltakerliste.Status.AVBRUTT)
         val deltaker = TestData.lagDeltaker(
             deltakerliste = deltakerliste,
@@ -35,7 +35,7 @@ class DeltakerProgresjonTest {
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
         )
 
-        val oppdatertDeltaker = DeltakerProgresjon().tilAvsluttendeStatusOgDatoer(listOf(deltaker)) { null }.first()
+        val oppdatertDeltaker = DeltakerProgresjon().tilAvsluttendeStatusOgDatoer(listOf(deltaker), emptyList()).first()
 
         oppdatertDeltaker.startdato shouldBe null
         oppdatertDeltaker.sluttdato shouldBe null

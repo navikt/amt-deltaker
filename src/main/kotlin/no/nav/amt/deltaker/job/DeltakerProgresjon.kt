@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.job
 
+import no.nav.amt.deltaker.deltaker.db.DeltakerStatusMedDeltakerId
 import no.nav.amt.deltaker.deltaker.extensions.harIkkeStartet
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -11,20 +12,37 @@ import java.util.UUID
 class DeltakerProgresjon {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun tilAvsluttendeStatusOgDatoer(deltakere: List<Deltaker>, fremtidigStatusProvider: (Deltaker) -> DeltakerStatus?): List<Deltaker> {
+    fun tilAvsluttendeStatusOgDatoer(
+        deltakere: List<Deltaker>,
+        fremtidigAvsluttendeStatus: List<DeltakerStatusMedDeltakerId>,
+    ): List<Deltaker> {
+        val deltakereMedFremtidigeAvsluttendeStatus = deltakere
+            .mapNotNull { deltaker ->
+                fremtidigAvsluttendeStatus
+                    .find { status -> status.deltakerId == deltaker.id }
+                    ?.let {
+                        log.info("Endret status for ${deltaker.id} til ${it.deltakerStatus.type}.")
+                        deltaker.copy(status = it.deltakerStatus, sluttdato = getOppdatertSluttdato(deltaker))
+                    }
+            }
+
+        val deltakereSomSkalBehandles = deltakere
+            .filter { deltaker -> deltakereMedFremtidigeAvsluttendeStatus.none { it.id == deltaker.id } }
+
         val deltakereMedAvsluttendeStatus = listOf(
-            avbrytUtkast(deltakere),
-            ikkeAktuell(deltakere),
-            avbryt(deltakere),
-            harSluttet(deltakere, fremtidigStatusProvider),
-            fullfor(deltakere),
+            avbrytUtkast(deltakereSomSkalBehandles),
+            ikkeAktuell(deltakereSomSkalBehandles),
+            avbrytForAvbruttDeltakerliste(deltakereSomSkalBehandles),
+            harSluttet(deltakereSomSkalBehandles),
+            fullfor(deltakereSomSkalBehandles),
         ).flatten()
 
-        require(deltakereMedAvsluttendeStatus.map { it.id }.toSet().size == deltakereMedAvsluttendeStatus.size) {
-            "Deltakere kunne ikke få avsluttende status fordi de fikk to statuser: ${deltakereMedAvsluttendeStatus.map { it.id }}"
+        val endredeDeltakere = deltakereMedAvsluttendeStatus + deltakereMedFremtidigeAvsluttendeStatus
+        require(endredeDeltakere.size == endredeDeltakere.distinctBy { it.id }.size) {
+            "Deltakere kunne ikke få avsluttende status fordi de fikk to statuser: ${endredeDeltakere.map { it.id }}"
         }
 
-        return deltakereMedAvsluttendeStatus
+        return endredeDeltakere
     }
 
     fun tilDeltar(deltakere: List<Deltaker>): List<Deltaker> = deltakere
@@ -46,7 +64,7 @@ class DeltakerProgresjon {
         return skalBliFullfort
     }
 
-    private fun avbryt(deltakere: List<Deltaker>): List<Deltaker> {
+    private fun avbrytForAvbruttDeltakerliste(deltakere: List<Deltaker>): List<Deltaker> {
         val skalBliAvbrutt = deltakere
             .filter { it.status.type == DeltakerStatus.Type.DELTAR }
             .filter { it.deltarPaKurs() }
@@ -57,19 +75,14 @@ class DeltakerProgresjon {
         return skalBliAvbrutt
     }
 
-    private fun harSluttet(deltakere: List<Deltaker>, fremtidigStatusProvider: (Deltaker) -> DeltakerStatus?): List<Deltaker> {
+    private fun harSluttet(deltakere: List<Deltaker>): List<Deltaker> {
         val skalBliHarSluttet = deltakere
             .filter { it.status.type == DeltakerStatus.Type.DELTAR }
             .filter { !it.deltarPaKurs() }
             .map {
-                val fremtidigStatus = fremtidigStatusProvider(it)
-                if (fremtidigStatus != null) {
-                    it.copy(status = fremtidigStatus, sluttdato = getOppdatertSluttdato(it))
-                } else {
-                    it
-                        .medNyStatus(DeltakerStatus.Type.HAR_SLUTTET, getSluttarsak(it))
-                        .medNySluttdato(getOppdatertSluttdato(it))
-                }
+                it
+                    .medNyStatus(DeltakerStatus.Type.HAR_SLUTTET, getSluttarsak(it))
+                    .medNySluttdato(getOppdatertSluttdato(it))
             }
 
         log.info("Endret status til HAR SLUTTET for ${skalBliHarSluttet.size}")

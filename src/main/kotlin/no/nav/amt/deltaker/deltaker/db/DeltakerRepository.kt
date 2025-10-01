@@ -286,6 +286,44 @@ class DeltakerRepository {
         session.run(query)
     }
 
+    fun getAvsluttendeDeltakerStatuserForOppdatering() = Database.query { session ->
+        val sql =
+            """
+            WITH aktive_deltagelser AS (
+                SELECT deltaker_id 
+                FROM deltaker_status
+                WHERE 
+                    gyldig_til is null
+                    AND type = 'DELTAR'
+            )
+            
+            SELECT * 
+            FROM deltaker_status ds
+            JOIN aktive_deltagelser ad ON ds.deltaker_id = ad.deltaker_id
+            WHERE 
+                gyldig_til IS NULL
+                AND gyldig_fra::date <= current_date
+                AND type IN ('AVBRUTT', 'FULLFORT', 'HAR_SLUTTET')
+            """.trimIndent()
+
+        val query = queryOf(sql)
+            .map {
+                DeltakerStatusMedDeltakerId(
+                    deltakerId = it.uuid("deltaker_id"),
+                    deltakerStatus = DeltakerStatus(
+                        id = it.uuid("id"),
+                        type = it.string("type").let { t -> DeltakerStatus.Type.valueOf(t) },
+                        aarsak = it.stringOrNull("aarsak")?.let { aarsak -> objectMapper.readValue(aarsak) },
+                        gyldigFra = it.localDateTime("gyldig_fra"),
+                        gyldigTil = it.localDateTimeOrNull("gyldig_til"),
+                        opprettet = it.localDateTime("created_at"),
+                    ),
+                )
+            }.asList
+
+        session.run(query)
+    }
+
     fun deleteDeltakerOgStatus(deltakerId: UUID) = Database.query { session ->
         session.transaction { tx ->
             tx.update(slettStatus(deltakerId))

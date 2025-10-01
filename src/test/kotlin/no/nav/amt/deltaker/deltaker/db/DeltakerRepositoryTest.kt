@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.deltaker.db
 
+import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -17,18 +18,6 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 class DeltakerRepositoryTest {
-    companion object {
-        lateinit var repository: DeltakerRepository
-
-        @JvmStatic
-        @BeforeAll
-        fun setup() {
-            @Suppress("UnusedExpression")
-            SingletonPostgres16Container
-            repository = DeltakerRepository()
-        }
-    }
-
     @BeforeEach
     fun cleanDatabase() {
         TestRepository.cleanDatabase()
@@ -211,6 +200,7 @@ class DeltakerRepositoryTest {
             ),
             sluttdato = nySluttdato.toLocalDate(),
         )
+
         val nesteStatus = TestData.lagDeltakerStatus(
             type = DeltakerStatus.Type.HAR_SLUTTET,
             aarsak = DeltakerStatus.Aarsak.Type.UTDANNING,
@@ -374,22 +364,36 @@ class DeltakerRepositoryTest {
         deltakere.contains(deltaker1)
         deltakere.contains(deltaker2)
     }
-}
 
-fun sammenlignDeltakere(a: Deltaker, b: Deltaker) {
-    a.id shouldBe b.id
-    a.navBruker shouldBe b.navBruker
-    a.startdato shouldBe b.startdato
-    a.sluttdato shouldBe b.sluttdato
-    a.dagerPerUke shouldBe b.dagerPerUke
-    a.deltakelsesprosent shouldBe b.deltakelsesprosent
-    a.bakgrunnsinformasjon shouldBe b.bakgrunnsinformasjon
-    a.deltakelsesinnhold shouldBe b.deltakelsesinnhold
-    a.status.id shouldBe b.status.id
-    a.status.type shouldBe b.status.type
-    a.status.aarsak shouldBe b.status.aarsak
-    a.status.gyldigFra shouldBeCloseTo b.status.gyldigFra
-    a.status.gyldigTil shouldBeCloseTo b.status.gyldigTil
-    a.status.opprettet shouldBeCloseTo b.status.opprettet
-    a.sistEndret shouldBeCloseTo b.sistEndret
+    companion object {
+        lateinit var repository: DeltakerRepository
+
+        @JvmStatic
+        @BeforeAll
+        fun setup() {
+            @Suppress("UnusedExpression")
+            SingletonPostgres16Container
+            repository = DeltakerRepository()
+        }
+
+        private fun sammenlignDeltakere(first: Deltaker, second: Deltaker) {
+            assertSoftly(first) {
+                id shouldBe second.id
+                navBruker shouldBe second.navBruker
+                startdato shouldBe second.startdato
+                sluttdato shouldBe second.sluttdato
+                dagerPerUke shouldBe second.dagerPerUke
+                deltakelsesprosent shouldBe second.deltakelsesprosent
+                bakgrunnsinformasjon shouldBe second.bakgrunnsinformasjon
+                deltakelsesinnhold shouldBe second.deltakelsesinnhold
+                status.id shouldBe second.status.id
+                status.type shouldBe second.status.type
+                status.aarsak shouldBe second.status.aarsak
+                status.gyldigFra shouldBeCloseTo second.status.gyldigFra
+                status.gyldigTil shouldBeCloseTo second.status.gyldigTil
+                status.opprettet shouldBeCloseTo second.status.opprettet
+                sistEndret shouldBeCloseTo second.sistEndret
+            }
+        }
+    }
 }
