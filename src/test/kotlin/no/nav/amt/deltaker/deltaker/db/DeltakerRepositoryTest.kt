@@ -281,6 +281,101 @@ class DeltakerRepositoryTest {
     }
 
     @Nested
+    inner class GetAvsluttendeDeltakerStatuserForOppdatering {
+        @Test
+        fun `returnerer tom liste nar ingen deltaker har aktiv DELTAR-status`() {
+            val deltaker = TestData.lagDeltaker(
+                status = TestData.lagDeltakerStatus(
+                    type = DeltakerStatus.Type.HAR_SLUTTET,
+                    gyldigTil = null,
+                ),
+            )
+            TestRepository.insert(deltaker)
+
+            val statuser = repository.getAvsluttendeDeltakerStatuserForOppdatering()
+            statuser shouldBe emptyList()
+        }
+
+        @Test
+        fun `fremtidig HAR_SLUTTET-status skal ikke inkluderes`() {
+            val deltaker = TestData.lagDeltaker(
+                status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+            )
+            TestRepository.insert(deltaker)
+
+            val fremtidigStatus = TestData.lagDeltakerStatus(
+                type = DeltakerStatus.Type.HAR_SLUTTET,
+                gyldigFra = LocalDateTime.now().plusDays(5),
+            )
+            repository.upsert(deltaker, fremtidigStatus)
+
+            val statuser = repository.getAvsluttendeDeltakerStatuserForOppdatering()
+            statuser shouldBe emptyList()
+        }
+
+        @Test
+        fun `returnerer kun deltakerstatus for deltakere med aktiv DELTAR og gyldig avsluttende status`() {
+            val deltaker1 = TestData.lagDeltaker(
+                status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+            )
+            val deltaker2 = TestData.lagDeltaker(
+                status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.HAR_SLUTTET),
+            )
+            TestRepository.insert(deltaker1)
+            TestRepository.insert(deltaker2)
+
+            val status1 = TestData.lagDeltakerStatus(
+                type = DeltakerStatus.Type.HAR_SLUTTET,
+                gyldigFra = LocalDateTime.now().minusDays(1),
+            )
+            repository.upsert(deltaker1, status1)
+
+            val statuser = repository.getAvsluttendeDeltakerStatuserForOppdatering()
+            statuser.size shouldBe 1
+            statuser.first().deltakerId shouldBe deltaker1.id
+        }
+
+        @Test
+        fun `henter avsluttende deltakerstatus for deltaker som har aktiv DELTAR-status og kommende HAR_SLUTTET-status`() {
+            val opprinneligDeltaker = TestData.lagDeltaker(
+                status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.HAR_SLUTTET),
+                sluttdato = LocalDate.now().minusDays(2),
+            )
+            TestRepository.insert(opprinneligDeltaker)
+
+            val oppdatertDeltakerDeltar = opprinneligDeltaker.copy(
+                status = TestData.lagDeltakerStatus(
+                    type = DeltakerStatus.Type.DELTAR,
+                    gyldigFra = LocalDateTime.now(),
+                ),
+                sluttdato = LocalDate.now().plusDays(3),
+            )
+
+            val nesteStatus = TestData.lagDeltakerStatus(
+                type = DeltakerStatus.Type.HAR_SLUTTET,
+                aarsak = DeltakerStatus.Aarsak.Type.UTDANNING,
+                gyldigFra = LocalDateTime.now().minusDays(1),
+            )
+
+            repository.upsert(oppdatertDeltakerDeltar, nesteStatus)
+
+            val statuser: List<DeltakerStatusMedDeltakerId> = repository.getAvsluttendeDeltakerStatuserForOppdatering()
+            statuser.size shouldBe 1
+
+            assertSoftly(statuser.first()) {
+                deltakerId shouldBe opprinneligDeltaker.id
+
+                assertSoftly(deltakerStatus) {
+                    type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+                    aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.UTDANNING
+                    gyldigFra.toLocalDate() shouldBe LocalDate.now().minusDays(1)
+                    gyldigTil shouldBe null
+                }
+            }
+        }
+    }
+
+    @Nested
     inner class SkalHaStatusDeltar {
         @Test
         fun `venter pa oppstart, startdato passer - returnerer deltaker`() {

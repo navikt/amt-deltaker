@@ -269,11 +269,25 @@ class DeltakerRepository {
         session.run(query)
     }
 
+    /**
+     * Henter alle deltakerstatuser som representerer en avslutning
+     * (f.eks. `AVBRUTT`, `FULLFORT` eller `HAR_SLUTTET`) og som er gyldige for oppdatering.
+     *
+     * Spørringen fungerer slik:
+     * - Først finner vi alle deltakere som har en aktiv status av typen `DELTAR` (dvs. uten `gyldig_til`).
+     * - Deretter henter vi alle statuser knyttet til disse deltakerne som:
+     *   - ikke har en avslutningsdato (`gyldig_til IS NULL`),
+     *   - har startet (`gyldig_fra <= dagens dato`),
+     *   - og er en av de avsluttende statusene (`AVBRUTT`, `FULLFORT`, `HAR_SLUTTET`).
+     *
+     * @return en liste av [DeltakerStatusMedDeltakerId] som inneholder både deltaker-id og
+     *         den tilhørende avsluttende statusen som bør oppdateres.
+     */
     fun getAvsluttendeDeltakerStatuserForOppdatering() = Database.query { session ->
         val sql =
             """
             WITH aktive_deltagelser AS (
-                SELECT deltaker_id 
+                SELECT deltaker_id  
                 FROM deltaker_status
                 WHERE 
                     gyldig_til is null
