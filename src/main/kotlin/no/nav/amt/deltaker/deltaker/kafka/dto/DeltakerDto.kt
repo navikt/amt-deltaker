@@ -91,7 +91,7 @@ data class DeltakerDto(
             innsoktDato = innsoktDato,
             forsteVedtakFattet = deltakerhistorikk.getForsteVedtakFattet(),
             bestillingTekst = deltaker.bakgrunnsinformasjon,
-            navKontor = navEnhet?.navn, // hvor kostnaden skal legges
+            navKontor = navEnhet?.navn,
             navVeileder = navAnsatt?.let { DeltakerV2Dto.DeltakerNavVeilederDto.fromNavAnsatt(it) },
             deltarPaKurs = deltaker.deltarPaKurs(),
             kilde = deltaker.kilde,
