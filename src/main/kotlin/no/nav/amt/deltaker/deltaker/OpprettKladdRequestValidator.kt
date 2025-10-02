@@ -8,7 +8,7 @@ import no.nav.amt.deltaker.navbruker.NavBrukerService
 import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.OpprettKladdRequest
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import java.time.Year
 
 class OpprettKladdRequestValidator(
@@ -44,7 +44,7 @@ class OpprettKladdRequestValidator(
 
         return if (navBruker.innsatsgruppe in deltakerListe.tiltakstype.innsatsgrupper) {
             true
-        } else if (deltakerListe.tiltakstype.tiltakskode == Tiltakstype.Tiltakskode.ARBEIDSRETTET_REHABILITERING &&
+        } else if (deltakerListe.tiltakstype.tiltakskode == Tiltakskode.ARBEIDSRETTET_REHABILITERING &&
             navBruker.innsatsgruppe == Innsatsgruppe.SITUASJONSBESTEMT_INNSATS
         ) {
             isOppfolgingsTilfelleClient.erSykmeldtMedArbeidsgiver(navBruker.personident)
@@ -56,7 +56,7 @@ class OpprettKladdRequestValidator(
     private suspend fun deltakerForUng(personIdent: String, deltakerListe: Deltakerliste): Boolean {
         fun alderVedKursStart(foedselAar: Int): Int = Year.now().value.coerceAtLeast(deltakerListe.startDato.year) - foedselAar
 
-        return if (deltakerListe.tiltakstype.tiltakskode == Tiltakstype.Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING) {
+        return if (deltakerListe.tiltakstype.tiltakskode == Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING) {
             // For kurstiltak med løpende oppstart, kan oppstartsdato for kurset være i fortiden.
             // Personen må ha fylt 19 år på tidspunktet som man melder på
             alderVedKursStart(personServiceClient.hentNavBrukerFodselsar(personIdent)) < GRUPPE_AMO_ALDERSGRENSE

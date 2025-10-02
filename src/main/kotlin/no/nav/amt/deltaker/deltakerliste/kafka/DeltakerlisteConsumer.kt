@@ -6,10 +6,9 @@ import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
-import no.nav.amt.deltaker.deltakerliste.tiltakstype.kafka.arenaKodeTilTiltakstype
-import no.nav.amt.deltaker.deltakerliste.tiltakstype.kafka.erStottet
 import no.nav.amt.deltaker.utils.buildManagedKafkaConsumer
 import no.nav.amt.lib.kafka.Consumer
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.objectMapper
 import java.util.UUID
 
@@ -37,13 +36,12 @@ class DeltakerlisteConsumer(
     }
 
     private suspend fun handterDeltakerliste(deltakerlisteDto: DeltakerlisteDto) {
-        if (!erStottet(deltakerlisteDto.tiltakstype.arenaKode)) return
-
-        val tiltakstype = tiltakstypeRepository.get(arenaKodeTilTiltakstype(deltakerlisteDto.tiltakstype.arenaKode)).getOrThrow()
-
+        if (!deltakerlisteDto.tiltakstype.erStottet()) return
+        val tiltakskode = Tiltakskode.valueOf(deltakerlisteDto.tiltakstype.tiltakskode)
+        val tiltak = tiltakstypeRepository.get(tiltakskode).getOrThrow()
         val arrangor = arrangorService.hentArrangor(deltakerlisteDto.virksomhetsnummer)
 
-        val oppdatertDeltakerliste = deltakerlisteDto.toModel(arrangor, tiltakstype)
+        val oppdatertDeltakerliste = deltakerlisteDto.toModel(arrangor, tiltak)
         val gammelDeltakerliste = repository.get(deltakerlisteDto.id)
 
         if (oppdatertDeltakerliste.erAvlystEllerAvbrutt()) {

@@ -11,6 +11,7 @@ import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.utils.toTitleCase
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.ArenaKode
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import java.time.LocalDate
 
@@ -90,14 +91,14 @@ class DeltakelserResponseMapper(
     private fun lagTittel(deltaker: Deltaker): String {
         val arrangorNavn = deltaker.deltakerliste.getArrangorNavn()
         return when (deltaker.deltakerliste.tiltakstype.arenaKode) {
-            Tiltakstype.ArenaKode.JOBBK -> "Jobbsøkerkurs hos $arrangorNavn"
-            Tiltakstype.ArenaKode.GRUPPEAMO -> if (deltaker.deltarPaKurs()) {
+            ArenaKode.JOBBK -> "Jobbsøkerkurs hos $arrangorNavn"
+            ArenaKode.GRUPPEAMO -> if (deltaker.deltarPaKurs()) {
                 "Kurs: ${deltaker.deltakerliste.navn}"
             } else {
                 deltaker.deltakerliste.navn
             }
 
-            Tiltakstype.ArenaKode.GRUFAGYRKE -> deltaker.deltakerliste.navn
+            ArenaKode.GRUFAGYRKE -> deltaker.deltakerliste.navn
             else -> "${deltaker.deltakerliste.tiltakstype.navn} hos $arrangorNavn"
         }
     }

@@ -14,7 +14,7 @@ import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.utils.toPGObject
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.ArenaKode
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.address.Adressebeskyttelse
 import no.nav.amt.lib.utils.database.Database
@@ -218,7 +218,7 @@ class DeltakerRepository {
         it.run(query)
     }
 
-    fun getDeltakerIderForTiltakstype(tiltakstype: Tiltakstype.ArenaKode) = Database.query { session ->
+    fun getDeltakerIderForTiltakstype(tiltakstype: ArenaKode) = Database.query { session ->
         val sql =
             """ 
                 select d.id as "d.id"
