@@ -90,6 +90,15 @@ class DeltakerRepository {
         }
     }
 
+    private fun deltakerStatusRowMapper(row: Row): DeltakerStatus = DeltakerStatus(
+        id = row.uuid("id"),
+        type = row.string("type").let { t -> DeltakerStatus.Type.valueOf(t) },
+        aarsak = row.stringOrNull("aarsak")?.let { aarsak -> objectMapper.readValue(aarsak) },
+        gyldigFra = row.localDateTime("gyldig_fra"),
+        gyldigTil = row.localDateTimeOrNull("gyldig_til"),
+        opprettet = row.localDateTime("created_at"),
+    )
+
     fun upsert(
         deltaker: Deltaker,
         nesteStatus: DeltakerStatus? = null,
@@ -158,24 +167,6 @@ class DeltakerRepository {
         val query = queryOf(sql, mapOf("id" to id)).map(::rowMapper).asSingle
         it.run(query)?.let { d -> Result.success(d) }
             ?: Result.failure(NoSuchElementException("Ingen deltaker med id $id"))
-    }
-
-    fun getMany(personident: String, deltakerlisteId: UUID): List<Deltaker> = Database.query {
-        val sql = getDeltakerSql(
-            """ where nb.personident = :personident 
-                    and d.deltakerliste_id = :deltakerliste_id 
-                    and ds.gyldig_til is null
-            """.trimMargin(),
-        )
-
-        val query = queryOf(
-            sql,
-            mapOf(
-                "personident" to personident,
-                "deltakerliste_id" to deltakerlisteId,
-            ),
-        ).map(::rowMapper).asList
-        it.run(query)
     }
 
     fun getMany(deltakerIder: List<UUID>) = Database.query {
@@ -272,25 +263,31 @@ class DeltakerRepository {
             """.trimIndent()
 
         val query = queryOf(sql, mapOf("deltaker_id" to deltakerId))
-            .map {
-                DeltakerStatus(
-                    id = it.uuid("id"),
-                    type = it.string("type").let { t -> DeltakerStatus.Type.valueOf(t) },
-                    aarsak = it.stringOrNull("aarsak")?.let { aarsak -> objectMapper.readValue(aarsak) },
-                    gyldigFra = it.localDateTime("gyldig_fra"),
-                    gyldigTil = it.localDateTimeOrNull("gyldig_til"),
-                    opprettet = it.localDateTime("created_at"),
-                )
-            }.asList
+            .map(::deltakerStatusRowMapper)
+            .asList
 
         session.run(query)
     }
 
+    /**
+     * Henter alle deltakerstatuser som representerer en avslutning
+     * (f.eks. `AVBRUTT`, `FULLFORT` eller `HAR_SLUTTET`) og som er gyldige for oppdatering.
+     *
+     * Spørringen fungerer slik:
+     * - Først finner vi alle deltakere som har en aktiv status av typen `DELTAR` (dvs. uten `gyldig_til`).
+     * - Deretter henter vi alle statuser knyttet til disse deltakerne som:
+     *   - ikke har en avslutningsdato (`gyldig_til IS NULL`),
+     *   - har startet (`gyldig_fra <= dagens dato`),
+     *   - og er en av de avsluttende statusene (`AVBRUTT`, `FULLFORT`, `HAR_SLUTTET`).
+     *
+     * @return en liste av [DeltakerStatusMedDeltakerId] som inneholder både deltaker-id og
+     *         den tilhørende avsluttende statusen som bør oppdateres.
+     */
     fun getAvsluttendeDeltakerStatuserForOppdatering() = Database.query { session ->
         val sql =
             """
             WITH aktive_deltagelser AS (
-                SELECT deltaker_id 
+                SELECT deltaker_id  
                 FROM deltaker_status
                 WHERE 
                     gyldig_til is null
@@ -310,14 +307,7 @@ class DeltakerRepository {
             .map {
                 DeltakerStatusMedDeltakerId(
                     deltakerId = it.uuid("deltaker_id"),
-                    deltakerStatus = DeltakerStatus(
-                        id = it.uuid("id"),
-                        type = it.string("type").let { t -> DeltakerStatus.Type.valueOf(t) },
-                        aarsak = it.stringOrNull("aarsak")?.let { aarsak -> objectMapper.readValue(aarsak) },
-                        gyldigFra = it.localDateTime("gyldig_fra"),
-                        gyldigTil = it.localDateTimeOrNull("gyldig_til"),
-                        opprettet = it.localDateTime("created_at"),
-                    ),
+                    deltakerStatus = deltakerStatusRowMapper(it),
                 )
             }.asList
 
