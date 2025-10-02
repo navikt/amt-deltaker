@@ -24,7 +24,7 @@ import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorService
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.ArenaKode
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
@@ -127,7 +127,7 @@ fun Routing.registerInternalApi(
 
     post("/internal/relast/tiltakstype/{tiltakstype}") {
         if (isInternal(call.request.local.remoteAddress)) {
-            val tiltakstype = Tiltakstype.ArenaKode.valueOf(call.parameters["tiltakstype"]!!)
+            val tiltakstype = ArenaKode.valueOf(call.parameters["tiltakstype"]!!)
             val request = call.receive<RepubliserRequest>()
             scope.launch {
                 log.info("Relaster deltakere for tiltakstype ${tiltakstype.name} på deltaker-v2")
@@ -152,7 +152,7 @@ fun Routing.registerInternalApi(
             val request = call.receive<RepubliserRequest>()
             scope.launch {
                 log.info("Relaster alle deltakere komet er master for på deltaker-v2")
-                for (tiltakstype in Tiltakstype.ArenaKode.entries) {
+                for (tiltakstype in ArenaKode.entries) {
                     val deltakerIder = deltakerService.getDeltakerIderForTiltakstype(tiltakstype)
                     log.info("Gjør klar for relast av ${deltakerIder.size} deltakere på tiltakstype ${tiltakstype.name}.")
                     deltakerIder.forEach {

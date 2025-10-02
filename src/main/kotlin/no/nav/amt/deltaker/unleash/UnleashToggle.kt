@@ -1,30 +1,34 @@
 package no.nav.amt.deltaker.unleash
 
 import io.getunleash.Unleash
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.ArenaKode
 
 class UnleashToggle(
     private val unleashClient: Unleash,
 ) {
     private val tiltakstyperKometErMasterFor = listOf(
-        Tiltakstype.ArenaKode.ARBFORB,
-        Tiltakstype.ArenaKode.INDOPPFAG,
-        Tiltakstype.ArenaKode.AVKLARAG,
-        Tiltakstype.ArenaKode.ARBRRHDAG,
-        Tiltakstype.ArenaKode.DIGIOPPARB,
-        Tiltakstype.ArenaKode.VASV,
-        Tiltakstype.ArenaKode.GRUPPEAMO,
-        Tiltakstype.ArenaKode.JOBBK,
-        Tiltakstype.ArenaKode.GRUFAGYRKE,
+        ArenaKode.ARBFORB,
+        ArenaKode.INDOPPFAG,
+        ArenaKode.AVKLARAG,
+        ArenaKode.ARBRRHDAG,
+        ArenaKode.DIGIOPPARB,
+        ArenaKode.VASV,
+        ArenaKode.GRUPPEAMO,
+        ArenaKode.JOBBK,
+        ArenaKode.GRUFAGYRKE,
     )
 
-    private val tiltakstyperKometSkalLese = emptyList<Tiltakstype.ArenaKode>()
+    private val tiltakstyperKometKanLese = setOf(
+        ArenaKode.ENKELAMO,
+        ArenaKode.ENKFAGYRKE,
+        ArenaKode.HOYEREUTD,
+    )
 
-    private val tiltakstyperKometKanskjeErMasterFor = tiltakstyperKometSkalLese
+    private val tiltakstyperKometKanskjeErMasterFor = tiltakstyperKometKanLese
 
-    fun erKometMasterForTiltakstype(tiltakstype: Tiltakstype.ArenaKode): Boolean = tiltakstype in tiltakstyperKometErMasterFor ||
+    fun erKometMasterForTiltakstype(tiltakstype: ArenaKode): Boolean = tiltakstype in tiltakstyperKometErMasterFor ||
         (unleashClient.isEnabled("amt.enable-komet-deltakere") && tiltakstype in tiltakstyperKometKanskjeErMasterFor)
 
-    fun skalLeseArenaDeltakereForTiltakstype(tiltakstype: Tiltakstype.ArenaKode): Boolean =
-        unleashClient.isEnabled("amt.les-arena-deltakere") && tiltakstype in tiltakstyperKometSkalLese
+    fun skalLeseArenaDeltakereForTiltakstype(tiltakstype: ArenaKode): Boolean =
+        unleashClient.isEnabled("amt.les-arena-deltakere") && tiltakstype in tiltakstyperKometKanLese
 }

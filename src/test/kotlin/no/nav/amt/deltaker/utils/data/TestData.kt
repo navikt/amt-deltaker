@@ -20,8 +20,10 @@ import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.deltaker.InnsokPaaFellesOppstart
 import no.nav.amt.lib.models.deltaker.Vedtak
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.ArenaKode
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.DeltakerRegistreringInnhold
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Innholdselement
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavBruker
@@ -113,12 +115,12 @@ object TestData {
         sluttdato,
     )
 
-    private val tiltakstypeCache = mutableMapOf<Tiltakstype.Tiltakskode, Tiltakstype>()
+    private val tiltakstypeCache = mutableMapOf<Tiltakskode, Tiltakstype>()
 
     fun lagTiltakstype(
         id: UUID = UUID.randomUUID(),
-        tiltakskode: Tiltakstype.Tiltakskode = Tiltakstype.Tiltakskode.OPPFOLGING,
-        arenaKode: Tiltakstype.ArenaKode = tiltakskode.toArenaKode(),
+        tiltakskode: Tiltakskode = Tiltakskode.OPPFOLGING,
+        arenaKode: ArenaKode = tiltakskode.toArenaKode(),
         navn: String = "Test tiltak $arenaKode",
         innsatsgrupper: Set<Innsatsgruppe> = setOf(Innsatsgruppe.STANDARD_INNSATS),
         innhold: DeltakerRegistreringInnhold? = lagDeltakerRegistreringInnhold(),
@@ -148,13 +150,13 @@ object TestData {
     ) = Deltakerliste(id, tiltakstype, navn, status, startDato, sluttDato, oppstart, apentForPamelding, arrangor)
 
     fun lagDeltakerlisteMedLopendeOppstart(
-        tiltakstype: Tiltakstype = lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
+        tiltakstype: Tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
     ) = lagDeltakerliste(
         tiltakstype = tiltakstype,
     )
 
     fun lagDeltakerlisteMedFellesOppstart(
-        tiltakstype: Tiltakstype = lagTiltakstype(tiltakskode = Tiltakstype.Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING),
+        tiltakstype: Tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING),
     ) = lagDeltakerliste(
         tiltakstype = tiltakstype,
     )
@@ -164,7 +166,8 @@ object TestData {
             id = deltakerliste.id,
             tiltakstype = DeltakerlisteDto.Tiltakstype(
                 deltakerliste.tiltakstype.navn,
-                deltakerliste.tiltakstype.arenaKode.name,
+                arenaKode = deltakerliste.tiltakstype.arenaKode.name,
+                tiltakskode = deltakerliste.tiltakstype.tiltakskode.name,
             ),
             navn = deltakerliste.navn,
             startDato = deltakerliste.startDato,
@@ -465,10 +468,10 @@ object TestData {
         oppfolgingsperioder = navBruker.oppfolgingsperioder,
     )
 
-    private fun finnOppstartstype(type: Tiltakstype.ArenaKode) = when (type) {
-        Tiltakstype.ArenaKode.JOBBK,
-        Tiltakstype.ArenaKode.GRUPPEAMO,
-        Tiltakstype.ArenaKode.GRUFAGYRKE,
+    private fun finnOppstartstype(type: ArenaKode) = when (type) {
+        ArenaKode.JOBBK,
+        ArenaKode.GRUPPEAMO,
+        ArenaKode.GRUFAGYRKE,
         -> Deltakerliste.Oppstartstype.FELLES
 
         else -> Deltakerliste.Oppstartstype.LOPENDE

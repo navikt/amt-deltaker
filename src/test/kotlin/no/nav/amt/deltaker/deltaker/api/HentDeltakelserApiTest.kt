@@ -16,7 +16,7 @@ import no.nav.amt.deltaker.utils.RouteTestBase
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.objectMapper
 import no.nav.poao_tilgang.client.Decision
 import no.nav.poao_tilgang.client.api.ApiResult
@@ -63,7 +63,7 @@ class HentDeltakelserApiTest : RouteTestBase() {
             deltakerliste = TestData.lagDeltakerliste(
                 arrangor = TestData.lagArrangor(overordnetArrangorId = null, navn = "ARRANGØR AS"),
                 tiltakstype = TestData.lagTiltakstype(
-                    tiltakskode = Tiltakstype.Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
+                    tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
                     navn = "Arbeidsforberedende trening",
                 ),
             ),
@@ -123,7 +123,7 @@ class HentDeltakelserApiTest : RouteTestBase() {
             deltakerliste = TestData.lagDeltakerliste(
                 arrangor = TestData.lagArrangor(overordnetArrangorId = null, navn = "ARRANGØR AS"),
                 tiltakstype = TestData.lagTiltakstype(
-                    tiltakskode = Tiltakstype.Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
+                    tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
                     navn = "Arbeidsforberedende trening",
                 ),
             ),
@@ -133,7 +133,7 @@ class HentDeltakelserApiTest : RouteTestBase() {
             deltakerliste = TestData.lagDeltakerliste(
                 arrangor = TestData.lagArrangor(overordnetArrangorId = null, navn = "ARRANGØR OG SØNN AS"),
                 tiltakstype = TestData.lagTiltakstype(
-                    tiltakskode = Tiltakstype.Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
+                    tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
                     navn = "Arbeidsforberedende trening",
                 ),
             ),

@@ -49,7 +49,7 @@ class TiltakstypeConsumerTest {
                 objectMapper.writeValueAsString(tiltakstypeDto),
             )
 
-            repository.get(tiltakstype.arenaKode).getOrThrow() shouldBe tiltakstype
+            repository.get(tiltakstype.tiltakskode).getOrThrow() shouldBe tiltakstype
         }
     }
 }
