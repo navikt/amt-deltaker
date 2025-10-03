@@ -5,6 +5,7 @@ import kotliquery.Query
 import kotliquery.Row
 import kotliquery.TransactionalSession
 import kotliquery.queryOf
+import no.nav.amt.deltaker.deltaker.db.DbUtils.nullWhenNearNow
 import no.nav.amt.deltaker.deltaker.model.AVSLUTTENDE_STATUSER
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.Kilde
@@ -436,12 +437,27 @@ class DeltakerRepository {
         return queryOf(sql, params)
     }
 
+    /**
+     * Oppretter en [Query] for å sette inn en ny rad i tabellen `deltaker_status`.
+     *
+     * - Feltet `gyldig_fra` settes enten til verdien fra [DeltakerStatus.gyldigFra], eller til
+     *   `CURRENT_TIMESTAMP` i databasen dersom tidspunktet er "nær nok" nåværende tidspunkt
+     *   (se [nullWhenNearNow]).
+     *
+     * - Feltet `created_at` settes tilsvarende, basert på [DeltakerStatus.opprettet].
+     *
+     * - Konflikter på primærnøkkelen `id` ignoreres (`ON CONFLICT (id) DO NOTHING`).
+     *
+     * @param status statusobjektet som skal lagres i databasen.
+     * @param deltakerId ID-en til deltakeren statusen tilhører.
+     * @return en ferdig parametrisert [Query] som kan kjøres mot databasen.
+     */
     private fun insertStatusQuery(status: DeltakerStatus, deltakerId: UUID): Query {
         val sql =
             """
-            insert into deltaker_status(id, deltaker_id, type, aarsak, gyldig_fra, created_at)
-            values (:id, :deltaker_id, :type, :aarsak, :gyldig_fra, :created_at)
-            on conflict (id) do nothing;
+            INSERT INTO deltaker_status(id, deltaker_id, type, aarsak, gyldig_fra, created_at)
+            VALUES (:id, :deltaker_id, :type, :aarsak, COALESCE(:gyldig_fra, CURRENT_TIMESTAMP), COALESCE(:created_at, CURRENT_TIMESTAMP))
+            ON CONFLICT (id) DO NOTHING;
             """.trimIndent()
 
         val params = mapOf(
@@ -449,8 +465,8 @@ class DeltakerRepository {
             "deltaker_id" to deltakerId,
             "type" to status.type.name,
             "aarsak" to toPGObject(status.aarsak),
-            "gyldig_fra" to status.gyldigFra,
-            "created_at" to status.opprettet,
+            "gyldig_fra" to nullWhenNearNow(status.gyldigFra),
+            "created_at" to nullWhenNearNow(status.opprettet),
         )
 
         return queryOf(sql, params)
