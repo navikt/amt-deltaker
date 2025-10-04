@@ -100,8 +100,8 @@ spec:
         flags:
           - name: cloudsql.logical_decoding
             value: "on"
-        diskAutoresize: true
-        highAvailability: true
+        diskAutoresize: false
+        highAvailability: false
         insights:
           enabled: true
 
