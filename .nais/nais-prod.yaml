@@ -88,7 +88,7 @@ spec:
 
   gcp:
     sqlInstances:
-      - name: amt-deltaker
+      - name: amt-deltaker-2
         collation: nb_NO.UTF8
         tier: db-custom-1-3840
         type: POSTGRES_17
@@ -100,7 +100,7 @@ spec:
         flags:
           - name: cloudsql.logical_decoding
             value: "on"
-        diskAutoresize: true
+        diskAutoresize: false
         highAvailability: false
         insights:
           enabled: true
