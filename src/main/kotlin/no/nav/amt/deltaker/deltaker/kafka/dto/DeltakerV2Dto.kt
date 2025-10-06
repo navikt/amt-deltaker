@@ -1,12 +1,11 @@
 package no.nav.amt.deltaker.deltaker.kafka.dto
 
 import no.nav.amt.deltaker.deltaker.extensions.toDeltakerstatusArsak
-import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.lib.models.arrangor.melding.Vurdering
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
-import no.nav.amt.lib.models.person.NavAnsatt
+import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.person.Oppfolgingsperiode
 import no.nav.amt.lib.models.person.address.Adresse
 import no.nav.amt.lib.models.person.address.Adressebeskyttelse
@@ -14,6 +13,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
+// Skal slettes
 data class DeltakerV2Dto(
     val id: UUID,
     val deltakerlisteId: UUID,
@@ -84,16 +84,5 @@ data class DeltakerV2Dto(
         val navn: String,
         val epost: String?,
         val telefonnummer: String?,
-    ) {
-        companion object {
-            fun fromNavAnsatt(navAnsatt: NavAnsatt) = with(navAnsatt) {
-                DeltakerNavVeilederDto(
-                    id = id,
-                    navn = navn,
-                    epost = epost,
-                    telefonnummer = telefon,
-                )
-            }
-        }
-    }
+    )
 }

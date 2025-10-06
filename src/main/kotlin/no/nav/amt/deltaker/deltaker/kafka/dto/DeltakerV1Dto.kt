@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.deltaker.kafka.dto
 
-import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.Kilde
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
