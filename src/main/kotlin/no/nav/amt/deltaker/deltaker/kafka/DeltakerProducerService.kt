@@ -1,13 +1,13 @@
 package no.nav.amt.deltaker.deltaker.kafka
 
-import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerDtoMapperService
+import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerKafkaPayloadMapperService
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import java.util.UUID
 
 class DeltakerProducerService(
-    private val deltakerDtoMapperService: DeltakerDtoMapperService,
+    private val deltakerKafkaPayloadMapperService: DeltakerKafkaPayloadMapperService,
     private val deltakerProducer: DeltakerProducer,
     private val deltakerV1Producer: DeltakerV1Producer,
     private val unleashToggle: UnleashToggle,
@@ -18,12 +18,12 @@ class DeltakerProducerService(
         publiserTilDeltakerV1: Boolean = true,
     ) {
         if (deltaker.status.type == DeltakerStatus.Type.KLADD) return
-        val deltakerDto = deltakerDtoMapperService.tilDeltakerDto(deltaker, forcedUpdate)
+        val deltakerPayload = deltakerKafkaPayloadMapperService.tilDeltakerPayload(deltaker, forcedUpdate)
 
         if (unleashToggle.erKometMasterForTiltakstype(deltaker.deltakerliste.tiltakstype.arenaKode)) {
-            deltakerProducer.produce(deltakerDto.v2)
+            deltakerProducer.produce(deltakerPayload.v2)
             if (publiserTilDeltakerV1) {
-                deltakerV1Producer.produce(deltakerDto.v1)
+                deltakerV1Producer.produce(deltakerPayload.v1)
             }
         }
     }

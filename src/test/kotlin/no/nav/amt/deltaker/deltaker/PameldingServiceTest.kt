@@ -25,7 +25,7 @@ import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerV1Producer
-import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerDtoMapperService
+import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerKafkaPayloadMapperService
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
@@ -521,14 +521,14 @@ class PameldingServiceTest {
             deltakerHistorikkService = deltakerHistorikkService,
         )
         private val unleashToggle = mockk<UnleashToggle>(relaxed = true)
-        private val deltakerDtoMapperService =
-            DeltakerDtoMapperService(navAnsattService, navEnhetService, deltakerHistorikkService, VurderingRepository())
+        private val deltakerKafkaPayloadMapperService =
+            DeltakerKafkaPayloadMapperService(navAnsattService, navEnhetService, deltakerHistorikkService, VurderingRepository())
 
         private val deltakerProducer = DeltakerProducer(kafkaProducer)
         private val deltakerV1Producer = DeltakerV1Producer(kafkaProducer)
 
         private val deltakerProducerService =
-            DeltakerProducerService(deltakerDtoMapperService, deltakerProducer, deltakerV1Producer, unleashToggle)
+            DeltakerProducerService(deltakerKafkaPayloadMapperService, deltakerProducer, deltakerV1Producer, unleashToggle)
 
         private val deltakerService = DeltakerService(
             deltakerRepository = deltakerRepository,

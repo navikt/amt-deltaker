@@ -9,9 +9,7 @@ import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepos
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
-import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerDtoMapperService
-import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerV2Dto
-import no.nav.amt.deltaker.deltaker.model.Kilde
+import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerKafkaPayloadMapperService
 import no.nav.amt.deltaker.deltaker.sammenlignHistorikk
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
@@ -27,6 +25,9 @@ import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.DeltakerStatusDto
+import no.nav.amt.lib.models.deltaker.Kilde
+import no.nav.amt.lib.models.deltaker.Personalia
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.testing.SingletonPostgres16Container
 import no.nav.amt.lib.testing.shouldBeCloseTo
@@ -52,8 +53,8 @@ class DeltakerResponseMapperServiceTest {
             EndringFraTiltakskoordinatorRepository(),
             vurderingService = VurderingService(vurderingRepository),
         )
-        private val deltakerDtoMapperService =
-            DeltakerDtoMapperService(navAnsattService, navEnhetService, deltakerHistorikkService, vurderingRepository)
+        private val deltakerKafkaPayloadMapperService =
+            DeltakerKafkaPayloadMapperService(navAnsattService, navEnhetService, deltakerHistorikkService, vurderingRepository)
 
         @BeforeAll
         @JvmStatic
@@ -94,10 +95,13 @@ class DeltakerResponseMapperServiceTest {
         )
         TestRepository.insert(vedtak)
 
-        val deltakerV2Dto = deltakerDtoMapperService.tilDeltakerDto(deltaker).v2
+        val deltakerV2Dto = deltakerKafkaPayloadMapperService.tilDeltakerPayload(deltaker).v2
 
         deltakerV2Dto.id shouldBe deltaker.id
         deltakerV2Dto.deltakerlisteId shouldBe deltaker.deltakerliste.id
+        deltakerV2Dto.deltakerliste.id shouldBe deltaker.deltakerliste.id
+        deltakerV2Dto.deltakerliste.tiltak.tiltakskode shouldBe deltaker.deltakerliste.tiltakstype.tiltakskode
+        // Her kan vi legge inn flere assertions på deltakerliste
         sammenlignPersonalia(deltakerV2Dto.personalia, navBruker)
         sammenlignStatus(deltakerV2Dto.status, deltaker.status)
         deltakerV2Dto.dagerPerUke shouldBe deltaker.dagerPerUke
@@ -108,7 +112,7 @@ class DeltakerResponseMapperServiceTest {
         deltakerV2Dto.forsteVedtakFattet shouldBe null
         deltakerV2Dto.bestillingTekst shouldBe deltaker.bakgrunnsinformasjon
         deltakerV2Dto.navKontor shouldBe brukersEnhet.navn
-        deltakerV2Dto.navVeileder shouldBe DeltakerV2Dto.DeltakerNavVeilederDto.fromNavAnsatt(veileder)
+        deltakerV2Dto.navVeileder shouldBe veileder
         deltakerV2Dto.deltarPaKurs shouldBe deltaker.deltarPaKurs()
         deltakerV2Dto.kilde shouldBe Kilde.KOMET
         deltakerV2Dto.innhold shouldBe Deltakelsesinnhold(deltaker.deltakelsesinnhold!!.ledetekst, deltaker.deltakelsesinnhold.innhold)
@@ -170,7 +174,7 @@ class DeltakerResponseMapperServiceTest {
         )
         TestRepository.insert(endringFraArrangor)
 
-        val deltakerV2Dto = deltakerDtoMapperService.tilDeltakerDto(deltaker).v2
+        val deltakerV2Dto = deltakerKafkaPayloadMapperService.tilDeltakerPayload(deltaker).v2
 
         deltakerV2Dto.id shouldBe deltaker.id
         deltakerV2Dto.deltakerlisteId shouldBe deltaker.deltakerliste.id
@@ -184,15 +188,15 @@ class DeltakerResponseMapperServiceTest {
         deltakerV2Dto.forsteVedtakFattet shouldBe LocalDateTime.now().minusWeeks(1).toLocalDate()
         deltakerV2Dto.bestillingTekst shouldBe deltaker.bakgrunnsinformasjon
         deltakerV2Dto.navKontor shouldBe brukersEnhet.navn
-        deltakerV2Dto.navVeileder shouldBe DeltakerV2Dto.DeltakerNavVeilederDto.fromNavAnsatt(veileder)
+        deltakerV2Dto.navVeileder shouldBe veileder
         deltakerV2Dto.deltarPaKurs shouldBe deltaker.deltarPaKurs()
         deltakerV2Dto.kilde shouldBe Kilde.KOMET
         deltakerV2Dto.innhold shouldBe Deltakelsesinnhold(deltaker.deltakelsesinnhold!!.ledetekst, deltaker.deltakelsesinnhold.innhold)
         deltakerV2Dto.historikk?.size shouldBe 4
         sammenlignHistorikk(deltakerV2Dto.historikk?.get(0)!!, DeltakerHistorikk.EndringFraArrangor(endringFraArrangor))
-        sammenlignHistorikk(deltakerV2Dto.historikk[1], DeltakerHistorikk.Forslag(forslag))
-        sammenlignHistorikk(deltakerV2Dto.historikk[2], DeltakerHistorikk.Endring(endring))
-        sammenlignHistorikk(deltakerV2Dto.historikk[3], DeltakerHistorikk.Vedtak(vedtak))
+        sammenlignHistorikk(deltakerV2Dto.historikk!![1], DeltakerHistorikk.Forslag(forslag))
+        sammenlignHistorikk(deltakerV2Dto.historikk!![2], DeltakerHistorikk.Endring(endring))
+        sammenlignHistorikk(deltakerV2Dto.historikk!![3], DeltakerHistorikk.Vedtak(vedtak))
         deltakerV2Dto.sistEndret shouldBeCloseTo deltaker.sistEndret
         deltakerV2Dto.sistEndretAv shouldBe veileder.id
         deltakerV2Dto.sistEndretAvEnhet shouldBe brukersEnhet.id
@@ -226,7 +230,7 @@ class DeltakerResponseMapperServiceTest {
         )
         TestRepository.insert(importertFraArena)
 
-        val deltakerV2Dto = deltakerDtoMapperService.tilDeltakerDto(deltaker).v2
+        val deltakerV2Dto = deltakerKafkaPayloadMapperService.tilDeltakerPayload(deltaker).v2
 
         deltakerV2Dto.id shouldBe deltaker.id
         deltakerV2Dto.deltakerlisteId shouldBe deltaker.deltakerliste.id
@@ -240,7 +244,7 @@ class DeltakerResponseMapperServiceTest {
         deltakerV2Dto.forsteVedtakFattet shouldBe innsoktDato
         deltakerV2Dto.bestillingTekst shouldBe deltaker.bakgrunnsinformasjon
         deltakerV2Dto.navKontor shouldBe brukersEnhet.navn
-        deltakerV2Dto.navVeileder shouldBe DeltakerV2Dto.DeltakerNavVeilederDto.fromNavAnsatt(veileder)
+        deltakerV2Dto.navVeileder shouldBe veileder
         deltakerV2Dto.deltarPaKurs shouldBe deltaker.deltarPaKurs()
         deltakerV2Dto.kilde shouldBe Kilde.ARENA
         deltakerV2Dto.innhold shouldBe deltaker.deltakelsesinnhold
@@ -287,7 +291,7 @@ class DeltakerResponseMapperServiceTest {
         )
         TestRepository.insert(endring)
 
-        val deltakerV2Dto = deltakerDtoMapperService.tilDeltakerDto(deltaker).v2
+        val deltakerV2Dto = deltakerKafkaPayloadMapperService.tilDeltakerPayload(deltaker).v2
 
         deltakerV2Dto.id shouldBe deltaker.id
         deltakerV2Dto.deltakerlisteId shouldBe deltaker.deltakerliste.id
@@ -301,7 +305,7 @@ class DeltakerResponseMapperServiceTest {
         deltakerV2Dto.forsteVedtakFattet shouldBe innsoktDato
         deltakerV2Dto.bestillingTekst shouldBe deltaker.bakgrunnsinformasjon
         deltakerV2Dto.navKontor shouldBe brukersEnhet.navn
-        deltakerV2Dto.navVeileder shouldBe DeltakerV2Dto.DeltakerNavVeilederDto.fromNavAnsatt(veileder)
+        deltakerV2Dto.navVeileder shouldBe veileder
         deltakerV2Dto.deltarPaKurs shouldBe deltaker.deltarPaKurs()
         deltakerV2Dto.kilde shouldBe Kilde.ARENA
         deltakerV2Dto.innhold shouldBe deltaker.deltakelsesinnhold
@@ -313,7 +317,7 @@ class DeltakerResponseMapperServiceTest {
     }
 }
 
-fun sammenlignPersonalia(personaliaDto: DeltakerV2Dto.DeltakerPersonaliaDto, navBruker: NavBruker) {
+fun sammenlignPersonalia(personaliaDto: Personalia, navBruker: NavBruker) {
     personaliaDto.personId shouldBe navBruker.personId
     personaliaDto.personident shouldBe navBruker.personident
     personaliaDto.navn.fornavn shouldBe navBruker.fornavn
@@ -326,7 +330,7 @@ fun sammenlignPersonalia(personaliaDto: DeltakerV2Dto.DeltakerPersonaliaDto, nav
     personaliaDto.adressebeskyttelse shouldBe navBruker.adressebeskyttelse
 }
 
-fun sammenlignStatus(deltakerStatusDto: DeltakerV2Dto.DeltakerStatusDto, deltakerStatus: DeltakerStatus) {
+fun sammenlignStatus(deltakerStatusDto: DeltakerStatusDto, deltakerStatus: DeltakerStatus) {
     deltakerStatusDto.id shouldBe deltakerStatus.id
     deltakerStatusDto.type shouldBe deltakerStatus.type
     deltakerStatusDto.aarsak shouldBe deltakerStatus.aarsak?.type
