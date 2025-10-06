@@ -22,8 +22,7 @@ import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerV1Producer
-import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerDtoMapperService
-import no.nav.amt.deltaker.deltaker.model.Kilde
+import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerKafkaPayloadMapperService
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
@@ -44,6 +43,8 @@ import no.nav.amt.deltaker.utils.mockPersonServiceClient
 import no.nav.amt.lib.kafka.Producer
 import no.nav.amt.lib.kafka.config.LocalKafkaConfig
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.Kilde
+import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.testing.SingletonKafkaProvider
 import no.nav.amt.lib.testing.SingletonPostgres16Container
@@ -79,12 +80,12 @@ class DeltakerStatusOppdateringTest {
             )
         private val vurderingRepository = VurderingRepository()
         private val unleashToggle = mockk<UnleashToggle>()
-        private val deltakerDtoMapperService =
-            DeltakerDtoMapperService(navAnsattService, navEnhetService, deltakerHistorikkService, vurderingRepository)
+        private val deltakerKafkaPayloadMapperService =
+            DeltakerKafkaPayloadMapperService(navAnsattService, navEnhetService, deltakerHistorikkService, vurderingRepository)
         private val deltakerProducer = DeltakerProducer(kafkaProducer)
         private val deltakerV1Producer = DeltakerV1Producer(kafkaProducer)
         private val deltakerProducerService =
-            DeltakerProducerService(deltakerDtoMapperService, deltakerProducer, deltakerV1Producer, unleashToggle)
+            DeltakerProducerService(deltakerKafkaPayloadMapperService, deltakerProducer, deltakerV1Producer, unleashToggle)
         private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
         private val vurderingService = VurderingService(vurderingRepository)
         private val hendelseService = HendelseService(
@@ -219,7 +220,7 @@ class DeltakerStatusOppdateringTest {
             startdato = LocalDate.now().minusWeeks(1),
             sluttdato = LocalDate.now().minusDays(2),
             deltakerliste = TestData.lagDeltakerliste(
-                oppstart = Deltakerliste.Oppstartstype.LOPENDE,
+                oppstart = Oppstartstype.LOPENDE,
                 sluttDato = LocalDate.now().plusMonths(3),
             ),
         )
@@ -252,7 +253,7 @@ class DeltakerStatusOppdateringTest {
             startdato = LocalDate.now().minusWeeks(1),
             sluttdato = LocalDate.now().minusDays(2),
             deltakerliste = TestData.lagDeltakerliste(
-                oppstart = Deltakerliste.Oppstartstype.LOPENDE,
+                oppstart = Oppstartstype.LOPENDE,
                 sluttDato = LocalDate.now().plusMonths(3),
             ),
         )
@@ -293,7 +294,7 @@ class DeltakerStatusOppdateringTest {
             startdato = LocalDate.now().minusWeeks(1),
             sluttdato = LocalDate.now().minusDays(2),
             deltakerliste = TestData.lagDeltakerliste(
-                oppstart = Deltakerliste.Oppstartstype.FELLES,
+                oppstart = Oppstartstype.FELLES,
                 sluttDato = LocalDate.now().minusDays(2),
             ),
         )
@@ -326,7 +327,7 @@ class DeltakerStatusOppdateringTest {
             startdato = LocalDate.now().minusWeeks(1),
             sluttdato = LocalDate.now().minusDays(2),
             deltakerliste = TestData.lagDeltakerliste(
-                oppstart = Deltakerliste.Oppstartstype.FELLES,
+                oppstart = Oppstartstype.FELLES,
                 sluttDato = LocalDate.now().plusDays(2),
             ),
         )
@@ -359,7 +360,7 @@ class DeltakerStatusOppdateringTest {
             startdato = LocalDate.now().minusMonths(1),
             sluttdato = LocalDate.now().plusDays(2),
             deltakerliste = TestData.lagDeltakerliste(
-                oppstart = Deltakerliste.Oppstartstype.LOPENDE,
+                oppstart = Oppstartstype.LOPENDE,
                 sluttDato = LocalDate.now().minusDays(2),
                 status = Deltakerliste.Status.AVSLUTTET,
             ),
@@ -394,7 +395,7 @@ class DeltakerStatusOppdateringTest {
             startdato = null,
             sluttdato = null,
             deltakerliste = TestData.lagDeltakerliste(
-                oppstart = Deltakerliste.Oppstartstype.LOPENDE,
+                oppstart = Oppstartstype.LOPENDE,
                 sluttDato = LocalDate.now().minusDays(2),
                 status = Deltakerliste.Status.AVSLUTTET,
             ),
@@ -429,7 +430,7 @@ class DeltakerStatusOppdateringTest {
             startdato = LocalDate.now().minusMonths(1),
             sluttdato = LocalDate.now().plusDays(2),
             deltakerliste = TestData.lagDeltakerliste(
-                oppstart = Deltakerliste.Oppstartstype.LOPENDE,
+                oppstart = Oppstartstype.LOPENDE,
                 sluttDato = LocalDate.now().minusDays(2),
                 status = Deltakerliste.Status.AVLYST,
             ),
@@ -464,7 +465,7 @@ class DeltakerStatusOppdateringTest {
             startdato = null,
             sluttdato = null,
             deltakerliste = TestData.lagDeltakerliste(
-                oppstart = Deltakerliste.Oppstartstype.LOPENDE,
+                oppstart = Oppstartstype.LOPENDE,
                 sluttDato = LocalDate.now().minusDays(2),
                 status = Deltakerliste.Status.AVBRUTT,
             ),
@@ -499,7 +500,7 @@ class DeltakerStatusOppdateringTest {
             startdato = null,
             sluttdato = null,
             deltakerliste = TestData.lagDeltakerliste(
-                oppstart = Deltakerliste.Oppstartstype.LOPENDE,
+                oppstart = Oppstartstype.LOPENDE,
                 sluttDato = LocalDate.now().minusDays(2),
                 status = Deltakerliste.Status.AVBRUTT,
             ),
@@ -530,7 +531,7 @@ class DeltakerStatusOppdateringTest {
         TestRepository.insert(sistEndretAv)
         TestRepository.insert(sistEndretAvEnhet)
         val deltakerliste = TestData.lagDeltakerliste(
-            oppstart = Deltakerliste.Oppstartstype.LOPENDE,
+            oppstart = Oppstartstype.LOPENDE,
             sluttDato = LocalDate.now().minusDays(2),
             status = Deltakerliste.Status.AVLYST,
         )

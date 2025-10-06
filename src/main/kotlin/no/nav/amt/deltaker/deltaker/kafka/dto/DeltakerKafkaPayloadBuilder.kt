@@ -9,14 +9,21 @@ import no.nav.amt.deltaker.deltaker.vurdering.Vurdering
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
+import no.nav.amt.lib.models.deltaker.DeltakerKafkaPayload
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.DeltakerStatusDto
+import no.nav.amt.lib.models.deltaker.Kontaktinformasjon
+import no.nav.amt.lib.models.deltaker.Navn
+import no.nav.amt.lib.models.deltaker.Personalia
+import no.nav.amt.lib.models.deltaker.SisteEndring
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltak
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet
 import java.time.LocalDate
 import java.util.UUID
 
-data class DeltakerDto(
+data class DeltakerKafkaPayloadBuilder(
     private val deltaker: Deltaker,
     private val deltakerhistorikk: List<DeltakerHistorikk>,
     private val vurderinger: List<Vurdering>,
@@ -56,19 +63,31 @@ data class DeltakerDto(
             deltakelsesmengder = deltakelsesmengderDto(deltaker, deltakerhistorikk),
         )
 
-    val v2: DeltakerV2Dto
-        get() = DeltakerV2Dto(
+    val v2: DeltakerKafkaPayload
+        get() = DeltakerKafkaPayload(
             id = deltaker.id,
             deltakerlisteId = deltaker.deltakerliste.id,
-            personalia = DeltakerV2Dto.DeltakerPersonaliaDto(
+            deltakerliste = no.nav.amt.lib.models.deltaker.Deltakerliste(
+                id = deltaker.deltakerliste.id,
+                navn = deltaker.deltakerliste.navn,
+                tiltak = Tiltak(
+                    navn = deltaker.deltakerliste.tiltakstype.navn,
+                    arenaKode = deltaker.deltakerliste.tiltakstype.arenaKode,
+                    tiltakskode = deltaker.deltakerliste.tiltakstype.tiltakskode,
+                ),
+                startdato = deltaker.deltakerliste.startDato,
+                sluttdato = deltaker.deltakerliste.sluttDato,
+                oppstartstype = deltaker.deltakerliste.oppstart,
+            ),
+            personalia = Personalia(
                 personId = deltaker.navBruker.personId,
                 personident = deltaker.navBruker.personident,
-                navn = DeltakerV2Dto.Navn(
+                navn = Navn(
                     fornavn = deltaker.navBruker.fornavn,
                     mellomnavn = deltaker.navBruker.mellomnavn,
                     etternavn = deltaker.navBruker.etternavn,
                 ),
-                kontaktinformasjon = DeltakerV2Dto.DeltakerKontaktinformasjonDto(
+                kontaktinformasjon = Kontaktinformasjon(
                     telefonnummer = deltaker.navBruker.telefon,
                     epost = deltaker.navBruker.epost,
                 ),
@@ -76,7 +95,7 @@ data class DeltakerDto(
                 adresse = deltaker.navBruker.adresse,
                 adressebeskyttelse = deltaker.navBruker.adressebeskyttelse,
             ),
-            status = DeltakerV2Dto.DeltakerStatusDto(
+            status = DeltakerStatusDto(
                 id = deltaker.status.id,
                 type = deltaker.status.type,
                 aarsak = deltaker.status.aarsak?.type,
@@ -92,7 +111,7 @@ data class DeltakerDto(
             forsteVedtakFattet = deltakerhistorikk.getForsteVedtakFattet(),
             bestillingTekst = deltaker.bakgrunnsinformasjon,
             navKontor = navEnhet?.navn,
-            navVeileder = navAnsatt?.let { DeltakerV2Dto.DeltakerNavVeilederDto.fromNavAnsatt(it) },
+            navVeileder = navAnsatt,
             deltarPaKurs = deltaker.deltarPaKurs(),
             kilde = deltaker.kilde,
             innhold = deltaker.deltakelsesinnhold,
@@ -104,6 +123,13 @@ data class DeltakerDto(
             forcedUpdate = forcedUpdate,
             erManueltDeltMedArrangor = deltaker.erManueltDeltMedArrangor,
             oppfolgingsperioder = deltaker.navBruker.oppfolgingsperioder,
+            sisteEndring = sisteEndring?.let {
+                SisteEndring(
+                    utfortAvNavAnsattId = sisteEndring.getSistEndretAv(),
+                    navEnhetId = sisteEndring.getSistEndretAvEnhet(),
+                    timestamp = deltaker.sistEndret,
+                )
+            },
         )
 
     private fun List<Vurdering>.toDto() = this.map {

@@ -5,6 +5,7 @@ import kotliquery.queryOf
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.utils.prefixColumn
 import no.nav.amt.lib.models.deltaker.Arrangor
+import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.utils.database.Database
 import org.slf4j.LoggerFactory
 import java.util.UUID
@@ -23,7 +24,7 @@ class DeltakerlisteRepository {
                 status = Deltakerliste.Status.valueOf(row.string(col("status"))),
                 startDato = row.localDate(col("start_dato")),
                 sluttDato = row.localDateOrNull(col("slutt_dato")),
-                oppstart = Deltakerliste.Oppstartstype.valueOf(row.string(col("oppstart"))),
+                oppstart = Oppstartstype.valueOf(row.string(col("oppstart"))),
                 apentForPamelding = row.boolean(col("apent_for_pamelding")),
                 arrangor = Arrangor(
                     id = row.uuid("a.id"),

@@ -7,6 +7,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.DeltakerVedImport
 import no.nav.amt.lib.models.deltaker.DeltakerVedVedtak
+import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.person.NavBruker
 import java.time.LocalDate
 import java.time.LocalDateTime

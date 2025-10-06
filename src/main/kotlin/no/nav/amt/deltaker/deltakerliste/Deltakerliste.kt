@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.deltakerliste
 
 import no.nav.amt.lib.models.deltaker.Arrangor
+import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import java.time.LocalDate
 import java.util.UUID
@@ -16,11 +17,6 @@ data class Deltakerliste(
     val apentForPamelding: Boolean,
     val arrangor: Arrangor,
 ) {
-    enum class Oppstartstype {
-        LOPENDE,
-        FELLES,
-    }
-
     enum class Status {
         GJENNOMFORES,
         AVBRUTT,

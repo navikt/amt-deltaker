@@ -20,7 +20,7 @@ import java.time.LocalDate
 class DeltakerResponseTest {
     @Test
     fun `DeltakerDto - deltaker med deltakelsesmengder - v1 har deltakelsesmengder`(): Unit = with(DeltakerContext()) {
-        deltakerDto.v1.deltakelsesmengder shouldBe historikk.toDeltakelsesmengder().map {
+        deltakerKafkaPayload.v1.deltakelsesmengder shouldBe historikk.toDeltakelsesmengder().map {
             DeltakerV1Dto.DeltakelsesmengdeDto(
                 it.deltakelsesprosent,
                 it.dagerPerUke,
@@ -41,7 +41,7 @@ class DeltakerResponseTest {
                     )
                 }.forEach {
                     withTiltakstype(it)
-                    deltakerDto.v1.deltakelsesmengder shouldBe emptyList()
+                    deltakerKafkaPayload.v1.deltakelsesmengder shouldBe emptyList()
                 }
         }
 
@@ -50,7 +50,7 @@ class DeltakerResponseTest {
         val nyStartdato = deltaker.startdato!!.plusMonths(1)
         withStartdato(nyStartdato)
 
-        deltakerDto.v1.deltakelsesmengder
+        deltakerKafkaPayload.v1.deltakelsesmengder
             .first()
             .gyldigFra shouldBe nyStartdato
     }
@@ -85,8 +85,8 @@ data class DeltakerContext(
         TestRepository.insert(navEnhet)
     }
 
-    val deltakerDto
-        get() = DeltakerDto(
+    val deltakerKafkaPayload
+        get() = DeltakerKafkaPayloadBuilder(
             deltaker,
             historikk,
             vurderinger,

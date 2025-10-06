@@ -2,7 +2,6 @@ package no.nav.amt.deltaker.utils.data
 
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerV2Dto
 import no.nav.amt.deltaker.deltaker.model.Deltaker
-import no.nav.amt.deltaker.deltaker.model.Kilde
 import no.nav.amt.deltaker.deltaker.model.Vedtaksinformasjon
 import no.nav.amt.deltaker.deltaker.vurdering.Vurdering
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
@@ -19,7 +18,9 @@ import no.nav.amt.lib.models.deltaker.DeltakerVedImport
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.deltaker.InnsokPaaFellesOppstart
+import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltaker.Vedtak
+import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.ArenaKode
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.DeltakerRegistreringInnhold
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Innholdselement
@@ -145,7 +146,7 @@ object TestData {
         status: Deltakerliste.Status = Deltakerliste.Status.GJENNOMFORES,
         startDato: LocalDate = LocalDate.now().minusMonths(1),
         sluttDato: LocalDate? = LocalDate.now().plusYears(1),
-        oppstart: Deltakerliste.Oppstartstype = finnOppstartstype(tiltakstype.arenaKode),
+        oppstart: Oppstartstype = finnOppstartstype(tiltakstype.arenaKode),
         apentForPamelding: Boolean = true,
     ) = Deltakerliste(id, tiltakstype, navn, status, startDato, sluttDato, oppstart, apentForPamelding, arrangor)
 
@@ -472,8 +473,8 @@ object TestData {
         ArenaKode.JOBBK,
         ArenaKode.GRUPPEAMO,
         ArenaKode.GRUFAGYRKE,
-        -> Deltakerliste.Oppstartstype.FELLES
+        -> Oppstartstype.FELLES
 
-        else -> Deltakerliste.Oppstartstype.LOPENDE
+        else -> Oppstartstype.LOPENDE
     }
 }
