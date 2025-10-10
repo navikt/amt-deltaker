@@ -29,7 +29,7 @@ data class DeltakerlisteDto(
         val arenaKode: String,
         val tiltakskode: String,
     ) {
-        fun erStottet() = this.tiltakskode in Tiltakskode.entries.toTypedArray().map { it.name }
+        fun erStottet() = Tiltakskode.entries.any { it.name == tiltakskode }
     }
 
     data class ArrangorDto(
