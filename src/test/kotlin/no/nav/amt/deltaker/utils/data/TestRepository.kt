@@ -238,7 +238,7 @@ object TestRepository {
                         "tiltakstype_id" to deltakerliste.tiltakstype.id,
                         "start_dato" to deltakerliste.startDato,
                         "slutt_dato" to deltakerliste.sluttDato,
-                        "oppstart" to deltakerliste.oppstart.name,
+                        "oppstart" to deltakerliste.oppstart?.name,
                         "apent_for_pamelding" to deltakerliste.apentForPamelding,
                     ),
                 ),

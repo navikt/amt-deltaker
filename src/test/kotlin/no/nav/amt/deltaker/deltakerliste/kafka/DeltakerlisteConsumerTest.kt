@@ -5,6 +5,7 @@ import io.mockk.clearMocks
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
+import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerService
@@ -52,7 +53,13 @@ class DeltakerlisteConsumerTest {
         val deltakerliste = TestData.lagDeltakerliste(arrangor = arrangor, tiltakstype = tiltakstype)
         val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient(arrangor))
         val consumer =
-            DeltakerlisteConsumer(deltakerlisteRepository, tiltakstypeRepository, arrangorService, deltakerService)
+            DeltakerlisteConsumer(
+                deltakerlisteRepository,
+                tiltakstypeRepository,
+                arrangorService,
+                deltakerService,
+                Environment.DELTAKERLISTE_V1_TOPIC,
+            )
 
         runBlocking {
             consumer.consume(
@@ -74,7 +81,13 @@ class DeltakerlisteConsumerTest {
         TestRepository.insert(deltakerliste)
 
         val consumer =
-            DeltakerlisteConsumer(deltakerlisteRepository, tiltakstypeRepository, arrangorService, deltakerService)
+            DeltakerlisteConsumer(
+                deltakerlisteRepository,
+                tiltakstypeRepository,
+                arrangorService,
+                deltakerService,
+                Environment.DELTAKERLISTE_V1_TOPIC,
+            )
 
         val oppdatertDeltakerliste = deltakerliste.copy(sluttDato = LocalDate.now())
 
@@ -98,7 +111,13 @@ class DeltakerlisteConsumerTest {
         TestRepository.insert(deltakerliste)
 
         val consumer =
-            DeltakerlisteConsumer(deltakerlisteRepository, tiltakstypeRepository, arrangorService, deltakerService)
+            DeltakerlisteConsumer(
+                deltakerlisteRepository,
+                tiltakstypeRepository,
+                arrangorService,
+                deltakerService,
+                Environment.DELTAKERLISTE_V1_TOPIC,
+            )
 
         val oppdatertDeltakerliste = deltakerliste.copy(sluttDato = LocalDate.now(), status = Deltakerliste.Status.AVBRUTT)
 
@@ -122,7 +141,13 @@ class DeltakerlisteConsumerTest {
         TestRepository.insert(deltakerliste)
 
         val consumer =
-            DeltakerlisteConsumer(deltakerlisteRepository, tiltakstypeRepository, arrangorService, deltakerService)
+            DeltakerlisteConsumer(
+                deltakerlisteRepository,
+                tiltakstypeRepository,
+                arrangorService,
+                deltakerService,
+                Environment.DELTAKERLISTE_V1_TOPIC,
+            )
 
         runBlocking {
             consumer.consume(deltakerliste.id, null)
@@ -134,14 +159,20 @@ class DeltakerlisteConsumerTest {
     }
 
     @Test
-    fun `consumeDeltakerliste - redusert sluttdato - oppdaterer deltakerliste og oppdaterer sluttdato på deltakere`() {
+    fun `consumeDeltakerliste - redusert sluttdato - oppdaterer deltakerliste og oppdaterer sluttdato pa deltakere`() {
         val arrangor = TestData.lagArrangor()
         val deltakerliste = TestData.lagDeltakerliste(arrangor = arrangor)
         val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
         TestRepository.insert(deltakerliste)
 
         val consumer =
-            DeltakerlisteConsumer(deltakerlisteRepository, tiltakstypeRepository, arrangorService, deltakerService)
+            DeltakerlisteConsumer(
+                deltakerlisteRepository,
+                tiltakstypeRepository,
+                arrangorService,
+                deltakerService,
+                Environment.DELTAKERLISTE_V1_TOPIC,
+            )
 
         val oppdatertDeltakerliste = deltakerliste.copy(sluttDato = LocalDate.now())
 

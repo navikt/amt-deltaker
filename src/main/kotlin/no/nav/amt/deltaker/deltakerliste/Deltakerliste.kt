@@ -11,9 +11,9 @@ data class Deltakerliste(
     val tiltakstype: Tiltakstype,
     val navn: String,
     val status: Status?,
-    val startDato: LocalDate,
+    val startDato: LocalDate?,
     val sluttDato: LocalDate? = null,
-    val oppstart: Oppstartstype,
+    val oppstart: Oppstartstype?,
     val apentForPamelding: Boolean,
     val arrangor: Arrangor,
 ) {

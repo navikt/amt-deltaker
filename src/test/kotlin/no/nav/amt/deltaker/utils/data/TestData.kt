@@ -166,7 +166,6 @@ object TestData {
         DeltakerlisteDto(
             id = deltakerliste.id,
             tiltakstype = DeltakerlisteDto.Tiltakstype(
-                deltakerliste.tiltakstype.navn,
                 arenaKode = deltakerliste.tiltakstype.arenaKode.name,
                 tiltakskode = deltakerliste.tiltakstype.tiltakskode.name,
             ),

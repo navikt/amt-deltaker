@@ -8,6 +8,7 @@ import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.utils.buildManagedKafkaConsumer
 import no.nav.amt.lib.kafka.Consumer
+import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.objectMapper
 import java.util.UUID
@@ -17,9 +18,10 @@ class DeltakerlisteConsumer(
     private val tiltakstypeRepository: TiltakstypeRepository,
     private val arrangorService: ArrangorService,
     private val deltakerService: DeltakerService,
+    private val topic: String,
 ) : Consumer<UUID, String?> {
     private val consumer = buildManagedKafkaConsumer(
-        topic = Environment.DELTAKERLISTE_TOPIC,
+        topic = topic,
         consumeFunc = ::consume,
     )
 
@@ -35,23 +37,25 @@ class DeltakerlisteConsumer(
         }
     }
 
+    @Suppress("DuplicatedCode")
     private suspend fun handterDeltakerliste(deltakerlisteDto: DeltakerlisteDto) {
         if (!deltakerlisteDto.tiltakstype.erStottet()) return
-        val tiltakskode = Tiltakskode.valueOf(deltakerlisteDto.tiltakstype.tiltakskode)
-        val tiltak = tiltakstypeRepository.get(tiltakskode).getOrThrow()
-        val arrangor = arrangorService.hentArrangor(deltakerlisteDto.virksomhetsnummer)
 
-        val oppdatertDeltakerliste = deltakerlisteDto.toModel(arrangor, tiltak)
-        val gammelDeltakerliste = repository.get(deltakerlisteDto.id)
+        val tiltakskode = Tiltakskode.valueOf(deltakerlisteDto.tiltakstype.tiltakskode)
+
+        val oppdatertDeltakerliste = deltakerlisteDto.toModel(
+            arrangor = hentArrangor(deltakerlisteDto),
+            tiltakstype = tiltakstypeRepository.get(tiltakskode).getOrThrow(),
+        )
 
         if (oppdatertDeltakerliste.erAvlystEllerAvbrutt()) {
             deltakerService.avsluttDeltakelserPaaDeltakerliste(oppdatertDeltakerliste)
         }
 
-        gammelDeltakerliste.onSuccess {
+        repository.get(deltakerlisteDto.id).onSuccess { eksisterendeDeltakerliste ->
             if (oppdatertDeltakerliste.sluttDato != null &&
-                it.sluttDato != null &&
-                oppdatertDeltakerliste.sluttDato < it.sluttDato
+                eksisterendeDeltakerliste.sluttDato != null &&
+                oppdatertDeltakerliste.sluttDato < eksisterendeDeltakerliste.sluttDato
             ) {
                 deltakerService.avgrensSluttdatoerTil(oppdatertDeltakerliste)
             }
@@ -59,4 +63,11 @@ class DeltakerlisteConsumer(
 
         repository.upsert(oppdatertDeltakerliste)
     }
+
+    private suspend fun hentArrangor(deltakerlisteDto: DeltakerlisteDto): Arrangor = arrangorService.hentArrangor(
+        when (topic) {
+            Environment.DELTAKERLISTE_V1_TOPIC -> deltakerlisteDto.virksomhetsnummer
+            else -> deltakerlisteDto.arrangor?.organisasjonsnummer
+        } ?: throw IllegalStateException("Virksomhetsnummer mangler"),
+    )
 }
