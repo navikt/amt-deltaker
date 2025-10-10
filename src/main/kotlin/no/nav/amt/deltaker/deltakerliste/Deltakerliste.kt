@@ -10,7 +10,7 @@ data class Deltakerliste(
     val id: UUID,
     val tiltakstype: Tiltakstype,
     val navn: String,
-    val status: Status,
+    val status: Status?,
     val startDato: LocalDate,
     val sluttDato: LocalDate? = null,
     val oppstart: Oppstartstype,

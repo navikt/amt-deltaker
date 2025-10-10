@@ -76,7 +76,7 @@ class DeltakerlisteRepository {
                 mapOf(
                     "id" to deltakerliste.id,
                     "navn" to deltakerliste.navn,
-                    "status" to deltakerliste.status.name,
+                    "status" to deltakerliste.status?.name,
                     "arrangor_id" to deltakerliste.arrangor.id,
                     "tiltakstype_id" to deltakerliste.tiltakstype.id,
                     "start_dato" to deltakerliste.startDato,
