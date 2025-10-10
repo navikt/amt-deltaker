@@ -1,5 +1,7 @@
 package no.nav.amt.deltaker.deltakerliste.kafka
 
+import com.fasterxml.jackson.annotation.JsonAlias
+import com.fasterxml.jackson.annotation.JsonProperty
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
@@ -20,6 +22,10 @@ data class DeltakerlisteDto(
     val arrangor: ArrangorDto? = null, // finnes kun for v2
 ) {
     data class Tiltakstype(
+        // i v1 arenaKode
+        // i v2 arenakode
+        @field:JsonProperty("arenaKode")
+        @field:JsonAlias("arenakode")
         val arenaKode: String,
         val tiltakskode: String,
     ) {
