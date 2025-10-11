@@ -21,8 +21,8 @@ spec:
     initialDelay: 30
   replicas:
     disableAutoScaling: true
-    min: 0
-    max: 0
+    min: 1
+    max: 1
   resources:
     requests:
       cpu: 30m
@@ -86,7 +86,7 @@ spec:
 
   gcp:
     sqlInstances:
-      - name: amt-deltaker
+      - name: amt-deltaker-2
         collation: nb_NO.UTF8
         tier: db-f1-micro
         type: POSTGRES_17
