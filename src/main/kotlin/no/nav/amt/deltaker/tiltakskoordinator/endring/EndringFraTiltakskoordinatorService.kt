@@ -75,13 +75,13 @@ class EndringFraTiltakskoordinatorService(
         }
     }
 
-    private fun getStartDatoForKursDeltaker(deltaker: Deltaker) = if (deltaker.deltakerliste.startDato.isAfter(LocalDate.now())) {
+    private fun getStartDatoForKursDeltaker(deltaker: Deltaker) = if (deltaker.deltakerliste.startDato?.isAfter(LocalDate.now()) == true) {
         deltaker.deltakerliste.startDato
     } else {
         null
     }
 
-    private fun getSluttDatoForKursDeltaker(deltaker: Deltaker) = if (deltaker.deltakerliste.startDato.isAfter(LocalDate.now())) {
+    private fun getSluttDatoForKursDeltaker(deltaker: Deltaker) = if (deltaker.deltakerliste.startDato?.isAfter(LocalDate.now()) == true) {
         deltaker.deltakerliste.sluttDato
     } else {
         null

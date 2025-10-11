@@ -54,6 +54,8 @@ class OpprettKladdRequestValidator(
     }
 
     private suspend fun deltakerForUng(personIdent: String, deltakerListe: Deltakerliste): Boolean {
+        if (deltakerListe.startDato == null) return false
+
         fun alderVedKursStart(foedselAar: Int): Int = Year.now().value.coerceAtLeast(deltakerListe.startDato.year) - foedselAar
 
         return if (deltakerListe.tiltakstype.tiltakskode == Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING) {

@@ -166,14 +166,13 @@ object TestData {
         DeltakerlisteDto(
             id = deltakerliste.id,
             tiltakstype = DeltakerlisteDto.Tiltakstype(
-                deltakerliste.tiltakstype.navn,
                 arenaKode = deltakerliste.tiltakstype.arenaKode.name,
                 tiltakskode = deltakerliste.tiltakstype.tiltakskode.name,
             ),
             navn = deltakerliste.navn,
             startDato = deltakerliste.startDato,
             sluttDato = deltakerliste.sluttDato,
-            status = deltakerliste.status.name,
+            status = deltakerliste.status?.name,
             virksomhetsnummer = arrangor.organisasjonsnummer,
             oppstart = deltakerliste.oppstart,
             apentForPamelding = deltakerliste.apentForPamelding,
