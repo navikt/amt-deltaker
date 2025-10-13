@@ -5,7 +5,7 @@ import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.Vedtaksinformasjon
 import no.nav.amt.deltaker.deltaker.vurdering.Vurdering
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
-import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlisteDto
+import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlistePayload
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
@@ -163,9 +163,9 @@ object TestData {
     )
 
     fun lagDeltakerlisteDto(arrangor: Arrangor = lagArrangor(), deltakerliste: Deltakerliste = lagDeltakerliste(arrangor = arrangor)) =
-        DeltakerlisteDto(
+        DeltakerlistePayload(
             id = deltakerliste.id,
-            tiltakstype = DeltakerlisteDto.Tiltakstype(
+            tiltakstype = DeltakerlistePayload.Tiltakstype(
                 arenaKode = deltakerliste.tiltakstype.arenaKode.name,
                 tiltakskode = deltakerliste.tiltakstype.tiltakskode.name,
             ),

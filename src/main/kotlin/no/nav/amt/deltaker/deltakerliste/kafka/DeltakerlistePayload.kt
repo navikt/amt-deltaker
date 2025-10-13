@@ -9,7 +9,7 @@ import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import java.time.LocalDate
 import java.util.UUID
 
-data class DeltakerlisteDto(
+data class DeltakerlistePayload(
     val id: UUID,
     val tiltakstype: Tiltakstype,
     val navn: String? = null, // finnes kun for gruppetiltak
@@ -40,7 +40,7 @@ data class DeltakerlisteDto(
         id = this.id,
         tiltakstype = tiltakstype,
         navn = this.navn ?: tiltakstype.navn,
-        status = this.status?.let { Deltakerliste.Status.fromString(this.status) },
+        status = this.status?.let { Deltakerliste.Status.fromString(it) },
         startDato = this.startDato,
         sluttDato = this.sluttDato,
         oppstart = this.oppstart,

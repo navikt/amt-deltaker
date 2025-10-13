@@ -38,13 +38,13 @@ class DeltakerlisteConsumer(
     }
 
     @Suppress("DuplicatedCode")
-    private suspend fun handterDeltakerliste(deltakerlisteDto: DeltakerlisteDto) {
-        if (!deltakerlisteDto.tiltakstype.erStottet()) return
+    private suspend fun handterDeltakerliste(deltakerlistePayload: DeltakerlistePayload) {
+        if (!deltakerlistePayload.tiltakstype.erStottet()) return
 
-        val tiltakskode = Tiltakskode.valueOf(deltakerlisteDto.tiltakstype.tiltakskode)
+        val tiltakskode = Tiltakskode.valueOf(deltakerlistePayload.tiltakstype.tiltakskode)
 
-        val oppdatertDeltakerliste = deltakerlisteDto.toModel(
-            arrangor = hentArrangor(deltakerlisteDto),
+        val oppdatertDeltakerliste = deltakerlistePayload.toModel(
+            arrangor = hentArrangor(deltakerlistePayload),
             tiltakstype = tiltakstypeRepository.get(tiltakskode).getOrThrow(),
         )
 
@@ -52,7 +52,7 @@ class DeltakerlisteConsumer(
             deltakerService.avsluttDeltakelserPaaDeltakerliste(oppdatertDeltakerliste)
         }
 
-        repository.get(deltakerlisteDto.id).onSuccess { eksisterendeDeltakerliste ->
+        repository.get(deltakerlistePayload.id).onSuccess { eksisterendeDeltakerliste ->
             if (oppdatertDeltakerliste.sluttDato != null &&
                 eksisterendeDeltakerliste.sluttDato != null &&
                 oppdatertDeltakerliste.sluttDato < eksisterendeDeltakerliste.sluttDato
@@ -64,10 +64,10 @@ class DeltakerlisteConsumer(
         repository.upsert(oppdatertDeltakerliste)
     }
 
-    private suspend fun hentArrangor(deltakerlisteDto: DeltakerlisteDto): Arrangor = arrangorService.hentArrangor(
+    private suspend fun hentArrangor(deltakerlistePayload: DeltakerlistePayload): Arrangor = arrangorService.hentArrangor(
         when (topic) {
-            Environment.DELTAKERLISTE_V1_TOPIC -> deltakerlisteDto.virksomhetsnummer
-            else -> deltakerlisteDto.arrangor?.organisasjonsnummer
+            Environment.DELTAKERLISTE_V1_TOPIC -> deltakerlistePayload.virksomhetsnummer
+            else -> deltakerlistePayload.arrangor?.organisasjonsnummer
         } ?: throw IllegalStateException("Virksomhetsnummer mangler"),
     )
 }
