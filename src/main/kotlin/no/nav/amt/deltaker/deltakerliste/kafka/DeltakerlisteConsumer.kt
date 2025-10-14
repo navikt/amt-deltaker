@@ -1,14 +1,12 @@
 package no.nav.amt.deltaker.deltakerliste.kafka
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.utils.buildManagedKafkaConsumer
 import no.nav.amt.lib.kafka.Consumer
-import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.objectMapper
 import java.util.UUID
@@ -37,14 +35,13 @@ class DeltakerlisteConsumer(
         }
     }
 
-    @Suppress("DuplicatedCode")
     private suspend fun handterDeltakerliste(deltakerlistePayload: DeltakerlistePayload) {
         if (!deltakerlistePayload.tiltakstype.erStottet()) return
 
         val tiltakskode = Tiltakskode.valueOf(deltakerlistePayload.tiltakstype.tiltakskode)
 
         val oppdatertDeltakerliste = deltakerlistePayload.toModel(
-            arrangor = hentArrangor(deltakerlistePayload),
+            arrangor = arrangorService.hentArrangor(deltakerlistePayload.organisasjonsnummer),
             tiltakstype = tiltakstypeRepository.get(tiltakskode).getOrThrow(),
         )
 
@@ -63,11 +60,4 @@ class DeltakerlisteConsumer(
 
         repository.upsert(oppdatertDeltakerliste)
     }
-
-    private suspend fun hentArrangor(deltakerlistePayload: DeltakerlistePayload): Arrangor = arrangorService.hentArrangor(
-        when (topic) {
-            Environment.DELTAKERLISTE_V1_TOPIC -> deltakerlistePayload.virksomhetsnummer
-            else -> deltakerlistePayload.arrangor?.organisasjonsnummer
-        } ?: throw IllegalStateException("Virksomhetsnummer mangler"),
-    )
 }
