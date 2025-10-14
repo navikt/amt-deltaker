@@ -17,9 +17,9 @@ repositories {
     maven { setUrl("https://github-package-registry-mirror.gc.nav.no/cached/maven-release") }
 }
 
-val ktorVersion = "3.3.0"
+val ktorVersion = "3.3.1"
 val logbackVersion = "1.5.19"
-val prometeusVersion = "1.15.4"
+val prometeusVersion = "1.15.5"
 val ktlintVersion = "1.6.0"
 val jacksonVersion = "2.20.0"
 val logstashEncoderVersion = "8.1"
@@ -33,7 +33,7 @@ val postgresVersion = "42.7.8"
 val caffeineVersion = "3.2.2"
 val mockkVersion = "1.14.6"
 val nimbusVersion = "10.5"
-val unleashVersion = "11.1.0"
+val unleashVersion = "11.1.1"
 val amtLibVersion = "1.2025.10.08_09.09-4d8d4f2abb10"
 
 dependencies {
