@@ -162,7 +162,7 @@ object TestData {
         tiltakstype = tiltakstype,
     )
 
-    fun lagDeltakerlisteDto(arrangor: Arrangor = lagArrangor(), deltakerliste: Deltakerliste = lagDeltakerliste(arrangor = arrangor)) =
+    fun lagDeltakerlistePayload(arrangor: Arrangor = lagArrangor(), deltakerliste: Deltakerliste = lagDeltakerliste(arrangor = arrangor)) =
         DeltakerlistePayload(
             id = deltakerliste.id,
             tiltakstype = DeltakerlistePayload.Tiltakstype(

@@ -11,10 +11,17 @@ import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
+import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlistePayload.ArrangorDto
+import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlistePayload.Companion.ENKELTPLASS_V2_TYPE
+import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlistePayload.Companion.GRUPPE_V2_TYPE
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
-import no.nav.amt.deltaker.utils.data.TestData
+import no.nav.amt.deltaker.utils.data.TestData.lagArrangor
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerlistePayload
+import no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.utils.mockAmtArrangorClient
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.testing.SingletonPostgres16Container
 import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.BeforeAll
@@ -24,18 +31,15 @@ import java.time.LocalDate
 
 class DeltakerlisteConsumerTest {
     companion object {
-        lateinit var deltakerlisteRepository: DeltakerlisteRepository
-        lateinit var tiltakstypeRepository: TiltakstypeRepository
-        lateinit var deltakerService: DeltakerService
+        val deltakerlisteRepository = DeltakerlisteRepository()
+        val tiltakstypeRepository = TiltakstypeRepository()
+        val deltakerService: DeltakerService = mockk(relaxed = true)
 
         @JvmStatic
         @BeforeAll
         fun setup() {
             @Suppress("UnusedExpression")
             SingletonPostgres16Container
-            deltakerlisteRepository = DeltakerlisteRepository()
-            tiltakstypeRepository = TiltakstypeRepository()
-            deltakerService = mockk<DeltakerService>(relaxed = true)
         }
     }
 
@@ -46,12 +50,96 @@ class DeltakerlisteConsumerTest {
     }
 
     @Test
-    fun `consumeDeltakerliste - ny liste og arrangor - lagrer deltakerliste`() {
-        val arrangor = TestData.lagArrangor()
-        val tiltakstype = TestData.lagTiltakstype()
+    fun `ny liste v2 gruppe - lagrer deltakerliste`() {
+        val tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING)
         TestRepository.insert(tiltakstype)
-        val deltakerliste = TestData.lagDeltakerliste(arrangor = arrangor, tiltakstype = tiltakstype)
+
+        val arrangor = lagArrangor()
+        val deltakerliste = lagDeltakerliste(arrangor = arrangor, tiltakstype = tiltakstype)
         val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient(arrangor))
+
+        val consumer =
+            DeltakerlisteConsumer(
+                deltakerlisteRepository,
+                tiltakstypeRepository,
+                arrangorService,
+                deltakerService,
+                Environment.DELTAKERLISTE_V2_TOPIC,
+            )
+
+        val deltakerlistePayload = lagDeltakerlistePayload(arrangor, deltakerliste).copy(
+            type = GRUPPE_V2_TYPE,
+            virksomhetsnummer = null,
+            arrangor = ArrangorDto(arrangor.organisasjonsnummer),
+        )
+
+        runBlocking {
+            consumer.consume(
+                deltakerlistePayload.id,
+                objectMapper.writeValueAsString(deltakerlistePayload),
+            )
+
+            deltakerlisteRepository.get(deltakerliste.id).getOrThrow() shouldBe deltakerliste
+        }
+
+        coVerify(exactly = 0) { deltakerService.avsluttDeltakelserPaaDeltakerliste(any()) }
+    }
+
+    @Test
+    fun `ny liste v2 enkeltplass - lagrer deltakerliste`() {
+        val tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ENKELTPLASS_FAG_OG_YRKESOPPLAERING)
+        TestRepository.insert(tiltakstype)
+
+        val arrangor = lagArrangor()
+        val deltakerliste = lagDeltakerliste(arrangor = arrangor, tiltakstype = tiltakstype)
+        val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient(arrangor))
+
+        val consumer =
+            DeltakerlisteConsumer(
+                deltakerlisteRepository,
+                tiltakstypeRepository,
+                arrangorService,
+                deltakerService,
+                Environment.DELTAKERLISTE_V2_TOPIC,
+            )
+
+        val deltakerlistePayload = lagDeltakerlistePayload(arrangor, deltakerliste).copy(
+            type = ENKELTPLASS_V2_TYPE,
+            navn = null,
+            startDato = null,
+            sluttDato = null,
+            status = null,
+            oppstart = null,
+            virksomhetsnummer = null,
+            arrangor = ArrangorDto(arrangor.organisasjonsnummer),
+        )
+
+        runBlocking {
+            consumer.consume(
+                deltakerlistePayload.id,
+                objectMapper.writeValueAsString(deltakerlistePayload),
+            )
+
+            deltakerlisteRepository.get(deltakerliste.id).getOrThrow() shouldBe deltakerliste.copy(
+                navn = "Test tiltak ENKFAGYRKE",
+                status = null,
+                startDato = null,
+                sluttDato = null,
+                oppstart = null,
+            )
+        }
+
+        coVerify(exactly = 0) { deltakerService.avsluttDeltakelserPaaDeltakerliste(any()) }
+    }
+
+    @Test
+    fun `consumeDeltakerliste - ny liste og arrangor - lagrer deltakerliste`() {
+        val arrangor = lagArrangor()
+        val tiltakstype = lagTiltakstype()
+        TestRepository.insert(tiltakstype)
+        val deltakerliste = lagDeltakerliste(arrangor = arrangor, tiltakstype = tiltakstype)
+        val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient(arrangor))
+
         val consumer =
             DeltakerlisteConsumer(
                 deltakerlisteRepository,
@@ -64,7 +152,7 @@ class DeltakerlisteConsumerTest {
         runBlocking {
             consumer.consume(
                 deltakerliste.id,
-                objectMapper.writeValueAsString(TestData.lagDeltakerlisteDto(arrangor, deltakerliste)),
+                objectMapper.writeValueAsString(lagDeltakerlistePayload(arrangor, deltakerliste)),
             )
 
             deltakerlisteRepository.get(deltakerliste.id).getOrThrow() shouldBe deltakerliste
@@ -75,8 +163,8 @@ class DeltakerlisteConsumerTest {
 
     @Test
     fun `consumeDeltakerliste - ny sluttdato - oppdaterer deltakerliste`() {
-        val arrangor = TestData.lagArrangor()
-        val deltakerliste = TestData.lagDeltakerliste(arrangor = arrangor)
+        val arrangor = lagArrangor()
+        val deltakerliste = lagDeltakerliste(arrangor = arrangor)
         val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
         TestRepository.insert(deltakerliste)
 
@@ -94,7 +182,7 @@ class DeltakerlisteConsumerTest {
         runBlocking {
             consumer.consume(
                 deltakerliste.id,
-                objectMapper.writeValueAsString(TestData.lagDeltakerlisteDto(arrangor, oppdatertDeltakerliste)),
+                objectMapper.writeValueAsString(lagDeltakerlistePayload(arrangor, oppdatertDeltakerliste)),
             )
 
             deltakerlisteRepository.get(deltakerliste.id).getOrThrow() shouldBe oppdatertDeltakerliste
@@ -105,8 +193,8 @@ class DeltakerlisteConsumerTest {
 
     @Test
     fun `consumeDeltakerliste - avbrutt - oppdaterer deltakerliste og avslutter deltakere`() {
-        val arrangor = TestData.lagArrangor()
-        val deltakerliste = TestData.lagDeltakerliste(arrangor = arrangor)
+        val arrangor = lagArrangor()
+        val deltakerliste = lagDeltakerliste(arrangor = arrangor)
         val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
         TestRepository.insert(deltakerliste)
 
@@ -124,7 +212,7 @@ class DeltakerlisteConsumerTest {
         runBlocking {
             consumer.consume(
                 deltakerliste.id,
-                objectMapper.writeValueAsString(TestData.lagDeltakerlisteDto(arrangor, oppdatertDeltakerliste)),
+                objectMapper.writeValueAsString(lagDeltakerlistePayload(arrangor, oppdatertDeltakerliste)),
             )
 
             deltakerlisteRepository.get(deltakerliste.id).getOrThrow() shouldBe oppdatertDeltakerliste
@@ -135,7 +223,7 @@ class DeltakerlisteConsumerTest {
 
     @Test
     fun `consumeDeltakerliste - tombstone - sletter deltakerliste`() {
-        val deltakerliste = TestData.lagDeltakerliste()
+        val deltakerliste = lagDeltakerliste()
         val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
 
         TestRepository.insert(deltakerliste)
@@ -160,8 +248,8 @@ class DeltakerlisteConsumerTest {
 
     @Test
     fun `consumeDeltakerliste - redusert sluttdato - oppdaterer deltakerliste og oppdaterer sluttdato pa deltakere`() {
-        val arrangor = TestData.lagArrangor()
-        val deltakerliste = TestData.lagDeltakerliste(arrangor = arrangor)
+        val arrangor = lagArrangor()
+        val deltakerliste = lagDeltakerliste(arrangor = arrangor)
         val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
         TestRepository.insert(deltakerliste)
 
@@ -179,7 +267,7 @@ class DeltakerlisteConsumerTest {
         runBlocking {
             consumer.consume(
                 deltakerliste.id,
-                objectMapper.writeValueAsString(TestData.lagDeltakerlisteDto(arrangor, oppdatertDeltakerliste)),
+                objectMapper.writeValueAsString(lagDeltakerlistePayload(arrangor, oppdatertDeltakerliste)),
             )
 
             deltakerlisteRepository.get(deltakerliste.id).getOrThrow() shouldBe oppdatertDeltakerliste
