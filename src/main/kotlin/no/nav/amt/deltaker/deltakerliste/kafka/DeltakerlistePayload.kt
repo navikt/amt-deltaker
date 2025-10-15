@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.deltakerliste.kafka
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
-import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import java.time.LocalDate
@@ -18,7 +18,7 @@ data class DeltakerlistePayload(
     val oppstart: Oppstartstype? = null, // finnes kun for gruppetiltak
     val apentForPamelding: Boolean = true, // finnes kun for gruppetiltak
     val virksomhetsnummer: String? = null, // finnes kun for v1
-    val arrangor: ArrangorDto? = null, // finnes kun for v2
+    val arrangor: Arrangor? = null, // finnes kun for v2
 ) {
     data class Tiltakstype(
         val tiltakskode: String,
@@ -26,10 +26,11 @@ data class DeltakerlistePayload(
         fun erStottet() = Tiltakskode.entries.any { it.name == tiltakskode }
     }
 
-    data class ArrangorDto(
+    data class Arrangor(
         val organisasjonsnummer: String,
     )
 
+    @get:JsonIgnore
     val organisasjonsnummer: String
         get() = when {
             type in setOf(
@@ -40,7 +41,10 @@ data class DeltakerlistePayload(
             else -> virksomhetsnummer
         } ?: throw IllegalStateException("Virksomhetsnummer mangler")
 
-    fun toModel(arrangor: Arrangor, tiltakstype: no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype) = Deltakerliste(
+    fun toModel(
+        arrangor: no.nav.amt.lib.models.deltaker.Arrangor,
+        tiltakstype: no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype,
+    ) = Deltakerliste(
         id = this.id,
         tiltakstype = tiltakstype,
         navn = this.navn ?: tiltakstype.navn,

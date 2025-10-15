@@ -11,7 +11,7 @@ import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
-import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlistePayload.ArrangorDto
+import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlistePayload.Arrangor
 import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlistePayload.Companion.ENKELTPLASS_V2_TYPE
 import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlistePayload.Companion.GRUPPE_V2_TYPE
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
@@ -60,17 +60,17 @@ class DeltakerlisteConsumerTest {
 
         val consumer =
             DeltakerlisteConsumer(
-                deltakerlisteRepository,
-                tiltakstypeRepository,
-                arrangorService,
-                deltakerService,
-                Environment.DELTAKERLISTE_V2_TOPIC,
+                deltakerlisteRepository = deltakerlisteRepository,
+                tiltakstypeRepository = tiltakstypeRepository,
+                arrangorService = arrangorService,
+                deltakerService = deltakerService,
+                topic = Environment.DELTAKERLISTE_V2_TOPIC,
             )
 
         val deltakerlistePayload = lagDeltakerlistePayload(arrangor, deltakerliste).copy(
             type = GRUPPE_V2_TYPE,
             virksomhetsnummer = null,
-            arrangor = ArrangorDto(arrangor.organisasjonsnummer),
+            arrangor = Arrangor(arrangor.organisasjonsnummer),
         )
 
         runBlocking {
@@ -111,7 +111,7 @@ class DeltakerlisteConsumerTest {
             status = null,
             oppstart = null,
             virksomhetsnummer = null,
-            arrangor = ArrangorDto(arrangor.organisasjonsnummer),
+            arrangor = Arrangor(arrangor.organisasjonsnummer),
         )
 
         runBlocking {

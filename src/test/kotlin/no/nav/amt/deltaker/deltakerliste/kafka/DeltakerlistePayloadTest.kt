@@ -1,14 +1,19 @@
 package no.nav.amt.deltaker.deltakerliste.kafka
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import io.kotest.assertions.assertSoftly
+import io.kotest.assertions.json.schema.shouldMatchSchema
 import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
+import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlistePayloadJsonSchemas.deltakerlistePayloadV1Schema
+import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlistePayloadJsonSchemas.deltakerlistePayloadV2Schema
 import no.nav.amt.deltaker.utils.data.TestData.lagArrangor
 import no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
+import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -21,7 +26,7 @@ class DeltakerlistePayloadTest {
         @Test
         fun `returnerer virksomhetsnummer for v1`() {
             val payload = DeltakerlistePayload(
-                id = id,
+                id = deltakerlisteIdInTest,
                 tiltakstype = DeltakerlistePayload.Tiltakstype(Tiltakskode.DIGITALT_OPPFOLGINGSTILTAK.name),
                 virksomhetsnummer = "123456789",
             )
@@ -32,7 +37,7 @@ class DeltakerlistePayloadTest {
         @Test
         fun `organisasjonsnummer - kaster feil hvis virksomhetsnummer mangler`() {
             val payload = DeltakerlistePayload(
-                id = id,
+                id = deltakerlisteIdInTest,
                 tiltakstype = DeltakerlistePayload.Tiltakstype(Tiltakskode.DIGITALT_OPPFOLGINGSTILTAK.name),
             )
 
@@ -44,10 +49,10 @@ class DeltakerlistePayloadTest {
         @Test
         fun `returnerer arrangor-organisasjonsnummer for v2`() {
             val payload = DeltakerlistePayload(
-                id = id,
+                id = deltakerlisteIdInTest,
                 type = DeltakerlistePayload.ENKELTPLASS_V2_TYPE,
                 tiltakstype = DeltakerlistePayload.Tiltakstype(Tiltakskode.DIGITALT_OPPFOLGINGSTILTAK.name),
-                arrangor = DeltakerlistePayload.ArrangorDto("987654321"),
+                arrangor = DeltakerlistePayload.Arrangor("987654321"),
             )
 
             payload.organisasjonsnummer shouldBe "987654321"
@@ -56,7 +61,7 @@ class DeltakerlistePayloadTest {
         @Test
         fun `organisasjonsnummer - kaster feil hvis arrangor-organisasjonsnummer mangler`() {
             val payload = DeltakerlistePayload(
-                id = id,
+                id = deltakerlisteIdInTest,
                 type = DeltakerlistePayload.ENKELTPLASS_V2_TYPE,
                 tiltakstype = DeltakerlistePayload.Tiltakstype(Tiltakskode.DIGITALT_OPPFOLGINGSTILTAK.name),
             )
@@ -89,7 +94,7 @@ class DeltakerlistePayloadTest {
         @Test
         fun `toModel - mapper felter korrekt`() {
             val payload = DeltakerlistePayload(
-                id = id,
+                id = deltakerlisteIdInTest,
                 tiltakstype = DeltakerlistePayload.Tiltakstype(Tiltakskode.ENKELTPLASS_FAG_OG_YRKESOPPLAERING.name),
                 navn = "Testliste",
                 startDato = LocalDate.of(2024, 1, 1),
@@ -122,7 +127,7 @@ class DeltakerlistePayloadTest {
         @Test
         fun `toModel - bruker tiltakstype-navn hvis navn er null`() {
             val payload = DeltakerlistePayload(
-                id = id,
+                id = deltakerlisteIdInTest,
                 tiltakstype = DeltakerlistePayload.Tiltakstype(Tiltakskode.ENKELTPLASS_FAG_OG_YRKESOPPLAERING.name),
                 virksomhetsnummer = "123456789",
             )
@@ -137,7 +142,55 @@ class DeltakerlistePayloadTest {
         }
     }
 
+    @Nested
+    inner class Validate {
+        @Test
+        fun `fullt populert V2 skal matche skjema`() {
+            val json = objectMapper
+                .copy()
+                .setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL)
+                .writeValueAsString(fullyPopulatedV2PayloadInTest.copy())
+
+            json.shouldMatchSchema(deltakerlistePayloadV2Schema)
+        }
+
+        @Test
+        fun `fullt populert V1 skal matche skjema`() {
+            val json = objectMapper
+                .copy()
+                .setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL)
+                .writeValueAsString(fullyPopulatedV1PayloadInTest.copy())
+
+            json.shouldMatchSchema(deltakerlistePayloadV1Schema)
+        }
+    }
+
     companion object {
-        private val id = UUID.randomUUID()
+        private val deltakerlisteIdInTest = UUID.randomUUID()
+
+        private val fullyPopulatedV1PayloadInTest = DeltakerlistePayload(
+            id = deltakerlisteIdInTest,
+            tiltakstype = DeltakerlistePayload.Tiltakstype(Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING.name),
+            navn = "Testliste",
+            startDato = LocalDate.of(2024, 1, 1),
+            sluttDato = LocalDate.of(2024, 6, 1),
+            status = "GJENNOMFORES",
+            oppstart = Oppstartstype.LOPENDE,
+            apentForPamelding = true,
+            virksomhetsnummer = "123456789",
+        )
+
+        private val fullyPopulatedV2PayloadInTest = DeltakerlistePayload(
+            type = DeltakerlistePayload.ENKELTPLASS_V2_TYPE,
+            id = deltakerlisteIdInTest,
+            tiltakstype = DeltakerlistePayload.Tiltakstype(Tiltakskode.ENKELTPLASS_FAG_OG_YRKESOPPLAERING.name),
+            navn = "Testliste",
+            startDato = LocalDate.of(2024, 1, 1),
+            sluttDato = LocalDate.of(2024, 6, 1),
+            status = "GJENNOMFORES",
+            oppstart = Oppstartstype.LOPENDE,
+            apentForPamelding = true,
+            arrangor = DeltakerlistePayload.Arrangor("987654321"),
+        )
     }
 }

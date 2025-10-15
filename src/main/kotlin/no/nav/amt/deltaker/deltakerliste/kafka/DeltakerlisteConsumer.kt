@@ -12,7 +12,7 @@ import no.nav.amt.lib.utils.objectMapper
 import java.util.UUID
 
 class DeltakerlisteConsumer(
-    private val repository: DeltakerlisteRepository,
+    private val deltakerlisteRepository: DeltakerlisteRepository,
     private val tiltakstypeRepository: TiltakstypeRepository,
     private val arrangorService: ArrangorService,
     private val deltakerService: DeltakerService,
@@ -29,7 +29,7 @@ class DeltakerlisteConsumer(
 
     override suspend fun consume(key: UUID, value: String?) {
         if (value == null) {
-            repository.delete(key)
+            deltakerlisteRepository.delete(key)
         } else {
             handterDeltakerliste(objectMapper.readValue(value))
         }
@@ -49,7 +49,7 @@ class DeltakerlisteConsumer(
             deltakerService.avsluttDeltakelserPaaDeltakerliste(oppdatertDeltakerliste)
         }
 
-        repository.get(deltakerlistePayload.id).onSuccess { eksisterendeDeltakerliste ->
+        deltakerlisteRepository.get(deltakerlistePayload.id).onSuccess { eksisterendeDeltakerliste ->
             if (oppdatertDeltakerliste.sluttDato != null &&
                 eksisterendeDeltakerliste.sluttDato != null &&
                 oppdatertDeltakerliste.sluttDato < eksisterendeDeltakerliste.sluttDato
@@ -58,6 +58,6 @@ class DeltakerlisteConsumer(
             }
         }
 
-        repository.upsert(oppdatertDeltakerliste)
+        deltakerlisteRepository.upsert(oppdatertDeltakerliste)
     }
 }
