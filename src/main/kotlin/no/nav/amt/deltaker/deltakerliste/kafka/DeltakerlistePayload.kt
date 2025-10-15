@@ -32,14 +32,9 @@ data class DeltakerlistePayload(
 
     @get:JsonIgnore
     val organisasjonsnummer: String
-        get() = when {
-            type in setOf(
-                ENKELTPLASS_V2_TYPE,
-                GRUPPE_V2_TYPE,
-            ) -> arrangor?.organisasjonsnummer
-
-            else -> virksomhetsnummer
-        } ?: throw IllegalStateException("Virksomhetsnummer mangler")
+        get() = setOfNotNull(arrangor?.organisasjonsnummer, virksomhetsnummer)
+            .firstOrNull()
+            ?: throw IllegalStateException("Virksomhetsnummer mangler")
 
     fun toModel(
         arrangor: no.nav.amt.lib.models.deltaker.Arrangor,
