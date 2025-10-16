@@ -6,29 +6,37 @@ import no.nav.amt.lib.models.deltakerliste.tiltakstype.ArenaKode
 class UnleashToggle(
     private val unleashClient: Unleash,
 ) {
-    private val tiltakstyperKometErMasterFor = listOf(
-        ArenaKode.ARBFORB,
-        ArenaKode.INDOPPFAG,
-        ArenaKode.AVKLARAG,
-        ArenaKode.ARBRRHDAG,
-        ArenaKode.DIGIOPPARB,
-        ArenaKode.VASV,
-        ArenaKode.GRUPPEAMO,
-        ArenaKode.JOBBK,
-        ArenaKode.GRUFAGYRKE,
-    )
-
-    private val tiltakstyperKometKanLese = setOf(
-        ArenaKode.ENKELAMO,
-        ArenaKode.ENKFAGYRKE,
-        ArenaKode.HOYEREUTD,
-    )
-
-    private val tiltakstyperKometKanskjeErMasterFor = tiltakstyperKometKanLese
-
     fun erKometMasterForTiltakstype(tiltakstype: ArenaKode): Boolean = tiltakstype in tiltakstyperKometErMasterFor ||
-        (unleashClient.isEnabled("amt.enable-komet-deltakere") && tiltakstype in tiltakstyperKometKanskjeErMasterFor)
+        (unleashClient.isEnabled(ENABLE_KOMET_DELTAKERE) && tiltakstype in tiltakstyperKometKanskjeErMasterFor)
 
     fun skalLeseArenaDeltakereForTiltakstype(tiltakstype: ArenaKode): Boolean =
-        unleashClient.isEnabled("amt.les-arena-deltakere") && tiltakstype in tiltakstyperKometKanLese
+        unleashClient.isEnabled(LES_ARENA_DELTAKERE) && tiltakstype in tiltakstyperKometKanLese
+
+    fun skalLeseGjennomforingerV2(): Boolean = unleashClient.isEnabled(LES_GJENNOMFORINGER_V2)
+
+    companion object {
+        private const val ENABLE_KOMET_DELTAKERE = "amt.enable-komet-deltakere"
+        private const val LES_ARENA_DELTAKERE = "amt.les-arena-deltakere"
+        private const val LES_GJENNOMFORINGER_V2 = "amt.les-gjennomforing-v2"
+
+        private val tiltakstyperKometErMasterFor = setOf(
+            ArenaKode.ARBFORB,
+            ArenaKode.INDOPPFAG,
+            ArenaKode.AVKLARAG,
+            ArenaKode.ARBRRHDAG,
+            ArenaKode.DIGIOPPARB,
+            ArenaKode.VASV,
+            ArenaKode.GRUPPEAMO,
+            ArenaKode.JOBBK,
+            ArenaKode.GRUFAGYRKE,
+        )
+
+        private val tiltakstyperKometKanLese = setOf(
+            ArenaKode.ENKELAMO,
+            ArenaKode.ENKFAGYRKE,
+            ArenaKode.HOYEREUTD,
+        )
+
+        private val tiltakstyperKometKanskjeErMasterFor = tiltakstyperKometKanLese
+    }
 }

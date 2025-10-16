@@ -1,8 +1,10 @@
 package no.nav.amt.deltaker.deltakerliste.kafka
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
-import io.mockk.clearMocks
+import io.mockk.clearAllMocks
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.Environment
@@ -15,6 +17,7 @@ import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlistePayload.Arrangor
 import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlistePayload.Companion.ENKELTPLASS_V2_TYPE
 import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlistePayload.Companion.GRUPPE_V2_TYPE
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
+import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.deltaker.utils.data.TestData.lagArrangor
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerlistePayload
@@ -31,9 +34,10 @@ import java.time.LocalDate
 
 class DeltakerlisteConsumerTest {
     companion object {
-        val deltakerlisteRepository = DeltakerlisteRepository()
-        val tiltakstypeRepository = TiltakstypeRepository()
-        val deltakerService: DeltakerService = mockk(relaxed = true)
+        private val deltakerlisteRepository = DeltakerlisteRepository()
+        private val tiltakstypeRepository = TiltakstypeRepository()
+        private val deltakerService: DeltakerService = mockk(relaxed = true)
+        private val unleashToggle: UnleashToggle = mockk(relaxed = true)
 
         @JvmStatic
         @BeforeAll
@@ -46,7 +50,49 @@ class DeltakerlisteConsumerTest {
     @BeforeEach
     fun cleanDatabase() {
         TestRepository.cleanDatabase()
-        clearMocks(deltakerService)
+        clearAllMocks()
+        every { unleashToggle.skalLeseGjennomforingerV2() } returns true
+    }
+
+    @Test
+    fun `unleashToggle er ikke enabled for gjennomforingV2 - lagrer ikke deltakerliste`() {
+        every { unleashToggle.skalLeseGjennomforingerV2() } returns false
+
+        val tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING)
+        TestRepository.insert(tiltakstype)
+
+        val arrangor = lagArrangor()
+        val expectedDeltakerliste = lagDeltakerliste(arrangor = arrangor, tiltakstype = tiltakstype)
+        val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient(arrangor))
+
+        val consumer =
+            DeltakerlisteConsumer(
+                deltakerlisteRepository = deltakerlisteRepository,
+                tiltakstypeRepository = tiltakstypeRepository,
+                arrangorService = arrangorService,
+                deltakerService = deltakerService,
+                unleashToggle = unleashToggle,
+                topic = Environment.DELTAKERLISTE_V2_TOPIC,
+            )
+
+        val deltakerlistePayload = lagDeltakerlistePayload(arrangor, expectedDeltakerliste).copy(
+            type = GRUPPE_V2_TYPE,
+            virksomhetsnummer = null,
+            arrangor = Arrangor(arrangor.organisasjonsnummer),
+        )
+
+        runBlocking {
+            consumer.consume(
+                deltakerlistePayload.id,
+                objectMapper.writeValueAsString(deltakerlistePayload),
+            )
+
+            val thrown = shouldThrow<NoSuchElementException> {
+                deltakerlisteRepository.get(expectedDeltakerliste.id).getOrThrow()
+            }
+
+            thrown.message shouldBe "Fant ikke deltakerliste med id ${expectedDeltakerliste.id}"
+        }
     }
 
     @Test
@@ -64,6 +110,7 @@ class DeltakerlisteConsumerTest {
                 tiltakstypeRepository = tiltakstypeRepository,
                 arrangorService = arrangorService,
                 deltakerService = deltakerService,
+                unleashToggle = unleashToggle,
                 topic = Environment.DELTAKERLISTE_V2_TOPIC,
             )
 
@@ -100,6 +147,7 @@ class DeltakerlisteConsumerTest {
                 tiltakstypeRepository,
                 arrangorService,
                 deltakerService,
+                unleashToggle = unleashToggle,
                 Environment.DELTAKERLISTE_V2_TOPIC,
             )
 
@@ -146,6 +194,7 @@ class DeltakerlisteConsumerTest {
                 tiltakstypeRepository,
                 arrangorService,
                 deltakerService,
+                unleashToggle = unleashToggle,
                 Environment.DELTAKERLISTE_V1_TOPIC,
             )
 
@@ -174,6 +223,7 @@ class DeltakerlisteConsumerTest {
                 tiltakstypeRepository,
                 arrangorService,
                 deltakerService,
+                unleashToggle = unleashToggle,
                 Environment.DELTAKERLISTE_V1_TOPIC,
             )
 
@@ -204,6 +254,7 @@ class DeltakerlisteConsumerTest {
                 tiltakstypeRepository,
                 arrangorService,
                 deltakerService,
+                unleashToggle = unleashToggle,
                 Environment.DELTAKERLISTE_V1_TOPIC,
             )
 
@@ -234,6 +285,7 @@ class DeltakerlisteConsumerTest {
                 tiltakstypeRepository,
                 arrangorService,
                 deltakerService,
+                unleashToggle = unleashToggle,
                 Environment.DELTAKERLISTE_V1_TOPIC,
             )
 
@@ -259,6 +311,7 @@ class DeltakerlisteConsumerTest {
                 tiltakstypeRepository,
                 arrangorService,
                 deltakerService,
+                unleashToggle = unleashToggle,
                 Environment.DELTAKERLISTE_V1_TOPIC,
             )
 

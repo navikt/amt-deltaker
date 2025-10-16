@@ -1,10 +1,12 @@
 package no.nav.amt.deltaker.deltakerliste.kafka
 
 import com.fasterxml.jackson.module.kotlin.readValue
+import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
+import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.deltaker.utils.buildManagedKafkaConsumer
 import no.nav.amt.lib.kafka.Consumer
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
@@ -16,6 +18,7 @@ class DeltakerlisteConsumer(
     private val tiltakstypeRepository: TiltakstypeRepository,
     private val arrangorService: ArrangorService,
     private val deltakerService: DeltakerService,
+    private val unleashToggle: UnleashToggle,
     private val topic: String,
 ) : Consumer<UUID, String?> {
     private val consumer = buildManagedKafkaConsumer(
@@ -28,6 +31,10 @@ class DeltakerlisteConsumer(
     override suspend fun close() = consumer.close()
 
     override suspend fun consume(key: UUID, value: String?) {
+        if (topic == Environment.DELTAKERLISTE_V2_TOPIC && !unleashToggle.skalLeseGjennomforingerV2()) {
+            return
+        }
+
         if (value == null) {
             deltakerlisteRepository.delete(key)
         } else {

@@ -290,6 +290,7 @@ fun Application.module() {
             tiltakstypeRepository,
             arrangorService,
             deltakerService,
+            unleashToggle,
             Environment.DELTAKERLISTE_V1_TOPIC,
         ),
         DeltakerlisteConsumer(
@@ -297,6 +298,7 @@ fun Application.module() {
             tiltakstypeRepository,
             arrangorService,
             deltakerService,
+            unleashToggle,
             Environment.DELTAKERLISTE_V2_TOPIC,
         ),
         DeltakerConsumer(
