@@ -1,16 +1,16 @@
 package no.nav.amt.deltaker.unleash
 
 import io.getunleash.Unleash
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.ArenaKode
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 
 class UnleashToggle(
     private val unleashClient: Unleash,
 ) {
-    fun erKometMasterForTiltakstype(tiltakstype: ArenaKode): Boolean = tiltakstype in tiltakstyperKometErMasterFor ||
-        (unleashClient.isEnabled(ENABLE_KOMET_DELTAKERE) && tiltakstype in tiltakstyperKometKanskjeErMasterFor)
+    fun erKometMasterForTiltakstype(tiltakskode: String): Boolean = tiltakstyperKometErMasterFor.any { it.name == tiltakskode } ||
+        (unleashClient.isEnabled(ENABLE_KOMET_DELTAKERE) && tiltakstyperKometKanskjeErMasterFor.any { it.name == tiltakskode })
 
-    fun skalLeseArenaDeltakereForTiltakstype(tiltakstype: ArenaKode): Boolean =
-        unleashClient.isEnabled(LES_ARENA_DELTAKERE) && tiltakstype in tiltakstyperKometKanLese
+    fun skalLeseArenaDataForTiltakstype(tiltakskode: String): Boolean =
+        unleashClient.isEnabled(LES_ARENA_DELTAKERE) && tiltakstyperKometKanLese.any { it.name == tiltakskode }
 
     fun skalLeseGjennomforingerV2(): Boolean = unleashClient.isEnabled(LES_GJENNOMFORINGER_V2)
 
@@ -20,21 +20,21 @@ class UnleashToggle(
         private const val LES_GJENNOMFORINGER_V2 = "amt.les-gjennomforing-v2"
 
         private val tiltakstyperKometErMasterFor = setOf(
-            ArenaKode.ARBFORB,
-            ArenaKode.INDOPPFAG,
-            ArenaKode.AVKLARAG,
-            ArenaKode.ARBRRHDAG,
-            ArenaKode.DIGIOPPARB,
-            ArenaKode.VASV,
-            ArenaKode.GRUPPEAMO,
-            ArenaKode.JOBBK,
-            ArenaKode.GRUFAGYRKE,
+            Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
+            Tiltakskode.OPPFOLGING,
+            Tiltakskode.AVKLARING,
+            Tiltakskode.ARBEIDSRETTET_REHABILITERING,
+            Tiltakskode.DIGITALT_OPPFOLGINGSTILTAK,
+            Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
+            Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
+            Tiltakskode.JOBBKLUBB,
+            Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING,
         )
 
         private val tiltakstyperKometKanLese = setOf(
-            ArenaKode.ENKELAMO,
-            ArenaKode.ENKFAGYRKE,
-            ArenaKode.HOYEREUTD,
+            Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING,
+            Tiltakskode.ENKELTPLASS_FAG_OG_YRKESOPPLAERING,
+            Tiltakskode.HOYERE_UTDANNING,
         )
 
         private val tiltakstyperKometKanskjeErMasterFor = tiltakstyperKometKanLese

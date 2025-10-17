@@ -57,7 +57,7 @@ class DeltakerConsumer(
         val deltakerliste = deltakerlisteRepository.get(deltakerV2.deltakerlisteId).getOrThrow()
         if (unleashToggle.erKometMasterForTiltakstype(deltakerliste.tiltakstype.arenaKode)) return
 
-        if (unleashToggle.skalLeseArenaDeltakereForTiltakstype(deltakerliste.tiltakstype.arenaKode)) {
+        if (unleashToggle.skalLeseArenaDataForTiltakstype(deltakerliste.tiltakstype.arenaKode)) {
             log.info("Ingester arenadeltaker med id ${deltakerV2.id}")
             val deltaker = deltakerV2.toDeltaker(deltakerliste)
             val historikkImportertFraArena =

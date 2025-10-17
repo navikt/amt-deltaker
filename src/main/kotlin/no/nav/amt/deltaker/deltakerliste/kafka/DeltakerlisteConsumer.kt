@@ -43,7 +43,9 @@ class DeltakerlisteConsumer(
     }
 
     private suspend fun handterDeltakerliste(deltakerlistePayload: DeltakerlistePayload) {
-        if (!deltakerlistePayload.tiltakstype.erStottet()) return
+        if (!unleashToggle.skalLeseArenaDataForTiltakstype(deltakerlistePayload.tiltakstype.tiltakskode)) {
+            return
+        }
 
         val tiltakskode = Tiltakskode.valueOf(deltakerlistePayload.tiltakstype.tiltakskode)
 
