@@ -45,6 +45,7 @@ import no.nav.amt.lib.kafka.config.LocalKafkaConfig
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.testing.SingletonKafkaProvider
 import no.nav.amt.lib.testing.SingletonPostgres16Container
@@ -146,7 +147,7 @@ class DeltakerStatusOppdateringTest {
     @BeforeEach
     fun cleanDatabase() {
         TestRepository.cleanDatabase()
-        every { unleashToggle.erKometMasterForTiltakstype(any()) } returns true
+        every { unleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns true
     }
 
     @Test
@@ -199,7 +200,7 @@ class DeltakerStatusOppdateringTest {
         )
         TestRepository.insert(deltaker, vedtak)
 
-        every { unleashToggle.erKometMasterForTiltakstype(any()) } returns false
+        every { unleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns false
 
         runBlocking {
             deltakerService.oppdaterDeltakerStatuser()

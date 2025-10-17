@@ -9,8 +9,12 @@ class UnleashToggle(
     fun erKometMasterForTiltakstype(tiltakskode: String): Boolean = tiltakstyperKometErMasterFor.any { it.name == tiltakskode } ||
         (unleashClient.isEnabled(ENABLE_KOMET_DELTAKERE) && tiltakstyperKometKanskjeErMasterFor.any { it.name == tiltakskode })
 
+    fun erKometMasterForTiltakstype(tiltakskode: Tiltakskode): Boolean = erKometMasterForTiltakstype(tiltakskode.name)
+
     fun skalLeseArenaDataForTiltakstype(tiltakskode: String): Boolean =
         unleashClient.isEnabled(LES_ARENA_DELTAKERE) && tiltakstyperKometKanLese.any { it.name == tiltakskode }
+
+    fun skalLeseArenaDataForTiltakstype(tiltakskode: Tiltakskode): Boolean = skalLeseArenaDataForTiltakstype(tiltakskode.name)
 
     fun skalLeseGjennomforingerV2(): Boolean = unleashClient.isEnabled(LES_GJENNOMFORINGER_V2)
 

@@ -27,8 +27,8 @@ fun Routing.registerVeilederApi(
             val deltakelser = deltakerService
                 .getDeltakelserForPerson(request.norskIdent)
                 .filter {
-                    unleashToggle.erKometMasterForTiltakstype(it.deltakerliste.tiltakstype.tiltakskode.name) ||
-                        (unleashToggle.skalLeseArenaDataForTiltakstype(it.deltakerliste.tiltakstype.tiltakskode.name))
+                    unleashToggle.erKometMasterForTiltakstype(it.deltakerliste.tiltakstype.tiltakskode) ||
+                        (unleashToggle.skalLeseArenaDataForTiltakstype(it.deltakerliste.tiltakstype.tiltakskode))
                 }
 
             val responseBody = deltakelserResponseMapper.toDeltakelserResponse(deltakelser)
