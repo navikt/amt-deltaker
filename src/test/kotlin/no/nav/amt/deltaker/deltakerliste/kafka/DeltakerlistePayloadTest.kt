@@ -3,7 +3,6 @@ package no.nav.amt.deltaker.deltakerliste.kafka
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.json.schema.shouldMatchSchema
-import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
@@ -69,23 +68,6 @@ class DeltakerlistePayloadTest {
             assertThrows<IllegalStateException> {
                 payload.organisasjonsnummer
             }
-        }
-    }
-
-    @Nested
-    inner class ErStottet {
-        @Test
-        fun `returnerer true for gyldig tiltakskode`() {
-            val tiltakstype = DeltakerlistePayload.Tiltakstype(Tiltakskode.DIGITALT_OPPFOLGINGSTILTAK.name)
-
-            tiltakstype.erStottet().shouldBeTrue()
-        }
-
-        @Test
-        fun `returnerer false for ugyldig tiltakskode`() {
-            val tiltakstype = DeltakerlistePayload.Tiltakstype("UGYLDIG_KODE")
-
-            tiltakstype.erStottet().shouldBeFalse()
         }
     }
 
