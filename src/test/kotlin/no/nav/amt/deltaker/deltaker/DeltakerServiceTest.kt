@@ -175,7 +175,7 @@ class DeltakerServiceTest {
     @BeforeEach
     fun cleanDatabase() {
         TestRepository.cleanDatabase()
-        every { unleashToggle.erKometMasterForTiltakstype(any()) } returns true
+        every { unleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns true
     }
 
     @Test

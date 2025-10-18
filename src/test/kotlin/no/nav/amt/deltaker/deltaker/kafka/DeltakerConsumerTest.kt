@@ -38,7 +38,6 @@ import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltaker.Kilde
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.ArenaKode
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.testing.SingletonPostgres16Container
 import no.nav.amt.lib.testing.shouldBeCloseTo
@@ -131,7 +130,7 @@ class DeltakerConsumerTest {
 
         val deltakerV2Dto = deltaker.toDeltakerV2()
 
-        every { unleashToggle.erKometMasterForTiltakstype(ArenaKode.ARBFORB) } returns true
+        every { unleashToggle.erKometMasterForTiltakstype(Tiltakskode.ARBEIDSFORBEREDENDE_TRENING) } returns true
 
         consumer.consume(deltaker.id, objectMapper.writeValueAsString(deltakerV2Dto))
 
@@ -177,8 +176,8 @@ class DeltakerConsumerTest {
         every { vedtakRepository.getForDeltaker(deltaker.id) } returns emptyList()
         every { forslagRepository.getForDeltaker(deltaker.id) } returns emptyList()
         every { endringFraArrangorRepository.getForDeltaker(deltaker.id) } returns emptyList()
-        every { unleashToggle.erKometMasterForTiltakstype(ArenaKode.JOBBK) } returns false
-        every { unleashToggle.skalLeseArenaDeltakereForTiltakstype(ArenaKode.JOBBK) } returns true
+        every { unleashToggle.erKometMasterForTiltakstype(Tiltakskode.JOBBKLUBB) } returns false
+        every { unleashToggle.skalLeseArenaDataForTiltakstype(Tiltakskode.JOBBKLUBB) } returns true
 
         val deltakerV2Dto = deltaker.toDeltakerV2(deltakerhistorikk = listOf(importertFraArena))
 
@@ -257,7 +256,7 @@ class DeltakerConsumerTest {
         every { vedtakRepository.getForDeltaker(deltaker.id) } returns emptyList()
         every { forslagRepository.getForDeltaker(deltaker.id) } returns emptyList()
         every { endringFraArrangorRepository.getForDeltaker(deltaker.id) } returns emptyList()
-        every { unleashToggle.skalLeseArenaDeltakereForTiltakstype(ArenaKode.JOBBK) } returns true
+        every { unleashToggle.skalLeseArenaDataForTiltakstype(Tiltakskode.JOBBKLUBB) } returns true
 
         val oppdatertDeltaker = deltaker.copy(
             bakgrunnsinformasjon = "Test",

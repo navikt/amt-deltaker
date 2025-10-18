@@ -83,7 +83,7 @@ class PameldingServiceTest {
     @BeforeEach
     fun setup() {
         cleanDatabase()
-        every { unleashToggle.erKometMasterForTiltakstype(any()) } returns true
+        every { unleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns true
     }
 
     @Test

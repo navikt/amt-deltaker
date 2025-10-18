@@ -14,7 +14,7 @@ import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.arrangor.melding.Melding
 import no.nav.amt.lib.models.arrangor.melding.Vurdering
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.ArenaKode
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.objectMapper
 import org.slf4j.LoggerFactory
 import java.util.UUID
@@ -55,7 +55,7 @@ class ArrangorMeldingConsumer(
             is EndringFraArrangor -> deltakerService.upsertEndretDeltaker(melding)
             is Forslag -> forslagService.upsert(melding)
             is Vurdering -> {
-                if (unleashToggle.erKometMasterForTiltakstype(ArenaKode.GRUPPEAMO)) {
+                if (unleashToggle.erKometMasterForTiltakstype(Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING)) {
                     handleVurdering(melding)
                 }
             }

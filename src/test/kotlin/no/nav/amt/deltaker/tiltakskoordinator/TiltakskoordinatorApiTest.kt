@@ -18,6 +18,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.internalapis.tiltakskoordinator.request.DeltakereRequest
 import no.nav.amt.lib.models.deltaker.internalapis.tiltakskoordinator.response.DeltakerOppdateringFeilkode
 import no.nav.amt.lib.models.deltaker.internalapis.tiltakskoordinator.response.DeltakerOppdateringResponse
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.tiltakskoordinator.requests.DelMedArrangorRequest
 import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.Test
@@ -52,7 +53,7 @@ class TiltakskoordinatorApiTest : RouteTestBase() {
     @Test
     fun `sett-paa-venteliste - har tilgang - returnerer 200`() {
         coEvery { deltakerService.getDeltakelser(any()) } returns listOf(deltaker)
-        coEvery { unleashToggle.erKometMasterForTiltakstype(deltaker.deltakerliste.tiltakstype.arenaKode) } returns true
+        coEvery { unleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns true
         coEvery { deltakerService.oppdaterDeltakere(any(), any(), any()) } returns listOf(deltaker.toDeltakerOppdateringResult())
         every { deltakerService.getHistorikk(deltaker.id) } returns historikk
 
@@ -72,7 +73,7 @@ class TiltakskoordinatorApiTest : RouteTestBase() {
     @Test
     fun `tildel plass - har tilgang - returnerer 200`() {
         coEvery { deltakerService.getDeltakelser(any()) } returns listOf(deltaker)
-        coEvery { unleashToggle.erKometMasterForTiltakstype(deltaker.deltakerliste.tiltakstype.arenaKode) } returns true
+        coEvery { unleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns true
         coEvery { deltakerService.oppdaterDeltakere(any(), any(), any()) } returns listOf(deltaker.toDeltakerOppdateringResult())
         coEvery { deltakerService.oppdaterDeltakere(any(), any(), any()) } returns listOf(deltaker.toDeltakerOppdateringResult())
         every { deltakerService.getHistorikk(deltaker.id) } returns historikk

@@ -5,7 +5,7 @@ import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.Vedtaksinformasjon
 import no.nav.amt.deltaker.deltaker.vurdering.Vurdering
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
-import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlisteDto
+import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlistePayload
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
@@ -162,18 +162,16 @@ object TestData {
         tiltakstype = tiltakstype,
     )
 
-    fun lagDeltakerlisteDto(arrangor: Arrangor = lagArrangor(), deltakerliste: Deltakerliste = lagDeltakerliste(arrangor = arrangor)) =
-        DeltakerlisteDto(
+    fun lagDeltakerlistePayload(arrangor: Arrangor = lagArrangor(), deltakerliste: Deltakerliste = lagDeltakerliste(arrangor = arrangor)) =
+        DeltakerlistePayload(
             id = deltakerliste.id,
-            tiltakstype = DeltakerlisteDto.Tiltakstype(
-                deltakerliste.tiltakstype.navn,
-                arenaKode = deltakerliste.tiltakstype.arenaKode.name,
+            tiltakstype = DeltakerlistePayload.Tiltakstype(
                 tiltakskode = deltakerliste.tiltakstype.tiltakskode.name,
             ),
             navn = deltakerliste.navn,
             startDato = deltakerliste.startDato,
             sluttDato = deltakerliste.sluttDato,
-            status = deltakerliste.status.name,
+            status = deltakerliste.status?.name,
             virksomhetsnummer = arrangor.organisasjonsnummer,
             oppstart = deltakerliste.oppstart,
             apentForPamelding = deltakerliste.apentForPamelding,
