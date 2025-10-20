@@ -62,7 +62,7 @@ class DeltakerConsumerTest {
         lateinit var navEnhetService: NavEnhetService
         lateinit var navAnsattService: NavAnsattService
         lateinit var unleashToggle: UnleashToggle
-        lateinit var consumer: DeltakerConsumer
+        lateinit var consumer: EnkeltplassDeltakerConsumer
         lateinit var deltakerEndringService: DeltakerEndringService
         lateinit var deltakerHistorikkService: DeltakerHistorikkService
         lateinit var deltakerEndringRepository: DeltakerEndringRepository
@@ -102,7 +102,7 @@ class DeltakerConsumerTest {
                 vurderingService = VurderingService(vurderingRepository),
             )
             deltakerEndringService = mockk()
-            consumer = DeltakerConsumer(
+            consumer = EnkeltplassDeltakerConsumer(
                 deltakerRepository,
                 deltakerlisteRepository,
                 navBrukerService,

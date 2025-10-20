@@ -43,6 +43,7 @@ data class Environment(
         const val TILTAKSTYPE_TOPIC = "team-mulighetsrommet.siste-tiltakstyper-v3"
         const val DELTAKER_V2_TOPIC = "amt.deltaker-v2"
         const val DELTAKER_V1_TOPIC = "amt.deltaker-v1"
+        const val ENKELTPLASS_DELTAKER_TOPIC = "amt.arena-enkeltplass-deltaker-v1"
         const val DELTAKER_HENDELSE_TOPIC = "amt.deltaker-hendelse-v1"
         const val ARRANGOR_MELDING_TOPIC = "amt.arrangor-melding-v1"
 
