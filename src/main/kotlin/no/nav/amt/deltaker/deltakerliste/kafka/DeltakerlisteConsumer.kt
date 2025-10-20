@@ -43,7 +43,7 @@ class DeltakerlisteConsumer(
     }
 
     private suspend fun handterDeltakerliste(deltakerlistePayload: DeltakerlistePayload) {
-        if (!unleashToggle.erKometMasterForTiltakstype(deltakerlistePayload.tiltakstype.tiltakskode)) {
+        if (unleashToggle.skipProsesseringAvGjennomforing(deltakerlistePayload.tiltakstype.tiltakskode)) {
             return
         }
 
