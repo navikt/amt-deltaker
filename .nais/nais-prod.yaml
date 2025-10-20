@@ -102,6 +102,7 @@ spec:
             value: "on"
         diskAutoresize: true
         highAvailability: true
+        pointInTimeRecovery: true
         insights:
           enabled: true
 
