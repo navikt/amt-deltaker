@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.deltaker.kafka
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.amt.deltaker.Environment
+import no.nav.amt.deltaker.apiclients.mulighetsrommet.MulighetsrommetApiClient
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.kafka.dto.EnkeltplassDeltakerPayload
@@ -26,6 +27,7 @@ class EnkeltplassDeltakerConsumer(
     private val navBrukerService: NavBrukerService,
     private val importertFraArenaRepository: ImportertFraArenaRepository,
     private val unleashToggle: UnleashToggle,
+    private val mulighetsrommetApiClient: MulighetsrommetApiClient,
 ) : Consumer<UUID, String?> {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -46,7 +48,9 @@ class EnkeltplassDeltakerConsumer(
     }
 
     private suspend fun processDeltaker(deltakerPayload: EnkeltplassDeltakerPayload) {
-        val deltakerliste = deltakerlisteRepository.get(deltakerPayload.gjennomforingId).getOrThrow() // TODO: Fallback med kall mot mulighetsrommet
+        val deltakerliste =
+            deltakerlisteRepository.get(deltakerPayload.gjennomforingId).getOrNull()
+                ?: mulighetsrommetApiClient.hentGjennomforingV2(deltakerPayload.gjennomforingId) // TODO: Gjennomføring.toDeltakerliste() ?
         if (!unleashToggle.skalLeseArenaDataForTiltakstype(deltakerliste.tiltakstype.tiltakskode)) return
 
         log.info("Ingester enkeltplass deltaker med id ${deltakerPayload.id}")

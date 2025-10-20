@@ -19,6 +19,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.Environment.Companion.HTTP_CONNECT_TIMEOUT_MILLIS
 import no.nav.amt.deltaker.Environment.Companion.HTTP_REQUEST_TIMEOUT_MILLIS
 import no.nav.amt.deltaker.Environment.Companion.HTTP_SOCKET_TIMEOUT_MILLIS
+import no.nav.amt.deltaker.apiclients.mulighetsrommet.MulighetsrommetApiClient
 import no.nav.amt.deltaker.apiclients.oppfolgingstilfelle.IsOppfolgingstilfelleClient
 import no.nav.amt.deltaker.application.plugins.configureAuthentication
 import no.nav.amt.deltaker.application.plugins.configureMonitoring
@@ -150,6 +151,12 @@ fun Application.module() {
         scope = environment.isOppfolgingstilfelleScope,
         azureAdTokenClient = azureAdTokenClient,
         httpClient = httpClient,
+    )
+
+    val mulighetsrommetApiClient = MulighetsrommetApiClient(
+        baseUrl = environment.mulighetsrommetApiUrl,
+        scope = environment.mulighetsrommetApiScope,
+        azureAdTokenClient = azureAdTokenClient,
     )
 
     val kafkaProducer = Producer<String, String>(
@@ -302,6 +309,7 @@ fun Application.module() {
             navBrukerService,
             importertFraArenaRepository,
             unleashToggle,
+            mulighetsrommetApiClient,
         ),
         ArrangorMeldingConsumer(forslagService, deltakerService, vurderingService, deltakerProducerService, unleashToggle),
         NavEnhetConsumer(navEnhetService),
