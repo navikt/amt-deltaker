@@ -34,14 +34,9 @@ data class Environment(
     val amtTiltakScope: String = getEnvVar(AMT_TILTAK_SCOPE_KEY),
 ) {
     companion object {
-        const val DB_USERNAME_KEY = "DB_USERNAME"
-        const val DB_PASSWORD_KEY = "DB_PASSWORD"
-        const val DB_DATABASE_KEY = "DB_DATABASE"
-        const val DB_HOST_KEY = "DB_HOST"
-        const val DB_PORT_KEY = "DB_PORT"
-
         const val KAFKA_CONSUMER_GROUP_ID = "amt-deltaker-consumer"
-        const val DELTAKERLISTE_TOPIC = "team-mulighetsrommet.siste-tiltaksgjennomforinger-v1"
+        const val DELTAKERLISTE_V1_TOPIC = "team-mulighetsrommet.siste-tiltaksgjennomforinger-v1"
+        const val DELTAKERLISTE_V2_TOPIC = "team-mulighetsrommet.siste-tiltaksgjennomforinger-v2"
         const val AMT_ARRANGOR_TOPIC = "amt.arrangor-v1"
         const val AMT_NAV_ANSATT_TOPIC = "amt.nav-ansatt-personalia-v1"
         const val AMT_NAV_BRUKER_TOPIC = "amt.nav-bruker-personalia-v1"

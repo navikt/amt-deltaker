@@ -55,9 +55,9 @@ class DeltakerConsumer(
     private suspend fun processDeltaker(deltakerV2: DeltakerV2Dto) {
         return // Denne consumeren skal slettes men beholder den fordi det er noe kode her som skal gjenbrukes i ny consumer
         val deltakerliste = deltakerlisteRepository.get(deltakerV2.deltakerlisteId).getOrThrow()
-        if (unleashToggle.erKometMasterForTiltakstype(deltakerliste.tiltakstype.arenaKode)) return
+        if (unleashToggle.erKometMasterForTiltakstype(deltakerliste.tiltakstype.tiltakskode)) return
 
-        if (unleashToggle.skalLeseArenaDeltakereForTiltakstype(deltakerliste.tiltakstype.arenaKode)) {
+        if (unleashToggle.skalLeseArenaDataForTiltakstype(deltakerliste.tiltakstype.tiltakskode)) {
             log.info("Ingester arenadeltaker med id ${deltakerV2.id}")
             val deltaker = deltakerV2.toDeltaker(deltakerliste)
             val historikkImportertFraArena =

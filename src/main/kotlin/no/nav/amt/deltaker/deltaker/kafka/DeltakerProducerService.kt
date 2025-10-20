@@ -20,7 +20,7 @@ class DeltakerProducerService(
         if (deltaker.status.type == DeltakerStatus.Type.KLADD) return
         val deltakerPayload = deltakerKafkaPayloadMapperService.tilDeltakerPayload(deltaker, forcedUpdate)
 
-        if (unleashToggle.erKometMasterForTiltakstype(deltaker.deltakerliste.tiltakstype.arenaKode)) {
+        if (unleashToggle.erKometMasterForTiltakstype(deltaker.deltakerliste.tiltakstype.tiltakskode)) {
             deltakerProducer.produce(deltakerPayload.v2)
             if (publiserTilDeltakerV1) {
                 deltakerV1Producer.produce(deltakerPayload.v1)

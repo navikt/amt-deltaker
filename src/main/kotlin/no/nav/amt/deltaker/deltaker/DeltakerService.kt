@@ -315,13 +315,13 @@ class DeltakerService(
     private fun deltakereSomSkalHaAvsluttendeStatus() = deltakerRepository
         .skalHaAvsluttendeStatus()
         .plus(deltakerRepository.deltarPaAvsluttetDeltakerliste())
-        .filter { it.kilde == Kilde.KOMET || unleashToggle.erKometMasterForTiltakstype(it.deltakerliste.tiltakstype.arenaKode) }
+        .filter { it.kilde == Kilde.KOMET || unleashToggle.erKometMasterForTiltakstype(it.deltakerliste.tiltakstype.tiltakskode) }
         .distinct()
 
     private fun deltakereSomSkalHaStatusDeltar() = deltakerRepository
         .skalHaStatusDeltar()
         .distinct()
-        .filter { it.kilde == Kilde.KOMET || unleashToggle.erKometMasterForTiltakstype(it.deltakerliste.tiltakstype.arenaKode) }
+        .filter { it.kilde == Kilde.KOMET || unleashToggle.erKometMasterForTiltakstype(it.deltakerliste.tiltakstype.tiltakskode) }
 
     suspend fun avgrensSluttdatoerTil(deltakerliste: Deltakerliste) {
         val deltakere = getDeltakereForDeltakerliste(deltakerliste.id).filter { it.status.type !in DeltakerStatus.avsluttendeStatuser }

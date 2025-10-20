@@ -6,6 +6,7 @@ import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
+import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.deltaker.utils.buildManagedKafkaConsumer
 import no.nav.amt.lib.kafka.Consumer
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
@@ -13,13 +14,15 @@ import no.nav.amt.lib.utils.objectMapper
 import java.util.UUID
 
 class DeltakerlisteConsumer(
-    private val repository: DeltakerlisteRepository,
+    private val deltakerlisteRepository: DeltakerlisteRepository,
     private val tiltakstypeRepository: TiltakstypeRepository,
     private val arrangorService: ArrangorService,
     private val deltakerService: DeltakerService,
+    private val unleashToggle: UnleashToggle,
+    private val topic: String,
 ) : Consumer<UUID, String?> {
     private val consumer = buildManagedKafkaConsumer(
-        topic = Environment.DELTAKERLISTE_TOPIC,
+        topic = topic,
         consumeFunc = ::consume,
     )
 
@@ -28,35 +31,42 @@ class DeltakerlisteConsumer(
     override suspend fun close() = consumer.close()
 
     override suspend fun consume(key: UUID, value: String?) {
+        if (topic == Environment.DELTAKERLISTE_V2_TOPIC && !unleashToggle.skalLeseGjennomforingerV2()) {
+            return
+        }
+
         if (value == null) {
-            repository.delete(key)
+            deltakerlisteRepository.delete(key)
         } else {
             handterDeltakerliste(objectMapper.readValue(value))
         }
     }
 
-    private suspend fun handterDeltakerliste(deltakerlisteDto: DeltakerlisteDto) {
-        if (!deltakerlisteDto.tiltakstype.erStottet()) return
-        val tiltakskode = Tiltakskode.valueOf(deltakerlisteDto.tiltakstype.tiltakskode)
-        val tiltak = tiltakstypeRepository.get(tiltakskode).getOrThrow()
-        val arrangor = arrangorService.hentArrangor(deltakerlisteDto.virksomhetsnummer)
+    private suspend fun handterDeltakerliste(deltakerlistePayload: DeltakerlistePayload) {
+        if (unleashToggle.skipProsesseringAvGjennomforing(deltakerlistePayload.tiltakstype.tiltakskode)) {
+            return
+        }
 
-        val oppdatertDeltakerliste = deltakerlisteDto.toModel(arrangor, tiltak)
-        val gammelDeltakerliste = repository.get(deltakerlisteDto.id)
+        val tiltakskode = Tiltakskode.valueOf(deltakerlistePayload.tiltakstype.tiltakskode)
+
+        val oppdatertDeltakerliste = deltakerlistePayload.toModel(
+            arrangor = arrangorService.hentArrangor(deltakerlistePayload.organisasjonsnummer),
+            tiltakstype = tiltakstypeRepository.get(tiltakskode).getOrThrow(),
+        )
 
         if (oppdatertDeltakerliste.erAvlystEllerAvbrutt()) {
             deltakerService.avsluttDeltakelserPaaDeltakerliste(oppdatertDeltakerliste)
         }
 
-        gammelDeltakerliste.onSuccess {
+        deltakerlisteRepository.get(deltakerlistePayload.id).onSuccess { eksisterendeDeltakerliste ->
             if (oppdatertDeltakerliste.sluttDato != null &&
-                it.sluttDato != null &&
-                oppdatertDeltakerliste.sluttDato < it.sluttDato
+                eksisterendeDeltakerliste.sluttDato != null &&
+                oppdatertDeltakerliste.sluttDato < eksisterendeDeltakerliste.sluttDato
             ) {
                 deltakerService.avgrensSluttdatoerTil(oppdatertDeltakerliste)
             }
         }
 
-        repository.upsert(oppdatertDeltakerliste)
+        deltakerlisteRepository.upsert(oppdatertDeltakerliste)
     }
 }

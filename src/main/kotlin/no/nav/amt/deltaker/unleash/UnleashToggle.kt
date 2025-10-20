@@ -1,34 +1,49 @@
 package no.nav.amt.deltaker.unleash
 
 import io.getunleash.Unleash
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.ArenaKode
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 
 class UnleashToggle(
     private val unleashClient: Unleash,
 ) {
-    private val tiltakstyperKometErMasterFor = listOf(
-        ArenaKode.ARBFORB,
-        ArenaKode.INDOPPFAG,
-        ArenaKode.AVKLARAG,
-        ArenaKode.ARBRRHDAG,
-        ArenaKode.DIGIOPPARB,
-        ArenaKode.VASV,
-        ArenaKode.GRUPPEAMO,
-        ArenaKode.JOBBK,
-        ArenaKode.GRUFAGYRKE,
-    )
+    fun erKometMasterForTiltakstype(tiltakskode: String): Boolean = tiltakstyperKometErMasterFor.any { it.name == tiltakskode } ||
+        (unleashClient.isEnabled(ENABLE_KOMET_DELTAKERE) && tiltakstyperKometKanskjeErMasterFor.any { it.name == tiltakskode })
 
-    private val tiltakstyperKometKanLese = setOf(
-        ArenaKode.ENKELAMO,
-        ArenaKode.ENKFAGYRKE,
-        ArenaKode.HOYEREUTD,
-    )
+    fun erKometMasterForTiltakstype(tiltakskode: Tiltakskode): Boolean = erKometMasterForTiltakstype(tiltakskode.name)
 
-    private val tiltakstyperKometKanskjeErMasterFor = tiltakstyperKometKanLese
+    fun skalLeseArenaDataForTiltakstype(tiltakskode: String): Boolean =
+        unleashClient.isEnabled(LES_ARENA_DELTAKERE) && tiltakstyperKometKanLese.any { it.name == tiltakskode }
 
-    fun erKometMasterForTiltakstype(tiltakstype: ArenaKode): Boolean = tiltakstype in tiltakstyperKometErMasterFor ||
-        (unleashClient.isEnabled("amt.enable-komet-deltakere") && tiltakstype in tiltakstyperKometKanskjeErMasterFor)
+    fun skalLeseArenaDataForTiltakstype(tiltakskode: Tiltakskode): Boolean = skalLeseArenaDataForTiltakstype(tiltakskode.name)
 
-    fun skalLeseArenaDeltakereForTiltakstype(tiltakstype: ArenaKode): Boolean =
-        unleashClient.isEnabled("amt.les-arena-deltakere") && tiltakstype in tiltakstyperKometKanLese
+    fun skalLeseGjennomforingerV2(): Boolean = unleashClient.isEnabled(LES_GJENNOMFORINGER_V2)
+
+    fun skipProsesseringAvGjennomforing(tiltakskode: String): Boolean =
+        !(erKometMasterForTiltakstype(tiltakskode) || skalLeseArenaDataForTiltakstype(tiltakskode))
+
+    companion object {
+        const val ENABLE_KOMET_DELTAKERE = "amt.enable-komet-deltakere"
+        const val LES_ARENA_DELTAKERE = "amt.les-arena-deltakere"
+        const val LES_GJENNOMFORINGER_V2 = "amt.les-gjennomforing-v2"
+
+        private val tiltakstyperKometErMasterFor = setOf(
+            Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
+            Tiltakskode.OPPFOLGING,
+            Tiltakskode.AVKLARING,
+            Tiltakskode.ARBEIDSRETTET_REHABILITERING,
+            Tiltakskode.DIGITALT_OPPFOLGINGSTILTAK,
+            Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
+            Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
+            Tiltakskode.JOBBKLUBB,
+            Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING,
+        )
+
+        private val tiltakstyperKometKanLese = setOf(
+            Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING,
+            Tiltakskode.ENKELTPLASS_FAG_OG_YRKESOPPLAERING,
+            Tiltakskode.HOYERE_UTDANNING,
+        )
+
+        private val tiltakstyperKometKanskjeErMasterFor = tiltakstyperKometKanLese
+    }
 }
