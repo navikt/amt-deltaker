@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.utils.data
 
 import kotliquery.queryOf
+import no.nav.amt.deltaker.deltaker.db.DbUtils.nullWhenNearNow
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.vurdering.Vurdering
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
@@ -342,9 +343,13 @@ object TestRepository {
     fun insert(status: DeltakerStatus, deltakerId: UUID) = Database.query {
         val sql =
             """
-            insert into deltaker_status(id, deltaker_id, type, aarsak, gyldig_fra, gyldig_til, created_at) 
-            values (:id, :deltaker_id, :type, :aarsak, :gyldig_fra, :gyldig_til, :created_at) 
-            on conflict (id) do nothing;
+            INSERT INTO 
+                deltaker_status(id, deltaker_id, type, aarsak, gyldig_fra, gyldig_til, created_at) 
+            VALUES (:id, :deltaker_id, :type, :aarsak, 
+                COALESCE(:gyldig_fra, CURRENT_TIMESTAMP), 
+                :gyldig_til, 
+                COALESCE(:created_at, CURRENT_TIMESTAMP)) 
+            ON CONFLICT (id) DO NOTHING;
             """.trimIndent()
 
         val params = mapOf(
@@ -352,9 +357,9 @@ object TestRepository {
             "deltaker_id" to deltakerId,
             "type" to status.type.name,
             "aarsak" to toPGObject(status.aarsak),
-            "gyldig_fra" to status.gyldigFra,
+            "gyldig_fra" to nullWhenNearNow(status.gyldigFra),
             "gyldig_til" to status.gyldigTil,
-            "created_at" to status.opprettet,
+            "created_at" to nullWhenNearNow(status.opprettet),
         )
 
         it.update(queryOf(sql, params))
