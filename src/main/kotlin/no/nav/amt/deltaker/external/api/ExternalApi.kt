@@ -114,7 +114,7 @@ fun Deltaker.toResponse() = DeltakerResponse(
     status = status.type,
     dagerPerUke = dagerPerUke,
     prosentStilling = deltakelsesprosent,
-    registrertDato = opprettet ?: throw IllegalStateException("Ugyldig registrertDato"),
+    registrertDato = opprettet,
 )
 
 fun List<Deltaker>.toResponse() = this.map { deltaker -> deltaker.toResponse() }

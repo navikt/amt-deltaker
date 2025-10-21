@@ -3,23 +3,24 @@ package no.nav.amt.deltaker.deltaker.kafka
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.apiclients.mulighetsrommet.MulighetsrommetApiClient
+import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.kafka.dto.EnkeltplassDeltakerPayload
 import no.nav.amt.deltaker.deltaker.model.Deltaker
-import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
+import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.navbruker.NavBrukerService
 import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.deltaker.utils.buildManagedKafkaConsumer
 import no.nav.amt.lib.kafka.Consumer
-import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
-import no.nav.amt.lib.models.deltaker.Kilde
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.objectMapper
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.util.UUID
+import kotlin.getOrThrow
 
 class EnkeltplassDeltakerConsumer(
     private val deltakerRepository: DeltakerRepository,
@@ -28,6 +29,8 @@ class EnkeltplassDeltakerConsumer(
     private val importertFraArenaRepository: ImportertFraArenaRepository,
     private val unleashToggle: UnleashToggle,
     private val mulighetsrommetApiClient: MulighetsrommetApiClient,
+    private val arrangorService: ArrangorService,
+    private val tiltakstypeRepository: TiltakstypeRepository,
 ) : Consumer<UUID, String?> {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -48,13 +51,27 @@ class EnkeltplassDeltakerConsumer(
     }
 
     private suspend fun processDeltaker(deltakerPayload: EnkeltplassDeltakerPayload) {
+        val deltakerlisteFromDbResult = deltakerlisteRepository.get(deltakerPayload.gjennomforingId)
         val deltakerliste =
-            deltakerlisteRepository.get(deltakerPayload.gjennomforingId).getOrNull()
-                ?: mulighetsrommetApiClient.hentGjennomforingV2(deltakerPayload.gjennomforingId) // TODO: Gjennomføring.toDeltakerliste() ?
+            deltakerlisteFromDbResult.getOrElse {
+                mulighetsrommetApiClient
+                    .hentGjennomforingV2(deltakerPayload.gjennomforingId) // Fallback hvis deltakerlisten ikke finnes i databasen
+                    .let { gjennomforing ->
+                        gjennomforing.toModel(
+                            arrangor = arrangorService.hentArrangor(gjennomforing.organisasjonsnummer),
+                            tiltakstype = tiltakstypeRepository
+                                .get(Tiltakskode.valueOf(gjennomforing.tiltakstype.tiltakskode))
+                                .getOrThrow(),
+                        )
+                    }
+            }
+
         if (!unleashToggle.skalLeseArenaDataForTiltakstype(deltakerliste.tiltakstype.tiltakskode)) return
 
+        if (deltakerlisteFromDbResult.isFailure) deltakerlisteRepository.upsert(deltakerliste)
+
         log.info("Ingester enkeltplass deltaker med id ${deltakerPayload.id}")
-        val deltaker = deltakerPayload.toDeltaker(deltakerliste)
+        val deltaker = deltakerPayload.toDeltaker(deltakerliste, navBrukerService.get(deltakerPayload.personIdent).getOrThrow())
 
         upsertImportertDeltaker(deltaker)
 
@@ -71,34 +88,9 @@ class EnkeltplassDeltakerConsumer(
         importertFraArenaRepository.upsert(importertData)
     }
 
-    private fun Deltaker.toImportertData() = ImportertFraArena( // TODO:Sjekk mot amt-tiltak hva den gjør
+    private fun Deltaker.toImportertData() = ImportertFraArena(
         deltakerId = id,
-        importertDato = LocalDateTime.now(), // TODO: gjøre i sql?
-        deltakerVedImport = this.toDeltakerVedImport(opprettet!!.toLocalDate()),
-    )
-
-    private suspend fun EnkeltplassDeltakerPayload.toDeltaker(deltakerliste: Deltakerliste) = Deltaker(
-        id = id,
-        navBruker = navBrukerService.get(personIdent).getOrThrow(), // TODO: Hva skjer hvis vi ikke har nyeste ident? Kanksje håndtert allerede i arena-acl
-        deltakerliste = deltakerliste,
-        startdato = startDato,
-        sluttdato = sluttDato,
-        dagerPerUke = dagerPerUke,
-        deltakelsesprosent = prosentDeltid,
-        bakgrunnsinformasjon = null,
-        deltakelsesinnhold = null,
-        status = DeltakerStatus(
-            id = UUID.randomUUID(),
-            type = status,
-            aarsak = TODO(),
-            gyldigFra = TODO(),
-            gyldigTil = null,
-            opprettet = TODO(), // TODO: sjekk amt-tiltak håndering
-        ),
-        vedtaksinformasjon = null,
-        kilde = Kilde.ARENA,
-        sistEndret = LocalDateTime.now(),
-        erManueltDeltMedArrangor = false,
-        opprettet = registrertDato,
+        importertDato = LocalDateTime.now(), // TODO: brukes ikke ved insert i db
+        deltakerVedImport = this.toDeltakerVedImport(opprettet.toLocalDate()),
     )
 }
