@@ -157,6 +157,7 @@ fun Application.module() {
         baseUrl = environment.mulighetsrommetApiUrl,
         scope = environment.mulighetsrommetApiScope,
         azureAdTokenClient = azureAdTokenClient,
+        httpClient = httpClient,
     )
 
     val kafkaProducer = Producer<String, String>(
