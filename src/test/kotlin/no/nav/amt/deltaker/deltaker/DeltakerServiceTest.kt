@@ -1292,10 +1292,11 @@ infix fun Deltaker.shouldBeComparableWith(expected: Deltaker?) {
 
     fun LocalDateTime.atStartOfDay() = this.toLocalDate().atStartOfDay()
 
+    val now = LocalDateTime.now()
     this.copy(
         sistEndret = sistEndret,
         status = status.copy(id = expected!!.status.id, opprettet = statusOpprettetDay, gyldigFra = gyldigFra),
-        opprettet = null,
+        opprettet = now,
         vedtaksinformasjon = vedtaksinformasjon?.copy(
             fattet = this.vedtaksinformasjon.fattet?.atStartOfDay(),
             sistEndret = this.vedtaksinformasjon.sistEndret.atStartOfDay()!!,
@@ -1307,7 +1308,7 @@ infix fun Deltaker.shouldBeComparableWith(expected: Deltaker?) {
             opprettet = expected.status.opprettet.atStartOfDay(),
             gyldigFra = expected.status.gyldigFra.atStartOfDay(),
         ),
-        opprettet = null,
+        opprettet = now,
         vedtaksinformasjon = vedtaksinformasjon?.copy(
             fattet = expected.vedtaksinformasjon?.fattet?.atStartOfDay(),
             sistEndret = expected.vedtaksinformasjon?.sistEndret?.atStartOfDay()!!,

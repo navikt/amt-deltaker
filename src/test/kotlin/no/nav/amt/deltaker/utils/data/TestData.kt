@@ -272,7 +272,7 @@ object TestData {
         sistEndret = sistEndret,
         kilde = kilde,
         erManueltDeltMedArrangor = erManueltDeltMedArrangor,
-        opprettet = null,
+        opprettet = LocalDateTime.now(),
     )
 
     fun lagDeltakerStatus(
