@@ -1,38 +1,28 @@
 package no.nav.amt.deltaker.apiclients.mulighetsrommet
 
-import no.nav.amt.deltaker.utils.JsonUtils.fromJsonString
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
 import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
-import no.nav.common.rest.client.RestClient.baseClient
-import okhttp3.OkHttpClient
-import okhttp3.Request
+import no.nav.amt.lib.ktor.clients.ApiClientBase
+import no.nav.amt.lib.ktor.clients.failIfNotSuccess
 import java.time.LocalDate
 import java.util.UUID
 
 class MulighetsrommetApiClient(
-    private val baseUrl: String,
-    private val azureAdTokenClient: AzureAdTokenClient,
-    private val scope: String,
-    private val httpClient: OkHttpClient = baseClient(),
-) {
-    suspend fun hentGjennomforingV2(id: UUID): Gjennomforing {
-        val token = azureAdTokenClient.getMachineToMachineToken(scope)
-        val request = Request
-            .Builder()
-            .url("$baseUrl/api/v2/tiltaksgjennomforinger/$id")
-            .addHeader("Authorization", "Bearer $token")
-            .get()
-            .build()
-
-        httpClient.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) {
-                throw RuntimeException("Klarte ikke å hente gjennomføring fra Mulighetsrommet v2 API. status=${response.code}")
-            }
-
-            val body = response.body?.string() ?: throw RuntimeException("Body is missing")
-            val responseBody = fromJsonString<GjennomforingV2Response>(body)
-            return responseBody.toGjennomforing()
-        }
-    }
+    baseUrl: String,
+    scope: String,
+    httpClient: HttpClient,
+    azureAdTokenClient: AzureAdTokenClient,
+) : ApiClientBase(
+        baseUrl = baseUrl,
+        scope = scope,
+        httpClient = httpClient,
+        azureAdTokenClient = azureAdTokenClient,
+    ) {
+    suspend fun hentGjennomforingV2(id: UUID): Gjennomforing = performGet("$baseUrl/api/v2/tiltaksgjennomforinger/$id")
+        .failIfNotSuccess("Klarte ikke å hente gjennomføring fra Mulighetsrommet v2 API.")
+        .body<GjennomforingV2Response>()
+        .toGjennomforing()
 }
 
 data class GjennomforingV2Response(
