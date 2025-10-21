@@ -316,6 +316,8 @@ fun Application.module() {
             importertFraArenaRepository,
             unleashToggle,
             mulighetsrommetApiClient,
+            arrangorService,
+            tiltakstypeRepository,
         ),
         ArrangorMeldingConsumer(forslagService, deltakerService, vurderingService, deltakerProducerService, unleashToggle),
         NavEnhetConsumer(navEnhetService),

@@ -8,6 +8,8 @@ import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
+import no.nav.amt.deltaker.apiclients.mulighetsrommet.MulighetsrommetApiClient
+import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
@@ -21,6 +23,7 @@ import no.nav.amt.deltaker.deltaker.sammenlignHistorikk
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
+import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navbruker.NavBrukerRepository
 import no.nav.amt.deltaker.navbruker.NavBrukerService
@@ -70,6 +73,9 @@ class DeltakerConsumerTest {
         lateinit var forslagRepository: ForslagRepository
         lateinit var endringFraArrangorRepository: EndringFraArrangorRepository
         lateinit var vurderingRepository: VurderingRepository
+        lateinit var mulighetsrommetApiClient: MulighetsrommetApiClient
+        lateinit var arrangorService: ArrangorService
+        lateinit var tiltakstypeRepository: TiltakstypeRepository
 
         @JvmStatic
         @BeforeAll
@@ -88,6 +94,9 @@ class DeltakerConsumerTest {
             deltakerEndringRepository = mockk()
             vedtakRepository = mockk()
             forslagRepository = mockk()
+            mulighetsrommetApiClient = mockk()
+            arrangorService = mockk()
+            tiltakstypeRepository = TiltakstypeRepository()
 
             endringFraArrangorRepository = mockk()
             vurderingRepository = VurderingRepository()
@@ -106,10 +115,11 @@ class DeltakerConsumerTest {
                 deltakerRepository,
                 deltakerlisteRepository,
                 navBrukerService,
-                deltakerEndringService,
                 importertFraArenaRepository,
-                vurderingRepository,
                 unleashToggle,
+                mulighetsrommetApiClient,
+                arrangorService,
+                tiltakstypeRepository,
             )
         }
     }
