@@ -24,7 +24,7 @@ spec:
     max: 4
     scalingStrategy:
       cpu:
-        thresholdPercentage: 200
+        thresholdPercentage: 100
   resources:
     requests:
       cpu: 50m
@@ -107,10 +107,10 @@ spec:
           enabled: true
 
   observability:
-      autoInstrumentation:
-        enabled: true
-        runtime: java
-      logging:
-        destinations:
-          - id: elastic
-          - id: loki
+    autoInstrumentation:
+      enabled: true
+      runtime: java
+    logging:
+      destinations:
+        - id: elastic
+        - id: loki
