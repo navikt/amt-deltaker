@@ -24,8 +24,7 @@ import no.nav.amt.deltaker.deltaker.api.paamelding.registerPameldingApi
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
-import no.nav.amt.deltaker.external.api.registerNavInternApi
-import no.nav.amt.deltaker.external.api.registerVeilederApi
+import no.nav.amt.deltaker.external.api.registerExternalApi
 import no.nav.amt.deltaker.external.data.DeltakelserResponseMapper
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.internal.registerInternalApi
@@ -97,7 +96,6 @@ fun Application.configureRouting(
             historikkService = deltakerHistorikkService,
         )
         registerDeltakerApi(deltakerService, deltakerHistorikkService)
-        registerVeilederApi(tilgangskontrollService, deltakerService, deltakelserResponseMapper, unleashToggle)
         registerInternalApi(
             deltakerService,
             deltakerProducerService,
@@ -108,7 +106,7 @@ fun Application.configureRouting(
             endringFraTiltakskoordinatorService,
         )
         registerTiltakskoordinatorApi(deltakerService)
-        registerNavInternApi(deltakerService, navEnhetService)
+        registerExternalApi(deltakerService, navEnhetService, tilgangskontrollService, deltakelserResponseMapper, unleashToggle)
 
         val catchAllRoute = "{...}"
         route(catchAllRoute) {
