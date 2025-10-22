@@ -5,20 +5,31 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.post
+import no.nav.amt.deltaker.Environment
+import no.nav.amt.deltaker.application.plugins.getNavAnsattAzureId
+import no.nav.amt.deltaker.auth.TilgangskontrollService
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.external.data.ArrangorResponse
+import no.nav.amt.deltaker.external.data.DeltakelserResponseMapper
 import no.nav.amt.deltaker.external.data.DeltakerPersonaliaResponse
 import no.nav.amt.deltaker.external.data.DeltakerResponse
 import no.nav.amt.deltaker.external.data.GjennomforingResponse
 import no.nav.amt.deltaker.external.data.HarAktiveDeltakelserResponse
 import no.nav.amt.deltaker.external.data.HentDeltakelserRequest
 import no.nav.amt.deltaker.navenhet.NavEnhetService
+import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import java.util.UUID
 
-fun Routing.registerNavInternApi(deltakerService: DeltakerService, navEnhetService: NavEnhetService) {
+fun Routing.registerExternalApi(
+    deltakerService: DeltakerService,
+    navEnhetService: NavEnhetService,
+    tilgangskontrollService: TilgangskontrollService,
+    deltakelserResponseMapper: DeltakelserResponseMapper,
+    unleashToggle: UnleashToggle,
+) {
     val apiPath = "/external"
 
     authenticate("EXTERNAL-SYSTEM") {
@@ -50,6 +61,24 @@ fun Routing.registerNavInternApi(deltakerService: DeltakerService, navEnhetServi
             val navEnheter = navEnhetService.getEnheter(deltakere.mapNotNull { it.navBruker.navEnhetId }.toSet())
 
             call.respond(deltakere.map { DeltakerPersonaliaResponse.from(it, navEnheter) })
+        }
+    }
+
+    authenticate("VEILEDER") {
+        post("/deltakelser") {
+            // API til valp hvor de henter ut alle deltakelser til person
+            val request = call.receive<HentDeltakelserRequest>()
+            tilgangskontrollService.verifiserLesetilgang(call.getNavAnsattAzureId(), request.norskIdent)
+
+            val deltakelser = deltakerService
+                .getDeltakelserForPerson(request.norskIdent)
+                .filter {
+                    unleashToggle.erKometMasterForTiltakstype(it.deltakerliste.tiltakstype.tiltakskode) ||
+                        (unleashToggle.skalLeseArenaDataForTiltakstype(it.deltakerliste.tiltakstype.tiltakskode) && Environment.isDev())
+                }
+
+            val responseBody = deltakelserResponseMapper.toDeltakelserResponse(deltakelser)
+            call.respond(responseBody)
         }
     }
 }
