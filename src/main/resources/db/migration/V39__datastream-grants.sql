@@ -12,11 +12,11 @@ BEGIN
 END
 $$ LANGUAGE 'plpgsql';
 
-DO
-$$
 BEGIN
-    IF EXISTS(SELECT * FROM pg_roles WHERE rolname = 'datastream') THEN
-       PERFORM PG_CREATE_LOGICAL_REPLICATION_SLOT('ds_replication', 'pgoutput');
+    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'datastream') THEN
+        IF NOT EXISTS (SELECT 1 FROM pg_replication_slots WHERE slot_name = 'ds_replication') THEN
+            PERFORM PG_CREATE_LOGICAL_REPLICATION_SLOT('ds_replication', 'pgoutput');
+        END IF;
     END IF;
 END
 $$ LANGUAGE 'plpgsql';
