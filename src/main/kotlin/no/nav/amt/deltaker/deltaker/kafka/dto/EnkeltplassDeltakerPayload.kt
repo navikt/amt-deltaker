@@ -36,12 +36,14 @@ data class EnkeltplassDeltakerPayload(
         deltakelsesinnhold = null,
         status = DeltakerStatus(
             id = UUID.randomUUID(),
+            // TODO: upsert da? Vi må sjekke om det er ny status før vi seter ny id
+            // if (nyesteStatus.type == status.type && nyesteStatus.aarsak == status.aarsak)
             type = status,
             aarsak = statusAarsak,
-            // TODO: kan denne i praksis være null? hvis ja blir det uansett feil å sette current_timestamp på vei inn i db slik som i amt-tiltak?
+            // statusEndretDato skal i praksis aldri være null for enkeltplasstiltak (sjekket i arena)
             gyldigFra = statusEndretDato!!,
             gyldigTil = null,
-            opprettet = LocalDateTime.now(), // TODO: mappes fra created_at i db i rowmapper
+            opprettet = LocalDateTime.now(), // Bruker current_timestamp fra databasen
         ),
         vedtaksinformasjon = null,
         kilde = Kilde.ARENA,

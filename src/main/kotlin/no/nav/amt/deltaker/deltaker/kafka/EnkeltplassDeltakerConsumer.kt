@@ -14,6 +14,7 @@ import no.nav.amt.deltaker.navbruker.NavBrukerService
 import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.deltaker.utils.buildManagedKafkaConsumer
 import no.nav.amt.lib.kafka.Consumer
+import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.objectMapper
@@ -60,14 +61,16 @@ class EnkeltplassDeltakerConsumer(
                         gjennomforing.toModel(
                             arrangor = arrangorService.hentArrangor(gjennomforing.organisasjonsnummer),
                             tiltakstype = tiltakstypeRepository
-                                .get(Tiltakskode.valueOf(gjennomforing.tiltakstype.tiltakskode))
-                                .getOrThrow(),
+                                .get(
+                                    Tiltakskode.valueOf(gjennomforing.tiltakstype.tiltakskode),
+                                ).getOrThrow(),
                         )
                     }
             }
 
         if (!unleashToggle.skalLeseArenaDataForTiltakstype(deltakerliste.tiltakstype.tiltakskode)) return
 
+        // Lagrer ny gjennomføring om ikke den finnes i db
         if (deltakerlisteFromDbResult.isFailure) deltakerlisteRepository.upsert(deltakerliste)
 
         log.info("Ingester enkeltplass deltaker med id ${deltakerPayload.id}")
@@ -83,14 +86,22 @@ class EnkeltplassDeltakerConsumer(
     override suspend fun close() = consumer.close()
 
     private fun upsertImportertDeltaker(deltaker: Deltaker) {
-        val importertData = deltaker.toImportertData()
-        deltakerRepository.upsert(deltaker)
+        val importertData = deltaker.toImportertData() // TODO: feil status hvis status ikke er endret, bruk status id fra oppdatert status i importert fra arena data
+        val sisteStatus = deltakerRepository.get(deltaker.id).getOrNull()?.status
+        val statusErEndret =
+            if (sisteStatus != null) {
+                sisteStatus.type !== deltaker.status.type || sisteStatus.aarsak !== deltaker.status.aarsak
+            } else {
+                false
+            }
+        val nestestatus = if (statusErEndret) deltaker.status else null
+        deltakerRepository.upsert(deltaker, nestestatus)
         importertFraArenaRepository.upsert(importertData)
     }
 
     private fun Deltaker.toImportertData() = ImportertFraArena(
         deltakerId = id,
-        importertDato = LocalDateTime.now(), // TODO: brukes ikke ved insert i db
+        importertDato = LocalDateTime.now(), // Bruker current_timestamp i db
         deltakerVedImport = this.toDeltakerVedImport(opprettet.toLocalDate()),
     )
 }

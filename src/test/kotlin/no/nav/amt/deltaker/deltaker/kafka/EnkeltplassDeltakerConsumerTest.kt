@@ -2,9 +2,11 @@ package no.nav.amt.deltaker.deltaker.kafka
 
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.assertions.nondeterministic.eventuallyConfig
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.clearMocks
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
@@ -23,6 +25,7 @@ import no.nav.amt.deltaker.deltaker.sammenlignHistorikk
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
+import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlistePayload
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navbruker.NavBrukerRepository
@@ -34,10 +37,9 @@ import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestData.lagNavBruker
 import no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype
-import no.nav.amt.deltaker.utils.data.TestData.toDeltakerV2
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
-import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
+import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltaker.Kilde
@@ -47,14 +49,14 @@ import no.nav.amt.lib.testing.shouldBeCloseTo
 import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.UUID
 import kotlin.time.Duration.Companion.seconds
 
-@Disabled("Skal slettes/flyttes til en annen consumer")
-class DeltakerConsumerTest {
+// TODO: fiks tester her
+class EnkeltplassDeltakerConsumerTest {
     companion object {
         lateinit var deltakerRepository: DeltakerRepository
         lateinit var importertFraArenaRepository: ImportertFraArenaRepository
@@ -130,23 +132,52 @@ class DeltakerConsumerTest {
         clearMocks(deltakerEndringService)
     }
 
+    private fun toPayload(
+        deltaker: no.nav.amt.deltaker.deltaker.model.Deltaker,
+        registrertDato: LocalDateTime = deltaker.opprettet,
+        statusEndretDato: LocalDateTime = deltaker.status.gyldigFra,
+        innsokBegrunnelse: String? = null,
+    ) = no.nav.amt.deltaker.deltaker.kafka.dto.EnkeltplassDeltakerPayload(
+        id = deltaker.id,
+        gjennomforingId = deltaker.deltakerliste.id,
+        personIdent = deltaker.navBruker.personident,
+        startDato = deltaker.startdato,
+        sluttDato = deltaker.sluttdato,
+        status = deltaker.status.type,
+        statusAarsak = deltaker.status.aarsak,
+        dagerPerUke = deltaker.dagerPerUke,
+        prosentDeltid = deltaker.deltakelsesprosent,
+        registrertDato = registrertDato,
+        statusEndretDato = statusEndretDato,
+        innsokBegrunnelse = innsokBegrunnelse,
+    )
+
     @Test
-    fun `consumeDeltaker - ny KOMET deltaker - lagrer ikke deltaker`(): Unit = runBlocking {
+    fun `consumeDeltaker - tombstone - gjør ingenting`(): Unit = runBlocking {
+        val id = UUID.randomUUID()
+        consumer.consume(id, null)
+        // Ingenting skal settes in i databasen
+        deltakerRepository.get(id).getOrNull().shouldBeNull()
+        importertFraArenaRepository.getForDeltaker(id).shouldBeNull()
+    }
+
+    @Test
+    fun `consumeDeltaker - unleash toggle off - lagrer ikke deltaker`(): Unit = runBlocking {
         val deltakerliste = lagDeltakerliste(
             tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
         )
         TestRepository.insert(deltakerliste)
-        val deltaker = TestData.lagDeltaker(kilde = Kilde.KOMET, deltakerliste = deltakerliste)
+        val deltaker = TestData.lagDeltaker(kilde = Kilde.ARENA, deltakerliste = deltakerliste)
 
-        val deltakerV2Dto = deltaker.toDeltakerV2()
+        val payload = toPayload(deltaker)
 
-        every { unleashToggle.erKometMasterForTiltakstype(Tiltakskode.ARBEIDSFORBEREDENDE_TRENING) } returns true
+        every { unleashToggle.skalLeseArenaDataForTiltakstype(Tiltakskode.ARBEIDSFORBEREDENDE_TRENING) } returns false
 
-        consumer.consume(deltaker.id, objectMapper.writeValueAsString(deltakerV2Dto))
+        consumer.consume(deltaker.id, objectMapper.writeValueAsString(payload))
 
         val eventuallyConfig = eventuallyConfig {
-            initialDelay = 5.seconds
-            duration = 5.seconds
+            initialDelay = 1.seconds
+            duration = 3.seconds
         }
 
         eventually(eventuallyConfig) {
@@ -156,54 +187,31 @@ class DeltakerConsumerTest {
     }
 
     @Test
-    fun `consumeDeltaker - ny kurs ARENA deltaker - lagrer deltaker`(): Unit = runBlocking {
+    fun `consumeDeltaker - ny enkelplass ARENA deltaker - lagrer deltaker`(): Unit = runBlocking {
         val deltakerliste = lagDeltakerliste(
-            tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.JOBBKLUBB),
+            tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING),
         )
 
         TestRepository.insert(deltakerliste)
-        val statusOpprettet = LocalDateTime.now().minusWeeks(1)
-        val sistEndret = LocalDateTime.now().minusDays(1)
+        val statusEndret = LocalDateTime.now().minusWeeks(1)
         val deltaker = TestData.lagDeltaker(
             kilde = Kilde.ARENA,
             deltakerliste = deltakerliste,
             innhold = null,
             navBruker = lagNavBruker(navEnhetId = null, navVeilederId = null),
-            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR, opprettet = statusOpprettet),
-            sistEndret = sistEndret,
-        )
-        val importertFraArena = DeltakerHistorikk.ImportertFraArena(
-            importertFraArena = ImportertFraArena(
-                deltakerId = deltaker.id,
-                importertDato = LocalDateTime.now(),
-                deltakerVedImport = deltaker.toDeltakerVedImport(LocalDate.now()),
-            ),
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR, opprettet = statusEndret),
         )
 
         TestRepository.insert(deltaker.navBruker)
-        every { deltakerEndringService.getForDeltaker(deltaker.id) } returns emptyList()
-        every { deltakerEndringRepository.getForDeltaker(deltaker.id) } returns emptyList()
-        every { vedtakRepository.getForDeltaker(deltaker.id) } returns emptyList()
-        every { forslagRepository.getForDeltaker(deltaker.id) } returns emptyList()
-        every { endringFraArrangorRepository.getForDeltaker(deltaker.id) } returns emptyList()
-        every { unleashToggle.erKometMasterForTiltakstype(Tiltakskode.JOBBKLUBB) } returns false
-        every { unleashToggle.skalLeseArenaDataForTiltakstype(Tiltakskode.JOBBKLUBB) } returns true
+        every { unleashToggle.skalLeseArenaDataForTiltakstype(Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING) } returns true
 
-        val deltakerV2Dto = deltaker.toDeltakerV2(deltakerhistorikk = listOf(importertFraArena))
+        val payload = toPayload(deltaker, registrertDato = LocalDateTime.now().minusDays(2), statusEndretDato = statusEndret)
 
-        consumer.consume(deltaker.id, objectMapper.writeValueAsString(deltakerV2Dto))
+        consumer.consume(deltaker.id, objectMapper.writeValueAsString(payload))
 
-        eventually(5.seconds) {
+        eventually<Unit>(5.seconds) {
             deltakerRepository.get(deltaker.id).getOrNull().shouldNotBeNull()
         }
-
-        val expectedHistorikk = DeltakerHistorikk.ImportertFraArena(
-            importertFraArena = ImportertFraArena(
-                deltakerId = deltaker.id,
-                importertDato = LocalDateTime.now(),
-                deltakerVedImport = deltaker.toDeltakerVedImport(deltakerV2Dto.innsoktDato),
-            ),
-        )
 
         val insertedDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
 
@@ -215,33 +223,28 @@ class DeltakerConsumerTest {
         insertedDeltaker.bakgrunnsinformasjon shouldBe null
         insertedDeltaker.deltakelsesinnhold shouldBe null
         insertedDeltaker.status.type shouldBe deltaker.status.type
-        insertedDeltaker.status.opprettet shouldBeCloseTo statusOpprettet
+        // status.gyldigFra blir satt fra payload.statusEndretDato
+        insertedDeltaker.status.gyldigFra shouldBeCloseTo statusEndret
         insertedDeltaker.vedtaksinformasjon shouldBe null
         insertedDeltaker.kilde shouldBe Kilde.ARENA
-        insertedDeltaker.sistEndret shouldBeCloseTo sistEndret
 
         val importertFraArenaResult = importertFraArenaRepository.getForDeltaker(deltaker.id)
             ?: throw RuntimeException("Fant ikke importert fra arena")
-        val deltakerVedImport = importertFraArena.importertFraArena.deltakerVedImport
         importertFraArenaResult.importertDato.toLocalDate() shouldBe LocalDate.now()
-        importertFraArenaResult.deltakerVedImport.innsoktDato shouldBe deltakerVedImport.innsoktDato
-        importertFraArenaResult.deltakerVedImport.startdato shouldBe deltakerVedImport.startdato
-        importertFraArenaResult.deltakerVedImport.sluttdato shouldBe deltakerVedImport.sluttdato
-        importertFraArenaResult.deltakerVedImport.dagerPerUke shouldBe deltakerVedImport.dagerPerUke
-        importertFraArenaResult.deltakerVedImport.deltakelsesprosent shouldBe deltakerVedImport.deltakelsesprosent
-        importertFraArenaResult.deltakerVedImport.status.type shouldBe deltakerVedImport.status.type
-
-        val historikk = deltakerHistorikkService.getForDeltaker(deltaker.id)
-        sammenlignHistorikk(historikk.first(), expectedHistorikk)
+        importertFraArenaResult.deltakerVedImport.innsoktDato shouldBe payload.registrertDato.toLocalDate()
+        importertFraArenaResult.deltakerVedImport.startdato shouldBe deltaker.startdato
+        importertFraArenaResult.deltakerVedImport.sluttdato shouldBe deltaker.sluttdato
+        importertFraArenaResult.deltakerVedImport.dagerPerUke shouldBe deltaker.dagerPerUke
+        importertFraArenaResult.deltakerVedImport.deltakelsesprosent shouldBe deltaker.deltakelsesprosent
+        importertFraArenaResult.deltakerVedImport.status.type shouldBe deltaker.status.type
     }
 
     @Test
-    fun `consumeDeltaker - oppdatert ARENA kurs deltaker - lagrer deltaker uten bakgrunnsinfo`(): Unit = runBlocking {
+    fun `consumeDeltaker - oppdatert ARENA enkelplass deltaker - lagrer deltaker`(): Unit = runBlocking {
         val deltakerliste = lagDeltakerliste(
-            tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.JOBBKLUBB),
+            tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING),
         )
-        val statusOpprettet = LocalDateTime.now().minusWeeks(1)
-        val sistEndret = LocalDateTime.now().minusDays(1)
+        val statusEndret = LocalDateTime.now().minusWeeks(1)
         val innsoktDato = LocalDate.now().minusWeeks(2)
         val deltaker = TestData.lagDeltaker(
             kilde = Kilde.ARENA,
@@ -249,8 +252,7 @@ class DeltakerConsumerTest {
             innhold = null,
             bakgrunnsinformasjon = null,
             navBruker = lagNavBruker(navEnhetId = null, navVeilederId = null),
-            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR, opprettet = statusOpprettet),
-            sistEndret = sistEndret,
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR, opprettet = statusEndret),
         )
         TestRepository.insert(deltaker)
         TestRepository.insert(
@@ -261,28 +263,19 @@ class DeltakerConsumerTest {
             ),
         )
 
-        every { deltakerEndringService.getForDeltaker(deltaker.id) } returns emptyList()
-        every { deltakerEndringRepository.getForDeltaker(deltaker.id) } returns emptyList()
-        every { vedtakRepository.getForDeltaker(deltaker.id) } returns emptyList()
-        every { forslagRepository.getForDeltaker(deltaker.id) } returns emptyList()
-        every { endringFraArrangorRepository.getForDeltaker(deltaker.id) } returns emptyList()
-        every { unleashToggle.skalLeseArenaDataForTiltakstype(Tiltakskode.JOBBKLUBB) } returns true
+        every { unleashToggle.skalLeseArenaDataForTiltakstype(Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING) } returns true
 
         val oppdatertDeltaker = deltaker.copy(
-            bakgrunnsinformasjon = "Test",
             startdato = LocalDate.now().minusDays(2),
         )
-        val oppdatertHistorikk = DeltakerHistorikk.ImportertFraArena(
-            importertFraArena = ImportertFraArena(
-                deltakerId = deltaker.id,
-                importertDato = LocalDateTime.now(),
-                deltakerVedImport = deltaker.toDeltakerVedImport(innsoktDato),
-            ),
+        val payload = toPayload(
+            oppdatertDeltaker,
+            registrertDato = LocalDateTime.now().minusDays(10),
+            statusEndretDato = statusEndret,
         )
-        val deltakerV2Dto = oppdatertDeltaker.toDeltakerV2(innsoktDato = innsoktDato, deltakerhistorikk = listOf(oppdatertHistorikk))
 
-        consumer.consume(deltaker.id, objectMapper.writeValueAsString(deltakerV2Dto))
-        eventually(5.seconds) {
+        consumer.consume(deltaker.id, objectMapper.writeValueAsString(payload))
+        io.kotest.assertions.nondeterministic.eventually<Unit>(5.seconds) {
             deltakerRepository.get(deltaker.id).getOrNull().shouldNotBeNull()
         }
 
@@ -296,23 +289,89 @@ class DeltakerConsumerTest {
         insertedDeltaker.bakgrunnsinformasjon shouldBe null
         insertedDeltaker.deltakelsesinnhold shouldBe null
         insertedDeltaker.status.type shouldBe oppdatertDeltaker.status.type
-        insertedDeltaker.status.opprettet shouldBeCloseTo statusOpprettet
+        insertedDeltaker.status.gyldigFra shouldBeCloseTo statusEndret
         insertedDeltaker.vedtaksinformasjon shouldBe null
         insertedDeltaker.kilde shouldBe Kilde.ARENA
-        insertedDeltaker.sistEndret shouldBeCloseTo sistEndret
 
         val importertFraArena = importertFraArenaRepository.getForDeltaker(deltaker.id)
             ?: throw RuntimeException("Fant ikke importert fra arena")
-        val deltakerVedImport = oppdatertHistorikk.importertFraArena.deltakerVedImport
         importertFraArena.importertDato.toLocalDate() shouldBe LocalDate.now()
-        importertFraArena.deltakerVedImport.innsoktDato shouldBe deltakerVedImport.innsoktDato
-        importertFraArena.deltakerVedImport.startdato shouldBe deltakerVedImport.startdato
-        importertFraArena.deltakerVedImport.sluttdato shouldBe deltakerVedImport.sluttdato
-        importertFraArena.deltakerVedImport.dagerPerUke shouldBe deltakerVedImport.dagerPerUke
-        importertFraArena.deltakerVedImport.deltakelsesprosent shouldBe deltakerVedImport.deltakelsesprosent
-        importertFraArena.deltakerVedImport.status.type shouldBe deltakerVedImport.status.type
+        importertFraArena.deltakerVedImport.innsoktDato shouldBe payload.registrertDato.toLocalDate()
+        importertFraArena.deltakerVedImport.startdato shouldBe oppdatertDeltaker.startdato
+        importertFraArena.deltakerVedImport.sluttdato shouldBe oppdatertDeltaker.sluttdato
+        importertFraArena.deltakerVedImport.dagerPerUke shouldBe oppdatertDeltaker.dagerPerUke
+        importertFraArena.deltakerVedImport.deltakelsesprosent shouldBe oppdatertDeltaker.deltakelsesprosent
+        importertFraArena.deltakerVedImport.status.type shouldBe oppdatertDeltaker.status.type
+    }
 
-        val historikk = deltakerHistorikkService.getForDeltaker(deltaker.id)
-        sammenlignHistorikk(historikk.first(), oppdatertHistorikk)
+    @Test
+    fun `consumeDeltaker - fallback henter gjennomforing fra mulighetsrommet og upserter deltakerliste`() = runBlocking {
+        val tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING
+        val tiltakstype = lagTiltakstype(tiltakskode = tiltakskode)
+        TestRepository.insert(tiltakstype)
+
+        val deltakerlisteId = UUID.randomUUID()
+        val deltaker = TestData.lagDeltaker(
+            kilde = Kilde.ARENA,
+            deltakerliste = lagDeltakerliste(tiltakstype = tiltakstype).copy(id = deltakerlisteId),
+            navBruker = lagNavBruker(navEnhetId = null, navVeilederId = null),
+        )
+
+        // Har ikke gjennomføring i db for å tvinge fallback api kall
+        every { unleashToggle.skalLeseArenaDataForTiltakstype(tiltakskode) } returns true
+        coEvery { arrangorService.hentArrangor(any<String>()) } returns
+            Arrangor(id = UUID.randomUUID(), navn = "Arrangør AS", organisasjonsnummer = "123456789", overordnetArrangorId = null)
+
+        val payloadV2 = DeltakerlistePayload(
+            type = DeltakerlistePayload.ENKELTPLASS_V2_TYPE,
+            id = deltakerlisteId,
+            tiltakstype = DeltakerlistePayload.Tiltakstype(tiltakskode = tiltakskode.name),
+            navn = null,
+            startDato = null,
+            sluttDato = null,
+            status = null,
+            oppstart = null,
+            apentForPamelding = true,
+            virksomhetsnummer = null,
+            arrangor = DeltakerlistePayload.Arrangor(organisasjonsnummer = "123456789"),
+        )
+
+        coEvery { mulighetsrommetApiClient.hentGjennomforingV2(deltakerlisteId) } returns payloadV2
+
+        val payload = toPayload(deltaker)
+
+        consumer.consume(deltaker.id, objectMapper.writeValueAsString(payload))
+
+        eventually<Unit>(5.seconds) {
+            // Deltakerliste skal upsertes i fallback
+            deltakerlisteRepository.get(deltakerlisteId).isSuccess shouldBe true
+            // Deltaker skal finnes i db
+            deltakerRepository.get(deltaker.id).isSuccess shouldBe true
+        }
+    }
+
+    @Test
+    fun `consumeDeltaker - toggle off hindrer fallback kall til mulighetsrommet og upsert av gjennomføring`() = runBlocking {
+        val tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING
+        val tiltakstype = lagTiltakstype(tiltakskode = tiltakskode)
+        TestRepository.insert(tiltakstype)
+
+        val deltakerlisteId = UUID.randomUUID()
+        val deltaker = TestData.lagDeltaker(
+            kilde = Kilde.ARENA,
+            deltakerliste = lagDeltakerliste(tiltakstype = tiltakstype).copy(id = deltakerlisteId),
+            navBruker = lagNavBruker(navEnhetId = null, navVeilederId = null),
+        )
+
+        every { unleashToggle.skalLeseArenaDataForTiltakstype(tiltakskode) } returns false
+        val payload = toPayload(deltaker)
+        consumer.consume(deltaker.id, objectMapper.writeValueAsString(payload))
+
+        eventually(3.seconds) {
+            // No upserts should happen
+            deltakerlisteRepository.get(deltakerlisteId).isFailure shouldBe true
+            deltakerRepository.get(deltaker.id).isFailure shouldBe true
+            importertFraArenaRepository.getForDeltaker(deltaker.id).shouldBeNull()
+        }
     }
 }
