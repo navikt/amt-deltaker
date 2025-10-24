@@ -146,16 +146,30 @@ class DeltakerRepository {
         )
 
         transactionalSession.update(queryOf(sql, parameters))
+
+        if (nesteStatus != null) {
+            lagreNyStatus(deltaker, transactionalSession, nesteStatus)
+        }
+    }
+
+    fun lagreNyStatus(
+        deltaker: Deltaker,
+        transactionalSession: TransactionalSession,
+        nesteStatus: DeltakerStatus,
+    ) {
         transactionalSession.update(insertStatusQuery(deltaker.status, deltaker.id))
-        if (!deltaker.status.gyldigFra
-                .toLocalDate()
-                .isAfter(LocalDate.now())
-        ) {
+        val gjeldendeStatusErAktiv = !deltaker.status.gyldigFra
+            .toLocalDate()
+            .isAfter(LocalDate.now())
+        // TODO: gyldig fra er nå eller fortid == statusen er aktiv eller er "ferdig"
+
+        if (gjeldendeStatusErAktiv) {
             transactionalSession.update(deaktiverTidligereStatuserQuery(deltaker.status, deltaker.id))
         } else {
+            // TODO: dette trenger ikke skje for arenadeltakelser
             transactionalSession.update(slettTidligereFremtidigeStatuserQuery(deltaker.status, deltaker.id))
         }
-        nesteStatus?.let { transactionalSession.update(insertStatusQuery(it, deltaker.id)) }
+        nesteStatus.let { transactionalSession.update(insertStatusQuery(it, deltaker.id)) }
     }
 
     fun upsert(deltaker: Deltaker, nesteStatus: DeltakerStatus? = null) = Database.query { session ->
