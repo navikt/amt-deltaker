@@ -24,9 +24,7 @@ spec:
     max: 4
     scalingStrategy:
       cpu:
-        # elector = 100m, texas = 10m
-        # må derfor beregne threshold fra 50m/160m
-        thresholdPercentage: 70
+        thresholdPercentage: 120
   resources:
     requests:
       cpu: 50m
