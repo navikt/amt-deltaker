@@ -162,6 +162,21 @@ class OpprettKladdRequestValidatorTest {
         }
 
     @Test
+    fun `validateRequest - deltakerliste GRUPPE_ARBEIDSMARKEDSOPPLAERING mangler startdato - skal returnere invalid`(): Unit = runBlocking {
+        every { deltakerListeRepository.get(any()) } returns Result.success(
+            lagDeltakerliste(
+                tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING),
+            ).copy(startDato = null),
+        )
+
+        val validationResult = sut.validateRequest(requestInTest)
+
+        validationResult.shouldBeTypeOf<ValidationResult.Invalid>()
+        validationResult.reasons shouldBe
+            listOf("Deltakerliste med tiltakskode ${Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING} mangler startdato")
+    }
+
+    @Test
     fun `validateRequest - deltaker 18 ar - skal returnere Invalid`(): Unit = runBlocking {
         coEvery {
             personServiceClient.hentNavBrukerFodselsar(any())

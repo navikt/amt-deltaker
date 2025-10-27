@@ -32,6 +32,13 @@ class OpprettKladdRequestValidator(
             return ValidationResult.Invalid("Bruker har ikke riktig innsatsgruppe")
         }
 
+        // pre-sjekk for deltakerForUng
+        if (deltakerListe.tiltakstype.tiltakskode == Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING && deltakerListe.startDato == null) {
+            return ValidationResult.Invalid(
+                "Deltakerliste med tiltakskode ${Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING} mangler startdato",
+            )
+        }
+
         if (deltakerForUng(request.personident, deltakerListe)) {
             return ValidationResult.Invalid("Deltaker er for ung for å delta på ${deltakerListe.tiltakstype.tiltakskode}")
         }
@@ -54,9 +61,11 @@ class OpprettKladdRequestValidator(
     }
 
     private suspend fun deltakerForUng(personIdent: String, deltakerListe: Deltakerliste): Boolean {
-        if (deltakerListe.startDato == null) return false
-
-        fun alderVedKursStart(foedselAar: Int): Int = Year.now().value.coerceAtLeast(deltakerListe.startDato.year) - foedselAar
+        fun alderVedKursStart(foedselAar: Int): Int {
+            val startDato = deltakerListe.startDato
+                ?: throw IllegalStateException("Startdato kan ikke være null for ${Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING}")
+            return Year.now().value.coerceAtLeast(startDato.year) - foedselAar
+        }
 
         return if (deltakerListe.tiltakstype.tiltakskode == Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING) {
             // For kurstiltak med løpende oppstart, kan oppstartsdato for kurset være i fortiden.

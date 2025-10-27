@@ -49,11 +49,15 @@ class EndringFraTiltakskoordinatorService(
             }
 
             is EndringFraTiltakskoordinator.TildelPlass -> {
+                checkNotNull(deltaker.deltakerliste.startDato) { "Kursdeltaker mangler startdato" }
+
+                val startDateInFuture = deltaker.deltakerliste.startDato.isAfter(LocalDate.now())
+
                 createResult(true) {
                     deltaker.copy(
                         status = nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
-                        startdato = getStartDatoForKursDeltaker(deltaker),
-                        sluttdato = getSluttDatoForKursDeltaker(deltaker),
+                        startdato = deltaker.deltakerliste.startDato.takeIf { startDateInFuture },
+                        sluttdato = deltaker.deltakerliste.sluttDato?.takeIf { startDateInFuture },
                     )
                 }
             }
@@ -73,18 +77,6 @@ class EndringFraTiltakskoordinatorService(
                 )
             }
         }
-    }
-
-    private fun getStartDatoForKursDeltaker(deltaker: Deltaker) = if (deltaker.deltakerliste.startDato?.isAfter(LocalDate.now()) == true) {
-        deltaker.deltakerliste.startDato
-    } else {
-        null
-    }
-
-    private fun getSluttDatoForKursDeltaker(deltaker: Deltaker) = if (deltaker.deltakerliste.startDato?.isAfter(LocalDate.now()) == true) {
-        deltaker.deltakerliste.sluttDato
-    } else {
-        null
     }
 
     // Midlertidig workaround som lagrer historikk mens amt-tiltak er master for deltakere
@@ -107,9 +99,11 @@ class EndringFraTiltakskoordinatorService(
 
         repository.insert(endringer)
     }
-}
 
-private fun EndringFraTiltakskoordinator.Avslag.Aarsak.toDeltakerStatusAarsak() = DeltakerStatus.Aarsak(
-    type = DeltakerStatus.Aarsak.Type.valueOf(this.type.name),
-    beskrivelse = beskrivelse,
-)
+    companion object {
+        private fun EndringFraTiltakskoordinator.Avslag.Aarsak.toDeltakerStatusAarsak() = DeltakerStatus.Aarsak(
+            type = DeltakerStatus.Aarsak.Type.valueOf(this.type.name),
+            beskrivelse = beskrivelse,
+        )
+    }
+}
