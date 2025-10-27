@@ -19,7 +19,7 @@ class UnleashToggle(
     fun skalLeseGjennomforingerV2(): Boolean = unleashClient.isEnabled(LES_GJENNOMFORINGER_V2)
 
     fun skipProsesseringAvGjennomforing(tiltakskode: String): Boolean =
-        !(erKometMasterForTiltakstype(tiltakskode) || skalLeseArenaDataForTiltakstype(tiltakskode))
+        !(erKometMasterForTiltakstype(tiltakskode) || tiltakstyperKometKanLese.any { it.name == tiltakskode })
 
     companion object {
         const val ENABLE_KOMET_DELTAKERE = "amt.enable-komet-deltakere"
