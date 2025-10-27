@@ -285,21 +285,12 @@ fun Application.module() {
         NavAnsattConsumer(navAnsattService),
         NavBrukerConsumer(navBrukerRepository, navEnhetService, deltakerService),
         TiltakstypeConsumer(tiltakstypeRepository),
-        DeltakerlisteConsumer( // denne skal fjernes når migrering P4 er ferdig
-            deltakerlisteRepository,
-            tiltakstypeRepository,
-            arrangorService,
-            deltakerService,
-            unleashToggle,
-            Environment.DELTAKERLISTE_V1_TOPIC,
-        ),
         DeltakerlisteConsumer(
             deltakerlisteRepository,
             tiltakstypeRepository,
             arrangorService,
             deltakerService,
             unleashToggle,
-            Environment.DELTAKERLISTE_V2_TOPIC,
         ),
         DeltakerConsumer(
             deltakerRepository,

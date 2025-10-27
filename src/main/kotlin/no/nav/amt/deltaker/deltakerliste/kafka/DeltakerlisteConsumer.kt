@@ -19,10 +19,9 @@ class DeltakerlisteConsumer(
     private val arrangorService: ArrangorService,
     private val deltakerService: DeltakerService,
     private val unleashToggle: UnleashToggle,
-    private val topic: String,
 ) : Consumer<UUID, String?> {
     private val consumer = buildManagedKafkaConsumer(
-        topic = topic,
+        topic = Environment.DELTAKERLISTE_V2_TOPIC,
         consumeFunc = ::consume,
     )
 
@@ -31,10 +30,6 @@ class DeltakerlisteConsumer(
     override suspend fun close() = consumer.close()
 
     override suspend fun consume(key: UUID, value: String?) {
-        if (topic == Environment.DELTAKERLISTE_V2_TOPIC && !unleashToggle.skalLeseGjennomforingerV2()) {
-            return
-        }
-
         if (value == null) {
             deltakerlisteRepository.delete(key)
         } else {

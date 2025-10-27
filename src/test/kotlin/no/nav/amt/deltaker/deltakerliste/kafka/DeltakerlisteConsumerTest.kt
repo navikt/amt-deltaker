@@ -7,7 +7,6 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
-import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerService
@@ -51,49 +50,7 @@ class DeltakerlisteConsumerTest {
     fun cleanDatabase() {
         TestRepository.cleanDatabase()
         clearAllMocks()
-        every { unleashToggle.skalLeseGjennomforingerV2() } returns true
         every { unleashToggle.skipProsesseringAvGjennomforing(any<String>()) } returns false
-    }
-
-    @Test
-    fun `unleashToggle er ikke enabled for gjennomforingV2 - lagrer ikke deltakerliste`() {
-        every { unleashToggle.skalLeseGjennomforingerV2() } returns false
-
-        val tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING)
-        TestRepository.insert(tiltakstype)
-
-        val arrangor = lagArrangor()
-        val expectedDeltakerliste = lagDeltakerliste(arrangor = arrangor, tiltakstype = tiltakstype)
-        val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient(arrangor))
-
-        val consumer =
-            DeltakerlisteConsumer(
-                deltakerlisteRepository = deltakerlisteRepository,
-                tiltakstypeRepository = tiltakstypeRepository,
-                arrangorService = arrangorService,
-                deltakerService = deltakerService,
-                unleashToggle = unleashToggle,
-                topic = Environment.DELTAKERLISTE_V2_TOPIC,
-            )
-
-        val deltakerlistePayload = lagDeltakerlistePayload(arrangor, expectedDeltakerliste).copy(
-            type = GRUPPE_V2_TYPE,
-            virksomhetsnummer = null,
-            arrangor = Arrangor(arrangor.organisasjonsnummer),
-        )
-
-        runBlocking {
-            consumer.consume(
-                deltakerlistePayload.id,
-                objectMapper.writeValueAsString(deltakerlistePayload),
-            )
-
-            val thrown = shouldThrow<NoSuchElementException> {
-                deltakerlisteRepository.get(expectedDeltakerliste.id).getOrThrow()
-            }
-
-            thrown.message shouldBe "Fant ikke deltakerliste med id ${expectedDeltakerliste.id}"
-        }
     }
 
     @Test
@@ -114,7 +71,6 @@ class DeltakerlisteConsumerTest {
                 arrangorService = arrangorService,
                 deltakerService = deltakerService,
                 unleashToggle = unleashToggle,
-                topic = Environment.DELTAKERLISTE_V2_TOPIC,
             )
 
         val deltakerlistePayload = lagDeltakerlistePayload(arrangor, expectedDeltakerliste).copy(
@@ -153,7 +109,6 @@ class DeltakerlisteConsumerTest {
                 arrangorService = arrangorService,
                 deltakerService = deltakerService,
                 unleashToggle = unleashToggle,
-                topic = Environment.DELTAKERLISTE_V2_TOPIC,
             )
 
         val deltakerlistePayload = lagDeltakerlistePayload(arrangor, deltakerliste).copy(
@@ -190,7 +145,6 @@ class DeltakerlisteConsumerTest {
                 arrangorService,
                 deltakerService,
                 unleashToggle = unleashToggle,
-                Environment.DELTAKERLISTE_V2_TOPIC,
             )
 
         val deltakerlistePayload = lagDeltakerlistePayload(arrangor, deltakerliste).copy(
@@ -237,7 +191,6 @@ class DeltakerlisteConsumerTest {
                 arrangorService,
                 deltakerService,
                 unleashToggle = unleashToggle,
-                Environment.DELTAKERLISTE_V1_TOPIC,
             )
 
         runBlocking {
@@ -266,7 +219,6 @@ class DeltakerlisteConsumerTest {
                 arrangorService,
                 deltakerService,
                 unleashToggle = unleashToggle,
-                Environment.DELTAKERLISTE_V1_TOPIC,
             )
 
         val oppdatertDeltakerliste = deltakerliste.copy(sluttDato = LocalDate.now())
@@ -297,7 +249,6 @@ class DeltakerlisteConsumerTest {
                 arrangorService,
                 deltakerService,
                 unleashToggle = unleashToggle,
-                Environment.DELTAKERLISTE_V1_TOPIC,
             )
 
         val oppdatertDeltakerliste = deltakerliste.copy(sluttDato = LocalDate.now(), status = Deltakerliste.Status.AVBRUTT)
@@ -328,7 +279,6 @@ class DeltakerlisteConsumerTest {
                 arrangorService,
                 deltakerService,
                 unleashToggle = unleashToggle,
-                Environment.DELTAKERLISTE_V1_TOPIC,
             )
 
         runBlocking {
@@ -354,7 +304,6 @@ class DeltakerlisteConsumerTest {
                 arrangorService,
                 deltakerService,
                 unleashToggle = unleashToggle,
-                Environment.DELTAKERLISTE_V1_TOPIC,
             )
 
         val oppdatertDeltakerliste = deltakerliste.copy(sluttDato = LocalDate.now())
