@@ -102,7 +102,7 @@ class DeltakerRepository {
 
     fun upsert(
         deltaker: Deltaker,
-        nesteStatus: DeltakerStatus? = null,
+        nesteFremtidigStatus: DeltakerStatus? = null,
         transactionalSession: TransactionalSession,
     ) {
         val sql =
@@ -147,29 +147,25 @@ class DeltakerRepository {
 
         transactionalSession.update(queryOf(sql, parameters))
 
-        if (nesteStatus != null) {
-            lagreNyStatus(deltaker, transactionalSession, nesteStatus)
-        }
+        lagreNyStatus(deltaker, transactionalSession, nesteFremtidigStatus)
     }
 
     fun lagreNyStatus(
         deltaker: Deltaker,
         transactionalSession: TransactionalSession,
-        nesteStatus: DeltakerStatus,
+        nesteStatus: DeltakerStatus? = null, // additionalFremtidigStatus: Neste status som skal insertes i tillegg til deltaker.status
     ) {
         transactionalSession.update(insertStatusQuery(deltaker.status, deltaker.id))
-        val gjeldendeStatusErAktiv = !deltaker.status.gyldigFra
-            .toLocalDate()
-            .isAfter(LocalDate.now())
-        // TODO: gyldig fra er nå eller fortid == statusen er aktiv eller er "ferdig"
 
-        if (gjeldendeStatusErAktiv) {
+        val erNyStatusAktiv = deltaker.status.gyldigFra.toLocalDate() <= LocalDate.now()
+
+        if (erNyStatusAktiv) {
             transactionalSession.update(deaktiverTidligereStatuserQuery(deltaker.status, deltaker.id))
         } else {
-            // TODO: dette trenger ikke skje for arenadeltakelser
+            // Dette skjer aldri for arenadeltakelser
             transactionalSession.update(slettTidligereFremtidigeStatuserQuery(deltaker.status, deltaker.id))
         }
-        nesteStatus.let { transactionalSession.update(insertStatusQuery(it, deltaker.id)) }
+        nesteStatus?.let { transactionalSession.update(insertStatusQuery(it, deltaker.id)) }
     }
 
     fun upsert(deltaker: Deltaker, nesteStatus: DeltakerStatus? = null) = Database.query { session ->
