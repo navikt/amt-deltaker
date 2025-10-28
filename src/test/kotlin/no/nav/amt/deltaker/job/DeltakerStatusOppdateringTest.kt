@@ -269,7 +269,7 @@ class DeltakerStatusOppdateringTest {
         val fremtidigStatus = TestData.lagDeltakerStatus(
             type = DeltakerStatus.Type.HAR_SLUTTET,
             aarsak = DeltakerStatus.Aarsak.Type.FATT_JOBB,
-            gyldigFra = LocalDateTime.now(),
+            gyldigFra = LocalDateTime.now().minusMinutes(1),
             gyldigTil = null,
         )
         TestRepository.insert(fremtidigStatus, deltaker.id)

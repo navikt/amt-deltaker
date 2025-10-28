@@ -86,16 +86,13 @@ class EnkeltplassDeltakerConsumer(
     override suspend fun close() = consumer.close()
 
     private fun upsertImportertDeltaker(deltaker: Deltaker) {
-        val importertData = deltaker.toImportertData() // TODO: feil status hvis status ikke er endret, bruk status id fra oppdatert status i importert fra arena data
-        val sisteStatus = deltakerRepository.get(deltaker.id).getOrNull()?.status
+        deltakerRepository.upsert(deltaker)
+        val oppdatertDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
+
+        val importertData = oppdatertDeltaker.toImportertData()
         val statusErEndret =
-            if (sisteStatus != null) {
-                sisteStatus.type !== deltaker.status.type || sisteStatus.aarsak !== deltaker.status.aarsak
-            } else {
-                false
-            }
-        val nestestatus = if (statusErEndret) deltaker.status else null
-        deltakerRepository.upsert(deltaker, nestestatus)
+            oppdatertDeltaker.status.type !== deltaker.status.type || oppdatertDeltaker.status.aarsak !== deltaker.status.aarsak
+
         importertFraArenaRepository.upsert(importertData)
     }
 

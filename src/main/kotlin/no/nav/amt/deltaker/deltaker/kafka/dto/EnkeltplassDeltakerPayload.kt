@@ -24,7 +24,11 @@ data class EnkeltplassDeltakerPayload(
     val statusEndretDato: LocalDateTime?,
     val innsokBegrunnelse: String?,
 ) {
-    fun toDeltaker(deltakerliste: Deltakerliste, navBruker: NavBruker) = Deltaker(
+    fun toDeltaker(
+        deltakerliste: Deltakerliste,
+        navBruker: NavBruker,
+        forrigeDeltakerStatus: DeltakerStatus,
+    ) = Deltaker(
         id = id,
         navBruker = navBruker,
         deltakerliste = deltakerliste,
@@ -34,17 +38,23 @@ data class EnkeltplassDeltakerPayload(
         deltakelsesprosent = prosentDeltid,
         bakgrunnsinformasjon = null,
         deltakelsesinnhold = null,
-        status = DeltakerStatus(
-            id = UUID.randomUUID(),
-            // TODO: upsert da? Vi må sjekke om det er ny status før vi seter ny id
-            // if (nyesteStatus.type == status.type && nyesteStatus.aarsak == status.aarsak)
-            type = status,
-            aarsak = statusAarsak,
-            // statusEndretDato skal i praksis aldri være null for enkeltplasstiltak (sjekket i arena)
-            gyldigFra = statusEndretDato!!,
-            gyldigTil = null,
-            opprettet = LocalDateTime.now(), // Bruker current_timestamp fra databasen
-        ),
+        status = if (forrigeDeltakerStatus.aarsak == statusAarsak &&
+            forrigeDeltakerStatus.type == status
+        ) {
+            forrigeDeltakerStatus
+        } else {
+            DeltakerStatus(
+                id = UUID.randomUUID(),
+                // TODO: upsert da? Vi må sjekke om det er ny status før vi setter ny status id
+                // if (nyesteStatus.type == status.type && nyesteStatus.aarsak == status.aarsak)
+                type = status,
+                aarsak = statusAarsak,
+                // statusEndretDato skal i praksis aldri være null for enkeltplasstiltak (sjekket i arena)
+                gyldigFra = statusEndretDato!!,
+                gyldigTil = null,
+                opprettet = LocalDateTime.now(), // Bruker current_timestamp fra databasen
+            )
+        },
         vedtaksinformasjon = null,
         kilde = Kilde.ARENA,
         sistEndret = LocalDateTime.now(),
