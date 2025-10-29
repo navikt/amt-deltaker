@@ -64,8 +64,10 @@ class DeltakerService(
     fun getDeltakelserForPerson(personident: String, deltakerlisteId: UUID) =
         deltakerRepository.getFlereForPerson(personident, deltakerlisteId)
 
+    @Deprecated("Bruk DeltakerRepository#getMany")
     fun getDeltakelser(deltakerIder: List<UUID>) = deltakerRepository.getMany(deltakerIder)
 
+    @Deprecated("Bruk DeltakerRepository#getFlereForPerson")
     fun getDeltakelserForPerson(personident: String) = deltakerRepository.getFlereForPerson(personident)
 
     private fun getDeltakereForDeltakerliste(deltakerlisteId: UUID) = deltakerRepository.getDeltakereForDeltakerliste(deltakerlisteId)

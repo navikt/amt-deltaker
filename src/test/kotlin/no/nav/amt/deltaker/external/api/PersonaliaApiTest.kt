@@ -11,7 +11,7 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
-import io.mockk.coEvery
+import io.mockk.every
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.external.data.DeltakerPersonaliaResponse
 import no.nav.amt.deltaker.utils.RouteTestBase
@@ -24,49 +24,9 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-class SystemApiTest : RouteTestBase() {
+class PersonaliaApiTest : RouteTestBase() {
     @BeforeEach
     fun setup() = unleashClient.enableAll()
-
-    private fun createStandardRequest(deltakerIds: List<UUID>) = objectMapper.writeValueAsString(deltakerIds)
-
-    private fun createDeltakerWithNavEnhet(
-        personident: String,
-        fornavn: String,
-        etternavn: String,
-        mellomnavn: String? = null,
-        enhetsnummer: String = "1234",
-        enhetsnavn: String = "NAV Test",
-        erSkjermet: Boolean = false,
-        adressebeskyttelse: Adressebeskyttelse? = null,
-        navEnhetId: UUID? = null,
-    ): Pair<Deltaker, NavEnhet?> {
-        val navEnhet = if (navEnhetId != null) null else TestData.lagNavEnhet(enhetsnummer = enhetsnummer, navn = enhetsnavn)
-        val deltaker = TestData.lagDeltaker(
-            navBruker = TestData.lagNavBruker(
-                personident = personident,
-                fornavn = fornavn,
-                mellomnavn = mellomnavn,
-                etternavn = etternavn,
-                navEnhetId = navEnhetId ?: navEnhet?.id,
-                erSkjermet = erSkjermet,
-                adressebeskyttelse = adressebeskyttelse,
-            ),
-        )
-        return deltaker to navEnhet
-    }
-
-    private suspend fun HttpClient.postPersonalia(deltakerIds: List<UUID>, token: String? = mulighetsrommetSystemToken): HttpResponse =
-        post("/external/deltakere/personalia") {
-            setBody(createStandardRequest(deltakerIds))
-            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-            token?.let { bearerAuth(it) }
-        }
-
-    private fun mockServices(deltakere: List<Deltaker>, navEnheter: Map<UUID, NavEnhet> = emptyMap()) {
-        coEvery { deltakerService.getDeltakelser(any()) } returns deltakere
-        coEvery { navEnhetService.getEnheter(any()) } returns navEnheter
-    }
 
     @Test
     fun `autentisering tester - ulike scenarioer`() {
@@ -128,13 +88,6 @@ class SystemApiTest : RouteTestBase() {
                 bodyAsText() shouldBe objectMapper.writeValueAsString(forventetRespons)
             }
         }
-    }
-
-    private fun forventetResponse(deltaker: Deltaker, navEnhet: NavEnhet?): List<DeltakerPersonaliaResponse> {
-        val forventetRespons = listOf(
-            DeltakerPersonaliaResponse.from(deltaker, navEnhet?.let { mapOf(navEnhet.id to navEnhet) } ?: emptyMap()),
-        )
-        return forventetRespons
     }
 
     @Test
@@ -210,10 +163,61 @@ class SystemApiTest : RouteTestBase() {
         }
     }
 
+    private fun mockServices(deltakere: List<Deltaker>, navEnheter: Map<UUID, NavEnhet> = emptyMap()) {
+        every { deltakerRepository.getMany(any()) } returns deltakere
+        every { navEnhetService.getEnheter(any()) } returns navEnheter
+    }
+
     companion object {
         private val mulighetsrommetSystemToken = generateJWT(
             consumerClientId = "mulighetsrommet-api",
             audience = "amt-deltaker",
         )
+
+        private fun forventetResponse(deltaker: Deltaker, navEnhet: NavEnhet?): List<DeltakerPersonaliaResponse> {
+            val forventetRespons = listOf(
+                DeltakerPersonaliaResponse.from(
+                    deltaker,
+                    navEnhet?.let { mapOf(navEnhet.id to navEnhet) }
+                        ?: emptyMap(),
+                ),
+            )
+            return forventetRespons
+        }
+
+        private fun createStandardRequest(deltakerIds: List<UUID>) = objectMapper.writeValueAsString(deltakerIds)
+
+        private suspend fun HttpClient.postPersonalia(deltakerIds: List<UUID>, token: String? = mulighetsrommetSystemToken): HttpResponse =
+            post("/external/deltakere/personalia") {
+                setBody(createStandardRequest(deltakerIds))
+                header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                token?.let { bearerAuth(it) }
+            }
+
+        private fun createDeltakerWithNavEnhet(
+            personident: String,
+            fornavn: String,
+            etternavn: String,
+            mellomnavn: String? = null,
+            enhetsnummer: String = "1234",
+            enhetsnavn: String = "NAV Test",
+            erSkjermet: Boolean = false,
+            adressebeskyttelse: Adressebeskyttelse? = null,
+            navEnhetId: UUID? = null,
+        ): Pair<Deltaker, NavEnhet?> {
+            val navEnhet = if (navEnhetId != null) null else TestData.lagNavEnhet(enhetsnummer = enhetsnummer, navn = enhetsnavn)
+            val deltaker = TestData.lagDeltaker(
+                navBruker = TestData.lagNavBruker(
+                    personident = personident,
+                    fornavn = fornavn,
+                    mellomnavn = mellomnavn,
+                    etternavn = etternavn,
+                    navEnhetId = navEnhetId ?: navEnhet?.id,
+                    erSkjermet = erSkjermet,
+                    adressebeskyttelse = adressebeskyttelse,
+                ),
+            )
+            return deltaker to navEnhet
+        }
     }
 }

@@ -315,6 +315,7 @@ fun Application.module() {
     configureRouting(
         pameldingService = pameldingService,
         deltakerService = deltakerService,
+        deltakerRepository = deltakerRepository,
         deltakerHistorikkService = deltakerHistorikkService,
         tilgangskontrollService = tilgangskontrollService,
         deltakelserResponseMapper = deltakelserResponseMapper,

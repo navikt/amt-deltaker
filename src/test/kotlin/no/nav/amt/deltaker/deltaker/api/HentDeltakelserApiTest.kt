@@ -5,7 +5,7 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
-import io.mockk.coEvery
+import io.mockk.every
 import no.nav.amt.deltaker.deltaker.api.utils.postVeilederRequest
 import no.nav.amt.deltaker.external.data.DeltakelserResponse
 import no.nav.amt.deltaker.external.data.DeltakelserResponseMapper
@@ -42,7 +42,7 @@ class HentDeltakelserApiTest : RouteTestBase() {
 
     @Test
     fun `skal teste tilgangskontroll - har ikke tilgang - returnerer 403`() {
-        coEvery {
+        every {
             poaoTilgangCachedClient.evaluatePolicy(any())
         } returns ApiResult(null, Decision.Deny("Ikke tilgang", ""))
 
@@ -56,7 +56,7 @@ class HentDeltakelserApiTest : RouteTestBase() {
 
     @Test
     fun `post deltakelser - har tilgang, deltaker deltar - returnerer 200`() {
-        coEvery { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
+        every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
 
         val innsoktDato = LocalDate.now().minusDays(4)
         val deltaker = TestData.lagDeltaker(
@@ -77,8 +77,8 @@ class HentDeltakelserApiTest : RouteTestBase() {
             ),
         )
 
-        coEvery { deltakerService.getDeltakelserForPerson(any()) } returns listOf(deltaker)
-        coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
+        every { deltakerRepository.getFlereForPerson(any()) } returns listOf(deltaker)
+        every { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
 
         val forventetRespons = DeltakelserResponse(
             aktive = listOf(
@@ -116,7 +116,7 @@ class HentDeltakelserApiTest : RouteTestBase() {
 
     @Test
     fun `post deltakelser - har tilgang, kladd og avsluttet deltakelse - returnerer 200`() {
-        coEvery { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
+        every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
 
         val innsoktDato = LocalDate.now().minusDays(4)
         val deltakerKladd = TestData.lagDeltaker(
@@ -149,9 +149,9 @@ class HentDeltakelserApiTest : RouteTestBase() {
             ),
         )
 
-        coEvery { deltakerService.getDeltakelserForPerson(any()) } returns listOf(deltakerKladd, avsluttetDeltaker)
-        coEvery { deltakerHistorikkService.getForDeltaker(deltakerKladd.id) } returns emptyList()
-        coEvery { deltakerHistorikkService.getForDeltaker(avsluttetDeltaker.id) } returns deltakerhistorikk
+        every { deltakerRepository.getFlereForPerson(any()) } returns listOf(deltakerKladd, avsluttetDeltaker)
+        every { deltakerHistorikkService.getForDeltaker(deltakerKladd.id) } returns emptyList()
+        every { deltakerHistorikkService.getForDeltaker(avsluttetDeltaker.id) } returns deltakerhistorikk
 
         val forventetRespons = DeltakelserResponse(
             aktive = listOf(
@@ -207,9 +207,8 @@ class HentDeltakelserApiTest : RouteTestBase() {
 
     @Test
     fun `post deltakelser - har tilgang, ingen deltakelser - returnerer 200`() {
-        coEvery { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
-
-        coEvery { deltakerService.getDeltakelserForPerson(any()) } returns emptyList()
+        every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
+        every { deltakerRepository.getFlereForPerson(any()) } returns emptyList()
 
         val forventetRespons = DeltakelserResponse(
             aktive = emptyList(),
