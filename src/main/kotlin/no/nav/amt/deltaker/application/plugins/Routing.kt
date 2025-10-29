@@ -21,6 +21,7 @@ import no.nav.amt.deltaker.deltaker.PameldingService
 import no.nav.amt.deltaker.deltaker.VedtakService
 import no.nav.amt.deltaker.deltaker.api.deltaker.registerDeltakerApi
 import no.nav.amt.deltaker.deltaker.api.paamelding.registerPameldingApi
+import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
@@ -50,6 +51,7 @@ fun Application.configureRequestValidation(opprettKladdRequestValidator: Opprett
 fun Application.configureRouting(
     pameldingService: PameldingService,
     deltakerService: DeltakerService,
+    deltakerRepository: DeltakerRepository,
     deltakerHistorikkService: DeltakerHistorikkService,
     tilgangskontrollService: TilgangskontrollService,
     deltakelserResponseMapper: DeltakelserResponseMapper,
@@ -106,7 +108,7 @@ fun Application.configureRouting(
             endringFraTiltakskoordinatorService,
         )
         registerTiltakskoordinatorApi(deltakerService)
-        registerExternalApi(deltakerService, navEnhetService, tilgangskontrollService, deltakelserResponseMapper, unleashToggle)
+        registerExternalApi(deltakerRepository, navEnhetService, tilgangskontrollService, deltakelserResponseMapper, unleashToggle)
 
         val catchAllRoute = "{...}"
         route(catchAllRoute) {

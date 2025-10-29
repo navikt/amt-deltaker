@@ -16,6 +16,7 @@ fun configureEnvForAuthentication() {
     val preAuthorizedApps = listOf(
         PreAuthorizedApp("dev:amt:amt-deltaker-bff", "amt-deltaker-bff"),
         PreAuthorizedApp("dev:mulighetsrommet:mulighetsrommet-api", "mulighetsrommet-api"),
+        PreAuthorizedApp("dev:tiltakspenger:tiltakspenger-tiltak", "tiltakspenger-tiltak"),
     )
 
     setProperty(Environment.AZURE_OPENID_CONFIG_JWKS_URI_KEY, uri)

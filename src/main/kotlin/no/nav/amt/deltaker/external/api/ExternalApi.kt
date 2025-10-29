@@ -8,7 +8,7 @@ import io.ktor.server.routing.post
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.application.plugins.getNavAnsattAzureId
 import no.nav.amt.deltaker.auth.TilgangskontrollService
-import no.nav.amt.deltaker.deltaker.DeltakerService
+import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.external.data.ArrangorResponse
@@ -24,7 +24,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import java.util.UUID
 
 fun Routing.registerExternalApi(
-    deltakerService: DeltakerService,
+    deltakerRepository: DeltakerRepository,
     navEnhetService: NavEnhetService,
     tilgangskontrollService: TilgangskontrollService,
     deltakelserResponseMapper: DeltakelserResponseMapper,
@@ -36,7 +36,7 @@ fun Routing.registerExternalApi(
         post("$apiPath/aktiv-deltaker") {
             // Brukes av veilarboppfolging til å bestemme om oppfølgingsperioden kan avsluttes
             val request = call.receive<HentDeltakelserRequest>()
-            val deltakelser = deltakerService.getDeltakelserForPerson(request.norskIdent)
+            val deltakelser = deltakerRepository.getFlereForPerson(request.norskIdent)
             val harAktiveDeltakelser = deltakelser.any { deltaker -> deltaker.status.erAktiv() }
             call.respond(HarAktiveDeltakelserResponse(harAktiveDeltakelser))
         }
@@ -44,8 +44,8 @@ fun Routing.registerExternalApi(
         post("$apiPath/deltakelser") {
             // brukes av tiltakspenger for å vise tiltak for saksbehandler og i søknadsdialog
             val request = call.receive<HentDeltakelserRequest>()
-            val deltakelser = deltakerService
-                .getDeltakelserForPerson(request.norskIdent)
+            val deltakelser = deltakerRepository
+                .getFlereForPerson(request.norskIdent)
                 .filter { deltaker -> deltaker.status.type != DeltakerStatus.Type.KLADD }
 
             call.respond(deltakelser.toResponse())
@@ -57,7 +57,7 @@ fun Routing.registerExternalApi(
         // Dokumentasjon: docs/external-deltakere-personalia.md
         post("$apiPath/deltakere/personalia") {
             val request = call.receive<List<DeltakerID>>()
-            val deltakere: List<Deltaker> = deltakerService.getDeltakelser(request)
+            val deltakere: List<Deltaker> = deltakerRepository.getMany(request)
             val navEnheter = navEnhetService.getEnheter(deltakere.mapNotNull { it.navBruker.navEnhetId }.toSet())
 
             call.respond(deltakere.map { DeltakerPersonaliaResponse.from(it, navEnheter) })
@@ -70,8 +70,8 @@ fun Routing.registerExternalApi(
             val request = call.receive<HentDeltakelserRequest>()
             tilgangskontrollService.verifiserLesetilgang(call.getNavAnsattAzureId(), request.norskIdent)
 
-            val deltakelser = deltakerService
-                .getDeltakelserForPerson(request.norskIdent)
+            val deltakelser = deltakerRepository
+                .getFlereForPerson(request.norskIdent)
                 .filter {
                     unleashToggle.erKometMasterForTiltakstype(it.deltakerliste.tiltakstype.tiltakskode) ||
                         (unleashToggle.skalLeseArenaDataForTiltakstype(it.deltakerliste.tiltakstype.tiltakskode) && Environment.isDev())
@@ -98,6 +98,7 @@ fun Deltakerliste.toResponse() = GjennomforingResponse(
     id = id,
     navn = navn,
     type = tiltakstype.arenaKode.name,
+    tiltakskode = tiltakstype.tiltakskode,
     tiltakstypeNavn = tiltakstype.navn,
     arrangor = ArrangorResponse(
         navn = arrangor.navn,
