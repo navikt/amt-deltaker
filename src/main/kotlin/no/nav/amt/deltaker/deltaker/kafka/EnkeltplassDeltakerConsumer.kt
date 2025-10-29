@@ -4,7 +4,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.apiclients.mulighetsrommet.MulighetsrommetApiClient
 import no.nav.amt.deltaker.arrangor.ArrangorService
-import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
+import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.kafka.dto.EnkeltplassDeltakerPayload
 import no.nav.amt.deltaker.deltaker.model.Deltaker
@@ -14,7 +14,6 @@ import no.nav.amt.deltaker.navbruker.NavBrukerService
 import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.deltaker.utils.buildManagedKafkaConsumer
 import no.nav.amt.lib.kafka.Consumer
-import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.objectMapper
@@ -24,7 +23,7 @@ import java.util.UUID
 import kotlin.getOrThrow
 
 class EnkeltplassDeltakerConsumer(
-    private val deltakerRepository: DeltakerRepository,
+    private val deltakerService: DeltakerService,
     private val deltakerlisteRepository: DeltakerlisteRepository,
     private val navBrukerService: NavBrukerService,
     private val importertFraArenaRepository: ImportertFraArenaRepository,
@@ -43,15 +42,16 @@ class EnkeltplassDeltakerConsumer(
     override suspend fun consume(key: UUID, value: String?) {
         if (value == null) {
             log.info("Konsumerer tombstone med key $key")
+            // TODO: håndtere tombstone
             return
         } else {
             log.info("Konsumerer deltaker med key $key")
-            processDeltaker(objectMapper.readValue(value))
+            consumeDeltaker(objectMapper.readValue(value))
             log.info("Ferdig med å konsumere deltaker med key $key")
         }
     }
 
-    private suspend fun processDeltaker(deltakerPayload: EnkeltplassDeltakerPayload) {
+    suspend fun consumeDeltaker(deltakerPayload: EnkeltplassDeltakerPayload) {
         val deltakerlisteFromDbResult = deltakerlisteRepository.get(deltakerPayload.gjennomforingId)
         val deltakerliste =
             deltakerlisteFromDbResult.getOrElse {
@@ -74,7 +74,12 @@ class EnkeltplassDeltakerConsumer(
         if (deltakerlisteFromDbResult.isFailure) deltakerlisteRepository.upsert(deltakerliste)
 
         log.info("Ingester enkeltplass deltaker med id ${deltakerPayload.id}")
-        val deltaker = deltakerPayload.toDeltaker(deltakerliste, navBrukerService.get(deltakerPayload.personIdent).getOrThrow())
+        val deltakerStatus = deltakerService.get(deltakerPayload.id).getOrNull()?.status
+        val deltaker = deltakerPayload.toDeltaker(
+            deltakerliste,
+            navBrukerService.get(deltakerPayload.personIdent).getOrThrow(),
+            deltakerStatus,
+        )
 
         upsertImportertDeltaker(deltaker)
 
@@ -85,14 +90,9 @@ class EnkeltplassDeltakerConsumer(
 
     override suspend fun close() = consumer.close()
 
-    private fun upsertImportertDeltaker(deltaker: Deltaker) {
-        deltakerRepository.upsert(deltaker)
-        val oppdatertDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
-
-        val importertData = oppdatertDeltaker.toImportertData()
-        val statusErEndret =
-            oppdatertDeltaker.status.type !== deltaker.status.type || oppdatertDeltaker.status.aarsak !== deltaker.status.aarsak
-
+    private suspend fun upsertImportertDeltaker(deltaker: Deltaker) {
+        deltakerService.upsertDeltaker(deltaker)
+        val importertData = deltaker.toImportertData()
         importertFraArenaRepository.upsert(importertData)
     }
 

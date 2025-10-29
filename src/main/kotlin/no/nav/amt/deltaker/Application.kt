@@ -305,7 +305,7 @@ fun Application.module() {
             unleashToggle,
         ),
         EnkeltplassDeltakerConsumer(
-            deltakerRepository,
+            deltakerService,
             deltakerlisteRepository,
             navBrukerService,
             importertFraArenaRepository,
