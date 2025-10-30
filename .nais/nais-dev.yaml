@@ -57,6 +57,8 @@ spec:
           namespace: poao
         - application: isoppfolgingstilfelle
           namespace: teamsykefravr
+        - application: mulighetsrommet-api
+          namespace: team-mulighetsrommet
       external:
         - host: amt-unleash-api.nav.cloud.nais.io
   leaderElection: true
