@@ -98,7 +98,6 @@ class DeltakerResponseMapperServiceTest {
         val deltakerV2Dto = deltakerKafkaPayloadMapperService.tilDeltakerPayload(deltaker).v2
 
         deltakerV2Dto.id shouldBe deltaker.id
-        deltakerV2Dto.deltakerlisteId shouldBe deltaker.deltakerliste.id
         deltakerV2Dto.deltakerliste.id shouldBe deltaker.deltakerliste.id
         deltakerV2Dto.deltakerliste.tiltak.tiltakskode shouldBe deltaker.deltakerliste.tiltakstype.tiltakskode
         // Her kan vi legge inn flere assertions på deltakerliste
@@ -177,7 +176,7 @@ class DeltakerResponseMapperServiceTest {
         val deltakerV2Dto = deltakerKafkaPayloadMapperService.tilDeltakerPayload(deltaker).v2
 
         deltakerV2Dto.id shouldBe deltaker.id
-        deltakerV2Dto.deltakerlisteId shouldBe deltaker.deltakerliste.id
+        deltakerV2Dto.deltakerliste.id shouldBe deltaker.deltakerliste.id
         sammenlignPersonalia(deltakerV2Dto.personalia, navBruker)
         sammenlignStatus(deltakerV2Dto.status, deltaker.status)
         deltakerV2Dto.dagerPerUke shouldBe deltaker.dagerPerUke
@@ -233,7 +232,7 @@ class DeltakerResponseMapperServiceTest {
         val deltakerV2Dto = deltakerKafkaPayloadMapperService.tilDeltakerPayload(deltaker).v2
 
         deltakerV2Dto.id shouldBe deltaker.id
-        deltakerV2Dto.deltakerlisteId shouldBe deltaker.deltakerliste.id
+        deltakerV2Dto.deltakerliste.id shouldBe deltaker.deltakerliste.id
         sammenlignPersonalia(deltakerV2Dto.personalia, navBruker)
         sammenlignStatus(deltakerV2Dto.status, deltaker.status)
         deltakerV2Dto.dagerPerUke shouldBe deltaker.dagerPerUke
@@ -294,7 +293,7 @@ class DeltakerResponseMapperServiceTest {
         val deltakerV2Dto = deltakerKafkaPayloadMapperService.tilDeltakerPayload(deltaker).v2
 
         deltakerV2Dto.id shouldBe deltaker.id
-        deltakerV2Dto.deltakerlisteId shouldBe deltaker.deltakerliste.id
+        deltakerV2Dto.deltakerliste.id shouldBe deltaker.deltakerliste.id
         sammenlignPersonalia(deltakerV2Dto.personalia, navBruker)
         sammenlignStatus(deltakerV2Dto.status, deltaker.status)
         deltakerV2Dto.dagerPerUke shouldBe deltaker.dagerPerUke

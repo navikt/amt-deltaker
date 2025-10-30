@@ -52,8 +52,7 @@ class TiltakskoordinatorApiTest : RouteTestBase() {
 
     @Test
     fun `sett-paa-venteliste - har tilgang - returnerer 200`() {
-        coEvery { deltakerService.getDeltakelser(any()) } returns listOf(deltaker)
-        coEvery { unleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns true
+        every { unleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns true
         coEvery { deltakerService.oppdaterDeltakere(any(), any(), any()) } returns listOf(deltaker.toDeltakerOppdateringResult())
         every { deltakerService.getHistorikk(deltaker.id) } returns historikk
 
@@ -72,9 +71,7 @@ class TiltakskoordinatorApiTest : RouteTestBase() {
 
     @Test
     fun `tildel plass - har tilgang - returnerer 200`() {
-        coEvery { deltakerService.getDeltakelser(any()) } returns listOf(deltaker)
-        coEvery { unleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns true
-        coEvery { deltakerService.oppdaterDeltakere(any(), any(), any()) } returns listOf(deltaker.toDeltakerOppdateringResult())
+        every { unleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns true
         coEvery { deltakerService.oppdaterDeltakere(any(), any(), any()) } returns listOf(deltaker.toDeltakerOppdateringResult())
         every { deltakerService.getHistorikk(deltaker.id) } returns historikk
 
