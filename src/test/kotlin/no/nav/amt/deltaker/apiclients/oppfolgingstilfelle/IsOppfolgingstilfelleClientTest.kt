@@ -28,10 +28,8 @@ class IsOppfolgingstilfelleClientTest {
             azureAdTokenClient = mockAzureAdClient(),
         )
 
-        val thrown = runBlocking {
-            shouldThrow<RuntimeException> {
-                oppfolgingstilfelleClient.erSykmeldtMedArbeidsgiver(personIdentInTest)
-            }
+        val thrown = shouldThrow<RuntimeException> {
+            oppfolgingstilfelleClient.erSykmeldtMedArbeidsgiver(personIdentInTest)
         }
 
         thrown.message shouldStartWith "Kunne ikke hente oppfølgingstilfelle fra isoppfolgingstilfelle"

@@ -479,7 +479,7 @@ class DeltakerEndringHandlerTest {
         val endretAvEnhet = TestData.lagNavEnhet()
         val forslag = TestData.lagForslag(
             deltakerId = deltaker.id,
-            endring = Forslag.EndreAvslutning(EndringAarsak.FattJobb, true, true),
+            endring = Forslag.EndreAvslutning(aarsak = EndringAarsak.FattJobb, harDeltatt = true, harFullfort = true),
         )
         val endringsrequest = EndreAvslutningRequest(
             endretAv = endretAv.navIdent,

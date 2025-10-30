@@ -5,7 +5,6 @@ import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerV1Dto
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerV2Dto
-import no.nav.amt.lib.kafka.utils.stringStringConsumer
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus

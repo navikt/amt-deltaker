@@ -1,4 +1,4 @@
-package no.nav.amt.lib.kafka.utils
+package no.nav.amt.deltaker.kafka.utils
 
 import no.nav.amt.lib.kafka.ManagedKafkaConsumer
 import no.nav.amt.lib.kafka.config.LocalKafkaConfig

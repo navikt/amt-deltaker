@@ -97,7 +97,7 @@ class DeltakerProgresjon {
                 it
                     .medNyStatus(DeltakerStatus.Type.IKKE_AKTUELL, getSluttarsak(it))
                     .medNySluttdato(null)
-                    .medNyStartdato(null)
+                    .copy(startdato = null)
             }
         log.info("Endret status til IKKE AKTUELL for ${skalBliIkkeAktuell.size}")
 
@@ -153,6 +153,4 @@ class DeltakerProgresjon {
     )
 
     private fun Deltaker.medNySluttdato(sluttdato: LocalDate?) = this.copy(sluttdato = sluttdato)
-
-    private fun Deltaker.medNyStartdato(startdato: LocalDate?) = this.copy(startdato = startdato)
 }

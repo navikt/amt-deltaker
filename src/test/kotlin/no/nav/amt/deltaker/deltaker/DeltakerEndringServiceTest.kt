@@ -328,7 +328,6 @@ class DeltakerEndringServiceTest {
                 ),
                 endret = LocalDateTime.now().minusDays(1),
             ),
-            null,
         )
 
         val resultat = deltakerEndringService.behandleLagretDeltakelsesmengde(ubehandletEndring, deltaker)
@@ -369,7 +368,6 @@ class DeltakerEndringServiceTest {
                 ),
                 endret = LocalDateTime.now().minusSeconds(2),
             ),
-            null,
         )
 
         val gyldigEndring = upsertEndring(
@@ -385,7 +383,6 @@ class DeltakerEndringServiceTest {
                 ),
                 endret = LocalDateTime.now().minusSeconds(1),
             ),
-            null,
         )
 
         val resultat = deltakerEndringService.behandleLagretDeltakelsesmengde(ugyldigEndring, deltaker)
@@ -399,7 +396,7 @@ class DeltakerEndringServiceTest {
     }
 
     @Test
-    fun `behandleLagretEndring - endringen er utført pga endret startdato - oppdaterer ikke deltaker og upserter endring med behandlet`() {
+    fun `behandleLagretEndring - endringen er utfort pga endret startdato - oppdaterer ikke deltaker og upserter endring med behandlet`() {
         val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR))
         val endretAv = TestData.lagNavAnsatt()
         val endretAvEnhet = TestData.lagNavEnhet()
@@ -442,7 +439,6 @@ class DeltakerEndringServiceTest {
                 ),
                 endret = LocalDateTime.now().minusDays(2),
             ),
-            null,
         )
 
         val resultat = deltakerEndringService.behandleLagretDeltakelsesmengde(
@@ -463,10 +459,10 @@ class DeltakerEndringServiceTest {
         deltakelsesmengder.nesteGjeldende shouldBe null
     }
 
-    private fun upsertEndring(endring: DeltakerEndring, behandlet: LocalDateTime? = null): DeltakerEndring {
+    private fun upsertEndring(endring: DeltakerEndring): DeltakerEndring {
         deltakerEndringRepository.upsert(
             deltakerEndring = endring,
-            behandlet = behandlet,
+            behandlet = null,
         )
         return deltakerEndringRepository.get(endring.id).getOrThrow()
     }

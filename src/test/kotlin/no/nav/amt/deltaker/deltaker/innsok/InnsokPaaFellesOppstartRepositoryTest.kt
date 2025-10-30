@@ -13,6 +13,7 @@ import java.util.UUID
 
 class InnsokPaaFellesOppstartRepositoryTest {
     init {
+        @Suppress("UnusedExpression")
         SingletonPostgres16Container
     }
 

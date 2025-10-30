@@ -72,8 +72,8 @@ class InnsokPaaFellesOppstartRepository {
             """.trimIndent()
         val params = mapOf("id" to id)
 
-        it.run(queryOf(sql, params).map(::rowmapper).asSingle)?.let {
-            Result.success(it)
+        it.run(queryOf(sql, params).map(::rowmapper).asSingle)?.let { innsokPaaFellesOppstart ->
+            Result.success(innsokPaaFellesOppstart)
         } ?: Result.failure(NoSuchElementException("Fant ikke innsok med id $id"))
     }
 
@@ -84,8 +84,8 @@ class InnsokPaaFellesOppstartRepository {
             """.trimIndent()
         val params = mapOf("deltaker_id" to deltakerId)
 
-        it.run(queryOf(sql, params).map(::rowmapper).asSingle)?.let {
-            Result.success(it)
+        it.run(queryOf(sql, params).map(::rowmapper).asSingle)?.let { innsokPaaFellesOppstart ->
+            Result.success(innsokPaaFellesOppstart)
         } ?: Result.failure(NoSuchElementException("Fant ikke innsok for deltaker $deltakerId"))
     }
 

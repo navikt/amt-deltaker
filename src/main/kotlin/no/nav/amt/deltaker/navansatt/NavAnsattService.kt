@@ -37,6 +37,4 @@ class NavAnsattService(
     fun slettNavAnsatt(navAnsattId: UUID) {
         repository.delete(navAnsattId)
     }
-
-    fun hentAnsatte(veilederIdenter: List<String>) = repository.getMany(veilederIdenter).associateBy { it.navIdent }
 }

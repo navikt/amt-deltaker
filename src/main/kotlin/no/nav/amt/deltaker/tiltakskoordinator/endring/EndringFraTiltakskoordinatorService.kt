@@ -80,6 +80,7 @@ class EndringFraTiltakskoordinatorService(
     }
 
     // Midlertidig workaround som lagrer historikk mens amt-tiltak er master for deltakere
+    @Suppress("unused")
     suspend fun insertDelMedArrangor(
         deltakere: List<Deltaker>,
         endretAv: String,

@@ -19,6 +19,7 @@ sealed class DeltakerEndringUtfall {
 
     val erVellykket: Boolean get() = this is VellykketEndring
 
+    @Suppress("unused")
     val erFremtidig: Boolean get() = this is FremtidigEndring
 
     val erUgyldig: Boolean get() = this is UgyldigEndring
@@ -33,14 +34,5 @@ sealed class DeltakerEndringUtfall {
         is VellykketEndring -> this.deltaker
         is FremtidigEndring -> this.deltaker
         is UgyldigEndring -> throw this.error
-    }
-
-    inline fun onVellykketEllerFremtidigEndring(action: (deltaker: Deltaker) -> Unit): DeltakerEndringUtfall {
-        when (this) {
-            is VellykketEndring -> action(this.deltaker)
-            is FremtidigEndring -> action(this.deltaker)
-            is UgyldigEndring -> {}
-        }
-        return this
     }
 }

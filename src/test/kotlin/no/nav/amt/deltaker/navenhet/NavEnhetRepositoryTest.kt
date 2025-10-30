@@ -17,6 +17,7 @@ class NavEnhetRepositoryTest {
         @JvmStatic
         @BeforeAll
         fun setup() {
+            @Suppress("UnusedExpression")
             SingletonPostgres16Container
             repository = NavEnhetRepository()
         }

@@ -4,14 +4,11 @@ import no.nav.amt.deltaker.Environment
 import no.nav.amt.lib.kafka.Producer
 import no.nav.amt.lib.models.deltaker.DeltakerKafkaPayload
 import no.nav.amt.lib.utils.objectMapper
-import org.slf4j.LoggerFactory
 import java.util.UUID
 
 class DeltakerProducer(
     private val producer: Producer<String, String>,
 ) {
-    private val log = LoggerFactory.getLogger(javaClass)
-
     fun produce(deltakerV2Dto: DeltakerKafkaPayload) {
         producer.produce(Environment.DELTAKER_V2_TOPIC, deltakerV2Dto.id.toString(), objectMapper.writeValueAsString(deltakerV2Dto))
     }

@@ -9,7 +9,6 @@ import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet
-import no.nav.amt.lib.models.person.address.Adressebeskyttelse
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.testing.SingletonPostgres16Container
 import no.nav.amt.lib.testing.shouldBeCloseTo
@@ -23,6 +22,7 @@ class EndringFraTiltakskoordinatorRepositoryTest {
         @JvmStatic
         @BeforeAll
         fun setup() {
+            @Suppress("UnusedExpression")
             SingletonPostgres16Container
         }
     }
@@ -84,6 +84,7 @@ data class EndringFraTiltakskoordinatorCtx(
     private val deltakerRepository = DeltakerRepository()
 
     init {
+        @Suppress("UnusedExpression")
         SingletonPostgres16Container
         TestRepository.insert(navEnhet)
         TestRepository.insert(navAnsatt)
@@ -96,15 +97,6 @@ data class EndringFraTiltakskoordinatorCtx(
         deltakerRepository.upsert(deltaker)
     }
 
-    fun medSkjermetDeltaker() {
-        deltaker = deltaker.copy(navBruker = deltaker.navBruker.copy(erSkjermet = true))
-        deltakerRepository.upsert(deltaker)
-    }
-
-    fun medFortroligDeltaker() = adressebeskyttetDeltaker(Adressebeskyttelse.FORTROLIG)
-
-    fun medStrengtFortroligDeltaker() = adressebeskyttetDeltaker(Adressebeskyttelse.STRENGT_FORTROLIG)
-
     fun medInnsok() {
         val innsok = TestData.lagInnsoktPaaKurs(
             deltakerId = deltaker.id,
@@ -112,10 +104,5 @@ data class EndringFraTiltakskoordinatorCtx(
             innsoktAvEnhet = navEnhet.id,
         )
         TestRepository.insert(innsok)
-    }
-
-    private fun adressebeskyttetDeltaker(adressebeskyttelse: Adressebeskyttelse?) {
-        deltaker = deltaker.copy(navBruker = deltaker.navBruker.copy(adressebeskyttelse = adressebeskyttelse))
-        deltakerRepository.upsert(deltaker)
     }
 }
