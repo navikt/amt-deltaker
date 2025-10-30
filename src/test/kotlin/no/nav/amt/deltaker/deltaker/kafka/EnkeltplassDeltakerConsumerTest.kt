@@ -449,6 +449,7 @@ class EnkeltplassDeltakerConsumerTest {
         importertFraArenaFromDb.shouldNotBeNull()
 
         val expectedDeltaker = endretDeltaker.copy(
+            status = endretDeltaker.status.copy(opprettet = deltakerFromDb.status.opprettet),
             bakgrunnsinformasjon = null,
             sistEndret = deltakerFromDb.sistEndret,
             opprettet = deltakerFromDb.opprettet,
