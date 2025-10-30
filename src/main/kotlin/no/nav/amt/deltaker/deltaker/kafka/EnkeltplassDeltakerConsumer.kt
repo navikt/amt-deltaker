@@ -41,9 +41,8 @@ class EnkeltplassDeltakerConsumer(
 
     override suspend fun consume(key: UUID, value: String?) {
         if (value == null) {
-            log.info("Konsumerer tombstone med key $key")
-            // TODO: håndtere tombstone
-            return
+            // arena-acl skal aldri tombstone, sletting av enkeltplassdeltakere håndteres med status=feilregistrert
+            throw IllegalStateException("Tombstone er ikke støttet. Key: $key")
         } else {
             log.info("Konsumerer deltaker med key $key")
             consumeDeltaker(objectMapper.readValue(value))
