@@ -13,6 +13,7 @@ import io.mockk.mockk
 import io.mockk.spyk
 import io.mockk.verify
 import kotlinx.coroutines.runBlocking
+import no.nav.amt.deltaker.apiclients.mulighetsrommet.GjennomforingV2Response
 import no.nav.amt.deltaker.apiclients.mulighetsrommet.MulighetsrommetApiClient
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerService
@@ -22,6 +23,7 @@ import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerKafkaPayloadBuilder
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerKafkaPayloadMapperService
 import no.nav.amt.deltaker.deltaker.kafka.dto.EnkeltplassDeltakerPayload
 import no.nav.amt.deltaker.deltaker.model.Deltaker
+import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.navbruker.NavBrukerService
@@ -55,7 +57,7 @@ class EnkeltplassDeltakerConsumerTest {
         private val deltakerRepository = spyk(DeltakerRepository())
         private val importertFraArenaRepository = ImportertFraArenaRepository()
         private val deltakerlisteRepository = DeltakerlisteRepository()
-        private val tiltakstypeRepository = TiltakstypeRepository()
+        private val tiltakstypeRepository = mockk<TiltakstypeRepository>()
         private val deltakerProducerService = spyk(
             DeltakerProducerService(
                 deltakerKafkaPayloadMapperService = deltakerKafkaPayloadMapperService,
@@ -129,7 +131,32 @@ class EnkeltplassDeltakerConsumerTest {
     )
 
     @Test
-    fun `consumeDeltaker - unleashToggle skalLeseArenaDataForTiltakstype=true - lagrer enkeltplasser og produserer til deltaker-v2`() {
+    fun `consumeDeltaker - skalLeseArenaDataForTiltakstype=false - lagrer ikke enkeltplasser og produserer ikke til deltaker-v2 topic`() {
+        val deltakerListe = lagDeltakerliste(
+            tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING),
+        )
+        TestRepository.insert(deltakerListe)
+        val sistEndret = LocalDateTime.now().minusDays(1)
+        val deltaker = TestData.lagDeltaker(
+            kilde = Kilde.ARENA,
+            deltakerliste = deltakerListe,
+            innhold = null,
+            navBruker = lagNavBruker(navEnhetId = null, navVeilederId = null),
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR, opprettet = sistEndret),
+            sistEndret = sistEndret,
+        )
+
+        every { unleashToggle.skalLeseArenaDataForTiltakstype(Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING) } returns false
+        runBlocking {
+            consumer.consumeDeltaker(toPayload(deltaker))
+        }
+
+        coVerify(exactly = 0) { deltakerService.upsertDeltaker(any()) }
+        verify(exactly = 0) { deltakerProducer.produce(any()) }
+    }
+
+    @Test
+    fun `consumeDeltaker - gjennomføring er allerede lagret - lagrer enkeltplasser og produserer til deltaker-v2`() {
         val deltakerListe = lagDeltakerliste(
             tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING),
         )
@@ -204,15 +231,85 @@ class EnkeltplassDeltakerConsumerTest {
             importertFraArena.importertFraArena.importertDato.truncatedTo(ChronoUnit.SECONDS)
     }
 
-/*    @Test
-    fun `consumeDeltaker - unleashToggle skalLeseArenaDataForTiltakstype - false - lagrer enkeltplasser og produserer ikke til deltaker-v2 topic`(): Unit
-
     @Test
-    fun `consumeDeltaker - hvis gjennomføring eksisterer i db - lagrer enkeltplass deltaker med eksisterende gjennomføring`(): Unit
+    fun `consumeDeltaker - gjennomføring eksisterer ikke i db - henter gjennomføring synkront fra mulighetsrommet api og lagrer`() {
+        val deltakerListe = lagDeltakerliste(
+            tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING),
+        )
 
-    @Test
-    fun `consumeDeltaker - hvis gjennomføring ikke eksisterer i db - henter gjennomføring synkront fra mulighetsrommet api og lagrer gjennomføring og enkeltplass deltaker med fallback gjennomføring `(): Unit
+        val statusOpprettet = LocalDateTime.now().minusWeeks(1)
+        val sistEndret = LocalDateTime.now().minusDays(1)
+        val deltaker = TestData.lagDeltaker(
+            kilde = Kilde.ARENA,
+            deltakerliste = deltakerListe,
+            innhold = null,
+            navBruker = lagNavBruker(navEnhetId = null, navVeilederId = null),
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR, opprettet = statusOpprettet),
+            sistEndret = sistEndret,
+        )
+        TestRepository.insert(deltakerListe.arrangor)
+        TestRepository.insert(deltakerListe.tiltakstype)
+        TestRepository.insert(deltaker.navBruker)
+        val importertFraArena = DeltakerHistorikk.ImportertFraArena(
+            importertFraArena = ImportertFraArena(
+                deltakerId = deltaker.id,
+                importertDato = LocalDateTime.now(),
+                deltakerVedImport = deltaker.toDeltakerVedImport(LocalDate.now()),
+            ),
+        )
+        coEvery { arrangorService.hentArrangor(deltakerListe.arrangor.organisasjonsnummer) } returns deltakerListe.arrangor
+        coEvery { tiltakstypeRepository.get(deltakerListe.tiltakstype.tiltakskode) } returns Result.success(
+            deltakerListe.tiltakstype,
+        )
+        coEvery { mulighetsrommetApiClient.hentGjennomforingV2(deltakerListe.id) } returns deltakerListe.toV2Response()
+        every { unleashToggle.skalLeseArenaDataForTiltakstype(Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING) } returns true
+        every { unleashToggle.erKometMasterForTiltakstype(Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING) } returns false
+        coEvery { deltakerKafkaPayloadMapperService.tilDeltakerPayload(any()) } returns DeltakerKafkaPayloadBuilder(
+            deltaker = deltaker,
+            deltakerhistorikk = listOf(importertFraArena),
+            vurderinger = emptyList(),
+            navAnsatt = null,
+            navEnhet = null,
+            forcedUpdate = null,
+        )
+        every { deltakerProducer.produce(any()) } just Runs
+        coEvery { navBrukerService.get(deltaker.navBruker.personident) } returns Result.success(deltaker.navBruker)
 
+        runBlocking {
+            consumer.consumeDeltaker(toPayload(deltaker))
+        }
+
+        coVerify(exactly = 1) {
+            deltakerService.upsertDeltaker(any(), false, null)
+        }
+        coVerify(exactly = 1) {
+            deltakerProducerService.produce(any(), any(), any())
+        }
+        verify { deltakerProducer.produce(any()) }
+
+        coVerify(exactly = 1) { mulighetsrommetApiClient.hentGjennomforingV2(deltakerListe.id) }
+
+        val deltakerFromDb = deltakerService.get(deltaker.id).getOrThrow()
+        deltakerFromDb.shouldNotBeNull()
+        val importertFraArenaFromDb = importertFraArenaRepository.getForDeltaker(deltaker.id)
+        importertFraArenaFromDb.shouldNotBeNull()
+
+        val expectedDeltaker = deltaker.copy(
+            status = deltaker.status.copy(id = deltakerFromDb.status.id, opprettet = deltakerFromDb.status.opprettet),
+            bakgrunnsinformasjon = null,
+            sistEndret = deltakerFromDb.sistEndret,
+            opprettet = deltakerFromDb.opprettet,
+        )
+
+        deltakerFromDb shouldBe expectedDeltaker
+
+        importertFraArenaFromDb.deltakerId shouldBe importertFraArena.importertFraArena.deltakerId
+        importertFraArenaFromDb.deltakerVedImport.status.type shouldBe importertFraArena.importertFraArena.deltakerVedImport.status.type
+        importertFraArenaFromDb.importertDato.truncatedTo(ChronoUnit.SECONDS) shouldBe
+            importertFraArena.importertFraArena.importertDato.truncatedTo(ChronoUnit.SECONDS)
+    }
+
+    /*
     @Test
     fun `consumeDeltaker - hvis DeltakerStatus ikke eksisterer fra før - lagrer deltaker og importertFraArenaData med ny status`(): Unit
 
@@ -221,4 +318,15 @@ class EnkeltplassDeltakerConsumerTest {
 
     @Test
     fun `consumeDeltaker - tombstone - publiser tombstone på deltaker topic`(): Unit*/
+    private fun Deltakerliste.toV2Response() = GjennomforingV2Response(
+        id = id,
+        tiltakstype = GjennomforingV2Response.Tiltakstype(tiltakstype.tiltakskode.toString()),
+        navn = navn,
+        startDato = startDato,
+        sluttDato = sluttDato,
+        status = status.toString(),
+        oppstart = oppstart,
+        apentForPamelding = apentForPamelding,
+        arrangor = GjennomforingV2Response.Arrangor(arrangor.organisasjonsnummer),
+    )
 }
