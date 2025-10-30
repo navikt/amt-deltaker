@@ -69,7 +69,9 @@ data class Environment(
 
         const val ELECTOR_PATH = "ELECTOR_PATH"
 
-        const val HTTP_CLIENT_TIMEOUT_MS = 10_000
+        const val HTTP_REQUEST_TIMEOUT_MILLIS = 10_000L
+        const val HTTP_CONNECT_TIMEOUT_MILLIS = 5_000L
+        const val HTTP_SOCKET_TIMEOUT_MILLIS = 15_000L
 
         fun isDev(): Boolean {
             val cluster = System.getenv("NAIS_CLUSTER_NAME") ?: "Ikke dev"
