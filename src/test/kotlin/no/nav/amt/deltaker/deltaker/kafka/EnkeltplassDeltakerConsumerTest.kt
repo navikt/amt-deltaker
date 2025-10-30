@@ -310,15 +310,158 @@ class EnkeltplassDeltakerConsumerTest {
     }
 
     @Test
-    fun `consumeDeltaker - lik DeltakerStatus eksisterer fra før - lagrer deltaker og importertFraArenaData med samme status`() {
+    fun `consumeDeltaker - Deltaker eksisterer allerede - lagrer deltaker og importertFraArenaData med ny status`() {
+        val deltakerListe = lagDeltakerliste(
+            tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING),
+        )
+
+        val statusOpprettet = LocalDateTime.now().minusWeeks(1)
+        val sistEndret = LocalDateTime.now().minusDays(1)
+        val deltaker = TestData.lagDeltaker(
+            kilde = Kilde.ARENA,
+            deltakerliste = deltakerListe,
+            innhold = null,
+            navBruker = lagNavBruker(navEnhetId = null, navVeilederId = null),
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR, opprettet = statusOpprettet),
+            sistEndret = sistEndret,
+        )
+        val nyStatus = TestData
+            .lagDeltakerStatus(type = DeltakerStatus.Type.FULLFORT, opprettet = LocalDate.now().atStartOfDay())
+        val deltakerMedNyStatus = deltaker.copy(
+            status = nyStatus,
+            sluttdato = LocalDate.now().minusDays(1),
+        )
+
+        TestRepository.insert(deltaker)
+        TestRepository.insert(deltakerListe.tiltakstype)
+        val importertFraArena = DeltakerHistorikk.ImportertFraArena(
+            importertFraArena = ImportertFraArena(
+                deltakerId = deltaker.id,
+                importertDato = LocalDateTime.now(),
+                deltakerVedImport = deltakerMedNyStatus.toDeltakerVedImport(LocalDate.now()),
+            ),
+        )
+
+        every { unleashToggle.skalLeseArenaDataForTiltakstype(Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING) } returns true
+        every { unleashToggle.erKometMasterForTiltakstype(Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING) } returns false
+        coEvery { deltakerKafkaPayloadMapperService.tilDeltakerPayload(any()) } returns DeltakerKafkaPayloadBuilder(
+            deltaker = deltakerMedNyStatus,
+            deltakerhistorikk = listOf(importertFraArena),
+            vurderinger = emptyList(),
+            navAnsatt = null,
+            navEnhet = null,
+            forcedUpdate = null,
+        )
+        every { deltakerProducer.produce(any()) } just Runs
+        coEvery { navBrukerService.get(deltaker.navBruker.personident) } returns Result.success(deltaker.navBruker)
+
+        runBlocking {
+            consumer.consumeDeltaker(toPayload(deltakerMedNyStatus))
+        }
+
+        coVerify(exactly = 1) {
+            deltakerService.upsertDeltaker(any(), false, null)
+        }
+        coVerify(exactly = 1) {
+            deltakerProducerService.produce(any(), any(), any())
+        }
+        verify { deltakerProducer.produce(any()) }
+
+        val deltakerFromDb = deltakerService.get(deltaker.id).getOrThrow()
+        deltakerFromDb.shouldNotBeNull()
+        val importertFraArenaFromDb = importertFraArenaRepository.getForDeltaker(deltaker.id)
+        importertFraArenaFromDb.shouldNotBeNull()
+
+        val expectedDeltaker = deltakerMedNyStatus.copy(
+            status = deltakerMedNyStatus.status.copy(id = deltakerFromDb.status.id, opprettet = deltakerFromDb.status.opprettet),
+            bakgrunnsinformasjon = null,
+            sistEndret = deltakerFromDb.sistEndret,
+            opprettet = deltakerFromDb.opprettet,
+        )
+
+        expectedDeltaker shouldBe deltakerFromDb
+
+        importertFraArenaFromDb.deltakerId shouldBe importertFraArena.importertFraArena.deltakerId
+        importertFraArenaFromDb.deltakerVedImport.status.type shouldBe importertFraArena.importertFraArena.deltakerVedImport.status.type
+        importertFraArenaFromDb.importertDato.truncatedTo(ChronoUnit.MINUTES) shouldBe
+            importertFraArena.importertFraArena.importertDato.truncatedTo(ChronoUnit.MINUTES)
     }
 
-    /*
-    @Test // Fjerne?
-    fun `consumeDeltaker - hvis DeltakerStatus ikke eksisterer fra før - lagrer deltaker og importertFraArenaData med ny status`(): Unit
-
     @Test
-    fun `consumeDeltaker - tombstone - publiser tombstone på deltaker topic`(): Unit*/
+    fun `consumeDeltaker - Deltaker eksisterer, lik status, andre endringer på deltaker - lagrer deltaker`() {
+        val deltakerListe = lagDeltakerliste(
+            tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING),
+        )
+
+        val statusOpprettet = LocalDateTime.now().minusWeeks(1)
+        val sistEndret = LocalDateTime.now().minusDays(1)
+        val deltaker = TestData.lagDeltaker(
+            kilde = Kilde.ARENA,
+            deltakerliste = deltakerListe,
+            innhold = null,
+            navBruker = lagNavBruker(navEnhetId = null, navVeilederId = null),
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR, opprettet = statusOpprettet),
+            sistEndret = sistEndret,
+        )
+
+        val endretDeltaker = deltaker.copy(
+            sluttdato = LocalDate.now().plusDays(1),
+        )
+
+        TestRepository.insert(deltaker)
+        TestRepository.insert(deltakerListe.tiltakstype)
+        val importertFraArena = DeltakerHistorikk.ImportertFraArena(
+            importertFraArena = ImportertFraArena(
+                deltakerId = deltaker.id,
+                importertDato = LocalDateTime.now(),
+                deltakerVedImport = endretDeltaker.toDeltakerVedImport(LocalDate.now()),
+            ),
+        )
+
+        every { unleashToggle.skalLeseArenaDataForTiltakstype(Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING) } returns true
+        every { unleashToggle.erKometMasterForTiltakstype(Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING) } returns false
+        coEvery { deltakerKafkaPayloadMapperService.tilDeltakerPayload(any()) } returns DeltakerKafkaPayloadBuilder(
+            deltaker = endretDeltaker,
+            deltakerhistorikk = listOf(importertFraArena),
+            vurderinger = emptyList(),
+            navAnsatt = null,
+            navEnhet = null,
+            forcedUpdate = null,
+        )
+        every { deltakerProducer.produce(any()) } just Runs
+        coEvery { navBrukerService.get(deltaker.navBruker.personident) } returns Result.success(deltaker.navBruker)
+
+        runBlocking {
+            consumer.consumeDeltaker(toPayload(endretDeltaker))
+        }
+
+        coVerify(exactly = 1) {
+            deltakerService.upsertDeltaker(any(), false, null)
+        }
+        coVerify(exactly = 1) {
+            deltakerProducerService.produce(any(), any(), any())
+        }
+        verify { deltakerProducer.produce(any()) }
+
+        val deltakerFromDb = deltakerService.get(deltaker.id).getOrThrow()
+        deltakerFromDb.shouldNotBeNull()
+        val importertFraArenaFromDb = importertFraArenaRepository.getForDeltaker(deltaker.id)
+        importertFraArenaFromDb.shouldNotBeNull()
+
+        val expectedDeltaker = endretDeltaker.copy(
+            bakgrunnsinformasjon = null,
+            sistEndret = deltakerFromDb.sistEndret,
+            opprettet = deltakerFromDb.opprettet,
+        )
+
+        expectedDeltaker shouldBe deltakerFromDb
+
+        importertFraArenaFromDb.deltakerId shouldBe importertFraArena.importertFraArena.deltakerId
+        importertFraArenaFromDb.deltakerVedImport.status.type shouldBe importertFraArena.importertFraArena.deltakerVedImport.status.type
+        importertFraArenaFromDb.importertDato.truncatedTo(ChronoUnit.MINUTES) shouldBe
+            importertFraArena.importertFraArena.importertDato.truncatedTo(ChronoUnit.MINUTES)
+    }
+
     private fun Deltakerliste.toV2Response() = GjennomforingV2Response(
         id = id,
         tiltakstype = GjennomforingV2Response.Tiltakstype(tiltakstype.tiltakskode.toString()),
