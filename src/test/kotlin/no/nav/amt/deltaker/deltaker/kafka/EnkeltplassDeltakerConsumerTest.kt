@@ -309,12 +309,13 @@ class EnkeltplassDeltakerConsumerTest {
             importertFraArena.importertFraArena.importertDato.truncatedTo(ChronoUnit.MINUTES)
     }
 
-    /*
     @Test
-    fun `consumeDeltaker - hvis DeltakerStatus ikke eksisterer fra før - lagrer deltaker og importertFraArenaData med ny status`(): Unit
+    fun `consumeDeltaker - lik DeltakerStatus eksisterer fra før - lagrer deltaker og importertFraArenaData med samme status`() {
+    }
 
-    @Test
-    fun `consumeDeltaker - hvis DeltakerStatus eksisterer fra før - lagrer deltaker og importertFraArenaData med samme status`(): Unit
+    /*
+    @Test // Fjerne?
+    fun `consumeDeltaker - hvis DeltakerStatus ikke eksisterer fra før - lagrer deltaker og importertFraArenaData med ny status`(): Unit
 
     @Test
     fun `consumeDeltaker - tombstone - publiser tombstone på deltaker topic`(): Unit*/
