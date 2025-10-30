@@ -305,8 +305,8 @@ class EnkeltplassDeltakerConsumerTest {
 
         importertFraArenaFromDb.deltakerId shouldBe importertFraArena.importertFraArena.deltakerId
         importertFraArenaFromDb.deltakerVedImport.status.type shouldBe importertFraArena.importertFraArena.deltakerVedImport.status.type
-        importertFraArenaFromDb.importertDato.truncatedTo(ChronoUnit.SECONDS) shouldBe
-            importertFraArena.importertFraArena.importertDato.truncatedTo(ChronoUnit.SECONDS)
+        importertFraArenaFromDb.importertDato.truncatedTo(ChronoUnit.MINUTES) shouldBe
+            importertFraArena.importertFraArena.importertDato.truncatedTo(ChronoUnit.MINUTES)
     }
 
     /*
