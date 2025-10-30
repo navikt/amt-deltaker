@@ -2,7 +2,6 @@ package no.nav.amt.deltaker.apiclients.mulighetsrommet
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlistePayload
 import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
 import no.nav.amt.lib.ktor.clients.ApiClientBase
 import no.nav.amt.lib.ktor.clients.failIfNotSuccess
@@ -19,7 +18,7 @@ class MulighetsrommetApiClient(
         httpClient = httpClient,
         azureAdTokenClient = azureAdTokenClient,
     ) {
-    suspend fun hentGjennomforingV2(id: UUID): DeltakerlistePayload = performGet("$baseUrl/api/v2/tiltaksgjennomforinger/$id")
+    suspend fun hentGjennomforingV2(id: UUID): GjennomforingV2Response = performGet("$baseUrl/api/v2/tiltaksgjennomforinger/$id")
         .failIfNotSuccess("Klarte ikke å hente gjennomføring fra Mulighetsrommet v2 API.")
-        .body<DeltakerlistePayload>()
+        .body<GjennomforingV2Response>()
 }

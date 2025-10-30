@@ -59,7 +59,7 @@ class EnkeltplassDeltakerConsumer(
                     .hentGjennomforingV2(deltakerPayload.gjennomforingId) // Fallback hvis deltakerlisten ikke finnes i databasen
                     .let { gjennomforing ->
                         gjennomforing.toModel(
-                            arrangor = arrangorService.hentArrangor(gjennomforing.organisasjonsnummer),
+                            arrangor = arrangorService.hentArrangor(gjennomforing.arrangor.organisasjonsnummer),
                             tiltakstype = tiltakstypeRepository
                                 .get(
                                     Tiltakskode.valueOf(gjennomforing.tiltakstype.tiltakskode),
