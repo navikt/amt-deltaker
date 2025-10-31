@@ -43,7 +43,6 @@ import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinat
 import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
-import no.nav.amt.deltaker.utils.data.TestData.lagEndringFraTiltakskoordinator
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.utils.mockAmtArrangorClient
 import no.nav.amt.deltaker.utils.mockPersonServiceClient
@@ -915,16 +914,9 @@ class DeltakerServiceTest {
             deltaker,
             vedtak,
         )
-        val endring = lagEndringFraTiltakskoordinator(
-            deltakerId = deltaker.id,
-            endring = EndringFraTiltakskoordinator.TildelPlass,
-            endretAv = endretAv.id,
-            endretAvEnhet = endretAvEnhet.id,
-        )
 
         deltakerService.transactionalDeltakerUpsert(
             deltaker.copy(status = nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART)),
-            endring,
         ) {
             throw RuntimeException("Feiler")
         }

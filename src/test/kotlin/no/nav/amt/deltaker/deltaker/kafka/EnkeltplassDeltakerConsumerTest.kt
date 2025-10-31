@@ -94,6 +94,7 @@ class EnkeltplassDeltakerConsumerTest {
             mulighetsrommetApiClient,
             arrangorService,
             tiltakstypeRepository,
+            deltakerProducerService,
         )
 
         @JvmStatic
@@ -199,17 +200,17 @@ class EnkeltplassDeltakerConsumerTest {
         }
 
         coVerify(exactly = 1) {
-            deltakerService.upsertDeltaker(
+            deltakerService.transactionalDeltakerUpsert(
                 match {
                     it.id == deltaker.id &&
                         it.deltakerliste.id == deltaker.deltakerliste.id &&
                         it.status.type == deltaker.status.type &&
                         it.bakgrunnsinformasjon == null // comes from payload
                 },
-                eq(false),
-                isNull(),
+                any(),
             )
         }
+
         coVerify(exactly = 1) {
             deltakerProducerService.produce(any(), any(), any())
         }
@@ -280,7 +281,7 @@ class EnkeltplassDeltakerConsumerTest {
         }
 
         coVerify(exactly = 1) {
-            deltakerService.upsertDeltaker(any(), false, null)
+            deltakerService.transactionalDeltakerUpsert(any(), any())
         }
         coVerify(exactly = 1) {
             deltakerProducerService.produce(any(), any(), any())
@@ -360,7 +361,7 @@ class EnkeltplassDeltakerConsumerTest {
         }
 
         coVerify(exactly = 1) {
-            deltakerService.upsertDeltaker(any(), false, null)
+            deltakerService.transactionalDeltakerUpsert(any(), any())
         }
         coVerify(exactly = 1) {
             deltakerProducerService.produce(any(), any(), any())
@@ -373,7 +374,10 @@ class EnkeltplassDeltakerConsumerTest {
         importertFraArenaFromDb.shouldNotBeNull()
 
         val expectedDeltaker = deltakerMedNyStatus.copy(
-            status = deltakerMedNyStatus.status.copy(id = deltakerFromDb.status.id, opprettet = deltakerFromDb.status.opprettet),
+            status = deltakerMedNyStatus.status.copy(
+                id = deltakerFromDb.status.id,
+                opprettet = deltakerFromDb.status.opprettet,
+            ),
             bakgrunnsinformasjon = null,
             sistEndret = deltakerFromDb.sistEndret,
             opprettet = deltakerFromDb.opprettet,
@@ -436,7 +440,7 @@ class EnkeltplassDeltakerConsumerTest {
         }
 
         coVerify(exactly = 1) {
-            deltakerService.upsertDeltaker(any(), false, null)
+            deltakerService.transactionalDeltakerUpsert(any(), any())
         }
         coVerify(exactly = 1) {
             deltakerProducerService.produce(any(), any(), any())

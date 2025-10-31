@@ -31,6 +31,7 @@ class EnkeltplassDeltakerConsumer(
     private val mulighetsrommetApiClient: MulighetsrommetApiClient,
     private val arrangorService: ArrangorService,
     private val tiltakstypeRepository: TiltakstypeRepository,
+    private val deltakerProducerService: DeltakerProducerService,
 ) : Consumer<UUID, String?> {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -44,9 +45,9 @@ class EnkeltplassDeltakerConsumer(
             // arena-acl skal aldri tombstone, sletting av enkeltplassdeltakere håndteres med status=feilregistrert
             throw IllegalStateException("Tombstone er ikke støttet. Key: $key")
         } else {
-            log.info("Konsumerer deltaker med key $key")
+            log.info("Konsumerer enkeltplass deltaker med key $key")
             consumeDeltaker(objectMapper.readValue(value))
-            log.info("Ferdig med å konsumere deltaker med key $key")
+            log.info("Ferdig med å konsumere enkeltplass deltaker med key $key")
         }
     }
 
@@ -81,6 +82,7 @@ class EnkeltplassDeltakerConsumer(
         )
 
         upsertImportertDeltaker(deltaker)
+        deltakerProducerService.produce(deltaker)
 
         log.info("Ingest for arenadeltaker med id ${deltaker.id} er ferdig")
     }
@@ -89,11 +91,11 @@ class EnkeltplassDeltakerConsumer(
 
     override suspend fun close() = consumer.close()
 
-    private suspend fun upsertImportertDeltaker(deltaker: Deltaker) {
-        deltakerService.upsertDeltaker(deltaker)
-        val importertData = deltaker.toImportertData()
-        importertFraArenaRepository.upsert(importertData)
-    }
+    private fun upsertImportertDeltaker(deltaker: Deltaker) = deltakerService
+        .transactionalDeltakerUpsert(deltaker) { transaction ->
+            val importertData = deltaker.toImportertData()
+            importertFraArenaRepository.upsert(importertData, transaction)
+        }.getOrThrow()
 
     private fun Deltaker.toImportertData() = ImportertFraArena(
         deltakerId = id,
