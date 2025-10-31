@@ -313,6 +313,7 @@ fun Application.module() {
             mulighetsrommetApiClient,
             arrangorService,
             tiltakstypeRepository,
+            deltakerProducerService,
         ),
         ArrangorMeldingConsumer(forslagService, deltakerService, vurderingService, deltakerProducerService, unleashToggle),
         NavEnhetConsumer(navEnhetService),
