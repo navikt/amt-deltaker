@@ -18,7 +18,7 @@ class MulighetsrommetApiClient(
         httpClient = httpClient,
         azureAdTokenClient = azureAdTokenClient,
     ) {
-    suspend fun hentGjennomforingV2(id: UUID): GjennomforingV2Response = performGet("$baseUrl/api/v2/tiltaksgjennomforinger/$id")
-        .failIfNotSuccess("Klarte ikke å hente gjennomføring fra Mulighetsrommet v2 API.")
+    suspend fun hentGjennomforingV2(id: UUID): GjennomforingV2Response = performGet("${baseUrl}api/v2/tiltaksgjennomforinger/$id")
+        .failIfNotSuccess("Klarte ikke å hente gjennomføring $id fra Mulighetsrommet v2 API.")
         .body<GjennomforingV2Response>()
 }
