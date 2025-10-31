@@ -122,7 +122,7 @@ class EnkeltplassDeltakerConsumerTest {
         startDato = deltaker.startdato,
         sluttDato = deltaker.sluttdato,
         status = deltaker.status.type,
-        statusAarsak = deltaker.status.aarsak,
+        statusAarsak = deltaker.status.aarsak?.type,
         dagerPerUke = deltaker.dagerPerUke,
         prosentDeltid = deltaker.deltakelsesprosent,
         registrertDato = registrertDato,
