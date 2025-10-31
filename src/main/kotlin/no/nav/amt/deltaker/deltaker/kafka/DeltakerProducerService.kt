@@ -21,10 +21,15 @@ class DeltakerProducerService(
         val deltakerPayload = deltakerKafkaPayloadMapperService.tilDeltakerPayload(deltaker, forcedUpdate)
 
         if (unleashToggle.erKometMasterForTiltakstype(deltaker.deltakerliste.tiltakstype.tiltakskode)) {
-            deltakerProducer.produce(deltakerPayload.v2)
             if (publiserTilDeltakerV1) {
                 deltakerV1Producer.produce(deltakerPayload.v1)
             }
+        }
+
+        if (unleashToggle.erKometMasterForTiltakstype(deltaker.deltakerliste.tiltakstype.tiltakskode) ||
+            unleashToggle.skalLeseArenaDataForTiltakstype(deltaker.deltakerliste.tiltakstype.tiltakskode)
+        ) {
+            deltakerProducer.produce(deltakerPayload.v2)
         }
     }
 

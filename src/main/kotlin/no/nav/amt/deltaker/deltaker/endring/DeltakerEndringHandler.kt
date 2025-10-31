@@ -155,6 +155,8 @@ class DeltakerEndringHandler(
             deltaker.status.aarsak != endring.aarsak?.toDeltakerStatusAarsak(),
     ) {
         if (deltaker.status.type == DeltakerStatus.Type.DELTAR || !endring.skalFortsattDelta()) {
+            // Skal deltaker avsluttes nå eller i fremtiden
+
             DeltakerEndringUtfall.VellykketEndring(
                 deltaker.copy(
                     sluttdato = endring.sluttdato,
@@ -162,6 +164,8 @@ class DeltakerEndringHandler(
                 ),
             )
         } else {
+            // Deltaker er avsluttet allerede, men nav veileder godkjenner et forlag om å avslutte deltaker frem i tid
+            // Da settes status til DELTAR igjen med en fremtidig(neste) avsluttende status
             DeltakerEndringUtfall.VellykketEndring(
                 deltaker.copy(
                     sluttdato = endring.sluttdato,

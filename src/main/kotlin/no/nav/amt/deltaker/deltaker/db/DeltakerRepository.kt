@@ -102,7 +102,7 @@ class DeltakerRepository {
 
     fun upsert(
         deltaker: Deltaker,
-        nesteStatus: DeltakerStatus? = null,
+        fremtidigStatus: DeltakerStatus? = null,
         transactionalSession: TransactionalSession,
     ) {
         val sql =
@@ -146,16 +146,22 @@ class DeltakerRepository {
         )
 
         transactionalSession.update(queryOf(sql, parameters))
+
+        lagreStatus(deltaker, transactionalSession)
+        fremtidigStatus?.let { transactionalSession.update(insertStatusQuery(it, deltaker.id)) }
+    }
+
+    fun lagreStatus(deltaker: Deltaker, transactionalSession: TransactionalSession) {
         transactionalSession.update(insertStatusQuery(deltaker.status, deltaker.id))
-        if (!deltaker.status.gyldigFra
-                .toLocalDate()
-                .isAfter(LocalDate.now())
-        ) {
+
+        val erNyStatusAktiv = deltaker.status.gyldigFra.toLocalDate() <= LocalDate.now()
+
+        if (erNyStatusAktiv) {
             transactionalSession.update(deaktiverTidligereStatuserQuery(deltaker.status, deltaker.id))
         } else {
+            // Dette skjer aldri for arenadeltakelser
             transactionalSession.update(slettTidligereFremtidigeStatuserQuery(deltaker.status, deltaker.id))
         }
-        nesteStatus?.let { transactionalSession.update(insertStatusQuery(it, deltaker.id)) }
     }
 
     fun upsert(deltaker: Deltaker, nesteStatus: DeltakerStatus? = null) = Database.query { session ->

@@ -43,7 +43,6 @@ import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinat
 import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
-import no.nav.amt.deltaker.utils.data.TestData.lagEndringFraTiltakskoordinator
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.utils.mockAmtArrangorClient
 import no.nav.amt.deltaker.utils.mockPersonServiceClient
@@ -915,16 +914,9 @@ class DeltakerServiceTest {
             deltaker,
             vedtak,
         )
-        val endring = lagEndringFraTiltakskoordinator(
-            deltakerId = deltaker.id,
-            endring = EndringFraTiltakskoordinator.TildelPlass,
-            endretAv = endretAv.id,
-            endretAvEnhet = endretAvEnhet.id,
-        )
 
         deltakerService.transactionalDeltakerUpsert(
             deltaker.copy(status = nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART)),
-            endring,
         ) {
             throw RuntimeException("Feiler")
         }
@@ -1292,10 +1284,11 @@ infix fun Deltaker.shouldBeComparableWith(expected: Deltaker?) {
 
     fun LocalDateTime.atStartOfDay() = this.toLocalDate().atStartOfDay()
 
+    val now = LocalDateTime.now()
     this.copy(
         sistEndret = sistEndret,
         status = status.copy(id = expected!!.status.id, opprettet = statusOpprettetDay, gyldigFra = gyldigFra),
-        opprettet = null,
+        opprettet = now,
         vedtaksinformasjon = vedtaksinformasjon?.copy(
             fattet = this.vedtaksinformasjon.fattet?.atStartOfDay(),
             sistEndret = this.vedtaksinformasjon.sistEndret.atStartOfDay()!!,
@@ -1307,7 +1300,7 @@ infix fun Deltaker.shouldBeComparableWith(expected: Deltaker?) {
             opprettet = expected.status.opprettet.atStartOfDay(),
             gyldigFra = expected.status.gyldigFra.atStartOfDay(),
         ),
-        opprettet = null,
+        opprettet = now,
         vedtaksinformasjon = vedtaksinformasjon?.copy(
             fattet = expected.vedtaksinformasjon?.fattet?.atStartOfDay(),
             sistEndret = expected.vedtaksinformasjon?.sistEndret?.atStartOfDay()!!,
