@@ -17,7 +17,7 @@ data class EnkeltplassDeltakerPayload(
     val startDato: LocalDate?,
     val sluttDato: LocalDate?,
     val status: DeltakerStatus.Type,
-    val statusAarsak: DeltakerStatus.Aarsak?,
+    val statusAarsak: DeltakerStatus.Aarsak.Type?,
     val dagerPerUke: Float?,
     val prosentDeltid: Float?,
     val registrertDato: LocalDateTime,
@@ -39,7 +39,7 @@ data class EnkeltplassDeltakerPayload(
         bakgrunnsinformasjon = null,
         deltakelsesinnhold = null,
         status = if (forrigeDeltakerStatus != null &&
-            forrigeDeltakerStatus.aarsak == statusAarsak &&
+            forrigeDeltakerStatus.aarsak?.type == statusAarsak &&
             forrigeDeltakerStatus.type == status
         ) {
             forrigeDeltakerStatus
@@ -47,7 +47,12 @@ data class EnkeltplassDeltakerPayload(
             DeltakerStatus(
                 id = UUID.randomUUID(),
                 type = status,
-                aarsak = statusAarsak,
+                aarsak = statusAarsak?.let {
+                    DeltakerStatus.Aarsak(
+                        type = statusAarsak,
+                        beskrivelse = null,
+                    )
+                },
                 // statusEndretDato skal i praksis aldri være null for enkeltplasstiltak (sjekket i arena)
                 gyldigFra = statusEndretDato!!,
                 gyldigTil = null,
