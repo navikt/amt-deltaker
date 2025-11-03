@@ -149,14 +149,12 @@ class DeltakerService(
 
     fun transactionalDeltakerUpsert(deltaker: Deltaker, transactionalUpsert: (t: TransactionalSession) -> Unit = {}) =
         Database.query { session ->
-            try {
+            runCatching {
                 session.transaction { transaction ->
                     deltakerRepository.upsert(deltaker, null, transaction)
                     transactionalUpsert(transaction)
                 }
-                return@query Result.success(deltaker)
-            } catch (ex: Exception) {
-                return@query Result.failure(ex)
+                deltaker
             }
         }
 
