@@ -4,7 +4,6 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import kotliquery.TransactionalSession
 import kotliquery.queryOf
-import no.nav.amt.deltaker.deltaker.db.DbUtils.nullWhenNearNow
 import no.nav.amt.deltaker.utils.prefixColumn
 import no.nav.amt.deltaker.utils.toPGObject
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
@@ -40,7 +39,7 @@ class ImportertFraArenaRepository {
                     COALESCE(:importert_dato, CURRENT_TIMESTAMP),
                     :deltaker_ved_import)
             ON CONFLICT (deltaker_id) DO UPDATE SET
-              importert_dato      = :importert_dato, 
+              importert_dato      = CURRENT_TIMESTAMP, 
               deltaker_ved_import = :deltaker_ved_import
             """.trimIndent()
 
@@ -49,7 +48,6 @@ class ImportertFraArenaRepository {
                 sql,
                 mapOf(
                     "deltaker_id" to importertFraArena.deltakerId,
-                    "importert_dato" to nullWhenNearNow(importertFraArena.importertDato),
                     "deltaker_ved_import" to toPGObject(importertFraArena.deltakerVedImport),
                 ),
             ),
