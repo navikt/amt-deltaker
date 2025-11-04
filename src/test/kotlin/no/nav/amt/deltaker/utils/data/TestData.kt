@@ -272,7 +272,7 @@ object TestData {
         sistEndret = sistEndret,
         kilde = kilde,
         erManueltDeltMedArrangor = erManueltDeltMedArrangor,
-        opprettet = null,
+        opprettet = LocalDateTime.now(),
     )
 
     fun lagDeltakerStatus(
@@ -280,7 +280,7 @@ object TestData {
         type: DeltakerStatus.Type = DeltakerStatus.Type.DELTAR,
         aarsak: DeltakerStatus.Aarsak.Type? = null,
         beskrivelse: String? = null,
-        gyldigFra: LocalDateTime = LocalDateTime.now().minusMinutes(5),
+        gyldigFra: LocalDateTime = LocalDate.now().atStartOfDay(),
         gyldigTil: LocalDateTime? = null,
         opprettet: LocalDateTime = LocalDateTime.now(),
     ) = DeltakerStatus(

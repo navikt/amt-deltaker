@@ -19,6 +19,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.Environment.Companion.HTTP_CONNECT_TIMEOUT_MILLIS
 import no.nav.amt.deltaker.Environment.Companion.HTTP_REQUEST_TIMEOUT_MILLIS
 import no.nav.amt.deltaker.Environment.Companion.HTTP_SOCKET_TIMEOUT_MILLIS
+import no.nav.amt.deltaker.apiclients.mulighetsrommet.MulighetsrommetApiClient
 import no.nav.amt.deltaker.apiclients.oppfolgingstilfelle.IsOppfolgingstilfelleClient
 import no.nav.amt.deltaker.application.plugins.configureAuthentication
 import no.nav.amt.deltaker.application.plugins.configureMonitoring
@@ -48,10 +49,10 @@ import no.nav.amt.deltaker.deltaker.forslag.kafka.ArrangorMeldingProducer
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartService
-import no.nav.amt.deltaker.deltaker.kafka.DeltakerConsumer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerV1Producer
+import no.nav.amt.deltaker.deltaker.kafka.EnkeltplassDeltakerConsumer
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerKafkaPayloadMapperService
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
@@ -148,6 +149,13 @@ fun Application.module() {
     val isOppfolgingsTilfelleClient = IsOppfolgingstilfelleClient(
         baseUrl = environment.isOppfolgingstilfelleUrl,
         scope = environment.isOppfolgingstilfelleScope,
+        azureAdTokenClient = azureAdTokenClient,
+        httpClient = httpClient,
+    )
+
+    val mulighetsrommetApiClient = MulighetsrommetApiClient(
+        baseUrl = environment.mulighetsrommetApiUrl,
+        scope = environment.mulighetsrommetApiScope,
         azureAdTokenClient = azureAdTokenClient,
         httpClient = httpClient,
     )
@@ -296,14 +304,16 @@ fun Application.module() {
             deltakerService,
             unleashToggle,
         ),
-        DeltakerConsumer(
-            deltakerRepository,
+        EnkeltplassDeltakerConsumer(
+            deltakerService,
             deltakerlisteRepository,
             navBrukerService,
-            deltakerEndringService,
             importertFraArenaRepository,
-            vurderingRepository,
             unleashToggle,
+            mulighetsrommetApiClient,
+            arrangorService,
+            tiltakstypeRepository,
+            deltakerProducerService,
         ),
         ArrangorMeldingConsumer(forslagService, deltakerService, vurderingService, deltakerProducerService, unleashToggle),
         NavEnhetConsumer(navEnhetService),

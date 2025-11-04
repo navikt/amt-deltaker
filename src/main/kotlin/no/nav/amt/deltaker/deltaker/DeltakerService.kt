@@ -147,22 +147,16 @@ class DeltakerService(
         )
     }
 
-    fun transactionalDeltakerUpsert(
-        deltaker: Deltaker,
-        endring: EndringFraTiltakskoordinator,
-        transactionalUpsert: (t: TransactionalSession) -> Unit = {},
-    ) = Database.query { session ->
-        try {
-            session.transaction { transaction ->
-                deltakerRepository.upsert(deltaker, null, transaction)
-                endringFraTiltakskoordinatorRepository.insert(listOf(endring), transaction)
-                transactionalUpsert(transaction)
+    fun transactionalDeltakerUpsert(deltaker: Deltaker, transactionalUpsert: (t: TransactionalSession) -> Unit = {}) =
+        Database.query { session ->
+            runCatching {
+                session.transaction { transaction ->
+                    deltakerRepository.upsert(deltaker, null, transaction)
+                    transactionalUpsert(transaction)
+                }
+                deltaker
             }
-            return@query Result.success(deltaker)
-        } catch (ex: Exception) {
-            return@query Result.failure(ex)
         }
-    }
 
     fun upsertDeltaker(
         deltaker: Deltaker,
@@ -187,7 +181,8 @@ class DeltakerService(
                 deltakerResult.exceptionOrNull(),
             )
         }
-        val result = transactionalDeltakerUpsert(deltakerResult.getOrThrow(), endring) { transaction ->
+        val result = transactionalDeltakerUpsert(deltakerResult.getOrThrow()) { transaction ->
+            endringFraTiltakskoordinatorRepository.insert(listOf(endring), transaction)
             if (endringsType is EndringFraTiltakskoordinator.TildelPlass && deltaker.kilde == Kilde.KOMET) {
                 vedtakService.navFattVedtak(deltaker, endretAv, endretAvEnhet, transaction)
             }

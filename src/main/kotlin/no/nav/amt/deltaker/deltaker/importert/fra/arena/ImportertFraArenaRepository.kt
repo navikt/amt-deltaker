@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.deltaker.importert.fra.arena
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
+import kotliquery.TransactionalSession
 import kotliquery.queryOf
 import no.nav.amt.deltaker.utils.prefixColumn
 import no.nav.amt.deltaker.utils.toPGObject
@@ -23,7 +24,11 @@ class ImportertFraArenaRepository {
         }
     }
 
-    fun upsert(importertFraArena: ImportertFraArena) = Database.query {
+    fun upsert(importertFraArena: ImportertFraArena) = Database.query { session ->
+        session.transaction { upsert(importertFraArena, it) }
+    }
+
+    fun upsert(importertFraArena: ImportertFraArena, transaction: TransactionalSession) {
         val sql =
             """
             INSERT INTO importert_fra_arena(
@@ -31,19 +36,18 @@ class ImportertFraArenaRepository {
                 importert_dato, 
                 deltaker_ved_import)
             VALUES (:deltaker_id,
-                    :importert_dato,
+                    COALESCE(:importert_dato, CURRENT_TIMESTAMP),
                     :deltaker_ved_import)
             ON CONFLICT (deltaker_id) DO UPDATE SET
-              importert_dato      = :importert_dato,
+              importert_dato      = CURRENT_TIMESTAMP, 
               deltaker_ved_import = :deltaker_ved_import
             """.trimIndent()
 
-        it.update(
+        transaction.update(
             queryOf(
                 sql,
                 mapOf(
                     "deltaker_id" to importertFraArena.deltakerId,
-                    "importert_dato" to importertFraArena.importertDato,
                     "deltaker_ved_import" to toPGObject(importertFraArena.deltakerVedImport),
                 ),
             ),

@@ -13,7 +13,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
-// Skal slettes
+// Brukes i test
 data class DeltakerV2Dto(
     val id: UUID,
     val deltakerlisteId: UUID,
