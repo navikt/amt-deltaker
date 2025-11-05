@@ -6,7 +6,6 @@ import io.kotest.assertions.json.schema.shouldMatchSchema
 import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
-import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlistePayloadJsonSchemas.deltakerlistePayloadV1Schema
 import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlistePayloadJsonSchemas.deltakerlistePayloadV2Schema
 import no.nav.amt.deltaker.utils.data.TestData.lagArrangor
 import no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype
@@ -135,32 +134,10 @@ class DeltakerlistePayloadTest {
 
             json.shouldMatchSchema(deltakerlistePayloadV2Schema)
         }
-
-        @Test
-        fun `fullt populert V1 skal matche skjema`() {
-            val json = objectMapper
-                .copy()
-                .setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL)
-                .writeValueAsString(fullyPopulatedV1PayloadInTest.copy())
-
-            json.shouldMatchSchema(deltakerlistePayloadV1Schema)
-        }
     }
 
     companion object {
         private val deltakerlisteIdInTest = UUID.randomUUID()
-
-        private val fullyPopulatedV1PayloadInTest = DeltakerlistePayload(
-            id = deltakerlisteIdInTest,
-            tiltakstype = DeltakerlistePayload.Tiltakstype(Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING.name),
-            navn = "Testliste",
-            startDato = LocalDate.of(2024, 1, 1),
-            sluttDato = LocalDate.of(2024, 6, 1),
-            status = "GJENNOMFORES",
-            oppstart = Oppstartstype.LOPENDE,
-            apentForPamelding = true,
-            virksomhetsnummer = "123456789",
-        )
 
         private val fullyPopulatedV2PayloadInTest = DeltakerlistePayload(
             type = DeltakerlistePayload.ENKELTPLASS_V2_TYPE,
@@ -172,6 +149,7 @@ class DeltakerlistePayloadTest {
             status = "GJENNOMFORES",
             oppstart = Oppstartstype.LOPENDE,
             apentForPamelding = true,
+            oppmoteSted = "~~oppmoteSted~",
             arrangor = DeltakerlistePayload.Arrangor("987654321"),
         )
     }

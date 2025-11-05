@@ -147,8 +147,9 @@ object TestData {
         startDato: LocalDate = LocalDate.now().minusMonths(1),
         sluttDato: LocalDate? = LocalDate.now().plusYears(1),
         oppstart: Oppstartstype = finnOppstartstype(tiltakstype.arenaKode),
+        oppmoteSted: String? = "~oppmoteSted~",
         apentForPamelding: Boolean = true,
-    ) = Deltakerliste(id, tiltakstype, navn, status, startDato, sluttDato, oppstart, apentForPamelding, arrangor)
+    ) = Deltakerliste(id, tiltakstype, navn, status, startDato, sluttDato, oppstart, apentForPamelding, oppmoteSted, arrangor)
 
     fun lagDeltakerlisteMedLopendeOppstart(
         tiltakstype: Tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
@@ -175,6 +176,7 @@ object TestData {
             virksomhetsnummer = arrangor.organisasjonsnummer,
             oppstart = deltakerliste.oppstart,
             apentForPamelding = deltakerliste.apentForPamelding,
+            oppmoteSted = deltakerliste.oppmoteSted,
         )
 
     fun lagNavBrukerDto(navBruker: NavBruker, navEnhet: NavEnhet) = NavBrukerDto(

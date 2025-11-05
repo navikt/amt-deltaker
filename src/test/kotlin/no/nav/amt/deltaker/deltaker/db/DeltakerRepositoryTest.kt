@@ -29,13 +29,14 @@ class DeltakerRepositoryTest {
     inner class Upsert {
         @Test
         fun `ny deltaker - insertes`() {
-            val deltaker = TestData.lagDeltaker()
-            TestRepository.insert(deltaker.deltakerliste)
-            TestRepository.insert(deltaker.navBruker)
+            val expectedDeltaker = TestData.lagDeltaker()
+            TestRepository.insert(expectedDeltaker.deltakerliste)
+            TestRepository.insert(expectedDeltaker.navBruker)
 
-            repository.upsert(deltaker)
+            repository.upsert(expectedDeltaker)
 
-            assertDeltakereAreEqual(repository.get(deltaker.id).getOrThrow(), deltaker)
+            val deltakerFromDb = repository.get(expectedDeltaker.id).getOrThrow()
+            assertDeltakereAreEqual(deltakerFromDb, expectedDeltaker)
         }
 
         @Test

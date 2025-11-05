@@ -236,6 +236,7 @@ class EnkeltplassDeltakerConsumerTest {
     fun `consumeDeltaker - gjennomføring eksisterer ikke i db - henter gjennomføring synkront fra mulighetsrommet api og lagrer`() {
         val deltakerListe = lagDeltakerliste(
             tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING),
+            oppmoteSted = null,
         )
 
         val statusOpprettet = LocalDateTime.now().minusWeeks(1)
