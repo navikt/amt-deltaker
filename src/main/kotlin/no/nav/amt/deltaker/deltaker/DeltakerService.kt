@@ -155,19 +155,6 @@ class DeltakerService(
             }
         }
 
-    /*
-        fun transactionalDeltakerUpsert2(deltaker: Deltaker, transactionalUpsert: (t: TransactionalSession) -> Unit = {}) =
-            Database.query { session ->
-                runCatching {
-                    session.transaction { transaction ->
-                        deltakerRepository.upsert(deltaker, null, transaction)
-                        transactionalUpsert(transaction)
-                    }
-                    deltaker
-                }
-            }
-     */
-
     suspend fun upsertDeltaker(
         deltaker: Deltaker,
         endringsType: EndringFraTiltakskoordinator.Endring,
