@@ -12,9 +12,10 @@ data class Deltakerliste(
     val navn: String,
     val status: Status?,
     val startDato: LocalDate?,
-    val sluttDato: LocalDate? = null,
+    val sluttDato: LocalDate?,
     val oppstart: Oppstartstype?,
     val apentForPamelding: Boolean,
+    val oppmoteSted: String?,
     val arrangor: Arrangor,
 ) {
     enum class Status {

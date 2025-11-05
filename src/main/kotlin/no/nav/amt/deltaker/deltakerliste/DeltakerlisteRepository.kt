@@ -26,6 +26,7 @@ class DeltakerlisteRepository {
                 sluttDato = row.localDateOrNull(col("slutt_dato")),
                 oppstart = row.stringOrNull(col("oppstart"))?.let { Oppstartstype.valueOf(it) },
                 apentForPamelding = row.boolean(col("apent_for_pamelding")),
+                oppmoteSted = row.stringOrNull(col("oppmote_sted")),
                 arrangor = Arrangor(
                     id = row.uuid("a.id"),
                     navn = row.string("a.navn"),
@@ -48,7 +49,8 @@ class DeltakerlisteRepository {
                 start_dato, 
                 slutt_dato, 
                 oppstart,
-                apent_for_pamelding)
+                apent_for_pamelding,
+                oppmote_sted)
             VALUES (:id,
             		:navn,
             		:status,
@@ -57,7 +59,8 @@ class DeltakerlisteRepository {
             		:start_dato,
             		:slutt_dato,
                     :oppstart,
-                    :apent_for_pamelding)
+                    :apent_for_pamelding,
+                    :oppmote_sted)
             ON CONFLICT (id) DO UPDATE SET
             		navn     				= :navn,
             		status					= :status,
@@ -67,6 +70,7 @@ class DeltakerlisteRepository {
             		slutt_dato				= :slutt_dato,
                     oppstart                = :oppstart,
                     apent_for_pamelding     = :apent_for_pamelding,
+                    oppmote_sted            = :oppmote_sted,
                     modified_at             = current_timestamp
             """.trimIndent()
 
@@ -83,6 +87,7 @@ class DeltakerlisteRepository {
                     "slutt_dato" to deltakerliste.sluttDato,
                     "oppstart" to deltakerliste.oppstart?.name,
                     "apent_for_pamelding" to deltakerliste.apentForPamelding,
+                    "oppmote_sted" to deltakerliste.oppmoteSted,
                 ),
             ),
         )
@@ -111,6 +116,7 @@ class DeltakerlisteRepository {
                dl.slutt_dato as "dl.slutt_dato",
                dl.oppstart as "dl.oppstart",
                dl.apent_for_pamelding as "dl.apent_for_pamelding",
+               dl.oppmote_sted as "dl.oppmote_sted",
                a.id as "a.id",
                a.navn as "a.navn",
                a.organisasjonsnummer as "a.organisasjonsnummer",
@@ -121,9 +127,10 @@ class DeltakerlisteRepository {
                t.type as "t.type",
                t.innsatsgrupper as "t.innsatsgrupper",
                t.innhold as "t.innhold"
-            FROM deltakerliste dl
-                 INNER JOIN arrangor a ON a.id = dl.arrangor_id
-                 INNER JOIN tiltakstype t ON t.id = dl.tiltakstype_id
+            FROM 
+                deltakerliste dl
+                JOIN arrangor a ON a.id = dl.arrangor_id
+                JOIN tiltakstype t ON t.id = dl.tiltakstype_id
             WHERE dl.id = :id
             """.trimIndent(),
             mapOf("id" to id),

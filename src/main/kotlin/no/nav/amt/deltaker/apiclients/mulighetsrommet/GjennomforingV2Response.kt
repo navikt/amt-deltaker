@@ -14,6 +14,7 @@ data class GjennomforingV2Response(
     val status: String? = null, // finnes kun for gruppetiltak
     val oppstart: Oppstartstype? = null, // finnes kun for gruppetiltak
     val apentForPamelding: Boolean = true, // finnes kun for gruppetiltak
+    val oppmoteSted: String? = null,
     val arrangor: Arrangor,
 ) {
     data class Tiltakstype(
@@ -35,7 +36,8 @@ data class GjennomforingV2Response(
         startDato = this.startDato,
         sluttDato = this.sluttDato,
         oppstart = this.oppstart,
+        apentForPamelding = this.apentForPamelding,
+        oppmoteSted = this.oppmoteSted,
         arrangor = arrangor,
-        apentForPamelding = apentForPamelding,
     )
 }
