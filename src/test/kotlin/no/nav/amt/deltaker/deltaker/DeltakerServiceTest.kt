@@ -922,11 +922,13 @@ class DeltakerServiceTest {
             vedtak,
         )
 
-        deltakerService.transactionalDeltakerUpsert(
+        val upsertResult = deltakerService.transactionalDeltakerUpsert(
             deltaker.copy(status = nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART)),
         ) {
             throw RuntimeException("Feiler")
         }
+
+        upsertResult.isFailure shouldBe true
 
         val result = deltakerService.get(deltaker.id).getOrThrow()
         result.status.type shouldBe deltaker.status.type
