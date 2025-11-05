@@ -36,22 +36,8 @@ object DeltakerlistePayloadJsonSchemas {
             withProperty("status", optional = true) { string() }
             withProperty("oppstart", optional = true) { string() }
             withProperty("apentForPamelding") { boolean() }
+            withProperty("oppmoteSted") { string() }
             withProperty("arrangor") { arrangorSchema() }
-            additionalProperties = false
-        }
-    }
-
-    val deltakerlistePayloadV1Schema = jsonSchema {
-        obj {
-            withProperty("id") { string() }
-            withProperty("tiltakstype") { tiltakstypeSchema() }
-            withProperty("navn") { string() }
-            withProperty("startDato") { string() } // ISO-8601 format
-            withProperty("sluttDato", optional = true) { string() }
-            withProperty("status") { string() }
-            withProperty("oppstart") { string() }
-            withProperty("apentForPamelding") { boolean() }
-            withProperty("virksomhetsnummer") { string() }
             additionalProperties = false
         }
     }
