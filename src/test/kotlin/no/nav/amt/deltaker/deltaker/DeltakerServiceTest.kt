@@ -898,7 +898,25 @@ class DeltakerServiceTest {
     }
 
     @Test
-    fun `upsertDeltaker - tildel plass feiler på siste insert - ruller tilbake alle endringer`(): Unit = runBlocking {
+    fun `transactionalDeltakerUpsert - ny deltaker - ruller tilbake alle endringer`(): Unit = runBlocking {
+        val deltakerliste = TestData.lagDeltakerliste(
+            tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING),
+            startDato = LocalDate.now().plusDays(2),
+            sluttDato = LocalDate.now().plusDays(30),
+        )
+        val deltaker = TestData.lagDeltaker(deltakerliste = deltakerliste, startdato = null, sluttdato = null)
+
+        val upsertResult = deltakerService.transactionalDeltakerUpsert(deltaker) {
+            throw RuntimeException("Feiler")
+        }
+
+        upsertResult.isFailure shouldBe true
+        val getResult = deltakerService.get(deltaker.id)
+        getResult.isFailure shouldBe true
+    }
+
+    @Test
+    fun `transactionalDeltakerUpsert - ny status, siste insert feiler - ruller tilbake alle endringer`(): Unit = runBlocking {
         val deltakerliste = TestData.lagDeltakerliste(
             tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING),
             startDato = LocalDate.now().plusDays(2),
