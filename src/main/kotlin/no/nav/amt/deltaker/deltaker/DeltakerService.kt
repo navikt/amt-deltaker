@@ -63,12 +63,6 @@ class DeltakerService(
     fun getDeltakelserForPerson(personident: String, deltakerlisteId: UUID) =
         deltakerRepository.getFlereForPerson(personident, deltakerlisteId)
 
-    @Deprecated("Bruk DeltakerRepository#getMany")
-    fun getDeltakelser(deltakerIder: List<UUID>) = deltakerRepository.getMany(deltakerIder)
-
-    @Deprecated("Bruk DeltakerRepository#getFlereForPerson")
-    fun getDeltakelserForPerson(personident: String) = deltakerRepository.getFlereForPerson(personident)
-
     private fun getDeltakereForDeltakerliste(deltakerlisteId: UUID) = deltakerRepository.getDeltakereForDeltakerliste(deltakerlisteId)
 
     fun getDeltakerIderForTiltakstype(tiltakstype: ArenaKode) = deltakerRepository.getDeltakerIderForTiltakstype(tiltakstype)
@@ -245,11 +239,13 @@ class DeltakerService(
         "Kan ikke oppdatere feilregistrert deltaker, id ${deltaker.id}"
     }
 
-    suspend fun produserDeltakereForPerson(personident: String, publiserTilDeltakerV1: Boolean = true) {
-        getDeltakelserForPerson(personident).forEach {
-            deltakerProducerService.produce(it, publiserTilDeltakerV1 = publiserTilDeltakerV1)
+    suspend fun produserDeltakereForPerson(personident: String, publiserTilDeltakerV1: Boolean = true): Unit =
+        deltakerRepository.getFlereForPerson(personident).forEach { deltaker ->
+            deltakerProducerService.produce(
+                deltaker = deltaker,
+                publiserTilDeltakerV1 = publiserTilDeltakerV1,
+            )
         }
-    }
 
     suspend fun innbyggerFattVedtak(deltaker: Deltaker): Deltaker {
         val status = if (deltaker.status.type == DeltakerStatus.Type.UTKAST_TIL_PAMELDING) {
