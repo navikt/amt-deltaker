@@ -1,6 +1,5 @@
 package no.nav.amt.deltaker.deltaker
 
-import kotliquery.TransactionalSession
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.lib.models.deltaker.Vedtak
@@ -83,7 +82,6 @@ class VedtakService(
         deltaker: Deltaker,
         endretAv: NavAnsatt,
         endretAvEnhet: NavEnhet,
-        session: TransactionalSession? = null,
     ): Vedtaksutfall {
         when (val utfall = hentIkkeFattetVedtak(deltaker.id)) {
             is Vedtaksutfall.ManglerVedtakSomKanEndres ->
@@ -101,7 +99,6 @@ class VedtakService(
                     endretAvEnhet = endretAvEnhet,
                     deltaker = deltaker,
                     fattet = true,
-                    session = session,
                 )
                 return Vedtaksutfall.OK(oppdatertVedtak)
             }
@@ -168,7 +165,6 @@ class VedtakService(
         endretAvEnhet: NavEnhet,
         deltaker: Deltaker,
         fattet: Boolean,
-        session: TransactionalSession? = null,
     ): Vedtak {
         val oppdatertVedtak = opprettEllerOppdaterVedtak(
             original = eksisterendeVedtak,
@@ -178,11 +174,8 @@ class VedtakService(
             deltaker = deltaker,
             fattet = if (fattet) LocalDateTime.now() else null,
         )
-        if (session != null) {
-            repository.upsert(oppdatertVedtak, session)
-        } else {
-            repository.upsert(oppdatertVedtak)
-        }
+
+        repository.upsert(oppdatertVedtak)
 
         return oppdatertVedtak
     }
