@@ -61,7 +61,7 @@ class EnkeltplassDeltakerConsumer(
                             arrangor = arrangorService.hentArrangor(gjennomforing.arrangor.organisasjonsnummer),
                             tiltakstype = tiltakstypeRepository
                                 .get(
-                                    Tiltakskode.valueOf(gjennomforing.tiltakstype.tiltakskode),
+                                    Tiltakskode.valueOf(gjennomforing.effectiveTiltakskode),
                                 ).getOrThrow(),
                         )
                     }
