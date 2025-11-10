@@ -29,7 +29,8 @@ object DeltakerlistePayloadJsonSchemas {
                 string { beIn(setOf(ENKELTPLASS_V2_TYPE, GRUPPE_V2_TYPE)) }
             }
             withProperty("id") { string() }
-            withProperty("tiltakstype") { tiltakstypeSchema() }
+            withProperty("tiltakskode", optional = true) { string() }
+            withProperty("tiltakstype", optional = true) { tiltakstypeSchema() }
             withProperty("navn", optional = true) { string() }
             withProperty("startDato", optional = true) { string() } // ISO-8601 format
             withProperty("sluttDato", optional = true) { string() }

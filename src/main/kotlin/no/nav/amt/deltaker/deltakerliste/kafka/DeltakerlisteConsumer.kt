@@ -38,14 +38,14 @@ class DeltakerlisteConsumer(
     }
 
     private suspend fun handterDeltakerliste(deltakerlistePayload: DeltakerlistePayload) {
-        if (unleashToggle.skipProsesseringAvGjennomforing(deltakerlistePayload.tiltakstype.tiltakskode)) {
+        if (unleashToggle.skipProsesseringAvGjennomforing(deltakerlistePayload.effectiveTiltakskode)) {
             return
         }
 
-        val tiltakskode = Tiltakskode.valueOf(deltakerlistePayload.tiltakstype.tiltakskode)
+        val tiltakskode = Tiltakskode.valueOf(deltakerlistePayload.effectiveTiltakskode)
 
         val oppdatertDeltakerliste = deltakerlistePayload.toModel(
-            arrangor = arrangorService.hentArrangor(deltakerlistePayload.organisasjonsnummer),
+            arrangor = arrangorService.hentArrangor(deltakerlistePayload.arrangor.organisasjonsnummer),
             tiltakstype = tiltakstypeRepository.get(tiltakskode).getOrThrow(),
         )
 

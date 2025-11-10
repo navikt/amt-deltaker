@@ -1,6 +1,5 @@
 package no.nav.amt.deltaker.utils.data
 
-import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerV2Dto
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.Vedtaksinformasjon
 import no.nav.amt.deltaker.deltaker.vurdering.Vurdering
@@ -12,7 +11,6 @@ import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
-import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.DeltakerVedImport
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
@@ -173,10 +171,10 @@ object TestData {
             startDato = deltakerliste.startDato,
             sluttDato = deltakerliste.sluttDato,
             status = deltakerliste.status?.name,
-            virksomhetsnummer = arrangor.organisasjonsnummer,
             oppstart = deltakerliste.oppstart,
             apentForPamelding = deltakerliste.apentForPamelding,
             oppmoteSted = deltakerliste.oppmoteSted,
+            arrangor = DeltakerlistePayload.Arrangor(arrangor.organisasjonsnummer),
         )
 
     fun lagNavBrukerDto(navBruker: NavBruker, navEnhet: NavEnhet) = NavBrukerDto(
@@ -415,58 +413,6 @@ object TestData {
         begrunnelse = begrunnelse,
         opprettetAvArrangorAnsattId = opprettetAvArrangorAnsattId,
         gyldigFra = gyldigFra,
-    )
-
-    fun Deltaker.toDeltakerV2(
-        innsoktDato: LocalDate = LocalDate.now(),
-        forsteVedtakFattet: LocalDate? = null,
-        deltakerhistorikk: List<DeltakerHistorikk>? = null,
-    ) = DeltakerV2Dto(
-        id = id,
-        deltakerlisteId = deltakerliste.id,
-        personalia = DeltakerV2Dto.DeltakerPersonaliaDto(
-            personId = navBruker.personId,
-            personident = navBruker.personident,
-            navn = DeltakerV2Dto.Navn(
-                fornavn = navBruker.fornavn,
-                mellomnavn = navBruker.mellomnavn,
-                etternavn = navBruker.etternavn,
-            ),
-            kontaktinformasjon = DeltakerV2Dto.DeltakerKontaktinformasjonDto(
-                telefonnummer = navBruker.telefon,
-                epost = navBruker.epost,
-            ),
-            skjermet = navBruker.erSkjermet,
-            adresse = navBruker.adresse,
-            adressebeskyttelse = navBruker.adressebeskyttelse,
-        ),
-        status = DeltakerV2Dto.DeltakerStatusDto(
-            id = status.id,
-            type = status.type,
-            aarsak = status.aarsak?.type,
-            aarsaksbeskrivelse = status.aarsak?.beskrivelse,
-            gyldigFra = status.gyldigFra,
-            opprettetDato = status.opprettet,
-        ),
-        dagerPerUke = dagerPerUke,
-        prosentStilling = deltakelsesprosent?.toDouble(),
-        oppstartsdato = startdato,
-        sluttdato = sluttdato,
-        innsoktDato = innsoktDato,
-        forsteVedtakFattet = forsteVedtakFattet,
-        bestillingTekst = bakgrunnsinformasjon,
-        navKontor = null,
-        navVeileder = null,
-        deltarPaKurs = deltarPaKurs(),
-        kilde = kilde,
-        innhold = deltakelsesinnhold,
-        historikk = deltakerhistorikk,
-        sistEndret = sistEndret,
-        sistEndretAv = null,
-        sistEndretAvEnhet = null,
-        vurderingerFraArrangor = emptyList(),
-        forcedUpdate = null,
-        oppfolgingsperioder = navBruker.oppfolgingsperioder,
     )
 
     private fun finnOppstartstype(type: ArenaKode) = when (type) {

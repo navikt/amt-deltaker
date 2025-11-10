@@ -75,7 +75,6 @@ class DeltakerlisteConsumerTest {
 
         val deltakerlistePayload = lagDeltakerlistePayload(arrangor, expectedDeltakerliste).copy(
             type = GRUPPE_V2_TYPE,
-            virksomhetsnummer = null,
             arrangor = Arrangor(arrangor.organisasjonsnummer),
         )
 
@@ -113,7 +112,6 @@ class DeltakerlisteConsumerTest {
 
         val deltakerlistePayload = lagDeltakerlistePayload(arrangor, deltakerliste).copy(
             type = GRUPPE_V2_TYPE,
-            virksomhetsnummer = null,
             arrangor = Arrangor(arrangor.organisasjonsnummer),
         )
 
@@ -154,7 +152,6 @@ class DeltakerlisteConsumerTest {
             sluttDato = null,
             status = null,
             oppstart = null,
-            virksomhetsnummer = null,
             arrangor = Arrangor(arrangor.organisasjonsnummer),
         )
 
