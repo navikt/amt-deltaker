@@ -97,7 +97,7 @@ fun main() {
             connector {
                 port = 8080
             }
-            shutdownGracePeriod = 5.seconds.inWholeMilliseconds
+            shutdownGracePeriod = 10.seconds.inWholeMilliseconds
             shutdownTimeout = 20.seconds.inWholeMilliseconds
         },
         module = Application::module,
