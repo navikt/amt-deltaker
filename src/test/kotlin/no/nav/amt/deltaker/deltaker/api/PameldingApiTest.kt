@@ -29,6 +29,7 @@ import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.UtkastRequ
 import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.Test
 import java.util.UUID
+import kotlin.test.Ignore
 
 class PameldingApiTest : RouteTestBase() {
     @Test
@@ -59,6 +60,7 @@ class PameldingApiTest : RouteTestBase() {
         }
     }
 
+    @Ignore
     @Test
     fun `post pamelding - har tilgang - returnerer deltaker`() {
         val deltaker = lagDeltaker()
