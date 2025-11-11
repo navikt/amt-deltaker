@@ -7,7 +7,7 @@ plugins {
     kotlin("jvm") version kotlinVersion
     id("io.ktor.plugin") version "3.3.1"
     id("org.jetbrains.kotlin.plugin.serialization") version kotlinVersion
-    id("org.jlleitschuh.gradle.ktlint") version "13.1.0"
+    id("org.jlleitschuh.gradle.ktlint") version "14.0.1"
     application
     distribution
 }
