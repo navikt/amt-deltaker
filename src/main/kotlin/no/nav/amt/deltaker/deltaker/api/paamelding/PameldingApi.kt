@@ -21,14 +21,13 @@ fun Routing.registerPameldingApi(pameldingService: PameldingService, historikkSe
     authenticate("SYSTEM") {
         post("/pamelding") {
             val opprettKladdRequest = call.receive<OpprettKladdRequest>()
-            Database.transaction {
-                val deltaker = pameldingService.opprettDeltaker(
+            val deltaker = Database.transaction {
+                pameldingService.opprettDeltaker(
                     deltakerListeId = opprettKladdRequest.deltakerlisteId,
                     personIdent = opprettKladdRequest.personident,
                 )
-
-                call.respond(opprettKladdResponseFromDeltaker(deltaker))
             }
+            call.respond(opprettKladdResponseFromDeltaker(deltaker))
         }
 
         post("/pamelding/{deltakerId}") {
