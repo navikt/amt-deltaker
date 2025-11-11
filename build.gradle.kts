@@ -5,7 +5,7 @@ plugins {
     val kotlinVersion = "2.2.21"
 
     kotlin("jvm") version kotlinVersion
-    id("io.ktor.plugin") version "3.3.1"
+    id("io.ktor.plugin") version "3.3.2"
     id("org.jetbrains.kotlin.plugin.serialization") version kotlinVersion
     id("org.jlleitschuh.gradle.ktlint") version "13.1.0"
     application
@@ -17,22 +17,22 @@ repositories {
     maven { setUrl("https://github-package-registry-mirror.gc.nav.no/cached/maven-release") }
 }
 
-val ktorVersion = "3.3.1"
-val logbackVersion = "1.5.20"
-val prometeusVersion = "1.15.5"
+val ktorVersion = "3.3.2"
+val logbackVersion = "1.5.21"
+val prometeusVersion = "1.16.0"
 val ktlintVersion = "1.6.0"
 val jacksonVersion = "2.20.1"
 val logstashEncoderVersion = "9.0"
 val commonVersion = "3.2025.10.10_08.21-bb7c7830d93c"
 val poaoTilgangVersion = "2025.11.03_14.33-9c5783f38a9a"
 val kotestVersion = "6.0.4"
-val flywayVersion = "11.15.0"
+val flywayVersion = "11.16.0"
 val hikariVersion = "7.0.2"
 val kotliqueryVersion = "1.9.1"
 val postgresVersion = "42.7.8"
 val caffeineVersion = "3.2.3"
 val mockkVersion = "1.14.6"
-val nimbusVersion = "10.5"
+val nimbusVersion = "10.6"
 val unleashVersion = "11.1.1"
 val amtLibVersion = "1.2025.11.04_07.48-1183a3751d73"
 
