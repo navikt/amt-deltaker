@@ -11,7 +11,10 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
 import io.mockk.clearAllMocks
+import io.mockk.coEvery
 import io.mockk.mockk
+import io.mockk.mockkObject
+import io.mockk.unmockkAll
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.application.plugins.configureAuthentication
 import no.nav.amt.deltaker.application.plugins.configureRequestValidation
@@ -34,8 +37,10 @@ import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorService
 import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.lib.utils.applicationConfig
+import no.nav.amt.lib.utils.database.Database
 import no.nav.poao_tilgang.client.PoaoTilgangCachedClient
 import org.junit.jupiter.api.BeforeEach
+import kotlin.test.AfterTest
 
 abstract class RouteTestBase {
     protected open val deltakelserResponseMapper: DeltakelserResponseMapper = mockk(relaxed = true)
@@ -65,6 +70,18 @@ abstract class RouteTestBase {
     protected fun init() {
         clearAllMocks()
         configureEnvForAuthentication()
+
+        mockkObject(Database)
+
+        coEvery { Database.transaction(any<suspend () -> String>()) } coAnswers {
+            val block = firstArg<suspend () -> String>()
+            block()
+        }
+    }
+
+    @AfterTest
+    fun tearDown() {
+        unmockkAll()
     }
 
     protected fun <T : Any> withTestApplicationContext(block: suspend (HttpClient) -> T): T {
