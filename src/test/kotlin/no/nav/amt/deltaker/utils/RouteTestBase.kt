@@ -73,8 +73,8 @@ abstract class RouteTestBase {
 
         mockkObject(Database)
 
-        coEvery { Database.transaction(any<suspend () -> String>()) } coAnswers {
-            val block = firstArg<suspend () -> String>()
+        coEvery { Database.transaction(any<suspend () -> Any>()) } coAnswers {
+            val block = firstArg<suspend () -> Any>()
             block()
         }
     }
