@@ -20,6 +20,7 @@ import no.nav.amt.lib.utils.objectMapper
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.util.UUID
+import kotlin.getOrThrow
 
 class EnkeltplassDeltakerConsumer(
     private val deltakerService: DeltakerService,
@@ -90,10 +91,10 @@ class EnkeltplassDeltakerConsumer(
 
     override suspend fun close() = consumer.close()
 
-    private suspend fun upsertImportertDeltaker(deltaker: Deltaker) = deltakerService
-        .transactionalDeltakerUpsert(deltaker) {
+    private fun upsertImportertDeltaker(deltaker: Deltaker) = deltakerService
+        .transactionalDeltakerUpsert(deltaker) { transaction ->
             val importertData = deltaker.toImportertData()
-            importertFraArenaRepository.upsert(importertData)
+            importertFraArenaRepository.upsert(importertData, transaction)
         }.getOrThrow()
 
     private fun Deltaker.toImportertData() = ImportertFraArena(

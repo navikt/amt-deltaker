@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.deltaker
 
+import kotliquery.TransactionalSession
 import no.nav.amt.deltaker.deltaker.DeltakerUtils.nyDeltakerStatus
 import no.nav.amt.deltaker.deltaker.api.deltaker.toDeltakerEndringEndring
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
@@ -72,7 +73,7 @@ class DeltakerService(
         forcedUpdate: Boolean? = false,
         nesteStatus: DeltakerStatus? = null,
     ): Deltaker {
-        deltakerRepository.upsert(deltaker.copy(sistEndret = LocalDateTime.now()), fremtidigStatus = nesteStatus)
+        deltakerRepository.upsert(deltaker.copy(sistEndret = LocalDateTime.now()), nesteStatus = nesteStatus)
 
         val oppdatertDeltaker = get(deltaker.id).getOrThrow()
 
@@ -140,16 +141,18 @@ class DeltakerService(
         )
     }
 
-    suspend fun transactionalDeltakerUpsert(deltaker: Deltaker, additionalOperations: suspend () -> Unit = {}): Result<Deltaker> =
-        runCatching {
-            Database.transaction {
-                deltakerRepository.upsert(deltaker, null)
-                additionalOperations()
+    fun transactionalDeltakerUpsert(deltaker: Deltaker, transactionalUpsert: (t: TransactionalSession) -> Unit = {}) =
+        Database.query { session ->
+            runCatching {
+                session.transaction { transaction ->
+                    deltakerRepository.upsert(deltaker, null, transaction)
+                    transactionalUpsert(transaction)
+                }
                 deltaker
             }
         }
 
-    suspend fun upsertDeltaker(
+    fun upsertDeltaker(
         deltaker: Deltaker,
         endringsType: EndringFraTiltakskoordinator.Endring,
         endretAv: NavAnsatt,
@@ -172,10 +175,10 @@ class DeltakerService(
                 deltakerResult.exceptionOrNull(),
             )
         }
-        val result = transactionalDeltakerUpsert(deltakerResult.getOrThrow()) {
-            endringFraTiltakskoordinatorRepository.insert(listOf(endring))
+        val result = transactionalDeltakerUpsert(deltakerResult.getOrThrow()) { transaction ->
+            endringFraTiltakskoordinatorRepository.insert(listOf(endring), transaction)
             if (endringsType is EndringFraTiltakskoordinator.TildelPlass && deltaker.kilde == Kilde.KOMET) {
-                vedtakService.navFattVedtak(deltaker, endretAv, endretAvEnhet)
+                vedtakService.navFattVedtak(deltaker, endretAv, endretAvEnhet, transaction)
             }
         }
 
