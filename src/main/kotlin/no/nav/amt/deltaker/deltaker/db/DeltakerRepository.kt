@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.deltaker.db
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Query
 import kotliquery.Row
+import kotliquery.TransactionalSession
 import kotliquery.queryOf
 import no.nav.amt.deltaker.deltaker.db.DbUtils.nullWhenNearNow
 import no.nav.amt.deltaker.deltaker.model.AVSLUTTENDE_STATUSER
@@ -99,7 +100,11 @@ class DeltakerRepository {
         opprettet = row.localDateTime("created_at"),
     )
 
-    fun upsert(deltaker: Deltaker, fremtidigStatus: DeltakerStatus? = null) = Database.query { session ->
+    fun upsert(
+        deltaker: Deltaker,
+        fremtidigStatus: DeltakerStatus? = null,
+        transactionalSession: TransactionalSession,
+    ) {
         val sql =
             """
             insert into deltaker(
@@ -140,23 +145,27 @@ class DeltakerRepository {
             "er_manuelt_delt_med_arrangor" to deltaker.erManueltDeltMedArrangor,
         )
 
-        session.update(queryOf(sql, parameters))
+        transactionalSession.update(queryOf(sql, parameters))
 
-        lagreStatus(deltaker)
-        fremtidigStatus?.let { session.update(insertStatusQuery(it, deltaker.id)) }
+        lagreStatus(deltaker, transactionalSession)
+        fremtidigStatus?.let { transactionalSession.update(insertStatusQuery(it, deltaker.id)) }
     }
 
-    fun lagreStatus(deltaker: Deltaker) = Database.query { session ->
-        session.update(insertStatusQuery(deltaker.status, deltaker.id))
+    fun lagreStatus(deltaker: Deltaker, transactionalSession: TransactionalSession) {
+        transactionalSession.update(insertStatusQuery(deltaker.status, deltaker.id))
 
         val erNyStatusAktiv = deltaker.status.gyldigFra.toLocalDate() <= LocalDate.now()
 
         if (erNyStatusAktiv) {
-            session.update(deaktiverTidligereStatuserQuery(deltaker.status, deltaker.id))
+            transactionalSession.update(deaktiverTidligereStatuserQuery(deltaker.status, deltaker.id))
         } else {
             // Dette skjer aldri for arenadeltakelser
-            session.update(slettTidligereFremtidigeStatuserQuery(deltaker.status, deltaker.id))
+            transactionalSession.update(slettTidligereFremtidigeStatuserQuery(deltaker.status, deltaker.id))
         }
+    }
+
+    fun upsert(deltaker: Deltaker, nesteStatus: DeltakerStatus? = null) = Database.query { session ->
+        session.transaction { upsert(deltaker, nesteStatus, it) }
     }
 
     fun get(id: UUID) = Database.query {
