@@ -389,6 +389,7 @@ class DeltakerApiTest : RouteTestBase() {
         val endring = DeltakerEndring.Endring.EndreAvslutning(
             null,
             true,
+            LocalDate.now(),
             "begrunnelse",
         )
 
@@ -417,6 +418,7 @@ class DeltakerApiTest : RouteTestBase() {
                         null,
                         endring.aarsak,
                         endring.begrunnelse,
+                        endring.sluttdato,
                         endring.harFullfort,
                     ),
                 )

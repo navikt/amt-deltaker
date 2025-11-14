@@ -179,11 +179,13 @@ class DeltakerEndringHandler(
     private fun endreAvslutning(endring: DeltakerEndring.Endring.EndreAvslutning) = endreDeltaker(
         (deltaker.status.type == DeltakerStatus.Type.FULLFORT && !endring.harFullfort) ||
             (deltaker.status.type == DeltakerStatus.Type.AVBRUTT && endring.harFullfort) ||
+            deltaker.sluttdato != endring.sluttdato ||
             deltaker.status.aarsak != endring.aarsak?.toDeltakerStatusAarsak(),
     ) {
         DeltakerEndringUtfall.VellykketEndring(
             deltaker.copy(
                 status = endring.getEndreAvslutningStatus(),
+                sluttdato = endring.sluttdato,
             ),
         )
     }

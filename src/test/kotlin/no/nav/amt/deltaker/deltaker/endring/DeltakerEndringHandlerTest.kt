@@ -487,6 +487,7 @@ class DeltakerEndringHandlerTest {
             aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
             begrunnelse = "begrunnelse",
             harFullfort = true,
+            sluttdato = LocalDate.now().minusDays(1),
             forslagId = forslag.id,
         )
 
@@ -518,6 +519,7 @@ class DeltakerEndringHandlerTest {
             aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
             begrunnelse = "begrunnelse",
             harFullfort = false,
+            sluttdato = LocalDate.now().minusDays(1),
             forslagId = forslag.id,
         )
 
@@ -549,6 +551,7 @@ class DeltakerEndringHandlerTest {
             aarsak = null,
             begrunnelse = "begrunnelse",
             harFullfort = true,
+            sluttdato = deltaker.sluttdato,
             forslagId = forslag.id,
         )
 
