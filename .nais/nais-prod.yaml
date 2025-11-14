@@ -22,11 +22,11 @@ spec:
     path: /internal/health/liveness
     initialDelay: 30
   replicas:
-    min: 2
+    min: 3
     max: 4
     scalingStrategy:
       cpu:
-        thresholdPercentage: 200
+        thresholdPercentage: 100
   resources:
     requests:
       cpu: 50m
@@ -70,7 +70,7 @@ spec:
     pool: nav-prod
   env:
     - name: JDK_JAVA_OPTIONS
-      value: "-XX:MaxRAMPercentage=75.0"
+      value: "-XX:MaxRAMPercentage=60.0"
     - name: AMT_PERSONSERVICE_SCOPE
       value: api://prod-gcp.amt.amt-person-service/.default
     - name: AMT_PERSONSERVICE_URL
