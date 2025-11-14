@@ -22,11 +22,11 @@ spec:
     path: /internal/health/liveness
     initialDelay: 30
   replicas:
-    min: 3
-    max: 4
+    min: 2
+    max: 3
     scalingStrategy:
       cpu:
-        thresholdPercentage: 100
+        thresholdPercentage: 150
   resources:
     requests:
       cpu: 50m
