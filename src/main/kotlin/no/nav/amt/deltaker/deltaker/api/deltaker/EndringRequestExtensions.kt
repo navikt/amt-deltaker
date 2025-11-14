@@ -35,7 +35,7 @@ fun EndringRequest.toDeltakerEndringEndring(): DeltakerEndring.Endring = when (t
         this.sluttdato,
         this.begrunnelse,
     )
-    is EndreAvslutningRequest -> DeltakerEndring.Endring.EndreAvslutning(this.aarsak, this.harFullfort, this.begrunnelse)
+    is EndreAvslutningRequest -> DeltakerEndring.Endring.EndreAvslutning(this.aarsak, this.harFullfort, this.sluttdato, this.begrunnelse)
     is AvbrytDeltakelseRequest -> DeltakerEndring.Endring.AvbrytDeltakelse(
         this.aarsak,
         this.sluttdato,
