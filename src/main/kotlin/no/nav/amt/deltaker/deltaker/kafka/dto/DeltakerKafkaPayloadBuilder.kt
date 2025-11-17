@@ -1,43 +1,52 @@
 package no.nav.amt.deltaker.deltaker.kafka.dto
 
+import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.extensions.getInnsoktDato
 import no.nav.amt.deltaker.deltaker.extensions.getInnsoktDatoFraImportertDeltaker
 import no.nav.amt.deltaker.deltaker.extensions.getStatustekst
 import no.nav.amt.deltaker.deltaker.extensions.getVisningsnavn
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.vurdering.Vurdering
+import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
+import no.nav.amt.deltaker.navansatt.NavAnsattService
+import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerKafkaPayload
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.DeltakerStatusDto
+import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltaker.Kontaktinformasjon
 import no.nav.amt.lib.models.deltaker.Navn
 import no.nav.amt.lib.models.deltaker.Personalia
 import no.nav.amt.lib.models.deltaker.SisteEndring
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltak
-import no.nav.amt.lib.models.person.NavAnsatt
-import no.nav.amt.lib.models.person.NavEnhet
 import java.time.LocalDate
 import java.util.UUID
 
 data class DeltakerKafkaPayloadBuilder(
-    private val deltaker: Deltaker,
-    private val deltakerhistorikk: List<DeltakerHistorikk>,
-    private val vurderinger: List<Vurdering>,
-    private val navAnsatt: NavAnsatt?,
-    private val navEnhet: NavEnhet?,
-    private val forcedUpdate: Boolean?,
+    private val navAnsattService: NavAnsattService,
+    private val navEnhetService: NavEnhetService,
+    private val deltakerHistorikkService: DeltakerHistorikkService,
+    private val vurderingRepository: VurderingRepository,
 ) {
-    private val sisteEndring = deltakerhistorikk.getSisteEndring()
+    fun buildDeltakerV1Record(deltaker: Deltaker): DeltakerV1Dto {
+        val deltakerhistorikk = deltakerHistorikkService.getForDeltaker(deltaker.id)
+        val innsoktDato = deltakerhistorikk.getInnsoktDato()
+            ?: throw IllegalStateException("Skal ikke produsere deltaker som mangler vedtak til topic")
 
-    private val innsoktDato = deltakerhistorikk.getInnsoktDato()
-        ?: throw IllegalStateException("Skal ikke produsere deltaker som mangler vedtak til topic")
+        if (deltaker.kilde == Kilde.KOMET &&
+            deltakerhistorikk.filterIsInstance<DeltakerHistorikk.Vedtak>().isEmpty() &&
+            deltakerhistorikk.filterIsInstance<DeltakerHistorikk.InnsokPaaFellesOppstart>().isEmpty()
+        ) {
+            throw IllegalStateException(
+                "Deltaker med kilde ${Kilde.KOMET} må ha minst et vedtak eller være søkt in for å produseres til topic",
+            )
+        }
 
-    val v1: DeltakerV1Dto
-        get() = DeltakerV1Dto(
+        return DeltakerV1Dto(
             id = deltaker.id,
             gjennomforingId = deltaker.deltakerliste.id,
             personIdent = deltaker.navBruker.personident,
@@ -62,9 +71,28 @@ data class DeltakerKafkaPayloadBuilder(
             innhold = deltaker.deltakelsesinnhold?.toDeltakelsesinnholdDto(),
             deltakelsesmengder = deltakelsesmengderDto(deltaker, deltakerhistorikk),
         )
+    }
 
-    val v2: DeltakerKafkaPayload
-        get() = DeltakerKafkaPayload(
+    suspend fun buildDeltakerV2Record(deltaker: Deltaker, forcedUpdate: Boolean? = false): DeltakerKafkaPayload {
+        val deltakerhistorikk = deltakerHistorikkService.getForDeltaker(deltaker.id)
+        val vurderinger = vurderingRepository.getForDeltaker(deltaker.id)
+        val sisteEndring = deltakerhistorikk.getSisteEndring()
+        val innsoktDato = deltakerhistorikk.getInnsoktDato()
+            ?: throw IllegalStateException("Skal ikke produsere deltaker som mangler vedtak til topic")
+        val navEnhet = deltaker.navBruker.navEnhetId
+            ?.let { navEnhetService.hentEllerOpprettNavEnhet(it) }
+
+        val navAnsatt = deltaker.navBruker.navVeilederId
+            ?.let { navAnsattService.hentEllerOpprettNavAnsatt(it) }
+        if (deltaker.kilde == Kilde.KOMET &&
+            deltakerhistorikk.filterIsInstance<DeltakerHistorikk.Vedtak>().isEmpty() &&
+            deltakerhistorikk.filterIsInstance<DeltakerHistorikk.InnsokPaaFellesOppstart>().isEmpty()
+        ) {
+            throw IllegalStateException(
+                "Deltaker med kilde ${Kilde.KOMET} må ha minst et vedtak eller være søkt in for å produseres til topic",
+            )
+        }
+        return DeltakerKafkaPayload(
             id = deltaker.id,
             deltakerlisteId = deltaker.deltakerliste.id,
             deltakerliste = no.nav.amt.lib.models.deltaker.Deltakerliste(
@@ -131,6 +159,7 @@ data class DeltakerKafkaPayloadBuilder(
                 )
             },
         )
+    }
 
     private fun List<Vurdering>.toDto() = this.map {
         no.nav.amt.lib.models.arrangor.melding.Vurdering(

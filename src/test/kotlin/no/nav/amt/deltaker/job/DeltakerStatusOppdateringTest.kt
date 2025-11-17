@@ -22,7 +22,7 @@ import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerV1Producer
-import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerKafkaPayloadMapperService
+import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerKafkaPayloadBuilder
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
@@ -82,7 +82,7 @@ class DeltakerStatusOppdateringTest {
         private val vurderingRepository = VurderingRepository()
         private val unleashToggle = mockk<UnleashToggle>()
         private val deltakerKafkaPayloadMapperService =
-            DeltakerKafkaPayloadMapperService(navAnsattService, navEnhetService, deltakerHistorikkService, vurderingRepository)
+            DeltakerKafkaPayloadBuilder(navAnsattService, navEnhetService, deltakerHistorikkService, vurderingRepository)
         private val deltakerProducer = DeltakerProducer(kafkaProducer)
         private val deltakerV1Producer = DeltakerV1Producer(kafkaProducer)
         private val deltakerProducerService =

@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.deltaker.innsok
 
 import io.kotest.matchers.shouldBe
-import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerContext
+import no.nav.amt.deltaker.deltaker.DeltakerContext
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold

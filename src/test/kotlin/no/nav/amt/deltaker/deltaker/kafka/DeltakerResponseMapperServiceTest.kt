@@ -9,7 +9,7 @@ import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepos
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
-import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerKafkaPayloadMapperService
+import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerKafkaPayloadBuilder
 import no.nav.amt.deltaker.deltaker.sammenlignHistorikk
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
@@ -53,8 +53,8 @@ class DeltakerResponseMapperServiceTest {
             EndringFraTiltakskoordinatorRepository(),
             vurderingService = VurderingService(vurderingRepository),
         )
-        private val deltakerKafkaPayloadMapperService =
-            DeltakerKafkaPayloadMapperService(navAnsattService, navEnhetService, deltakerHistorikkService, vurderingRepository)
+        private val deltakerKafkaPayloadBuilder =
+            DeltakerKafkaPayloadBuilder(navAnsattService, navEnhetService, deltakerHistorikkService, vurderingRepository)
 
         @BeforeAll
         @JvmStatic
@@ -95,7 +95,7 @@ class DeltakerResponseMapperServiceTest {
         )
         TestRepository.insert(vedtak)
 
-        val deltakerV2Dto = deltakerKafkaPayloadMapperService.tilDeltakerPayload(deltaker).v2
+        val deltakerV2Dto = deltakerKafkaPayloadBuilder.buildDeltakerV2Record(deltaker)
 
         deltakerV2Dto.id shouldBe deltaker.id
         deltakerV2Dto.deltakerliste.id shouldBe deltaker.deltakerliste.id
@@ -173,7 +173,7 @@ class DeltakerResponseMapperServiceTest {
         )
         TestRepository.insert(endringFraArrangor)
 
-        val deltakerV2Dto = deltakerKafkaPayloadMapperService.tilDeltakerPayload(deltaker).v2
+        val deltakerV2Dto = deltakerKafkaPayloadBuilder.buildDeltakerV2Record(deltaker)
 
         deltakerV2Dto.id shouldBe deltaker.id
         deltakerV2Dto.deltakerliste.id shouldBe deltaker.deltakerliste.id
@@ -229,7 +229,7 @@ class DeltakerResponseMapperServiceTest {
         )
         TestRepository.insert(importertFraArena)
 
-        val deltakerV2Dto = deltakerKafkaPayloadMapperService.tilDeltakerPayload(deltaker).v2
+        val deltakerV2Dto = deltakerKafkaPayloadBuilder.buildDeltakerV2Record(deltaker)
 
         deltakerV2Dto.id shouldBe deltaker.id
         deltakerV2Dto.deltakerliste.id shouldBe deltaker.deltakerliste.id
@@ -290,7 +290,7 @@ class DeltakerResponseMapperServiceTest {
         )
         TestRepository.insert(endring)
 
-        val deltakerV2Dto = deltakerKafkaPayloadMapperService.tilDeltakerPayload(deltaker).v2
+        val deltakerV2Dto = deltakerKafkaPayloadBuilder.buildDeltakerV2Record(deltaker)
 
         deltakerV2Dto.id shouldBe deltaker.id
         deltakerV2Dto.deltakerliste.id shouldBe deltaker.deltakerliste.id
