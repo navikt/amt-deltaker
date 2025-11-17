@@ -16,14 +16,16 @@ class DeltakerProducerService(
         deltaker: Deltaker,
         forcedUpdate: Boolean? = false,
         publiserTilDeltakerV1: Boolean = true,
+        publiserTilDeltakerV2: Boolean = true,
     ) {
         if (deltaker.status.type == DeltakerStatus.Type.KLADD) return
 
         if (publiserTilDeltakerV1) {
             produceDeltakerV1Topic(deltaker)
         }
-
-        produceDeltakerV2Topic(deltaker, forcedUpdate)
+        if (publiserTilDeltakerV2) {
+            produceDeltakerV2Topic(deltaker, forcedUpdate)
+        }
     }
 
     fun produceDeltakerV1Topic(deltaker: Deltaker) {

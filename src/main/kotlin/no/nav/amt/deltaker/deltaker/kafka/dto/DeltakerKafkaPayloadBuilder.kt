@@ -37,15 +37,6 @@ data class DeltakerKafkaPayloadBuilder(
         val innsoktDato = deltakerhistorikk.getInnsoktDato()
             ?: throw IllegalStateException("Skal ikke produsere deltaker som mangler vedtak til topic")
 
-        if (deltaker.kilde == Kilde.KOMET &&
-            deltakerhistorikk.filterIsInstance<DeltakerHistorikk.Vedtak>().isEmpty() &&
-            deltakerhistorikk.filterIsInstance<DeltakerHistorikk.InnsokPaaFellesOppstart>().isEmpty()
-        ) {
-            throw IllegalStateException(
-                "Deltaker med kilde ${Kilde.KOMET} må ha minst et vedtak eller være søkt in for å produseres til topic",
-            )
-        }
-
         return DeltakerV1Dto(
             id = deltaker.id,
             gjennomforingId = deltaker.deltakerliste.id,

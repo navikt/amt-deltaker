@@ -58,6 +58,7 @@ fun Routing.registerInternalApi(
                     deltakerService.get(deltakerId).getOrThrow(),
                     forcedUpdate = request.forcedUpdate,
                     publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
+                    publiserTilDeltakerV2 = request.publiserTilDeltakerV2,
                 )
             }
             log.info("Ferdig med reprodusering av ${request.deltakere.size} deltakere på deltaker-v2")
@@ -119,6 +120,30 @@ fun Routing.registerInternalApi(
                 publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
             )
             log.info("Relastet deltaker $deltakerId på deltaker-v2")
+            call.respond(HttpStatusCode.OK)
+        } else {
+            throw AuthorizationException("Ikke tilgang til api")
+        }
+    }
+
+    post("/internal/tving-arena-innlesing") {
+        // Brukes i tilfelle man ønsker å tvinge arena til å lese inn en endring
+        // selv om det ikke reelt har blitt gjort en endring, som for eksempel
+        // når vi har lest inn og transformert status før vi ble master og arena
+        // ikke har fått med seg endringen fordi endretDato er før komet ble master
+        if (isInternal(call.request.local.remoteAddress)) {
+            val request = call.receive<RelastDeltakereRequest>()
+            log.info("Republiser deltakere:${request.deltakere} deltakere med ny endretDato på deltaker-v1")
+            request.deltakere.forEach { deltakerId ->
+                deltakerProducerService.produce(
+                    deltakerService.get(deltakerId).getOrThrow().copy(sistEndret = LocalDateTime.now()),
+                    forcedUpdate = request.forcedUpdate,
+                    publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
+                    publiserTilDeltakerV2 = false,
+                )
+            }
+
+            log.info("Republiserte ${request.deltakere.size} på deltaker-v1")
             call.respond(HttpStatusCode.OK)
         } else {
             throw AuthorizationException("Ikke tilgang til api")
@@ -254,6 +279,7 @@ data class RelastDeltakereRequest(
     val deltakere: List<UUID>,
     val forcedUpdate: Boolean,
     val publiserTilDeltakerV1: Boolean,
+    val publiserTilDeltakerV2: Boolean = true,
 )
 
 data class RelastHendelseRequest(
