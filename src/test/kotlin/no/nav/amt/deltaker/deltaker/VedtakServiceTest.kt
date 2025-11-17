@@ -7,7 +7,6 @@ import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.db.sammenlignVedtak
 import no.nav.amt.deltaker.deltaker.extensions.getVedtakOrThrow
-import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerContext
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.models.deltaker.Vedtak
