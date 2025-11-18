@@ -476,8 +476,8 @@ class DeltakerEndringHandlerTest {
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.AVBRUTT),
             sluttdato = LocalDate.now().minusDays(3),
             deltakerliste = TestData.lagDeltakerliste(
-                oppstart = Oppstartstype.FELLES
-            )
+                oppstart = Oppstartstype.FELLES,
+            ),
         )
         val endretAv = TestData.lagNavAnsatt()
         val endretAvEnhet = TestData.lagNavEnhet()
@@ -511,8 +511,8 @@ class DeltakerEndringHandlerTest {
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.FULLFORT),
             sluttdato = LocalDate.now().minusDays(3),
             deltakerliste = TestData.lagDeltakerliste(
-                oppstart = Oppstartstype.FELLES
-            )
+                oppstart = Oppstartstype.FELLES,
+            ),
         )
         val endretAv = TestData.lagNavAnsatt()
         val endretAvEnhet = TestData.lagNavEnhet()
