@@ -15,7 +15,7 @@ import no.nav.amt.deltaker.utils.toPGObject
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.deltaker.Kilde
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.ArenaKode
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.address.Adressebeskyttelse
 import no.nav.amt.lib.utils.database.Database
@@ -225,20 +225,21 @@ class DeltakerRepository {
         it.run(query)
     }
 
-    fun getDeltakerIderForTiltakstype(tiltakstype: ArenaKode) = Database.query { session ->
+    fun getDeltakerIderForTiltakskode(tiltakskode: Tiltakskode) = Database.query { session ->
         val sql =
             """ 
                 select d.id as "d.id"
-                from deltaker d
+                from 
+                    deltaker d
                     join deltakerliste dl on d.deltakerliste_id = dl.id
                     join tiltakstype t on t.id = dl.tiltakstype_id
-                where t.type = :tiltakstype;
+                where t.tiltakskode = :tiltakskode;
             """.trimMargin()
 
         val query = queryOf(
             sql,
             mapOf(
-                "tiltakstype" to tiltakstype.name,
+                "tiltakskode" to tiltakskode.name,
             ),
         ).map {
             it.uuid("d.id")
@@ -555,7 +556,6 @@ class DeltakerRepository {
             t.id as "t.id",
             t.navn as "t.navn",
             t.tiltakskode as "t.tiltakskode",
-            t.type as "t.type",
             t.innsatsgrupper as "t.innsatsgrupper",
             t.innhold as "t.innhold",
             v.fattet as "v.fattet",

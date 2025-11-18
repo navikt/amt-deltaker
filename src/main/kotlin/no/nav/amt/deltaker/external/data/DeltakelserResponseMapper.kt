@@ -11,7 +11,7 @@ import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.utils.toTitleCase
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.ArenaKode
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import java.time.LocalDate
 
@@ -90,15 +90,15 @@ class DeltakelserResponseMapper(
 
     private fun lagTittel(deltaker: Deltaker): String {
         val arrangorNavn = deltaker.deltakerliste.getArrangorNavn()
-        return when (deltaker.deltakerliste.tiltakstype.arenaKode) {
-            ArenaKode.JOBBK -> "Jobbsøkerkurs hos $arrangorNavn"
-            ArenaKode.GRUPPEAMO -> if (deltaker.deltarPaKurs()) {
+        return when (deltaker.deltakerliste.tiltakstype.tiltakskode) {
+            Tiltakskode.JOBBKLUBB -> "Jobbsøkerkurs hos $arrangorNavn"
+            Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING -> if (deltaker.deltarPaKurs()) {
                 "Kurs: ${deltaker.deltakerliste.navn}"
             } else {
                 deltaker.deltakerliste.navn
             }
 
-            ArenaKode.GRUFAGYRKE -> deltaker.deltakerliste.navn
+            Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING -> deltaker.deltakerliste.navn
             else -> "${deltaker.deltakerliste.tiltakstype.navn} hos $arrangorNavn"
         }
     }
@@ -110,7 +110,7 @@ class DeltakelserResponseMapper(
 
     private fun Tiltakstype.toTiltakstypeRespons(): DeltakelserResponse.Tiltakstype = DeltakelserResponse.Tiltakstype(
         navn = visningsnavn,
-        tiltakskode = arenaKode,
+        tiltakskode = arenaKode, // skal erstattes med Tiltakskode senere
     )
 
     companion object {

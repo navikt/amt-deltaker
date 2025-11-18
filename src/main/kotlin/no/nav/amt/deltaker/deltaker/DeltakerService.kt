@@ -27,7 +27,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.EndringRequest
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.ArenaKode
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.models.person.NavAnsatt
@@ -66,7 +66,7 @@ class DeltakerService(
 
     private fun getDeltakereForDeltakerliste(deltakerlisteId: UUID) = deltakerRepository.getDeltakereForDeltakerliste(deltakerlisteId)
 
-    fun getDeltakerIderForTiltakstype(tiltakstype: ArenaKode) = deltakerRepository.getDeltakerIderForTiltakstype(tiltakstype)
+    fun getDeltakerIderForTiltakskode(tiltakskode: Tiltakskode) = deltakerRepository.getDeltakerIderForTiltakskode(tiltakskode)
 
     suspend fun upsertDeltaker(
         deltaker: Deltaker,

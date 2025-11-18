@@ -8,6 +8,6 @@ data class DeltakelserResponse(
 ) {
     data class Tiltakstype(
         val navn: String,
-        val tiltakskode: ArenaKode,
+        val tiltakskode: ArenaKode, // skal erstattes med Tiltakskode senere
     )
 }

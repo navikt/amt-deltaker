@@ -144,7 +144,7 @@ object TestData {
         status: Deltakerliste.Status = Deltakerliste.Status.GJENNOMFORES,
         startDato: LocalDate = LocalDate.now().minusMonths(1),
         sluttDato: LocalDate? = LocalDate.now().plusYears(1),
-        oppstart: Oppstartstype = finnOppstartstype(tiltakstype.arenaKode),
+        oppstart: Oppstartstype = finnOppstartstype(tiltakstype.tiltakskode),
         oppmoteSted: String? = "~oppmoteSted~",
         apentForPamelding: Boolean = true,
     ) = Deltakerliste(id, tiltakstype, navn, status, startDato, sluttDato, oppstart, apentForPamelding, oppmoteSted, arrangor)
@@ -415,10 +415,10 @@ object TestData {
         gyldigFra = gyldigFra,
     )
 
-    private fun finnOppstartstype(type: ArenaKode) = when (type) {
-        ArenaKode.JOBBK,
-        ArenaKode.GRUPPEAMO,
-        ArenaKode.GRUFAGYRKE,
+    private fun finnOppstartstype(tiltakskode: Tiltakskode) = when (tiltakskode) {
+        Tiltakskode.JOBBKLUBB,
+        Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
+        Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING,
         -> Oppstartstype.FELLES
 
         else -> Oppstartstype.LOPENDE

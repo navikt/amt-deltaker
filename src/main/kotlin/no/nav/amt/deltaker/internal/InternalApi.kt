@@ -24,7 +24,7 @@ import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorService
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.ArenaKode
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
@@ -150,13 +150,18 @@ fun Routing.registerInternalApi(
         }
     }
 
-    post("/internal/relast/tiltakstype/{tiltakstype}") {
+    post("/internal/relast/tiltakstype/{tiltakskode}") {
         if (isInternal(call.request.local.remoteAddress)) {
-            val tiltakstype = ArenaKode.valueOf(call.parameters["tiltakstype"]!!)
+            val tiltakskode = Tiltakskode.valueOf(
+                call.parameters["tiltakskode"]
+                    ?: throw IllegalArgumentException("Tiltakskode ikke satt"),
+            )
+
             val request = call.receive<RepubliserRequest>()
+
             scope.launch {
-                log.info("Relaster deltakere for tiltakstype ${tiltakstype.name} på deltaker-v2")
-                val deltakerIder = deltakerService.getDeltakerIderForTiltakstype(tiltakstype)
+                log.info("Relaster deltakere for tiltakstype ${tiltakskode.name} på deltaker-v2")
+                val deltakerIder = deltakerService.getDeltakerIderForTiltakskode(tiltakskode)
                 deltakerIder.forEach {
                     deltakerProducerService.produce(
                         deltakerService.get(it).getOrThrow(),
@@ -164,7 +169,7 @@ fun Routing.registerInternalApi(
                         publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
                     )
                 }
-                log.info("Relastet deltakere for tiltakstype ${tiltakstype.name} på deltaker-v2")
+                log.info("Relastet deltakere for tiltakstype ${tiltakskode.name} på deltaker-v2")
             }
             call.respond(HttpStatusCode.OK)
         } else {
@@ -177,17 +182,20 @@ fun Routing.registerInternalApi(
             val request = call.receive<RepubliserRequest>()
             scope.launch {
                 log.info("Relaster alle deltakere komet er master for på deltaker-v2")
-                for (tiltakstype in ArenaKode.entries) {
-                    val deltakerIder = deltakerService.getDeltakerIderForTiltakstype(tiltakstype)
-                    log.info("Gjør klar for relast av ${deltakerIder.size} deltakere på tiltakstype ${tiltakstype.name}.")
-                    deltakerIder.forEach {
+                for (tiltakskode in Tiltakskode.entries) {
+                    val deltakerIder = deltakerService.getDeltakerIderForTiltakskode(tiltakskode)
+
+                    log.info("Gjør klar for relast av ${deltakerIder.size} deltakere på tiltakstype ${tiltakskode.name}.")
+
+                    deltakerIder.forEach { deltakerId ->
                         deltakerProducerService.produce(
-                            deltakerService.get(it).getOrThrow(),
+                            deltakerService.get(deltakerId).getOrThrow(),
                             forcedUpdate = request.forcedUpdate,
                             publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
                         )
                     }
-                    log.info("Ferdig relastet av ${deltakerIder.size} deltakere på tiltakstype ${tiltakstype.name}.")
+
+                    log.info("Ferdig relastet av ${deltakerIder.size} deltakere på tiltakstype ${tiltakskode.name}.")
                 }
                 log.info("Ferdig relastet alle deltakere komet er master for på deltaker-v2")
             }

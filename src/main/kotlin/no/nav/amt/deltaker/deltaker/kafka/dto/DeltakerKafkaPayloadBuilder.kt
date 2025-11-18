@@ -91,7 +91,7 @@ data class DeltakerKafkaPayloadBuilder(
                 navn = deltaker.deltakerliste.navn,
                 tiltak = Tiltak(
                     navn = deltaker.deltakerliste.tiltakstype.navn,
-                    arenaKode = deltaker.deltakerliste.tiltakstype.arenaKode,
+                    arenaKode = deltaker.deltakerliste.tiltakstype.arenaKode, // skal fjernes senere
                     tiltakskode = deltaker.deltakerliste.tiltakstype.tiltakskode,
                 ),
                 startdato = deltaker.deltakerliste.startDato,
