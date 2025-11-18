@@ -177,8 +177,8 @@ class DeltakerEndringHandler(
     }
 
     private fun endreAvslutning(endring: DeltakerEndring.Endring.EndreAvslutning, erFellesOppstart: Boolean?) = endreDeltaker(
-        (deltaker.status.type == DeltakerStatus.Type.FULLFORT && !endring.harFullfort) ||
-            (deltaker.status.type == DeltakerStatus.Type.AVBRUTT && endring.harFullfort) ||
+        (deltaker.status.type == DeltakerStatus.Type.FULLFORT && endring.harFullfort == false) ||
+            (deltaker.status.type == DeltakerStatus.Type.AVBRUTT && endring.harFullfort == true) ||
             deltaker.sluttdato != endring.sluttdato ||
             deltaker.status.aarsak != endring.aarsak?.toDeltakerStatusAarsak(),
     ) {
@@ -244,7 +244,7 @@ class DeltakerEndringHandler(
     private fun DeltakerEndring.Endring.EndreAvslutning.getEndreAvslutningStatus(erFellesOppstart: Boolean?): DeltakerStatus {
         val status = if (erFellesOppstart != true) {
             DeltakerStatus.Type.HAR_SLUTTET
-        } else if (harFullfort) {
+        } else if (harFullfort == true) {
             DeltakerStatus.Type.FULLFORT
         } else {
             DeltakerStatus.Type.AVBRUTT
