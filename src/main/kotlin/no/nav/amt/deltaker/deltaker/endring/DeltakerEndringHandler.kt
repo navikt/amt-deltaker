@@ -19,7 +19,7 @@ class DeltakerEndringHandler(
 ) {
     fun sjekkUtfall(): DeltakerEndringUtfall = when (endring) {
         is DeltakerEndring.Endring.AvsluttDeltakelse -> avsluttDeltakelse(endring)
-        is DeltakerEndring.Endring.EndreAvslutning -> endreAvslutning(endring)
+        is DeltakerEndring.Endring.EndreAvslutning -> endreAvslutning(endring, deltaker.deltakerliste.erFellesOppstart)
         is DeltakerEndring.Endring.AvbrytDeltakelse -> avbrytDeltakelse(endring)
         is DeltakerEndring.Endring.EndreBakgrunnsinformasjon -> endreBakgrunnsinformasjon(endring)
         is DeltakerEndring.Endring.EndreDeltakelsesmengde -> endreDeltakelsesmengde(endring)
@@ -176,7 +176,7 @@ class DeltakerEndringHandler(
         }
     }
 
-    private fun endreAvslutning(endring: DeltakerEndring.Endring.EndreAvslutning) = endreDeltaker(
+    private fun endreAvslutning(endring: DeltakerEndring.Endring.EndreAvslutning, erFellesOppstart: Boolean?) = endreDeltaker(
         (deltaker.status.type == DeltakerStatus.Type.FULLFORT && !endring.harFullfort) ||
             (deltaker.status.type == DeltakerStatus.Type.AVBRUTT && endring.harFullfort) ||
             deltaker.sluttdato != endring.sluttdato ||
@@ -184,7 +184,7 @@ class DeltakerEndringHandler(
     ) {
         DeltakerEndringUtfall.VellykketEndring(
             deltaker.copy(
-                status = endring.getEndreAvslutningStatus(),
+                status = endring.getEndreAvslutningStatus(erFellesOppstart),
                 sluttdato = endring.sluttdato,
             ),
         )
@@ -241,8 +241,10 @@ class DeltakerEndringHandler(
         )
     }
 
-    private fun DeltakerEndring.Endring.EndreAvslutning.getEndreAvslutningStatus(): DeltakerStatus {
-        val status = if (harFullfort) {
+    private fun DeltakerEndring.Endring.EndreAvslutning.getEndreAvslutningStatus(erFellesOppstart: Boolean?): DeltakerStatus {
+        val status = if (erFellesOppstart == true) {
+            DeltakerStatus.Type.HAR_SLUTTET
+        } else if (harFullfort) {
             DeltakerStatus.Type.FULLFORT
         } else {
             DeltakerStatus.Type.AVBRUTT
