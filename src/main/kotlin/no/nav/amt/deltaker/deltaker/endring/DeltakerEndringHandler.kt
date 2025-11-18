@@ -242,7 +242,7 @@ class DeltakerEndringHandler(
     }
 
     private fun DeltakerEndring.Endring.EndreAvslutning.getEndreAvslutningStatus(erFellesOppstart: Boolean?): DeltakerStatus {
-        val status = if (erFellesOppstart == true) {
+        val status = if (erFellesOppstart != true) {
             DeltakerStatus.Type.HAR_SLUTTET
         } else if (harFullfort) {
             DeltakerStatus.Type.FULLFORT
