@@ -4,9 +4,6 @@ import io.kotest.assertions.json.schema.boolean
 import io.kotest.assertions.json.schema.jsonSchema
 import io.kotest.assertions.json.schema.obj
 import io.kotest.assertions.json.schema.string
-import io.kotest.matchers.collections.beIn
-import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlistePayload.Companion.ENKELTPLASS_V2_TYPE
-import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlistePayload.Companion.GRUPPE_V2_TYPE
 
 object DeltakerlistePayloadJsonSchemas {
     val arrangorSchema = jsonSchema {
@@ -25,9 +22,6 @@ object DeltakerlistePayloadJsonSchemas {
 
     val deltakerlistePayloadV2Schema = jsonSchema {
         obj {
-            withProperty("type") {
-                string { beIn(setOf(ENKELTPLASS_V2_TYPE, GRUPPE_V2_TYPE)) }
-            }
             withProperty("id") { string() }
             withProperty("tiltakskode", optional = true) { string() }
             withProperty("tiltakstype", optional = true) { tiltakstypeSchema() }
