@@ -80,7 +80,8 @@ class DeltakelserResponseMapperTest {
         deltakerKort.tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos Arrangør"
         deltakerKort.tiltakstype shouldBe DeltakelserResponse.Tiltakstype(
             deltaker.deltakerliste.tiltakstype.navn,
-            deltaker.deltakerliste.tiltakstype.arenaKode,
+            deltaker.deltakerliste.tiltakstype.tiltakskode
+                .toArenaKode(),
         )
         deltakerKort.status.type shouldBe DeltakerStatus.Type.KLADD
         deltakerKort.status.visningstekst shouldBe "Kladden er ikke delt"
@@ -128,7 +129,8 @@ class DeltakelserResponseMapperTest {
         deltakerKort.tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos Overordnet Arrangør"
         deltakerKort.tiltakstype shouldBe DeltakelserResponse.Tiltakstype(
             deltaker.deltakerliste.tiltakstype.navn,
-            deltaker.deltakerliste.tiltakstype.arenaKode,
+            deltaker.deltakerliste.tiltakstype.tiltakskode
+                .toArenaKode(),
         )
         deltakerKort.status.type shouldBe DeltakerStatus.Type.UTKAST_TIL_PAMELDING
         deltakerKort.status.visningstekst shouldBe "Utkastet er delt og venter på godkjenning"
@@ -176,7 +178,8 @@ class DeltakelserResponseMapperTest {
         deltakerKort.tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos Arrangør"
         deltakerKort.tiltakstype shouldBe DeltakelserResponse.Tiltakstype(
             deltaker.deltakerliste.tiltakstype.navn,
-            deltaker.deltakerliste.tiltakstype.arenaKode,
+            deltaker.deltakerliste.tiltakstype.tiltakskode
+                .toArenaKode(),
         )
         deltakerKort.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
         deltakerKort.status.visningstekst shouldBe "Venter på oppstart"
@@ -222,7 +225,8 @@ class DeltakelserResponseMapperTest {
         deltakerKort.tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos Arrangør"
         deltakerKort.tiltakstype shouldBe DeltakelserResponse.Tiltakstype(
             deltaker.deltakerliste.tiltakstype.navn,
-            deltaker.deltakerliste.tiltakstype.arenaKode,
+            deltaker.deltakerliste.tiltakstype.tiltakskode
+                .toArenaKode(),
         )
         deltakerKort.status.type shouldBe DeltakerStatus.Type.DELTAR
         deltakerKort.status.visningstekst shouldBe "Deltar"
@@ -272,7 +276,8 @@ class DeltakelserResponseMapperTest {
         deltakerKort.tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos Arrangør"
         deltakerKort.tiltakstype shouldBe DeltakelserResponse.Tiltakstype(
             deltaker.deltakerliste.tiltakstype.navn,
-            deltaker.deltakerliste.tiltakstype.arenaKode,
+            deltaker.deltakerliste.tiltakstype.tiltakskode
+                .toArenaKode(),
         )
         deltakerKort.status.type shouldBe DeltakerStatus.Type.IKKE_AKTUELL
         deltakerKort.status.visningstekst shouldBe "Ikke aktuell"
@@ -322,7 +327,8 @@ class DeltakelserResponseMapperTest {
         deltakerKort.tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos Arrangør"
         deltakerKort.tiltakstype shouldBe DeltakelserResponse.Tiltakstype(
             deltaker.deltakerliste.tiltakstype.navn,
-            deltaker.deltakerliste.tiltakstype.arenaKode,
+            deltaker.deltakerliste.tiltakstype.tiltakskode
+                .toArenaKode(),
         )
         deltakerKort.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
         deltakerKort.status.visningstekst shouldBe "Har sluttet"
@@ -372,7 +378,8 @@ class DeltakelserResponseMapperTest {
         deltakerKort.tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos Arrangør"
         deltakerKort.tiltakstype shouldBe DeltakelserResponse.Tiltakstype(
             deltaker.deltakerliste.tiltakstype.navn,
-            deltaker.deltakerliste.tiltakstype.arenaKode,
+            deltaker.deltakerliste.tiltakstype.tiltakskode
+                .toArenaKode(),
         )
         deltakerKort.status.type shouldBe DeltakerStatus.Type.AVBRUTT_UTKAST
         deltakerKort.status.visningstekst shouldBe "Avbrutt utkast"

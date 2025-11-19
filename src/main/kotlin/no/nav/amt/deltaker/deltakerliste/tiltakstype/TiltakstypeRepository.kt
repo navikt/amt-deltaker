@@ -23,7 +23,6 @@ class TiltakstypeRepository {
                 id = row.uuid(col("id")),
                 navn = row.string(col("navn")),
                 tiltakskode = Tiltakskode.valueOf(row.string(col("tiltakskode"))),
-                arenaKode = Tiltakskode.valueOf(row.string(col("tiltakskode"))).toArenaKode(), // skal fjernes senere
                 innsatsgrupper = row.string(col("innsatsgrupper")).let { objectMapper.readValue(it) },
                 innhold = row.stringOrNull(col("innhold"))?.let { objectMapper.readValue<DeltakerRegistreringInnhold?>(it) },
             )

@@ -124,7 +124,13 @@ object TestData {
         innsatsgrupper: Set<Innsatsgruppe> = setOf(Innsatsgruppe.STANDARD_INNSATS),
         innhold: DeltakerRegistreringInnhold? = lagDeltakerRegistreringInnhold(),
     ): Tiltakstype {
-        val tiltak = tiltakstypeCache[tiltakskode] ?: Tiltakstype(id, navn, tiltakskode, arenaKode, innsatsgrupper, innhold)
+        val tiltak = tiltakstypeCache[tiltakskode] ?: Tiltakstype(
+            id,
+            navn,
+            tiltakskode,
+            innsatsgrupper,
+            innhold,
+        )
         val nyttTiltak = tiltak.copy(navn = navn, innhold = innhold, innsatsgrupper = innsatsgrupper)
         tiltakstypeCache[tiltak.tiltakskode] = nyttTiltak
 
@@ -140,7 +146,7 @@ object TestData {
         id: UUID = UUID.randomUUID(),
         arrangor: Arrangor = lagArrangor(),
         tiltakstype: Tiltakstype = lagTiltakstype(),
-        navn: String = "Test Deltakerliste ${tiltakstype.arenaKode}",
+        navn: String = "Test Deltakerliste ${tiltakstype.tiltakskode}",
         status: Deltakerliste.Status = Deltakerliste.Status.GJENNOMFORES,
         startDato: LocalDate = LocalDate.now().minusMonths(1),
         sluttDato: LocalDate? = LocalDate.now().plusYears(1),
