@@ -19,6 +19,7 @@ import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.ReaktiverDel
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.SluttarsakRequest
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.SluttdatoRequest
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.StartdatoRequest
+import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -474,6 +475,9 @@ class DeltakerEndringHandlerTest {
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.AVBRUTT),
             sluttdato = LocalDate.now().minusDays(3),
+            deltakerliste = TestData.lagDeltakerliste(
+                oppstart = Oppstartstype.FELLES,
+            ),
         )
         val endretAv = TestData.lagNavAnsatt()
         val endretAvEnhet = TestData.lagNavEnhet()
@@ -487,6 +491,7 @@ class DeltakerEndringHandlerTest {
             aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
             begrunnelse = "begrunnelse",
             harFullfort = true,
+            sluttdato = LocalDate.now().minusDays(1),
             forslagId = forslag.id,
         )
 
@@ -505,6 +510,9 @@ class DeltakerEndringHandlerTest {
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.FULLFORT),
             sluttdato = LocalDate.now().minusDays(3),
+            deltakerliste = TestData.lagDeltakerliste(
+                oppstart = Oppstartstype.FELLES,
+            ),
         )
         val endretAv = TestData.lagNavAnsatt()
         val endretAvEnhet = TestData.lagNavEnhet()
@@ -518,6 +526,7 @@ class DeltakerEndringHandlerTest {
             aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
             begrunnelse = "begrunnelse",
             harFullfort = false,
+            sluttdato = LocalDate.now().minusDays(1),
             forslagId = forslag.id,
         )
 
@@ -549,6 +558,7 @@ class DeltakerEndringHandlerTest {
             aarsak = null,
             begrunnelse = "begrunnelse",
             harFullfort = true,
+            sluttdato = deltaker.sluttdato,
             forslagId = forslag.id,
         )
 
