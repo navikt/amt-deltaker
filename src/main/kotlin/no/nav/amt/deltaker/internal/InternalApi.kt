@@ -160,7 +160,7 @@ fun Routing.registerInternalApi(
             val request = call.receive<RepubliserRequest>()
 
             scope.launch {
-                log.info("Relaster deltakere for tiltakstype ${tiltakskode.name} på deltaker-v2")
+                log.info("Relaster deltakere for tiltakskode ${tiltakskode.name} på deltaker-v2")
                 val deltakerIder = deltakerService.getDeltakerIderForTiltakskode(tiltakskode)
                 deltakerIder.forEach {
                     deltakerProducerService.produce(
@@ -169,7 +169,7 @@ fun Routing.registerInternalApi(
                         publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
                     )
                 }
-                log.info("Relastet deltakere for tiltakstype ${tiltakskode.name} på deltaker-v2")
+                log.info("Relastet deltakere for tiltakskode ${tiltakskode.name} på deltaker-v2")
             }
             call.respond(HttpStatusCode.OK)
         } else {
@@ -185,7 +185,7 @@ fun Routing.registerInternalApi(
                 for (tiltakskode in Tiltakskode.entries) {
                     val deltakerIder = deltakerService.getDeltakerIderForTiltakskode(tiltakskode)
 
-                    log.info("Gjør klar for relast av ${deltakerIder.size} deltakere på tiltakstype ${tiltakskode.name}.")
+                    log.info("Gjør klar for relast av ${deltakerIder.size} deltakere på tiltakskode ${tiltakskode.name}.")
 
                     deltakerIder.forEach { deltakerId ->
                         deltakerProducerService.produce(
@@ -195,9 +195,9 @@ fun Routing.registerInternalApi(
                         )
                     }
 
-                    log.info("Ferdig relastet av ${deltakerIder.size} deltakere på tiltakstype ${tiltakskode.name}.")
+                    log.info("Ferdig relastet av ${deltakerIder.size} deltakere på tiltakskode ${tiltakskode.name}.")
                 }
-                log.info("Ferdig relastet alle deltakere komet er master for på deltaker-v2")
+                log.info("Ferdig relastet alle deltakere Team Komet er master for på deltaker-v2")
             }
             call.respond(HttpStatusCode.OK)
         } else {

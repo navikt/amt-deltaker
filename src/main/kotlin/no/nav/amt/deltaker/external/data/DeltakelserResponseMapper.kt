@@ -110,7 +110,7 @@ class DeltakelserResponseMapper(
 
     private fun Tiltakstype.toTiltakstypeRespons(): DeltakelserResponse.Tiltakstype = DeltakelserResponse.Tiltakstype(
         navn = visningsnavn,
-        tiltakskode = tiltakskode.toArenaKode(), // skal erstattes med Tiltakskode senere
+        tiltakskode = tiltakskode.toArenaKode(), // benyttes av eksterne, kan ikke endres
     )
 
     companion object {

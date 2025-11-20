@@ -201,12 +201,12 @@ class DeltakerService(
 
         val endretAvEnhet = navEnhetService.hentEllerOpprettNavEnhet(endretAvNavEnhetId)
         val deltakere = deltakerRepository.getMany(deltakerIder)
-        val tiltakstyper = deltakere
+        val tiltakskoder = deltakere
             .distinctBy { it.deltakerliste.tiltakstype.tiltakskode }
             .map { it.deltakerliste.tiltakstype.tiltakskode }
 
-        require(tiltakstyper.size == 1) { "kan ikke endre på deltakere på flere tiltakstyper samtidig" }
-        require(tiltakstyper.first() in Tiltakstype.kursTiltak) { "kan ikke endre på deltakere på tiltakstypen ${tiltakstyper.first()}" }
+        require(tiltakskoder.size == 1) { "kan ikke endre på deltakere på flere tiltakskoder samtidig" }
+        require(tiltakskoder.first() in Tiltakstype.kursTiltak) { "kan ikke endre på deltakere på tiltakskoden ${tiltakskoder.first()}" }
 
         return deltakere
             .map { upsertDeltaker(it, endringsType, endretAv, endretAvEnhet) }
