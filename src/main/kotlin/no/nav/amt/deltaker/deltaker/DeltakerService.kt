@@ -27,7 +27,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.EndringRequest
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.ArenaKode
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.models.person.NavAnsatt
@@ -66,7 +66,7 @@ class DeltakerService(
 
     private fun getDeltakereForDeltakerliste(deltakerlisteId: UUID) = deltakerRepository.getDeltakereForDeltakerliste(deltakerlisteId)
 
-    fun getDeltakerIderForTiltakstype(tiltakstype: ArenaKode) = deltakerRepository.getDeltakerIderForTiltakstype(tiltakstype)
+    fun getDeltakerIderForTiltakskode(tiltakskode: Tiltakskode) = deltakerRepository.getDeltakerIderForTiltakskode(tiltakskode)
 
     suspend fun upsertDeltaker(
         deltaker: Deltaker,
@@ -201,12 +201,12 @@ class DeltakerService(
 
         val endretAvEnhet = navEnhetService.hentEllerOpprettNavEnhet(endretAvNavEnhetId)
         val deltakere = deltakerRepository.getMany(deltakerIder)
-        val tiltakstyper = deltakere
+        val tiltakskoder = deltakere
             .distinctBy { it.deltakerliste.tiltakstype.tiltakskode }
             .map { it.deltakerliste.tiltakstype.tiltakskode }
 
-        require(tiltakstyper.size == 1) { "kan ikke endre på deltakere på flere tiltakstyper samtidig" }
-        require(tiltakstyper.first() in Tiltakstype.kursTiltak) { "kan ikke endre på deltakere på tiltakstypen ${tiltakstyper.first()}" }
+        require(tiltakskoder.size == 1) { "kan ikke endre på deltakere på flere tiltakskoder samtidig" }
+        require(tiltakskoder.first() in Tiltakstype.kursTiltak) { "kan ikke endre på deltakere på tiltakskoden ${tiltakskoder.first()}" }
 
         return deltakere
             .map { upsertDeltaker(it, endringsType, endretAv, endretAvEnhet) }

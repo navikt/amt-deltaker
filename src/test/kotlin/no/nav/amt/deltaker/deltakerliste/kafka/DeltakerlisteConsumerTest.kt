@@ -13,8 +13,6 @@ import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlistePayload.Arrangor
-import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlistePayload.Companion.ENKELTPLASS_V2_TYPE
-import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlistePayload.Companion.GRUPPE_V2_TYPE
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.deltaker.utils.data.TestData.lagArrangor
@@ -74,7 +72,6 @@ class DeltakerlisteConsumerTest {
             )
 
         val deltakerlistePayload = lagDeltakerlistePayload(arrangor, expectedDeltakerliste).copy(
-            type = GRUPPE_V2_TYPE,
             arrangor = Arrangor(arrangor.organisasjonsnummer),
         )
 
@@ -111,7 +108,6 @@ class DeltakerlisteConsumerTest {
             )
 
         val deltakerlistePayload = lagDeltakerlistePayload(arrangor, deltakerliste).copy(
-            type = GRUPPE_V2_TYPE,
             arrangor = Arrangor(arrangor.organisasjonsnummer),
         )
 
@@ -146,7 +142,6 @@ class DeltakerlisteConsumerTest {
             )
 
         val deltakerlistePayload = lagDeltakerlistePayload(arrangor, deltakerliste).copy(
-            type = ENKELTPLASS_V2_TYPE,
             navn = null,
             startDato = null,
             sluttDato = null,

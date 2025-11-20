@@ -130,7 +130,6 @@ class DeltakerlistePayloadTest {
         private val arrangorDtoInTest = DeltakerlistePayload.Arrangor(arrangorInTest.organisasjonsnummer)
 
         private val fullyPopulatedV2PayloadInTest = DeltakerlistePayload(
-            type = DeltakerlistePayload.ENKELTPLASS_V2_TYPE,
             id = deltakerlisteIdInTest,
             tiltakstype = DeltakerlistePayload.Tiltakstype(Tiltakskode.ENKELTPLASS_FAG_OG_YRKESOPPLAERING.name),
             navn = "Testliste",

@@ -88,7 +88,8 @@ class HentDeltakelserApiTest : RouteTestBase() {
                     tittel = "Arbeidsforberedende trening hos Arrangør AS",
                     tiltakstype = DeltakelserResponse.Tiltakstype(
                         navn = deltaker.deltakerliste.tiltakstype.navn,
-                        tiltakskode = deltaker.deltakerliste.tiltakstype.arenaKode,
+                        tiltakskode = deltaker.deltakerliste.tiltakstype.tiltakskode
+                            .toArenaKode(),
                     ),
                     status = DeltakerKort.Status(
                         type = DeltakerStatus.Type.DELTAR,
@@ -161,7 +162,8 @@ class HentDeltakelserApiTest : RouteTestBase() {
                     tittel = "Arbeidsforberedende trening hos Arrangør AS",
                     tiltakstype = DeltakelserResponse.Tiltakstype(
                         navn = deltakerKladd.deltakerliste.tiltakstype.navn,
-                        tiltakskode = deltakerKladd.deltakerliste.tiltakstype.arenaKode,
+                        tiltakskode = deltakerKladd.deltakerliste.tiltakstype.tiltakskode
+                            .toArenaKode(),
                     ),
                     status = DeltakerKort.Status(
                         type = DeltakerStatus.Type.KLADD,
@@ -180,7 +182,8 @@ class HentDeltakelserApiTest : RouteTestBase() {
                     tittel = "Arbeidsforberedende trening hos Arrangør og Sønn AS",
                     tiltakstype = DeltakelserResponse.Tiltakstype(
                         navn = avsluttetDeltaker.deltakerliste.tiltakstype.navn,
-                        tiltakskode = avsluttetDeltaker.deltakerliste.tiltakstype.arenaKode,
+                        tiltakskode = avsluttetDeltaker.deltakerliste.tiltakstype.tiltakskode
+                            .toArenaKode(),
                     ),
                     status = DeltakerKort.Status(
                         type = DeltakerStatus.Type.HAR_SLUTTET,

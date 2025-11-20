@@ -124,7 +124,13 @@ object TestData {
         innsatsgrupper: Set<Innsatsgruppe> = setOf(Innsatsgruppe.STANDARD_INNSATS),
         innhold: DeltakerRegistreringInnhold? = lagDeltakerRegistreringInnhold(),
     ): Tiltakstype {
-        val tiltak = tiltakstypeCache[tiltakskode] ?: Tiltakstype(id, navn, tiltakskode, arenaKode, innsatsgrupper, innhold)
+        val tiltak = tiltakstypeCache[tiltakskode] ?: Tiltakstype(
+            id,
+            navn,
+            tiltakskode,
+            innsatsgrupper,
+            innhold,
+        )
         val nyttTiltak = tiltak.copy(navn = navn, innhold = innhold, innsatsgrupper = innsatsgrupper)
         tiltakstypeCache[tiltak.tiltakskode] = nyttTiltak
 
@@ -140,11 +146,11 @@ object TestData {
         id: UUID = UUID.randomUUID(),
         arrangor: Arrangor = lagArrangor(),
         tiltakstype: Tiltakstype = lagTiltakstype(),
-        navn: String = "Test Deltakerliste ${tiltakstype.arenaKode}",
+        navn: String = "Test Deltakerliste ${tiltakstype.tiltakskode}",
         status: Deltakerliste.Status = Deltakerliste.Status.GJENNOMFORES,
         startDato: LocalDate = LocalDate.now().minusMonths(1),
         sluttDato: LocalDate? = LocalDate.now().plusYears(1),
-        oppstart: Oppstartstype = finnOppstartstype(tiltakstype.arenaKode),
+        oppstart: Oppstartstype = finnOppstartstype(tiltakstype.tiltakskode),
         oppmoteSted: String? = "~oppmoteSted~",
         apentForPamelding: Boolean = true,
     ) = Deltakerliste(id, tiltakstype, navn, status, startDato, sluttDato, oppstart, apentForPamelding, oppmoteSted, arrangor)
@@ -415,10 +421,10 @@ object TestData {
         gyldigFra = gyldigFra,
     )
 
-    private fun finnOppstartstype(type: ArenaKode) = when (type) {
-        ArenaKode.JOBBK,
-        ArenaKode.GRUPPEAMO,
-        ArenaKode.GRUFAGYRKE,
+    private fun finnOppstartstype(tiltakskode: Tiltakskode) = when (tiltakskode) {
+        Tiltakskode.JOBBKLUBB,
+        Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
+        Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING,
         -> Oppstartstype.FELLES
 
         else -> Oppstartstype.LOPENDE
