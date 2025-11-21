@@ -277,8 +277,7 @@ class DeltakerEndringHandler(
 
     private fun DeltakerEndring.Endring.AvbrytDeltakelse.skalFortsattDelta(): Boolean = !sluttdato.isBefore(LocalDate.now())
 
-    private fun DeltakerEndring.Endring.EndreAvslutning.skalFortsattDelta(): Boolean? =
-        sluttdato?.let { !it.isBefore(LocalDate.now()) }
+    private fun DeltakerEndring.Endring.EndreAvslutning.skalFortsattDelta(): Boolean? = sluttdato?.let { !it.isBefore(LocalDate.now()) }
 
     private fun Deltaker.getStatusEndretSluttdato(sluttdato: LocalDate): DeltakerStatus =
         if (status.type in listOf(DeltakerStatus.Type.HAR_SLUTTET, DeltakerStatus.Type.AVBRUTT, DeltakerStatus.Type.FULLFORT) &&
