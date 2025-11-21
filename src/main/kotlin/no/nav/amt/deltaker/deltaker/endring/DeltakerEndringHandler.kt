@@ -182,12 +182,22 @@ class DeltakerEndringHandler(
             deltaker.sluttdato != endring.sluttdato ||
             deltaker.status.aarsak != endring.aarsak?.toDeltakerStatusAarsak(),
     ) {
-        DeltakerEndringUtfall.VellykketEndring(
-            deltaker.copy(
-                status = endring.getEndreAvslutningStatus(erFellesOppstart),
-                sluttdato = endring.sluttdato,
-            ),
-        )
+        if (endring.sluttdato != null && endring.skalFortsattDelta() == true) {
+            DeltakerEndringUtfall.VellykketEndring(
+                deltaker.copy(
+                    sluttdato = endring.sluttdato!!,
+                    status = nyDeltakerStatus(DeltakerStatus.Type.DELTAR),
+                ),
+                nesteStatus = endring.getEndreAvslutningStatus(erFellesOppstart),
+            )
+        } else {
+            DeltakerEndringUtfall.VellykketEndring(
+                deltaker.copy(
+                    status = endring.getEndreAvslutningStatus(erFellesOppstart),
+                    sluttdato = endring.sluttdato,
+                ),
+            )
+        }
     }
 
     private fun avbrytDeltakelse(endring: DeltakerEndring.Endring.AvbrytDeltakelse) = endreDeltaker(
@@ -249,16 +259,26 @@ class DeltakerEndringHandler(
         } else {
             DeltakerStatus.Type.AVBRUTT
         }
+
+        val gyldigFra = if (sluttdato != null && skalFortsattDelta() == true) {
+            sluttdato!!.atStartOfDay().plusDays(1)
+        } else {
+            LocalDateTime.now()
+        }
+
         return nyDeltakerStatus(
             type = status,
             aarsak = aarsak?.toDeltakerStatusAarsak(),
-            gyldigFra = LocalDateTime.now(),
+            gyldigFra = gyldigFra,
         )
     }
 
     private fun DeltakerEndring.Endring.AvsluttDeltakelse.skalFortsattDelta(): Boolean = !sluttdato.isBefore(LocalDate.now())
 
     private fun DeltakerEndring.Endring.AvbrytDeltakelse.skalFortsattDelta(): Boolean = !sluttdato.isBefore(LocalDate.now())
+
+    private fun DeltakerEndring.Endring.EndreAvslutning.skalFortsattDelta(): Boolean? =
+        sluttdato?.let { !it.isBefore(LocalDate.now()) }
 
     private fun Deltaker.getStatusEndretSluttdato(sluttdato: LocalDate): DeltakerStatus =
         if (status.type in listOf(DeltakerStatus.Type.HAR_SLUTTET, DeltakerStatus.Type.AVBRUTT, DeltakerStatus.Type.FULLFORT) &&
