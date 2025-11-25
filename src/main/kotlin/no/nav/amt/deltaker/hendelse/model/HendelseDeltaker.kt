@@ -20,6 +20,7 @@ fun Deltaker.toHendelseDeltaker(overordnetArrangor: Arrangor?, forsteVedtakFatte
             ledetekst = deltakerliste.tiltakstype.innhold?.ledetekst,
             tiltakskode = deltakerliste.tiltakstype.tiltakskode,
         ),
+        oppmoteSted = deltakerliste.oppmoteSted,
     ),
     forsteVedtakFattet = forsteVedtakFattet,
     opprettetDato = opprettet.toLocalDate(),
