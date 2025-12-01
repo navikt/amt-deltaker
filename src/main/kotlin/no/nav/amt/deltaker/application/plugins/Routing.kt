@@ -138,6 +138,7 @@ object StatusPageLogger {
 
         when (statusCode.value) {
             in 100..399 -> log.info(msg)
+            in 400..404 -> log.warn(msg)
             else -> log.error(msg, cause)
         }
     }

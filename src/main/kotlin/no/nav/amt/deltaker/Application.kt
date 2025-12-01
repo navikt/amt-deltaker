@@ -354,7 +354,6 @@ fun Application.module() {
 
     monitor.subscribe(ApplicationStopPreparing) {
         attributes.put(isReadyKey, false)
-        log.info("Shutting down application (ApplicationStopPreparing)")
     }
 
     monitor.subscribe(ApplicationStopping) {
