@@ -185,7 +185,7 @@ class OpprettKladdRequestValidatorTest {
         val validationResult = sut.validateRequest(requestInTest)
 
         validationResult.shouldBeTypeOf<ValidationResult.Invalid>()
-        validationResult.reasons shouldBe listOf("Deltaker er for ung for å delta på GRUPPE_ARBEIDSMARKEDSOPPLAERING")
+        validationResult.reasons shouldBe listOf("DELTAKER_FOR_UNG GRUPPE_ARBEIDSMARKEDSOPPLAERING")
     }
 
     @Test

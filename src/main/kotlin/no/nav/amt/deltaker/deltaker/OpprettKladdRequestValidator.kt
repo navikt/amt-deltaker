@@ -40,7 +40,7 @@ class OpprettKladdRequestValidator(
         }
 
         if (deltakerForUng(request.personident, deltakerListe)) {
-            return ValidationResult.Invalid("Deltaker er for ung for å delta på ${deltakerListe.tiltakstype.tiltakskode}")
+            return ValidationResult.Invalid("DELTAKER_FOR_UNG ${deltakerListe.tiltakstype.tiltakskode}")
         }
 
         return ValidationResult.Valid
