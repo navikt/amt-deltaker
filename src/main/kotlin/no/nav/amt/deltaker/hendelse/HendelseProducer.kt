@@ -8,7 +8,9 @@ import no.nav.amt.lib.utils.objectMapper
 class HendelseProducer(
     private val producer: Producer<String, String>,
 ) {
-    fun produce(hendelse: Hendelse) {
-        producer.produce(Environment.DELTAKER_HENDELSE_TOPIC, hendelse.deltaker.id.toString(), objectMapper.writeValueAsString(hendelse))
-    }
+    fun produce(hendelse: Hendelse) = producer.produce(
+        topic = Environment.DELTAKER_HENDELSE_TOPIC,
+        key = hendelse.deltaker.id.toString(),
+        value = objectMapper.writeValueAsString(hendelse),
+    )
 }

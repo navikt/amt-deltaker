@@ -5,20 +5,18 @@ import no.nav.amt.lib.models.deltaker.Arrangor
 import java.util.UUID
 
 class ArrangorService(
-    private val repository: ArrangorRepository,
+    private val arrangorRepository: ArrangorRepository,
     private val amtArrangorClient: AmtArrangorClient,
 ) {
-    suspend fun hentArrangor(orgnr: String): Arrangor {
-        return repository.get(orgnr) ?: return opprettArrangor(orgnr)
-    }
+    suspend fun hentArrangor(orgnr: String): Arrangor = arrangorRepository.get(orgnr) ?: opprettArrangor(orgnr)
 
-    fun hentArrangor(id: UUID): Arrangor? = repository.get(id)
+    fun hentArrangor(id: UUID): Arrangor? = arrangorRepository.get(id)
 
     private suspend fun opprettArrangor(orgnr: String): Arrangor {
         val arrangor = amtArrangorClient.hentArrangor(orgnr)
 
-        arrangor.overordnetArrangor?.let { repository.upsert(it) }
-        repository.upsert(arrangor.toModel())
+        arrangor.overordnetArrangor?.let { arrangorRepository.upsert(it) }
+        arrangorRepository.upsert(arrangor.toModel())
 
         return arrangor.toModel()
     }

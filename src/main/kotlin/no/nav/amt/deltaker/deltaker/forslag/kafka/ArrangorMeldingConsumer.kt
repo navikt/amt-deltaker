@@ -42,7 +42,7 @@ class ArrangorMeldingConsumer(
         }
 
         val melding = objectMapper.readValue<Melding>(value)
-        if (!forslagService.kanLagres(melding.deltakerId) && melding !is Vurdering) {
+        if (!(forslagService.kanLagres(melding.deltakerId) || melding is Vurdering)) {
             if (isDev) {
                 log.error("Mottatt melding ${melding.id} på deltaker som ikke finnes, deltakerid ${melding.deltakerId}, ignorerer")
                 return
@@ -53,11 +53,11 @@ class ArrangorMeldingConsumer(
 
         when (melding) {
             is EndringFraArrangor -> deltakerService.upsertEndretDeltaker(melding)
+
             is Forslag -> forslagService.upsert(melding)
-            is Vurdering -> {
-                if (unleashToggle.erKometMasterForTiltakstype(Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING)) {
-                    handleVurdering(melding)
-                }
+
+            is Vurdering -> if (unleashToggle.erKometMasterForTiltakstype(Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING)) {
+                handleVurdering(melding)
             }
         }
     }

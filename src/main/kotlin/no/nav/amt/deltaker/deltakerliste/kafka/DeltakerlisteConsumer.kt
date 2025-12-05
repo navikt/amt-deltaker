@@ -29,12 +29,10 @@ class DeltakerlisteConsumer(
 
     override suspend fun close() = consumer.close()
 
-    override suspend fun consume(key: UUID, value: String?) {
-        if (value == null) {
-            deltakerlisteRepository.delete(key)
-        } else {
-            handterDeltakerliste(objectMapper.readValue(value))
-        }
+    override suspend fun consume(key: UUID, value: String?) = if (value == null) {
+        deltakerlisteRepository.delete(key)
+    } else {
+        handterDeltakerliste(objectMapper.readValue(value))
     }
 
     private suspend fun handterDeltakerliste(deltakerlistePayload: DeltakerlistePayload) {

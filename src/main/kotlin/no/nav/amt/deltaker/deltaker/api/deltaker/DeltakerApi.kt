@@ -116,12 +116,12 @@ fun Routing.registerDeltakerApi(deltakerService: DeltakerService, historikkServi
 
 private suspend fun ApplicationCall.handleDeltakerEndring(
     deltakerService: DeltakerService,
-    request: EndringRequest,
+    endringRequest: EndringRequest,
     historikkService: DeltakerHistorikkService,
 ) {
     val deltakerId = UUID.fromString(this.parameters["deltakerId"])
 
-    val deltaker = deltakerService.upsertEndretDeltaker(deltakerId, request)
+    val deltaker = deltakerService.upsertEndretDeltaker(deltakerId, endringRequest)
     val historikk = historikkService.getForDeltaker(deltaker.id)
 
     this.respond(deltakerEndringResponseFromDeltaker(deltaker, historikk))

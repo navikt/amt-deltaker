@@ -7,8 +7,8 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.every
 import no.nav.amt.deltaker.deltaker.api.utils.postVeilederRequest
+import no.nav.amt.deltaker.external.DeltakelserResponseMapper
 import no.nav.amt.deltaker.external.data.DeltakelserResponse
-import no.nav.amt.deltaker.external.data.DeltakelserResponseMapper
 import no.nav.amt.deltaker.external.data.DeltakerKort
 import no.nav.amt.deltaker.external.data.HentDeltakelserRequest
 import no.nav.amt.deltaker.external.data.Periode

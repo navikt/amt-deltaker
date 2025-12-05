@@ -25,7 +25,5 @@ class TiltakstypeConsumer(
         value?.let { handterTiltakstype(objectMapper.readValue(it)) }
     }
 
-    private fun handterTiltakstype(tiltakstype: TiltakstypeDto) {
-        repository.upsert(tiltakstype.toModel())
-    }
+    private fun handterTiltakstype(tiltakstype: TiltakstypeDto) = repository.upsert(tiltakstype.toModel())
 }

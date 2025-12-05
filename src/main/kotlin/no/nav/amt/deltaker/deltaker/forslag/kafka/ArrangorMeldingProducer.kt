@@ -9,6 +9,10 @@ class ArrangorMeldingProducer(
     private val producer: Producer<String, String>,
 ) {
     fun produce(forslag: Forslag) {
-        producer.produce(Environment.ARRANGOR_MELDING_TOPIC, forslag.id.toString(), objectMapper.writeValueAsString(forslag))
+        producer.produce(
+            topic = Environment.ARRANGOR_MELDING_TOPIC,
+            key = forslag.id.toString(),
+            value = objectMapper.writeValueAsString(forslag),
+        )
     }
 }

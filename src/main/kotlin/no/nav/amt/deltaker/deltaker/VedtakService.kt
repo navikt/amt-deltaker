@@ -20,11 +20,12 @@ class VedtakService(
         avbruttAv: NavAnsatt,
         avbruttAvNavEnhet: NavEnhet,
     ): Vedtaksutfall {
-        val ikkeFattetVedtak = when (val it = hentIkkeFattetVedtak(deltaker.id)) {
-            is Vedtaksutfall.OK -> it.vedtak
+        val ikkeFattetVedtak = when (val utfall = hentIkkeFattetVedtak(deltaker.id)) {
+            is Vedtaksutfall.OK -> utfall.vedtak
+
             Vedtaksutfall.ManglerVedtakSomKanEndres,
             Vedtaksutfall.VedtakAlleredeFattet,
-            -> return it
+            -> return utfall
         }
 
         val avbruttVedtak = ikkeFattetVedtak.copy(
@@ -40,11 +41,12 @@ class VedtakService(
     }
 
     fun avbrytVedtakVedAvsluttetDeltakerliste(deltaker: Deltaker): Vedtaksutfall {
-        val ikkeFattetVedtak = when (val it = hentIkkeFattetVedtak(deltaker.id)) {
-            is Vedtaksutfall.OK -> it.vedtak
+        val ikkeFattetVedtak = when (val utfall = hentIkkeFattetVedtak(deltaker.id)) {
+            is Vedtaksutfall.OK -> utfall.vedtak
+
             Vedtaksutfall.ManglerVedtakSomKanEndres,
             Vedtaksutfall.VedtakAlleredeFattet,
-            -> return it
+            -> return utfall
         }
 
         val avbruttVedtak = ikkeFattetVedtak.copy(
@@ -61,10 +63,10 @@ class VedtakService(
         endretAv: NavAnsatt,
         endretAvEnhet: NavEnhet,
     ): Vedtaksutfall {
-        val eksisterendeVedtak = when (val it = hentIkkeFattetVedtak(deltaker.id)) {
+        val eksisterendeVedtak = when (val utfall = hentIkkeFattetVedtak(deltaker.id)) {
             Vedtaksutfall.ManglerVedtakSomKanEndres -> null
-            is Vedtaksutfall.OK -> it.vedtak
-            Vedtaksutfall.VedtakAlleredeFattet -> return it
+            is Vedtaksutfall.OK -> utfall.vedtak
+            Vedtaksutfall.VedtakAlleredeFattet -> return utfall
         }
 
         return Vedtaksutfall.OK(
@@ -86,12 +88,15 @@ class VedtakService(
         session: TransactionalSession? = null,
     ): Vedtaksutfall {
         when (val utfall = hentIkkeFattetVedtak(deltaker.id)) {
-            is Vedtaksutfall.ManglerVedtakSomKanEndres ->
+            is Vedtaksutfall.ManglerVedtakSomKanEndres -> {
                 throw IllegalStateException("Deltaker ${deltaker.id} mangler et vedtak som kan fattes")
+            }
+
             is Vedtaksutfall.VedtakAlleredeFattet -> {
                 log.info("Vedtak allerede fattet for deltaker ${deltaker.id}, fatter ikke nytt vedtak")
                 return utfall
             }
+
             is Vedtaksutfall.OK -> {
                 log.info("Fatter hovedvedtak for deltaker ${deltaker.id}")
                 val oppdatertVedtak = upsertOppdatertVedtak(
@@ -113,10 +118,10 @@ class VedtakService(
         endretAv: NavAnsatt,
         endretAvEnhet: NavEnhet,
     ): Vedtaksutfall {
-        val ikkeFattetVedtak = when (val it = hentIkkeFattetVedtak(deltaker.id)) {
-            is Vedtaksutfall.OK -> it.vedtak
+        val ikkeFattetVedtak = when (val utfall = hentIkkeFattetVedtak(deltaker.id)) {
+            is Vedtaksutfall.OK -> utfall.vedtak
             Vedtaksutfall.ManglerVedtakSomKanEndres -> null
-            Vedtaksutfall.VedtakAlleredeFattet -> return it
+            Vedtaksutfall.VedtakAlleredeFattet -> return utfall
         }
 
         val oppdatertVedtak = upsertOppdatertVedtak(
@@ -136,9 +141,9 @@ class VedtakService(
      Hvis Nav fatter vedtaket må `oppdaterEllerOpprettVedtak` brukes.
      */
     fun innbyggerFattVedtak(deltaker: Deltaker): Vedtaksutfall {
-        val ikkeFattetVedtak = when (val it = hentIkkeFattetVedtak(deltaker.id)) {
-            is Vedtaksutfall.OK -> it.vedtak
-            else -> return it
+        val ikkeFattetVedtak = when (val utfall = hentIkkeFattetVedtak(deltaker.id)) {
+            is Vedtaksutfall.OK -> utfall.vedtak
+            else -> return utfall
         }
 
         val fattetVedtak = ikkeFattetVedtak.copy(fattet = LocalDateTime.now())

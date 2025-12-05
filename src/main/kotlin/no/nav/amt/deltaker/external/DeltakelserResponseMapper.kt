@@ -1,4 +1,4 @@
-package no.nav.amt.deltaker.external.data
+package no.nav.amt.deltaker.external
 
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
@@ -9,6 +9,9 @@ import no.nav.amt.deltaker.deltaker.extensions.getStatustekst
 import no.nav.amt.deltaker.deltaker.extensions.getVisningsnavn
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
+import no.nav.amt.deltaker.external.data.DeltakelserResponse
+import no.nav.amt.deltaker.external.data.DeltakerKort
+import no.nav.amt.deltaker.external.data.Periode
 import no.nav.amt.deltaker.utils.toTitleCase
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
@@ -33,7 +36,7 @@ class DeltakelserResponseMapper(
         return DeltakelserResponse(aktive, historikk)
     }
 
-    private fun toDeltakerKort(deltaker: Deltaker): DeltakerKort = DeltakerKort(
+    private fun toDeltakerKort(deltaker: Deltaker) = DeltakerKort(
         deltakerId = deltaker.id,
         deltakerlisteId = deltaker.deltakerliste.id,
         tittel = lagTittel(
@@ -68,7 +71,7 @@ class DeltakelserResponseMapper(
         null
     }
 
-    private fun Deltaker.getStatus(): DeltakerKort.Status = DeltakerKort.Status(
+    private fun Deltaker.getStatus() = DeltakerKort.Status(
         type = status.type,
         visningstekst = status.type.getVisningsnavn(),
         aarsak = getArsak(),
@@ -92,6 +95,7 @@ class DeltakelserResponseMapper(
         val arrangorNavn = deltaker.deltakerliste.getArrangorNavn()
         return when (deltaker.deltakerliste.tiltakstype.tiltakskode) {
             Tiltakskode.JOBBKLUBB -> "Jobbsøkerkurs hos $arrangorNavn"
+
             Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING -> if (deltaker.deltarPaKurs()) {
                 "Kurs: ${deltaker.deltakerliste.navn}"
             } else {
@@ -99,6 +103,7 @@ class DeltakelserResponseMapper(
             }
 
             Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING -> deltaker.deltakerliste.navn
+
             else -> "${deltaker.deltakerliste.tiltakstype.navn} hos $arrangorNavn"
         }
     }
@@ -108,19 +113,19 @@ class DeltakelserResponseMapper(
         return toTitleCase(arrangor.navn)
     }
 
-    private fun Tiltakstype.toTiltakstypeRespons(): DeltakelserResponse.Tiltakstype = DeltakelserResponse.Tiltakstype(
+    private fun Tiltakstype.toTiltakstypeRespons() = DeltakelserResponse.Tiltakstype(
         navn = visningsnavn,
         tiltakskode = tiltakskode.toArenaKode(), // benyttes av eksterne, kan ikke endres
     )
 
     companion object {
-        private val skalViseSistEndretDatoStatuser = listOf(
+        private val skalViseSistEndretDatoStatuser = setOf(
             DeltakerStatus.Type.KLADD,
             DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
             DeltakerStatus.Type.AVBRUTT_UTKAST,
         )
 
-        private val skalViseInnsoktDatoStatuser = listOf(
+        private val skalViseInnsoktDatoStatuser = setOf(
             DeltakerStatus.Type.VENTER_PA_OPPSTART,
             DeltakerStatus.Type.DELTAR,
             DeltakerStatus.Type.HAR_SLUTTET,
@@ -128,7 +133,7 @@ class DeltakelserResponseMapper(
             DeltakerStatus.Type.FEILREGISTRERT,
         )
 
-        private val skalVisePeriodeStatuser = listOf(
+        private val skalVisePeriodeStatuser = setOf(
             DeltakerStatus.Type.VENTER_PA_OPPSTART,
             DeltakerStatus.Type.DELTAR,
             DeltakerStatus.Type.SOKT_INN,
@@ -139,7 +144,7 @@ class DeltakelserResponseMapper(
             DeltakerStatus.Type.AVBRUTT,
         )
 
-        private val skalViseArsakStatuser = listOf(
+        private val skalViseArsakStatuser = setOf(
             DeltakerStatus.Type.HAR_SLUTTET,
             DeltakerStatus.Type.IKKE_AKTUELL,
             DeltakerStatus.Type.AVBRUTT,

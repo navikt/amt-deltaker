@@ -10,12 +10,8 @@ import no.nav.amt.deltaker.application.plugins.getNavAnsattAzureId
 import no.nav.amt.deltaker.auth.TilgangskontrollService
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.model.Deltaker
-import no.nav.amt.deltaker.deltakerliste.Deltakerliste
-import no.nav.amt.deltaker.external.data.ArrangorResponse
-import no.nav.amt.deltaker.external.data.DeltakelserResponseMapper
+import no.nav.amt.deltaker.external.DeltakelserResponseMapper
 import no.nav.amt.deltaker.external.data.DeltakerPersonaliaResponse
-import no.nav.amt.deltaker.external.data.DeltakerResponse
-import no.nav.amt.deltaker.external.data.GjennomforingResponse
 import no.nav.amt.deltaker.external.data.HarAktiveDeltakelserResponse
 import no.nav.amt.deltaker.external.data.HentDeltakelserRequest
 import no.nav.amt.deltaker.navenhet.NavEnhetService
@@ -84,37 +80,3 @@ fun Routing.registerExternalApi(
 }
 
 private typealias DeltakerID = UUID
-
-fun DeltakerStatus.erAktiv() = this.type in listOf(
-    DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
-    DeltakerStatus.Type.VENTER_PA_OPPSTART,
-    DeltakerStatus.Type.DELTAR,
-    DeltakerStatus.Type.SOKT_INN,
-    DeltakerStatus.Type.VURDERES,
-    DeltakerStatus.Type.VENTELISTE,
-)
-
-fun Deltakerliste.toResponse() = GjennomforingResponse(
-    id = id,
-    navn = navn,
-    type = tiltakstype.tiltakskode.toArenaKode().name, // kan ikke endres, benyttes av tiltakspenger
-    tiltakskode = tiltakstype.tiltakskode,
-    tiltakstypeNavn = tiltakstype.navn,
-    arrangor = ArrangorResponse(
-        navn = arrangor.navn,
-        virksomhetsnummer = arrangor.organisasjonsnummer,
-    ),
-)
-
-fun Deltaker.toResponse() = DeltakerResponse(
-    id = id,
-    gjennomforing = deltakerliste.toResponse(),
-    startDato = startdato,
-    sluttDato = sluttdato,
-    status = status.type,
-    dagerPerUke = dagerPerUke,
-    prosentStilling = deltakelsesprosent,
-    registrertDato = opprettet,
-)
-
-fun List<Deltaker>.toResponse() = this.map { deltaker -> deltaker.toResponse() }
