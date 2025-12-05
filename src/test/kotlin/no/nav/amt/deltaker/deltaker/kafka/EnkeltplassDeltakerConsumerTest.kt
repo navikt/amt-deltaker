@@ -38,12 +38,12 @@ import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.testing.SingletonPostgres16Container
+import no.nav.amt.lib.testing.shouldBeEqualTo
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.temporal.ChronoUnit
 
 class EnkeltplassDeltakerConsumerTest {
     companion object {
@@ -221,8 +221,8 @@ class EnkeltplassDeltakerConsumerTest {
 
         importertFraArenaFromDb.deltakerId shouldBe importertFraArena.importertFraArena.deltakerId
         importertFraArenaFromDb.deltakerVedImport.status.type shouldBe importertFraArena.importertFraArena.deltakerVedImport.status.type
-        importertFraArenaFromDb.importertDato.truncatedTo(ChronoUnit.SECONDS) shouldBe
-            importertFraArena.importertFraArena.importertDato.truncatedTo(ChronoUnit.SECONDS)
+
+        importertFraArenaFromDb.importertDato.shouldBeEqualTo(importertFraArena.importertFraArena.importertDato)
     }
 
     @Test
@@ -294,8 +294,7 @@ class EnkeltplassDeltakerConsumerTest {
 
         importertFraArenaFromDb.deltakerId shouldBe importertFraArena.importertFraArena.deltakerId
         importertFraArenaFromDb.deltakerVedImport.status.type shouldBe importertFraArena.importertFraArena.deltakerVedImport.status.type
-        importertFraArenaFromDb.importertDato.truncatedTo(ChronoUnit.MINUTES) shouldBe
-            importertFraArena.importertFraArena.importertDato.truncatedTo(ChronoUnit.MINUTES)
+        importertFraArenaFromDb.importertDato.shouldBeEqualTo(importertFraArena.importertFraArena.importertDato)
     }
 
     @Test
@@ -369,8 +368,7 @@ class EnkeltplassDeltakerConsumerTest {
 
         importertFraArenaFromDb.deltakerId shouldBe importertFraArena.importertFraArena.deltakerId
         importertFraArenaFromDb.deltakerVedImport.status.type shouldBe importertFraArena.importertFraArena.deltakerVedImport.status.type
-        importertFraArenaFromDb.importertDato.truncatedTo(ChronoUnit.MINUTES) shouldBe
-            importertFraArena.importertFraArena.importertDato.truncatedTo(ChronoUnit.MINUTES)
+        importertFraArenaFromDb.importertDato.shouldBeEqualTo(importertFraArena.importertFraArena.importertDato)
     }
 
     @Test
@@ -422,7 +420,8 @@ class EnkeltplassDeltakerConsumerTest {
         coVerify(exactly = 1) {
             deltakerProducerService.produce(any(), any(), any())
         }
-        // verify { deltakerProducer.produce(any()) }
+
+        verify { deltakerProducer.produce(any()) }
 
         val deltakerFromDb = deltakerService.get(deltaker.id).getOrThrow()
         deltakerFromDb.shouldNotBeNull()
@@ -440,8 +439,7 @@ class EnkeltplassDeltakerConsumerTest {
 
         importertFraArenaFromDb.deltakerId shouldBe importertFraArena.importertFraArena.deltakerId
         importertFraArenaFromDb.deltakerVedImport.status.type shouldBe importertFraArena.importertFraArena.deltakerVedImport.status.type
-        importertFraArenaFromDb.importertDato.truncatedTo(ChronoUnit.MINUTES) shouldBe
-            importertFraArena.importertFraArena.importertDato.truncatedTo(ChronoUnit.MINUTES)
+        importertFraArenaFromDb.importertDato.shouldBeEqualTo(importertFraArena.importertFraArena.importertDato)
     }
 
     private fun Deltakerliste.toV2Response() = GjennomforingV2Response(
