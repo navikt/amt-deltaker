@@ -9,11 +9,14 @@ import java.util.UUID
 class DeltakerV1Producer(
     private val producer: Producer<String, String>,
 ) {
-    fun produce(deltakerV1Dto: DeltakerV1Dto) {
-        producer.produce(Environment.DELTAKER_V1_TOPIC, deltakerV1Dto.id.toString(), objectMapper.writeValueAsString(deltakerV1Dto))
-    }
+    fun produce(deltakerV1Dto: DeltakerV1Dto) = producer.produce(
+        topic = Environment.DELTAKER_V1_TOPIC,
+        key = deltakerV1Dto.id.toString(),
+        value = objectMapper.writeValueAsString(deltakerV1Dto),
+    )
 
-    fun produceTombstone(deltakerId: UUID) {
-        producer.tombstone(Environment.DELTAKER_V1_TOPIC, deltakerId.toString())
-    }
+    fun produceTombstone(deltakerId: UUID) = producer.tombstone(
+        topic = Environment.DELTAKER_V1_TOPIC,
+        key = deltakerId.toString(),
+    )
 }

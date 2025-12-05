@@ -19,16 +19,7 @@ sealed class DeltakerEndringUtfall {
 
     val erVellykket: Boolean get() = this is VellykketEndring
 
-    @Suppress("unused")
-    val erFremtidig: Boolean get() = this is FremtidigEndring
-
     val erUgyldig: Boolean get() = this is UgyldigEndring
-
-    fun getOrNull(): Deltaker? = when (this) {
-        is VellykketEndring -> this.deltaker
-        is FremtidigEndring -> this.deltaker
-        is UgyldigEndring -> null
-    }
 
     fun getOrThrow(): Deltaker = when (this) {
         is VellykketEndring -> this.deltaker
