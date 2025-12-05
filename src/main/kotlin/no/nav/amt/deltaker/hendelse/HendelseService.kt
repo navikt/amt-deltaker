@@ -4,16 +4,13 @@ import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
-import no.nav.amt.deltaker.hendelse.model.toHendelseDeltaker
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
-import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.hendelse.Hendelse
 import no.nav.amt.lib.models.hendelse.HendelseAnsvarlig
 import no.nav.amt.lib.models.hendelse.HendelseType
-import no.nav.amt.lib.models.hendelse.InnholdDto
 import no.nav.amt.lib.models.hendelse.UtkastDto
 import no.nav.amt.lib.models.hendelse.toHendelseEndring
 import no.nav.amt.lib.models.person.NavAnsatt
@@ -49,7 +46,9 @@ class HendelseService(
     ) {
         val hendelseType = when (endringsType) {
             EndringFraTiltakskoordinator.SettPaaVenteliste -> HendelseType.SettPaaVenteliste
+
             EndringFraTiltakskoordinator.TildelPlass -> HendelseType.TildelPlass
+
             is EndringFraTiltakskoordinator.Avslag -> HendelseType.Avslag(
                 aarsak = endringsType.aarsak,
                 begrunnelseFraNav = endringsType.begrunnelse,
@@ -181,7 +180,6 @@ class HendelseService(
 
     private fun nyHendelseFraSystem(deltaker: Deltaker, endring: HendelseType.HendelseSystemKanOpprette): Hendelse {
         val ansvarlig = HendelseAnsvarlig.System
-
         return nyHendelse(deltaker, ansvarlig, endring)
     }
 
@@ -201,6 +199,7 @@ class HendelseService(
     ): Hendelse {
         val overordnetArrangor = deltaker.deltakerliste.arrangor.overordnetArrangorId
             ?.let { arrangorService.hentArrangor(it) }
+
         val forsteVedtakFattet = deltakerHistorikkService.getForsteVedtakFattet(deltaker.id)
 
         return Hendelse(
@@ -212,14 +211,3 @@ class HendelseService(
         )
     }
 }
-
-private fun Deltaker.toUtkastDto() = UtkastDto(
-    startdato,
-    sluttdato,
-    dagerPerUke,
-    deltakelsesprosent,
-    bakgrunnsinformasjon,
-    deltakelsesinnhold?.innhold?.toDto(),
-)
-
-private fun List<Innhold>.toDto() = this.map { InnholdDto(it.tekst, it.innholdskode, it.beskrivelse) }

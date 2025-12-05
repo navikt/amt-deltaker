@@ -1,9 +1,21 @@
-package no.nav.amt.deltaker.hendelse.model
+package no.nav.amt.deltaker.hendelse
 
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.lib.models.deltaker.Arrangor
+import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.hendelse.HendelseDeltaker
+import no.nav.amt.lib.models.hendelse.InnholdDto
+import no.nav.amt.lib.models.hendelse.UtkastDto
 import java.time.LocalDate
+
+fun Deltaker.toUtkastDto() = UtkastDto(
+    startdato,
+    sluttdato,
+    dagerPerUke,
+    deltakelsesprosent,
+    bakgrunnsinformasjon,
+    deltakelsesinnhold?.innhold?.toInnholdDtoList(),
+)
 
 fun Deltaker.toHendelseDeltaker(overordnetArrangor: Arrangor?, forsteVedtakFattet: LocalDate?) = HendelseDeltaker(
     id = id,
@@ -25,6 +37,14 @@ fun Deltaker.toHendelseDeltaker(overordnetArrangor: Arrangor?, forsteVedtakFatte
     forsteVedtakFattet = forsteVedtakFattet,
     opprettetDato = opprettet.toLocalDate(),
 )
+
+private fun List<Innhold>.toInnholdDtoList() = this.map {
+    InnholdDto(
+        tekst = it.tekst,
+        innholdskode = it.innholdskode,
+        beskrivelse = it.beskrivelse,
+    )
+}
 
 private fun Arrangor.toHendelseArrangor(overordnetArrangor: HendelseDeltaker.Deltakerliste.Arrangor? = null) =
     HendelseDeltaker.Deltakerliste.Arrangor(
