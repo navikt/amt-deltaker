@@ -5,9 +5,12 @@ import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.utils.data.TestData
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
+import no.nav.amt.deltaker.utils.data.TestData.lagNavBruker
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.person.NavAnsatt
+import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.testing.SingletonPostgres16Container
@@ -68,14 +71,16 @@ fun sammenlignEndringFraTiltakskoordinator(a: EndringFraTiltakskoordinator, b: E
 data class EndringFraTiltakskoordinatorCtx(
     val navAnsatt: NavAnsatt = TestData.lagNavAnsatt(),
     val navEnhet: NavEnhet = TestData.lagNavEnhet(navAnsatt.navEnhetId!!),
-    var deltakerliste: Deltakerliste = TestData.lagDeltakerlisteMedFellesOppstart(),
-    var deltaker: Deltaker = TestData.lagDeltaker(
+    val deltakerliste: Deltakerliste = TestData.lagDeltakerlisteMedFellesOppstart(),
+    val navBruker: NavBruker = lagNavBruker(),
+    val deltaker: Deltaker = TestData.lagDeltaker(
+        navBruker = navBruker,
         deltakerliste = deltakerliste,
         startdato = null,
         sluttdato = null,
-        status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.SOKT_INN),
+        status = lagDeltakerStatus(type = DeltakerStatus.Type.SOKT_INN),
     ),
-    var endring: EndringFraTiltakskoordinator = TestData.lagEndringFraTiltakskoordinator(
+    val endring: EndringFraTiltakskoordinator = TestData.lagEndringFraTiltakskoordinator(
         deltakerId = deltaker.id,
         endretAv = navAnsatt.id,
         endretAvEnhet = navEnhet.id,
@@ -93,7 +98,7 @@ data class EndringFraTiltakskoordinatorCtx(
     }
 
     fun medStatusDeltar() {
-        deltaker = deltaker.copy(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR))
+        val deltaker = deltaker.copy(status = lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR))
         deltakerRepository.upsert(deltaker)
     }
 

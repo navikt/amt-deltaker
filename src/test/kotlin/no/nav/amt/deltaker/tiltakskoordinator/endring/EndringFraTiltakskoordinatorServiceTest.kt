@@ -6,6 +6,7 @@ import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetService
+import no.nav.amt.deltaker.utils.data.TestData.lagNavBruker
 import no.nav.amt.deltaker.utils.mockPersonServiceClient
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import org.junit.jupiter.api.Test
@@ -35,6 +36,23 @@ class EndringFraTiltakskoordinatorServiceTest {
     fun `sjekkEndringUtfall - del med arrangør - ugyldig endring - returnerer failure`(): Unit = runBlocking {
         with(EndringFraTiltakskoordinatorCtx()) {
             medStatusDeltar()
+            val resultat = service
+                .sjekkEndringUtfall(
+                    deltaker,
+                    EndringFraTiltakskoordinator.DelMedArrangor,
+                )
+
+            resultat.isFailure shouldBe true
+        }
+    }
+
+    @Test
+    fun `sjekkEndringUtfall - mangler oppfolgingsperiode - returnerer failure`(): Unit = runBlocking {
+        with(
+            EndringFraTiltakskoordinatorCtx(
+                navBruker = lagNavBruker().copy(oppfolgingsperioder = emptyList()),
+            ),
+        ) {
             val resultat = service
                 .sjekkEndringUtfall(
                     deltaker,
