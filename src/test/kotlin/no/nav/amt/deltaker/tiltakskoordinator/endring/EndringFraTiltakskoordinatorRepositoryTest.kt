@@ -73,7 +73,7 @@ data class EndringFraTiltakskoordinatorCtx(
     val navEnhet: NavEnhet = TestData.lagNavEnhet(navAnsatt.navEnhetId!!),
     val deltakerliste: Deltakerliste = TestData.lagDeltakerlisteMedFellesOppstart(),
     val navBruker: NavBruker = lagNavBruker(),
-    val deltaker: Deltaker = TestData.lagDeltaker(
+    var deltaker: Deltaker = TestData.lagDeltaker(
         navBruker = navBruker,
         deltakerliste = deltakerliste,
         startdato = null,
@@ -98,7 +98,7 @@ data class EndringFraTiltakskoordinatorCtx(
     }
 
     fun medStatusDeltar() {
-        val deltaker = deltaker.copy(status = lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR))
+        deltaker = deltaker.copy(status = lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR))
         deltakerRepository.upsert(deltaker)
     }
 
