@@ -34,7 +34,18 @@ val caffeineVersion = "3.2.3"
 val mockkVersion = "1.14.6"
 val nimbusVersion = "10.6"
 val unleashVersion = "11.1.1"
-val amtLibVersion = "1.2025.12.02_07.53-1460ae87292e"
+val amtLibVersion = "1.2025.12.06_12.56-a9fdb0b96ea0"
+
+// fjernes ved neste release av org.apache.kafka:kafka-clients
+configurations.configureEach {
+    resolutionStrategy {
+        capabilitiesResolution {
+            withCapability("org.lz4:lz4-java") {
+                select(candidates.first { (it.id as ModuleComponentIdentifier).group == "at.yawk.lz4" })
+            }
+        }
+    }
+}
 
 dependencies {
     implementation("io.ktor:ktor-server-content-negotiation-jvm")
