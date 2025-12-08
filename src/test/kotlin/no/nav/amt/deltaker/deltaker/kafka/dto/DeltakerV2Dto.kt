@@ -1,6 +1,5 @@
 package no.nav.amt.deltaker.deltaker.kafka.dto
 
-import no.nav.amt.deltaker.deltaker.extensions.toDeltakerstatusArsak
 import no.nav.amt.lib.models.arrangor.melding.Vurdering
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
@@ -63,16 +62,7 @@ data class DeltakerV2Dto(
         val aarsaksbeskrivelse: String?,
         val gyldigFra: LocalDateTime,
         val opprettetDato: LocalDateTime,
-    ) {
-        fun toDeltakerStatus(deltakerId: UUID) = DeltakerStatus(
-            id = id ?: throw IllegalStateException("Deltakerstatus mangler id. deltakerId: $deltakerId"),
-            type = type,
-            aarsak = aarsak?.let { DeltakerStatus.Aarsak(it.toDeltakerstatusArsak(), aarsaksbeskrivelse) },
-            gyldigFra = gyldigFra,
-            gyldigTil = null,
-            opprettet = opprettetDato,
-        )
-    }
+    )
 
     data class DeltakerKontaktinformasjonDto(
         val telefonnummer: String?,
