@@ -31,6 +31,10 @@ class EndringFraTiltakskoordinatorService(
             return Result.failure(IllegalStateException("Ingen gyldig deltakerendring"))
         }
 
+        if (!deltaker.navBruker.harAktivOppfolgingsperiode) {
+            return Result.failure(IllegalStateException("Nav-bruker mangler aktiv oppfølgingsperiode"))
+        }
+
         return when (endring) {
             is EndringFraTiltakskoordinator.SettPaaVenteliste -> {
                 createResult(deltaker.status.type != DeltakerStatus.Type.VENTELISTE) {
@@ -62,19 +66,21 @@ class EndringFraTiltakskoordinatorService(
                 }
             }
 
-            is EndringFraTiltakskoordinator.Avslag -> createResult(
-                deltaker.status.type in listOf(
-                    DeltakerStatus.Type.SOKT_INN,
-                    DeltakerStatus.Type.VURDERES,
-                    DeltakerStatus.Type.VENTELISTE,
-                    DeltakerStatus.Type.VENTER_PA_OPPSTART,
-                ),
-            ) {
-                deltaker.copy(
-                    status = nyDeltakerStatus(type = DeltakerStatus.Type.IKKE_AKTUELL, endring.aarsak.toDeltakerStatusAarsak()),
-                    startdato = null,
-                    sluttdato = null,
-                )
+            is EndringFraTiltakskoordinator.Avslag -> {
+                createResult(
+                    deltaker.status.type in listOf(
+                        DeltakerStatus.Type.SOKT_INN,
+                        DeltakerStatus.Type.VURDERES,
+                        DeltakerStatus.Type.VENTELISTE,
+                        DeltakerStatus.Type.VENTER_PA_OPPSTART,
+                    ),
+                ) {
+                    deltaker.copy(
+                        status = nyDeltakerStatus(type = DeltakerStatus.Type.IKKE_AKTUELL, endring.aarsak.toDeltakerStatusAarsak()),
+                        startdato = null,
+                        sluttdato = null,
+                    )
+                }
             }
         }
     }
