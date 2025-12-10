@@ -5,7 +5,6 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.post
-import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.application.plugins.getNavAnsattAzureId
 import no.nav.amt.deltaker.auth.TilgangskontrollService
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
@@ -70,7 +69,7 @@ fun Routing.registerExternalApi(
                 .getFlereForPerson(request.norskIdent)
                 .filter {
                     unleashToggle.erKometMasterForTiltakstype(it.deltakerliste.tiltakstype.tiltakskode) ||
-                        (unleashToggle.skalLeseArenaDataForTiltakstype(it.deltakerliste.tiltakstype.tiltakskode) && Environment.isDev())
+                        unleashToggle.skalLeseArenaDataForTiltakstype(it.deltakerliste.tiltakstype.tiltakskode)
                 }
 
             val responseBody = deltakelserResponseMapper.toDeltakelserResponse(deltakelser)
