@@ -127,7 +127,7 @@ class DeltakerService(
 
             is DeltakerEndringUtfall.UgyldigEndring -> {
                 if (request.getForslagId() != null) {
-                    throw BadRequestException("Endringen er ikke lenger gyldig og forslaget kan derfor ikke godkjennes")
+                    throw BadRequestException("Endringen er ikke gyldig og forslaget kan ikke godkjennes")
                 }
                 deltaker
             }
