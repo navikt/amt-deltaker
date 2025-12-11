@@ -1,7 +1,9 @@
 package no.nav.amt.deltaker.deltaker
 
+import io.ktor.server.plugins.BadRequestException
 import kotliquery.TransactionalSession
 import no.nav.amt.deltaker.deltaker.DeltakerUtils.nyDeltakerStatus
+import no.nav.amt.deltaker.deltaker.api.deltaker.getForslagId
 import no.nav.amt.deltaker.deltaker.api.deltaker.toDeltakerEndringEndring
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringHandler
@@ -123,7 +125,12 @@ class DeltakerService(
                 upsertDeltaker(utfall.deltaker)
             }
 
-            is DeltakerEndringUtfall.UgyldigEndring -> deltaker
+            is DeltakerEndringUtfall.UgyldigEndring -> {
+                if (request.getForslagId() != null) {
+                    throw BadRequestException("Endringen er ikke lenger gyldig og forslaget kan derfor ikke godkjennes")
+                }
+                deltaker
+            }
         }
     }
 

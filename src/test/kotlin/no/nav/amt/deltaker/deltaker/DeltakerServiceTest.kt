@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.deltaker
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.ktor.server.plugins.BadRequestException
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
@@ -55,6 +56,7 @@ import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.AvsluttDelta
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.BakgrunnsinformasjonRequest
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.DeltakelsesmengdeRequest
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.ForlengDeltakelseRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.SluttdatoRequest
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.StartdatoRequest
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.hendelse.HendelseType
@@ -254,6 +256,29 @@ class DeltakerServiceTest {
 
         deltakerService.get(deltaker.id).getOrThrow().sistEndret shouldBeCloseTo deltaker.sistEndret
         deltakerEndringService.getForDeltaker(deltaker.id).isEmpty() shouldBe true
+    }
+
+    @Test
+    fun `upsertEndretDeltaker - ingen endring med forslag - upserter ikke - kaster 400`(): Unit = runBlocking {
+        val deltaker = TestData.lagDeltaker(sistEndret = LocalDateTime.now().minusDays(2))
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+
+        TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
+
+        val endringsrequest = SluttdatoRequest(
+            endretAv = endretAv.navIdent,
+            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            sluttdato = deltaker.sluttdato!!,
+            forslagId = UUID.randomUUID(),
+            begrunnelse = null,
+        )
+
+        assertThrows(BadRequestException::class.java) {
+            runBlocking {
+                deltakerService.upsertEndretDeltaker(deltaker.id, endringsrequest)
+            }
+        }
     }
 
     @Test
