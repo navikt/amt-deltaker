@@ -1,6 +1,8 @@
 package no.nav.amt.deltaker.deltakerliste
 
 import no.nav.amt.lib.models.deltaker.Arrangor
+import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
+import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import java.time.LocalDate
@@ -8,9 +10,10 @@ import java.util.UUID
 
 data class Deltakerliste(
     val id: UUID,
+    val gjennomforingstype: GjennomforingType,
     val tiltakstype: Tiltakstype,
     val navn: String,
-    val status: Status?,
+    val status: GjennomforingStatusType?,
     val startDato: LocalDate?,
     val sluttDato: LocalDate?,
     val oppstart: Oppstartstype?,
@@ -18,27 +21,10 @@ data class Deltakerliste(
     val oppmoteSted: String?,
     val arrangor: Arrangor,
 ) {
-    enum class Status {
-        GJENNOMFORES,
-        AVBRUTT,
-        AVLYST,
-        AVSLUTTET,
-        ;
+    fun erAvlystEllerAvbrutt(): Boolean = status == GjennomforingStatusType.AVLYST ||
+        status == GjennomforingStatusType.AVBRUTT
 
-        companion object {
-            fun fromString(status: String) = when (status) {
-                "GJENNOMFORES" -> GJENNOMFORES
-                "AVBRUTT" -> AVBRUTT
-                "AVLYST" -> AVLYST
-                "AVSLUTTET" -> AVSLUTTET
-                else -> error("Ukjent deltakerlistestatus: $status")
-            }
-        }
-    }
-
-    fun erAvlystEllerAvbrutt(): Boolean = status == Status.AVLYST || status == Status.AVBRUTT
-
-    fun erAvsluttet(): Boolean = erAvlystEllerAvbrutt() || status == Status.AVSLUTTET
+    fun erAvsluttet(): Boolean = erAvlystEllerAvbrutt() || status == GjennomforingStatusType.AVSLUTTET
 
     val erFellesOppstart get() = oppstart == Oppstartstype.FELLES
 }

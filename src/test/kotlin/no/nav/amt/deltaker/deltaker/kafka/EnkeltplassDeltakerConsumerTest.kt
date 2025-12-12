@@ -13,7 +13,6 @@ import io.mockk.mockk
 import io.mockk.spyk
 import io.mockk.verify
 import kotlinx.coroutines.runBlocking
-import no.nav.amt.deltaker.apiclients.mulighetsrommet.GjennomforingV2Response
 import no.nav.amt.deltaker.apiclients.mulighetsrommet.MulighetsrommetApiClient
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerService
@@ -36,6 +35,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltaker.Kilde
+import no.nav.amt.lib.models.deltakerliste.kafka.GjennomforingV2KafkaPayload
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.testing.SingletonPostgres16Container
 import no.nav.amt.lib.testing.shouldBeEqualTo
@@ -44,6 +44,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.OffsetDateTime
 
 class EnkeltplassDeltakerConsumerTest {
     companion object {
@@ -156,7 +157,7 @@ class EnkeltplassDeltakerConsumerTest {
     }
 
     @Test
-    fun `consumeDeltaker - gjennomføring er allerede lagret - lagrer enkeltplasser og produserer til deltaker-v2`() {
+    fun `consumeDeltaker - gjennomforing er allerede lagret - lagrer enkeltplasser og produserer til deltaker-v2`() {
         val deltakerListe = lagDeltakerliste(
             tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING),
         )
@@ -226,7 +227,7 @@ class EnkeltplassDeltakerConsumerTest {
     }
 
     @Test
-    fun `consumeDeltaker - gjennomføring eksisterer ikke i db - henter gjennomføring synkront fra mulighetsrommet api og lagrer`() {
+    fun `consumeDeltaker - gjennomforing eksisterer ikke i db - henter gjennomforing synkront fra mulighetsrommet api og lagrer`() {
         val deltakerListe = lagDeltakerliste(
             tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING),
             oppmoteSted = null,
@@ -372,7 +373,7 @@ class EnkeltplassDeltakerConsumerTest {
     }
 
     @Test
-    fun `consumeDeltaker - Deltaker eksisterer, lik status, andre endringer på deltaker - lagrer deltaker`() {
+    fun `consumeDeltaker - Deltaker eksisterer, lik status, andre endringer pa deltaker - lagrer deltaker`() {
         val deltakerListe = lagDeltakerliste(
             tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING),
         )
@@ -442,15 +443,21 @@ class EnkeltplassDeltakerConsumerTest {
         importertFraArenaFromDb.importertDato.shouldBeEqualTo(importertFraArena.importertFraArena.importertDato)
     }
 
-    private fun Deltakerliste.toV2Response() = GjennomforingV2Response(
+    private fun Deltakerliste.toV2Response() = GjennomforingV2KafkaPayload.Gruppe(
         id = id,
-        tiltakstype = GjennomforingV2Response.Tiltakstype(tiltakstype.tiltakskode.toString()),
         navn = navn,
-        startDato = startDato,
+        startDato = startDato!!,
         sluttDato = sluttDato,
-        status = status.toString(),
-        oppstart = oppstart,
+        status = status!!,
+        oppstart = oppstart!!,
         apentForPamelding = apentForPamelding,
-        arrangor = GjennomforingV2Response.Arrangor(arrangor.organisasjonsnummer),
+        opprettetTidspunkt = OffsetDateTime.now(),
+        oppdatertTidspunkt = OffsetDateTime.now(),
+        tiltakskode = tiltakstype.tiltakskode,
+        antallPlasser = 42,
+        tilgjengeligForArrangorFraOgMedDato = startDato,
+        deltidsprosent = 42.0,
+        oppmoteSted = oppmoteSted,
+        arrangor = GjennomforingV2KafkaPayload.Arrangor(arrangor.organisasjonsnummer),
     )
 }

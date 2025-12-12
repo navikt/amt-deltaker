@@ -1,16 +1,16 @@
 package no.nav.amt.deltaker.job
 
 import io.kotest.matchers.shouldBe
-import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
 class DeltakerProgresjonTest {
     @Test
     fun `tilAvsluttendeStatusOgDatoer - deltar avbrutt deltakerliste - far riktig status og arsak`() {
-        val deltakerliste = TestData.lagDeltakerlisteMedFellesOppstart().copy(status = Deltakerliste.Status.AVBRUTT)
+        val deltakerliste = TestData.lagDeltakerlisteMedFellesOppstart().copy(status = GjennomforingStatusType.AVBRUTT)
         val deltaker = TestData.lagDeltaker(
             deltakerliste = deltakerliste,
             startdato = deltakerliste.startDato,
@@ -27,7 +27,7 @@ class DeltakerProgresjonTest {
 
     @Test
     fun `tilAvsluttendeStatusOgDatoer - venter avbrutt deltakerliste - far riktig status og arsak`() {
-        val deltakerliste = TestData.lagDeltakerlisteMedFellesOppstart().copy(status = Deltakerliste.Status.AVBRUTT)
+        val deltakerliste = TestData.lagDeltakerlisteMedFellesOppstart().copy(status = GjennomforingStatusType.AVBRUTT)
         val deltaker = TestData.lagDeltaker(
             deltakerliste = deltakerliste,
             startdato = deltakerliste.startDato,

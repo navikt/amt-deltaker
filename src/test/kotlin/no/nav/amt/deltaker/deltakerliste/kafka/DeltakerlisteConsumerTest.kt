@@ -10,17 +10,19 @@ import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerService
-import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
-import no.nav.amt.deltaker.deltakerliste.kafka.DeltakerlistePayload.Arrangor
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.deltaker.utils.data.TestData.lagArrangor
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerlistePayload
+import no.nav.amt.deltaker.utils.data.TestData.lagEnkeltplassDeltakerlistePayload
 import no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.utils.mockAmtArrangorClient
+import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
+import no.nav.amt.lib.models.deltakerliste.GjennomforingType
+import no.nav.amt.lib.models.deltakerliste.kafka.GjennomforingV2KafkaPayload
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.testing.SingletonPostgres16Container
 import no.nav.amt.lib.utils.objectMapper
@@ -71,8 +73,8 @@ class DeltakerlisteConsumerTest {
                 unleashToggle = unleashToggle,
             )
 
-        val deltakerlistePayload = lagDeltakerlistePayload(arrangor, expectedDeltakerliste).copy(
-            arrangor = Arrangor(arrangor.organisasjonsnummer),
+        val deltakerlistePayload: GjennomforingV2KafkaPayload.Gruppe = lagDeltakerlistePayload(arrangor, expectedDeltakerliste).copy(
+            arrangor = GjennomforingV2KafkaPayload.Arrangor(arrangor.organisasjonsnummer),
         )
 
         runBlocking {
@@ -108,7 +110,7 @@ class DeltakerlisteConsumerTest {
             )
 
         val deltakerlistePayload = lagDeltakerlistePayload(arrangor, deltakerliste).copy(
-            arrangor = Arrangor(arrangor.organisasjonsnummer),
+            arrangor = GjennomforingV2KafkaPayload.Arrangor(arrangor.organisasjonsnummer),
         )
 
         runBlocking {
@@ -129,7 +131,12 @@ class DeltakerlisteConsumerTest {
         TestRepository.insert(tiltakstype)
 
         val arrangor = lagArrangor()
-        val deltakerliste = lagDeltakerliste(arrangor = arrangor, tiltakstype = tiltakstype)
+        val deltakerliste = lagDeltakerliste(
+            arrangor = arrangor,
+            tiltakstype = tiltakstype,
+            gjennomforingstype = GjennomforingType.Enkeltplass,
+        )
+
         val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient(arrangor))
 
         val consumer =
@@ -141,13 +148,8 @@ class DeltakerlisteConsumerTest {
                 unleashToggle = unleashToggle,
             )
 
-        val deltakerlistePayload = lagDeltakerlistePayload(arrangor, deltakerliste).copy(
-            navn = null,
-            startDato = null,
-            sluttDato = null,
-            status = null,
-            oppstart = null,
-            arrangor = Arrangor(arrangor.organisasjonsnummer),
+        val deltakerlistePayload = lagEnkeltplassDeltakerlistePayload(arrangor, deltakerliste).copy(
+            arrangor = GjennomforingV2KafkaPayload.Arrangor(arrangor.organisasjonsnummer),
         )
 
         runBlocking {
@@ -157,11 +159,12 @@ class DeltakerlisteConsumerTest {
             )
 
             deltakerlisteRepository.get(deltakerliste.id).getOrThrow() shouldBe deltakerliste.copy(
-                navn = "Test tiltak ENKFAGYRKE",
+                navn = "Test tiltak ${deltakerliste.tiltakstype.tiltakskode}",
                 status = null,
                 startDato = null,
                 sluttDato = null,
                 oppstart = null,
+                oppmoteSted = null,
             )
         }
 
@@ -243,7 +246,7 @@ class DeltakerlisteConsumerTest {
                 unleashToggle = unleashToggle,
             )
 
-        val oppdatertDeltakerliste = deltakerliste.copy(sluttDato = LocalDate.now(), status = Deltakerliste.Status.AVBRUTT)
+        val oppdatertDeltakerliste = deltakerliste.copy(sluttDato = LocalDate.now(), status = GjennomforingStatusType.AVBRUTT)
 
         runBlocking {
             consumer.consume(

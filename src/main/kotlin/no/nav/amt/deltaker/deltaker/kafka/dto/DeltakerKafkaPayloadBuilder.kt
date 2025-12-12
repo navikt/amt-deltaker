@@ -16,6 +16,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerKafkaPayload
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.DeltakerStatusDto
+import no.nav.amt.lib.models.deltaker.Deltakerliste
 import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltaker.Kontaktinformasjon
 import no.nav.amt.lib.models.deltaker.Navn
@@ -83,15 +84,16 @@ data class DeltakerKafkaPayloadBuilder(
                 "Deltaker med kilde ${Kilde.KOMET} må ha minst et vedtak eller være søkt in for å produseres til topic",
             )
         }
+
         return DeltakerKafkaPayload(
             id = deltaker.id,
             deltakerlisteId = deltaker.deltakerliste.id,
-            deltakerliste = no.nav.amt.lib.models.deltaker.Deltakerliste(
+            deltakerliste = Deltakerliste(
                 id = deltaker.deltakerliste.id,
                 navn = deltaker.deltakerliste.navn,
+                gjennomforingstype = deltaker.deltakerliste.gjennomforingstype,
                 tiltak = Tiltak(
                     navn = deltaker.deltakerliste.tiltakstype.navn,
-                    // arenaKode = deltaker.deltakerliste.tiltakstype.arenaKode, // TODO:Investigate
                     tiltakskode = deltaker.deltakerliste.tiltakstype.tiltakskode,
                 ),
                 startdato = deltaker.deltakerliste.startDato,
@@ -175,9 +177,13 @@ data class DeltakerKafkaPayloadBuilder(
 
     private fun DeltakerHistorikk.getSistEndretAv(): UUID = when (this) {
         is DeltakerHistorikk.Vedtak -> vedtak.sistEndretAv
+
         is DeltakerHistorikk.Endring -> endring.endretAv
+
         is DeltakerHistorikk.EndringFraTiltakskoordinator -> endringFraTiltakskoordinator.endretAv
+
         is DeltakerHistorikk.InnsokPaaFellesOppstart -> data.innsoktAv
+
         is DeltakerHistorikk.Forslag,
         is DeltakerHistorikk.EndringFraArrangor,
         is DeltakerHistorikk.ImportertFraArena,
@@ -187,9 +193,13 @@ data class DeltakerKafkaPayloadBuilder(
 
     private fun DeltakerHistorikk.getSistEndretAvEnhet(): UUID? = when (this) {
         is DeltakerHistorikk.Vedtak -> vedtak.sistEndretAvEnhet
+
         is DeltakerHistorikk.Endring -> endring.endretAvEnhet
+
         is DeltakerHistorikk.InnsokPaaFellesOppstart -> data.innsoktAvEnhet
+
         is DeltakerHistorikk.EndringFraTiltakskoordinator -> null
+
         is DeltakerHistorikk.Forslag,
         is DeltakerHistorikk.EndringFraArrangor,
         is DeltakerHistorikk.ImportertFraArena,
