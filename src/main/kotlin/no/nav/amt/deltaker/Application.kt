@@ -15,7 +15,6 @@ import io.ktor.server.application.log
 import io.ktor.server.engine.connector
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.Environment.Companion.HTTP_CONNECT_TIMEOUT_MILLIS
 import no.nav.amt.deltaker.Environment.Companion.HTTP_REQUEST_TIMEOUT_MILLIS
@@ -359,33 +358,27 @@ fun Application.module() {
     }
 
     monitor.subscribe(ApplicationStopping) {
-        val shutdownThread = Thread {
-            runBlocking(Dispatchers.IO) {
-                consumers.forEach {
-                    runCatching {
-                        it.close()
-                    }.onFailure { throwable ->
-                        log.error("Error shutting down consumer", throwable)
-                    }
-                }
-
-                log.info("Shutting down database on thread: ${Thread.currentThread().name}")
-                Database.close()
-
-                log.info("Shutting down producers")
+        runBlocking {
+            log.info("Shutting down consumers")
+            consumers.forEach {
                 runCatching {
-                    kafkaProducer.close()
+                    it.close()
                 }.onFailure { throwable ->
-                    log.error("Error shutting down producers", throwable)
+                    log.error("Error shutting down consumer", throwable)
                 }
             }
         }
-
-        shutdownThread.start()
-        shutdownThread.join()
     }
 
     monitor.subscribe(ApplicationStopped) {
-        log.info("Application stopped")
+        log.info("Shutting down database")
+        Database.close()
+
+        log.info("Shutting down producers")
+        runCatching {
+            kafkaProducer.close()
+        }.onFailure { throwable ->
+            log.error("Error shutting down producers", throwable)
+        }
     }
 }
