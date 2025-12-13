@@ -15,6 +15,7 @@ import io.ktor.server.application.log
 import io.ktor.server.engine.connector
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.Environment.Companion.HTTP_CONNECT_TIMEOUT_MILLIS
 import no.nav.amt.deltaker.Environment.Companion.HTTP_REQUEST_TIMEOUT_MILLIS
@@ -358,8 +359,8 @@ fun Application.module() {
     }
 
     monitor.subscribe(ApplicationStopping) {
-        runBlocking {
-            log.info("Shutting down consumers")
+        log.info("Shutting down consumers")
+        runBlocking(Dispatchers.IO) {
             consumers.forEach {
                 runCatching {
                     it.close()
