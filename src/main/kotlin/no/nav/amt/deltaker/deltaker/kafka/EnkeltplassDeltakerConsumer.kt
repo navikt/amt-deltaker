@@ -10,17 +10,16 @@ import no.nav.amt.deltaker.deltaker.kafka.dto.EnkeltplassDeltakerPayload
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
+import no.nav.amt.deltaker.deltakerliste.toModel
 import no.nav.amt.deltaker.navbruker.NavBrukerService
 import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.deltaker.utils.buildManagedKafkaConsumer
 import no.nav.amt.lib.kafka.Consumer
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.objectMapper
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.util.UUID
-import kotlin.getOrThrow
 
 class EnkeltplassDeltakerConsumer(
     private val deltakerService: DeltakerService,
@@ -58,12 +57,12 @@ class EnkeltplassDeltakerConsumer(
                 mulighetsrommetApiClient
                     .hentGjennomforingV2(deltakerPayload.gjennomforingId) // Fallback hvis deltakerlisten ikke finnes i databasen
                     .let { gjennomforing ->
+                        val arrangor = arrangorService.hentArrangor(gjennomforing.arrangor.organisasjonsnummer)
+                        val tiltakstype = tiltakstypeRepository.get(gjennomforing.tiltakskode).getOrThrow()
+
                         gjennomforing.toModel(
-                            arrangor = arrangorService.hentArrangor(gjennomforing.arrangor.organisasjonsnummer),
-                            tiltakstype = tiltakstypeRepository
-                                .get(
-                                    Tiltakskode.valueOf(gjennomforing.effectiveTiltakskode),
-                                ).getOrThrow(),
+                            { gruppe -> gruppe.toModel(arrangor, tiltakstype) },
+                            { enkeltplass -> enkeltplass.toModel(arrangor, tiltakstype) },
                         )
                     }
             }

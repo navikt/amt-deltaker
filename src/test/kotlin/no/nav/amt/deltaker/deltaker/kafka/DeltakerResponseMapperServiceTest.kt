@@ -176,9 +176,13 @@ class DeltakerResponseMapperServiceTest {
         val deltakerV2Dto = deltakerKafkaPayloadBuilder.buildDeltakerV2Record(deltaker)
 
         deltakerV2Dto.id shouldBe deltaker.id
+
         deltakerV2Dto.deltakerliste.id shouldBe deltaker.deltakerliste.id
+        deltakerV2Dto.deltakerliste.gjennomforingstype shouldBe deltaker.deltakerliste.gjennomforingstype
+
         sammenlignPersonalia(deltakerV2Dto.personalia, navBruker)
         sammenlignStatus(deltakerV2Dto.status, deltaker.status)
+
         deltakerV2Dto.dagerPerUke shouldBe deltaker.dagerPerUke
         deltakerV2Dto.prosentStilling shouldBe deltaker.deltakelsesprosent?.toDouble()
         deltakerV2Dto.oppstartsdato shouldBe deltaker.startdato

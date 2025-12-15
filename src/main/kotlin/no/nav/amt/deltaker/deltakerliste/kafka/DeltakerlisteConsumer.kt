@@ -6,10 +6,11 @@ import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
+import no.nav.amt.deltaker.deltakerliste.toModel
 import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.deltaker.utils.buildManagedKafkaConsumer
 import no.nav.amt.lib.kafka.Consumer
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
+import no.nav.amt.lib.models.deltakerliste.kafka.GjennomforingV2KafkaPayload
 import no.nav.amt.lib.utils.objectMapper
 import java.util.UUID
 
@@ -35,16 +36,17 @@ class DeltakerlisteConsumer(
         handterDeltakerliste(objectMapper.readValue(value))
     }
 
-    private suspend fun handterDeltakerliste(deltakerlistePayload: DeltakerlistePayload) {
-        if (unleashToggle.skipProsesseringAvGjennomforing(deltakerlistePayload.effectiveTiltakskode)) {
+    private suspend fun handterDeltakerliste(deltakerlistePayload: GjennomforingV2KafkaPayload) {
+        if (unleashToggle.skipProsesseringAvGjennomforing(deltakerlistePayload.tiltakskode.name)) {
             return
         }
 
-        val tiltakskode = Tiltakskode.valueOf(deltakerlistePayload.effectiveTiltakskode)
+        val arrangor = arrangorService.hentArrangor(deltakerlistePayload.arrangor.organisasjonsnummer)
+        val tiltakstype = tiltakstypeRepository.get(deltakerlistePayload.tiltakskode).getOrThrow()
 
         val oppdatertDeltakerliste = deltakerlistePayload.toModel(
-            arrangor = arrangorService.hentArrangor(deltakerlistePayload.arrangor.organisasjonsnummer),
-            tiltakstype = tiltakstypeRepository.get(tiltakskode).getOrThrow(),
+            { gruppe -> gruppe.toModel(arrangor, tiltakstype) },
+            { enkeltplass -> enkeltplass.toModel(arrangor, tiltakstype) },
         )
 
         if (oppdatertDeltakerliste.erAvlystEllerAvbrutt()) {
