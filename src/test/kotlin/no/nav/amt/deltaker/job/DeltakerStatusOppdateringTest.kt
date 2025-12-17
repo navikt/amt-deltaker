@@ -148,6 +148,7 @@ class DeltakerStatusOppdateringTest {
     fun cleanDatabase() {
         TestRepository.cleanDatabase()
         every { unleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns true
+        every { unleashToggle.skalDelesMedEksterne(any<Tiltakskode>()) } returns true
     }
 
     @Test
