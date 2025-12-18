@@ -109,6 +109,7 @@ class EnkeltplassDeltakerConsumerTest {
     fun cleanDatabase() {
         TestRepository.cleanDatabase()
         clearAllMocks()
+        every { unleashToggle.skalDelesMedEksterne(any()) } returns false
     }
 
     private fun toPayload(

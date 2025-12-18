@@ -42,9 +42,11 @@ class UnleashToggleTest {
         @EnumSource(
             value = Tiltakskode::class,
             names = [
-                "ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING",
-                "ENKELTPLASS_FAG_OG_YRKESOPPLAERING",
-                "HOYERE_UTDANNING",
+                "ARBEIDSMARKEDSOPPLAERING",
+                "NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV",
+                "STUDIESPESIALISERING",
+                "FAG_OG_YRKESOPPLAERING",
+                "HOYERE_YRKESFAGLIG_UTDANNING",
             ],
         )
         fun `returnerer true hvis toggle ENABLE_KOMET_DELTAKERE er pa for kanskje-master-typer`(kode: Tiltakskode) {

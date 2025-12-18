@@ -11,6 +11,8 @@ class UnleashToggle(
 
     fun erKometMasterForTiltakstype(tiltakskode: Tiltakskode): Boolean = erKometMasterForTiltakstype(tiltakskode.name)
 
+    fun skalDelesMedEksterne(tiltakskode: Tiltakskode): Boolean = tiltakstyperKometErMasterFor.any { it.name == tiltakskode.name }
+
     fun skalLeseArenaDataForTiltakstype(tiltakskode: String): Boolean =
         unleashClient.isEnabled(LES_ARENA_DELTAKERE) && tiltakstyperKometKanLese.any { it.name == tiltakskode }
 
@@ -41,6 +43,12 @@ class UnleashToggle(
             Tiltakskode.HOYERE_UTDANNING,
         )
 
-        private val tiltakstyperKometKanskjeErMasterFor = tiltakstyperKometKanLese
+        private val tiltakstyperKometKanskjeErMasterFor = setOf(
+            Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
+            Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
+            Tiltakskode.STUDIESPESIALISERING,
+            Tiltakskode.FAG_OG_YRKESOPPLAERING,
+            Tiltakskode.HOYERE_YRKESFAGLIG_UTDANNING,
+        )
     }
 }
