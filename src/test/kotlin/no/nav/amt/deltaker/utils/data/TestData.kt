@@ -169,7 +169,7 @@ object TestData {
         apentForPamelding = apentForPamelding,
         oppmoteSted = oppmoteSted,
         arrangor = arrangor,
-        pameldingType = pameldingType,
+        pameldingstype = pameldingType,
     )
 
     fun lagDeltakerlisteMedLopendeOppstart(

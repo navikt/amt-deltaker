@@ -31,7 +31,7 @@ class DeltakerlisteRepository {
                 oppstart = row.stringOrNull(col("oppstart"))?.let { Oppstartstype.valueOf(it) },
                 apentForPamelding = row.boolean(col("apent_for_pamelding")),
                 oppmoteSted = row.stringOrNull(col("oppmote_sted")),
-                pameldingType = row.stringOrNull(col("pameldingstype"))?.let { GjennomforingPameldingType.valueOf(it) },
+                pameldingstype = row.stringOrNull(col("pameldingstype"))?.let { GjennomforingPameldingType.valueOf(it) },
                 arrangor = Arrangor(
                     id = row.uuid("a.id"),
                     navn = row.string("a.navn"),
@@ -100,7 +100,7 @@ class DeltakerlisteRepository {
                     "oppstart" to deltakerliste.oppstart?.name,
                     "apent_for_pamelding" to deltakerliste.apentForPamelding,
                     "oppmote_sted" to deltakerliste.oppmoteSted,
-                    "pameldingstype" to deltakerliste.pameldingType?.name,
+                    "pameldingstype" to deltakerliste.pameldingstype?.name,
                 ),
             ),
         )
