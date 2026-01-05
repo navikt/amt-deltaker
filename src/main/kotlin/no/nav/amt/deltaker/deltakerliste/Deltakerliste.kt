@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.deltakerliste
 
 import no.nav.amt.lib.models.deltaker.Arrangor
+import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
@@ -20,6 +21,7 @@ data class Deltakerliste(
     val apentForPamelding: Boolean,
     val oppmoteSted: String?,
     val arrangor: Arrangor,
+    val pameldingType: GjennomforingPameldingType?, // skal gjøres  non-nullable etter relast
 ) {
     fun erAvlystEllerAvbrutt(): Boolean = status == GjennomforingStatusType.AVLYST ||
         status == GjennomforingStatusType.AVBRUTT

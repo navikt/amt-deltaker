@@ -17,6 +17,7 @@ import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.deltaker.InnsokPaaFellesOppstart
 import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltaker.Vedtak
+import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
@@ -155,6 +156,7 @@ object TestData {
         oppstart: Oppstartstype = finnOppstartstype(tiltakstype.tiltakskode),
         oppmoteSted: String? = "~oppmoteSted~",
         apentForPamelding: Boolean = true,
+        pameldingType: GjennomforingPameldingType? = null,
     ) = Deltakerliste(
         id = id,
         tiltakstype = tiltakstype,
@@ -167,6 +169,7 @@ object TestData {
         apentForPamelding = apentForPamelding,
         oppmoteSted = oppmoteSted,
         arrangor = arrangor,
+        pameldingType = pameldingType,
     )
 
     fun lagDeltakerlisteMedLopendeOppstart(
@@ -190,6 +193,7 @@ object TestData {
         arrangor = GjennomforingV2KafkaPayload.Arrangor(deltakerliste.arrangor.organisasjonsnummer),
         oppdatertTidspunkt = OffsetDateTime.now(),
         opprettetTidspunkt = OffsetDateTime.now(),
+        pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
     )
 
     fun lagDeltakerlistePayload(arrangor: Arrangor = lagArrangor(), deltakerliste: Deltakerliste = lagDeltakerliste(arrangor = arrangor)) =
@@ -209,6 +213,7 @@ object TestData {
             arrangor = GjennomforingV2KafkaPayload.Arrangor(deltakerliste.arrangor.organisasjonsnummer),
             oppdatertTidspunkt = OffsetDateTime.now(),
             opprettetTidspunkt = OffsetDateTime.now(),
+            pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
         )
 
     fun lagNavBrukerDto(navBruker: NavBruker, navEnhet: NavEnhet) = NavBrukerDto(

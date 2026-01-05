@@ -17,6 +17,7 @@ fun GjennomforingV2KafkaPayload.Gruppe.toModel(arrangor: Arrangor, tiltakstype: 
     apentForPamelding = apentForPamelding,
     oppmoteSted = oppmoteSted,
     arrangor = arrangor,
+    pameldingType = pameldingType,
 )
 
 fun GjennomforingV2KafkaPayload.Enkeltplass.toModel(arrangor: Arrangor, tiltakstype: Tiltakstype) = Deltakerliste(
@@ -31,4 +32,5 @@ fun GjennomforingV2KafkaPayload.Enkeltplass.toModel(arrangor: Arrangor, tiltakst
     apentForPamelding = true,
     oppmoteSted = null,
     arrangor = arrangor,
+    pameldingType = pameldingType,
 )
