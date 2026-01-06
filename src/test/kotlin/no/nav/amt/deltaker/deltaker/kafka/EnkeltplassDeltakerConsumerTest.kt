@@ -35,6 +35,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltaker.Kilde
+import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.kafka.GjennomforingV2KafkaPayload
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.testing.SingletonPostgres16Container
@@ -232,6 +233,7 @@ class EnkeltplassDeltakerConsumerTest {
         val deltakerListe = lagDeltakerliste(
             tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING),
             oppmoteSted = null,
+            pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
         )
 
         val statusOpprettet = LocalDateTime.now().minusWeeks(1)
@@ -460,5 +462,6 @@ class EnkeltplassDeltakerConsumerTest {
         deltidsprosent = 42.0,
         oppmoteSted = oppmoteSted,
         arrangor = GjennomforingV2KafkaPayload.Arrangor(arrangor.organisasjonsnummer),
+        pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
     )
 }
