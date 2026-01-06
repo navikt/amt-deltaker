@@ -5,7 +5,10 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
+import io.mockk.Runs
 import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.just
 import no.nav.amt.deltaker.deltaker.api.DtoMappers.deltakerEndringResponseFromDeltaker
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
 import no.nav.amt.deltaker.utils.RouteTestBase
@@ -34,6 +37,8 @@ import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.StartdatoReq
 import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
 import java.util.UUID
 
 class DeltakerApiTest : RouteTestBase() {
@@ -501,6 +506,34 @@ class DeltakerApiTest : RouteTestBase() {
 
             response.status shouldBe HttpStatusCode.OK
             response.bodyAsText() shouldBe expectedBody
+        }
+    }
+
+    @Test
+    fun `post sist-besokt - har tilgang - returnerer 200`() {
+        val deltakerInTest = lagDeltaker(
+            status = lagDeltakerStatus(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
+            startdato = null,
+            sluttdato = null,
+        )
+
+        val sistBesoktInTest = ZonedDateTime.now()
+
+        coEvery { deltakerService.oppdaterSistBesokt(deltakerInTest.id, sistBesoktInTest) } just Runs
+
+        withTestApplicationContext { client ->
+            val response = client.post("/deltaker/${deltakerInTest.id}/sist-besokt") {
+                postRequest(sistBesoktInTest)
+            }
+
+            response.status shouldBe HttpStatusCode.OK
+        }
+
+        coVerify(exactly = 1) {
+            deltakerService.oppdaterSistBesokt(
+                deltakerId = deltakerInTest.id,
+                sistBesokt = sistBesoktInTest.withZoneSameInstant(ZoneOffset.UTC),
+            )
         }
     }
 }
