@@ -19,7 +19,7 @@ class NavEnhetConsumer(
         consumeFunc = ::consume,
     )
 
-    override suspend fun consume(key: UUID, value: String?) {
+    suspend fun consume(key: UUID, value: String?) {
         if (value == null) throw IllegalArgumentException("Mottok uventet tombstone for nav-enhet med id $key")
 
         val dto = objectMapper.readValue<NavEnhetDto>(value)

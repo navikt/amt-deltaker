@@ -21,7 +21,7 @@ class TiltakstypeConsumer(
 
     override suspend fun close() = consumer.close()
 
-    override suspend fun consume(key: UUID, value: String?) {
+    suspend fun consume(key: UUID, value: String?) {
         value?.let { handterTiltakstype(objectMapper.readValue(it)) }
     }
 

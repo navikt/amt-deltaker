@@ -18,7 +18,7 @@ class ArrangorConsumer(
         consumeFunc = ::consume,
     )
 
-    override suspend fun consume(key: UUID, value: String?) {
+    suspend fun consume(key: UUID, value: String?) {
         if (value == null) {
             repository.delete(key)
             log.info("Slettet arrangør med id $key")
