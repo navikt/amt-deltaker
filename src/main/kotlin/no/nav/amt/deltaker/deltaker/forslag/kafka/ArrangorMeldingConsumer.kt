@@ -34,7 +34,7 @@ class ArrangorMeldingConsumer(
         consumeFunc = ::consume,
     )
 
-    override suspend fun consume(key: UUID, value: String?) {
+    suspend fun consume(key: UUID, value: String?) {
         if (value == null) {
             log.warn("Mottok tombstone for melding med id: $key")
             forslagService.delete(key)

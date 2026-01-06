@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.kafka.utils
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerV1Dto
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerV2Dto
@@ -30,7 +31,7 @@ fun assertProduced(deltakerId: UUID) {
         cachedDeltaker.id shouldBe deltakerId
     }
 
-    consumer.stop()
+    runBlocking { consumer.close() }
 }
 
 fun assertProducedDeltakerV1(deltakerId: UUID) {
@@ -47,7 +48,7 @@ fun assertProducedDeltakerV1(deltakerId: UUID) {
         cachedDeltaker.id shouldBe deltakerId
     }
 
-    consumer.stop()
+    runBlocking { consumer.close() }
 }
 
 fun assertProducedFeilregistrert(deltakerId: UUID) {
@@ -72,7 +73,7 @@ fun assertProducedFeilregistrert(deltakerId: UUID) {
         cachedDeltaker.historikk?.filterIsInstance<DeltakerHistorikk.Endring>() shouldBe emptyList()
     }
 
-    consumer.stop()
+    runBlocking { consumer.close() }
 }
 
 fun <T : HendelseType> assertProducedHendelse(deltakerId: UUID, hendelsetype: KClass<T>) {
@@ -90,7 +91,7 @@ fun <T : HendelseType> assertProducedHendelse(deltakerId: UUID, hendelsetype: KC
         cachedHendelse.payload::class shouldBe hendelsetype
     }
 
-    consumer.stop()
+    runBlocking { consumer.close() }
 }
 
 fun assertProducedForslag(forslag: Forslag) {
@@ -113,7 +114,7 @@ fun assertProducedForslag(forslag: Forslag) {
         sammenlignForslagStatus(cachedForslag.status, forslag.status)
     }
 
-    consumer.stop()
+    runBlocking { consumer.close() }
 }
 
 fun sammenlignForslagStatus(a: Forslag.Status, b: Forslag.Status) {
