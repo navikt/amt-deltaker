@@ -155,13 +155,11 @@ class DeltakerEndringHandlerTest {
         )
         val deltakerEndringHandler =
             DeltakerEndringHandler(deltaker, endringsrequest.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-        val resultat = deltakerEndringHandler.sjekkUtfall()
+        val deltakerEndringResultat = deltakerEndringHandler.getEndretDeltaker().deltaker
 
-        resultat.erVellykket shouldBe true
-        val deltakerResult = resultat.getOrThrow()
-        deltakerResult.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
-        deltakerResult.startdato shouldBe endringsrequest.startdato
-        deltakerResult.sluttdato shouldBe endringsrequest.sluttdato
+        deltakerEndringResultat.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+        deltakerEndringResultat.startdato shouldBe endringsrequest.startdato
+        deltakerEndringResultat.sluttdato shouldBe endringsrequest.sluttdato
     }
 
     @Test
@@ -179,13 +177,11 @@ class DeltakerEndringHandlerTest {
         )
         val deltakerEndringHandler =
             DeltakerEndringHandler(deltaker, endringsrequest.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-        val resultat = deltakerEndringHandler.sjekkUtfall()
+        val deltakerEndringResultat = deltakerEndringHandler.getEndretDeltaker().deltaker
 
-        resultat.erVellykket shouldBe true
-        val deltakerResult = resultat.getOrThrow()
-        deltakerResult.status.type shouldBe DeltakerStatus.Type.IKKE_AKTUELL
-        deltakerResult.startdato shouldBe null
-        deltakerResult.sluttdato shouldBe null
+        deltakerEndringResultat.status.type shouldBe DeltakerStatus.Type.IKKE_AKTUELL
+        deltakerEndringResultat.startdato shouldBe null
+        deltakerEndringResultat.sluttdato shouldBe null
     }
 
     @Test
@@ -204,13 +200,11 @@ class DeltakerEndringHandlerTest {
 
         val deltakerEndringHandler =
             DeltakerEndringHandler(deltaker, endringsrequest.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-        val resultat = deltakerEndringHandler.sjekkUtfall()
+        val deltakerEndringResultat = deltakerEndringHandler.getEndretDeltaker().deltaker
 
-        resultat.erVellykket shouldBe true
-        val deltakerResult = resultat.getOrThrow()
-        deltakerResult.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
-        deltakerResult.startdato shouldBe endringsrequest.startdato
-        deltakerResult.sluttdato shouldBe endringsrequest.sluttdato
+        deltakerEndringResultat.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+        deltakerEndringResultat.startdato shouldBe endringsrequest.startdato
+        deltakerEndringResultat.sluttdato shouldBe endringsrequest.sluttdato
     }
 
     @Test
@@ -229,13 +223,11 @@ class DeltakerEndringHandlerTest {
 
         val deltakerEndringHandler =
             DeltakerEndringHandler(deltaker, endringsrequest.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-        val resultat = deltakerEndringHandler.sjekkUtfall()
+        val deltakerEndringResultat = deltakerEndringHandler.getEndretDeltaker().deltaker
 
-        resultat.erVellykket shouldBe true
-        val deltakerResult = resultat.getOrThrow()
-        deltakerResult.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
-        deltakerResult.startdato shouldBe endringsrequest.startdato
-        deltakerResult.sluttdato shouldBe endringsrequest.sluttdato
+        deltakerEndringResultat.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
+        deltakerEndringResultat.startdato shouldBe endringsrequest.startdato
+        deltakerEndringResultat.sluttdato shouldBe endringsrequest.sluttdato
     }
 
     @Test
@@ -259,13 +251,11 @@ class DeltakerEndringHandlerTest {
 
         val deltakerEndringHandler =
             DeltakerEndringHandler(deltaker, endringsrequest.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-        val resultat = deltakerEndringHandler.sjekkUtfall()
+        val deltakerEndringResultat = deltakerEndringHandler.getEndretDeltaker().deltaker
 
-        resultat.erVellykket shouldBe true
-        val deltakerResult = resultat.getOrThrow()
-        deltakerResult.status.type shouldBe DeltakerStatus.Type.DELTAR
-        deltakerResult.startdato shouldBe endringsrequest.startdato
-        deltakerResult.sluttdato shouldBe endringsrequest.sluttdato
+        deltakerEndringResultat.status.type shouldBe DeltakerStatus.Type.DELTAR
+        deltakerEndringResultat.startdato shouldBe endringsrequest.startdato
+        deltakerEndringResultat.sluttdato shouldBe endringsrequest.sluttdato
     }
 
     @Test
@@ -283,12 +273,10 @@ class DeltakerEndringHandlerTest {
 
         val deltakerEndringHandler =
             DeltakerEndringHandler(deltaker, endringsrequest.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-        val resultat = deltakerEndringHandler.sjekkUtfall()
+        val deltakerEndringResultat = deltakerEndringHandler.getEndretDeltaker().deltaker
 
-        resultat.erVellykket shouldBe true
-        val oppdatertDeltaker = resultat.getOrThrow()
-        oppdatertDeltaker.sluttdato shouldBe endringsrequest.sluttdato
-        oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+        deltakerEndringResultat.sluttdato shouldBe endringsrequest.sluttdato
+        deltakerEndringResultat.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
     }
 
     @Test
@@ -306,12 +294,10 @@ class DeltakerEndringHandlerTest {
 
         val deltakerEndringHandler =
             DeltakerEndringHandler(deltaker, endringsrequest.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-        val resultat = deltakerEndringHandler.sjekkUtfall()
+        val deltakerEndringResultat = deltakerEndringHandler.getEndretDeltaker().deltaker
 
-        resultat.erVellykket shouldBe true
-        val oppdatertDeltaker = resultat.getOrThrow()
-        oppdatertDeltaker.sluttdato shouldBe endringsrequest.sluttdato
-        oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.DELTAR
+        deltakerEndringResultat.sluttdato shouldBe endringsrequest.sluttdato
+        deltakerEndringResultat.status.type shouldBe DeltakerStatus.Type.DELTAR
     }
 
     @Test
@@ -332,12 +318,10 @@ class DeltakerEndringHandlerTest {
 
         val deltakerEndringHandler =
             DeltakerEndringHandler(deltaker, endringsrequest.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-        val resultat = deltakerEndringHandler.sjekkUtfall()
+        val deltakerEndringResultat = deltakerEndringHandler.getEndretDeltaker().deltaker
 
-        resultat.erVellykket shouldBe true
-        val oppdatertDeltaker = resultat.getOrThrow()
-        oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
-        oppdatertDeltaker.status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
+        deltakerEndringResultat.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+        deltakerEndringResultat.status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
     }
 
     @Test
@@ -363,13 +347,11 @@ class DeltakerEndringHandlerTest {
 
         val deltakerEndringHandler =
             DeltakerEndringHandler(deltaker, endringsrequest.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-        val resultat = deltakerEndringHandler.sjekkUtfall()
+        val deltakerEndringResultat = deltakerEndringHandler.getEndretDeltaker().deltaker
 
-        resultat.erVellykket shouldBe true
-        val deltakerResult = resultat.getOrThrow()
-        deltakerResult.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
-        deltakerResult.status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
-        deltakerResult.sluttdato shouldBe endringsrequest.sluttdato
+        deltakerEndringResultat.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+        deltakerEndringResultat.status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
+        deltakerEndringResultat.sluttdato shouldBe endringsrequest.sluttdato
     }
 
     @Test
@@ -391,13 +373,11 @@ class DeltakerEndringHandlerTest {
 
         val deltakerEndringHandler =
             DeltakerEndringHandler(deltaker, endringsrequest.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-        val resultat = deltakerEndringHandler.sjekkUtfall()
-        resultat.erVellykket shouldBe true
+        val deltakerEndringResultat = deltakerEndringHandler.getEndretDeltaker().deltaker
 
-        val deltakerResult = resultat.getOrThrow()
-        deltakerResult.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
-        deltakerResult.status.gyldigFra.toLocalDate() shouldBe endringsrequest.sluttdato.plusDays(1)
-        deltakerResult.sluttdato shouldBe endringsrequest.sluttdato
+        deltakerEndringResultat.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+        deltakerEndringResultat.status.gyldigFra.toLocalDate() shouldBe endringsrequest.sluttdato.plusDays(1)
+        deltakerEndringResultat.sluttdato shouldBe endringsrequest.sluttdato
     }
 
     @Test
@@ -419,21 +399,19 @@ class DeltakerEndringHandlerTest {
 
         val deltakerEndringHandler =
             DeltakerEndringHandler(deltaker, endringsrequest.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-        val resultat = deltakerEndringHandler.sjekkUtfall()
 
-        resultat.erVellykket shouldBe true
-        resultat as DeltakerEndringUtfall.VellykketEndring
-        val deltakerResult = resultat.deltaker
-        val nesteStatus = resultat.nesteStatus
+        val deltakerEndringResultat = deltakerEndringHandler.getEndretDeltaker()
+        val fremtidigStatus = deltakerEndringResultat.fremtidigStatus
 
-        deltakerResult.status.type shouldBe DeltakerStatus.Type.DELTAR
-        deltakerResult.status.gyldigFra.toLocalDate() shouldBe LocalDate.now()
-        deltakerResult.sluttdato shouldBe endringsrequest.sluttdato
+        deltakerEndringResultat.deltaker.status.type shouldBe DeltakerStatus.Type.DELTAR
+        deltakerEndringResultat.deltaker.status.gyldigFra
+            .toLocalDate() shouldBe LocalDate.now()
+        deltakerEndringResultat.deltaker.sluttdato shouldBe endringsrequest.sluttdato
 
-        nesteStatus?.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
-        nesteStatus?.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
-        nesteStatus?.gyldigFra?.toLocalDate() shouldBe endringsrequest.sluttdato.plusDays(1)
-        nesteStatus?.gyldigTil shouldBe null
+        fremtidigStatus?.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+        fremtidigStatus?.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
+        fremtidigStatus?.gyldigFra?.toLocalDate() shouldBe endringsrequest.sluttdato.plusDays(1)
+        fremtidigStatus?.gyldigTil shouldBe null
     }
 
     @Test
@@ -455,19 +433,18 @@ class DeltakerEndringHandlerTest {
 
         val deltakerEndringHandler =
             DeltakerEndringHandler(deltaker, endringsrequest.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-        val resultat = deltakerEndringHandler.sjekkUtfall()
+        val deltakerEndringResultat = deltakerEndringHandler.getEndretDeltaker()
 
-        resultat.erVellykket shouldBe true
-        resultat as DeltakerEndringUtfall.VellykketEndring
-        val deltakerResult = resultat.deltaker
-        val nesteStatus = resultat.nesteStatus
+        val fremtidigStatus = deltakerEndringResultat.fremtidigStatus
 
-        deltakerResult.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
-        deltakerResult.status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
-        deltakerResult.status.gyldigFra.toLocalDate() shouldBe LocalDate.now()
-        deltakerResult.sluttdato shouldBe endringsrequest.sluttdato
+        deltakerEndringResultat.deltaker.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+        deltakerEndringResultat.deltaker.status.aarsak
+            ?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
+        deltakerEndringResultat.deltaker.status.gyldigFra
+            .toLocalDate() shouldBe LocalDate.now()
+        deltakerEndringResultat.deltaker.sluttdato shouldBe endringsrequest.sluttdato
 
-        nesteStatus shouldBe null
+        fremtidigStatus shouldBe null
     }
 
     @Test
@@ -497,12 +474,10 @@ class DeltakerEndringHandlerTest {
 
         val deltakerEndringHandler =
             DeltakerEndringHandler(deltaker, endringsrequest.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-        val resultat = deltakerEndringHandler.sjekkUtfall()
+        val deltakerEndringResultat = deltakerEndringHandler.getEndretDeltaker().deltaker
 
-        resultat.erVellykket shouldBe true
-        val deltakerResult = resultat.getOrThrow()
-        deltakerResult.status.type shouldBe DeltakerStatus.Type.FULLFORT
-        deltakerResult.status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
+        deltakerEndringResultat.status.type shouldBe DeltakerStatus.Type.FULLFORT
+        deltakerEndringResultat.status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
     }
 
     @Test
@@ -532,16 +507,14 @@ class DeltakerEndringHandlerTest {
 
         val deltakerEndringHandler =
             DeltakerEndringHandler(deltaker, endringsrequest.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-        val resultat = deltakerEndringHandler.sjekkUtfall()
+        val deltakerEndringResultat = deltakerEndringHandler.getEndretDeltaker().deltaker
 
-        resultat.erVellykket shouldBe true
-        val deltakerResult = resultat.getOrThrow()
-        deltakerResult.status.type shouldBe DeltakerStatus.Type.AVBRUTT
-        deltakerResult.status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
+        deltakerEndringResultat.status.type shouldBe DeltakerStatus.Type.AVBRUTT
+        deltakerEndringResultat.status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
     }
 
     @Test
-    fun `sjekkUtfall - endre avslutning ingen endring - gir erVellykket false`(): Unit = runBlocking {
+    fun `sjekkUtfall - endre avslutning ingen endring - gjør ingen endringer`(): Unit = runBlocking {
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.FULLFORT),
             sluttdato = LocalDate.now().minusDays(3),
@@ -564,9 +537,10 @@ class DeltakerEndringHandlerTest {
 
         val deltakerEndringHandler =
             DeltakerEndringHandler(deltaker, endringsrequest.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-        val resultat = deltakerEndringHandler.sjekkUtfall()
 
-        resultat.erVellykket shouldBe false
+        val haandtertDeltaker = deltakerEndringHandler.getEndretDeltaker()
+
+        haandtertDeltaker shouldBe deltaker
     }
 
     @Test
@@ -585,13 +559,11 @@ class DeltakerEndringHandlerTest {
 
         val deltakerEndringHandler =
             DeltakerEndringHandler(deltaker, endringsrequest.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-        val resultat = deltakerEndringHandler.sjekkUtfall()
+        val deltakerEndringResultat = deltakerEndringHandler.getEndretDeltaker().deltaker
 
-        resultat.erVellykket shouldBe true
-        val deltakerResult = resultat.getOrThrow()
-        deltakerResult.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
-        deltakerResult.startdato shouldBe null
-        deltakerResult.sluttdato shouldBe null
+        deltakerEndringResultat.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
+        deltakerEndringResultat.startdato shouldBe null
+        deltakerEndringResultat.sluttdato shouldBe null
     }
 
     @Test
@@ -610,12 +582,10 @@ class DeltakerEndringHandlerTest {
 
         val deltakerEndringHandler =
             DeltakerEndringHandler(deltaker, endringsrequest.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-        val resultat = deltakerEndringHandler.sjekkUtfall()
+        val deltakerEndringResultat = deltakerEndringHandler.getEndretDeltaker().deltaker
 
-        resultat.erVellykket shouldBe true
-        val deltakerResult = resultat.getOrThrow()
-        deltakerResult.status.type shouldBe DeltakerStatus.Type.SOKT_INN
-        deltakerResult.startdato shouldBe null
-        deltakerResult.sluttdato shouldBe null
+        deltakerEndringResultat.status.type shouldBe DeltakerStatus.Type.SOKT_INN
+        deltakerEndringResultat.startdato shouldBe null
+        deltakerEndringResultat.sluttdato shouldBe null
     }
 }

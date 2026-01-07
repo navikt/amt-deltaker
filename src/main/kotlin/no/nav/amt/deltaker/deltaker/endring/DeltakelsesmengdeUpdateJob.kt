@@ -7,7 +7,6 @@ import kotlinx.coroutines.launch
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.job.leaderelection.LeaderElection
 import no.nav.amt.lib.ktor.routing.isReadyKey
-import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.Duration
@@ -37,23 +36,30 @@ class DeltakelsesmengdeUpdateJob(
     }
 
     private suspend fun behandleDeltakelsesmengder() {
-        var offset = 0
-        var endringer: List<DeltakerEndring>
-
         log.info("Starter jobb for å behandle deltakelsesmengder")
 
-        do {
-            endringer = deltakterEndringService.getUbehandledeDeltakelsesmengder(offset)
-            endringer.forEach {
-                val deltaker = deltakerService.get(it.deltakerId).getOrThrow()
-                val endringsutfall = deltakterEndringService.behandleLagretDeltakelsesmengde(it, deltaker)
+        var offset = 0
+        while (true) {
+            val endringer = deltakterEndringService.getUbehandledeDeltakelsesmengder(offset)
+            if (endringer.isEmpty()) break
 
-                if (endringsutfall.erVellykket) {
-                    deltakerService.upsertDeltaker(endringsutfall.getOrThrow())
+            for (endring in endringer) {
+                runCatching {
+                    val deltaker = deltakerService.get(endring.deltakerId).getOrThrow()
+                    val behandlet = deltakterEndringService.behandleLagretDeltakelsesmengde(endring, deltaker)
+                    deltakerService.upsertDeltaker(behandlet)
+                }.onFailure { e ->
+                    log.error(
+                        "Feil ved behandling av deltakelsesmengdeendring. deltakerId={}, endringId={}",
+                        endring.deltakerId,
+                        endring.id,
+                        e,
+                    )
                 }
             }
+
             offset += endringer.size
-        } while (endringer.isNotEmpty())
+        }
 
         log.info("Fullførte jobb for å behandle deltakelsesmengder, behandlet $offset endringer")
     }

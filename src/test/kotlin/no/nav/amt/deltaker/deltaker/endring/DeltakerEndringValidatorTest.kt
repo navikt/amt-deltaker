@@ -59,11 +59,10 @@ class DeltakerEndringValidatorTest {
 
         val deltakerEndringValidator = DeltakerEndringValidator(
             deltaker = deltaker,
-            endring = endringsrequest.toDeltakerEndringEndring(),
             deltakerHistorikkService = deltakerHistorikkServiceMock,
         )
 
-        val validationResult = deltakerEndringValidator.valider()
+        val validationResult = deltakerEndringValidator.validerRequest(endringsrequest)
 
         validationResult.shouldBeInstanceOf<ValidationResult.Invalid>()
         validationResult.reasons shouldBe listOf(
@@ -91,11 +90,10 @@ class DeltakerEndringValidatorTest {
 
         val deltakerEndringValidator = DeltakerEndringValidator(
             deltaker = deltaker,
-            endring = endringsrequest.toDeltakerEndringEndring(),
             deltakerHistorikkService = deltakerHistorikkServiceMock,
         )
 
-        val validationResult = deltakerEndringValidator.valider()
+        val validationResult = deltakerEndringValidator.validerRequest(endringsrequest)
 
         validationResult shouldBe ValidationResult.Valid
     }
@@ -120,11 +118,10 @@ class DeltakerEndringValidatorTest {
 
         val deltakerEndringValidator = DeltakerEndringValidator(
             deltaker = deltaker,
-            endring = endringsrequest.toDeltakerEndringEndring(),
             deltakerHistorikkService = deltakerHistorikkServiceMock,
         )
 
-        val validationResult = deltakerEndringValidator.valider()
+        val validationResult = deltakerEndringValidator.validerRequest(endringsrequest)
 
         validationResult shouldBe ValidationResult.Valid
     }
@@ -149,11 +146,10 @@ class DeltakerEndringValidatorTest {
 
         val deltakerEndringValidator = DeltakerEndringValidator(
             deltaker = deltaker,
-            endring = endringsrequest.toDeltakerEndringEndring(),
             deltakerHistorikkService = deltakerHistorikkServiceMock,
         )
 
-        val validationResult = deltakerEndringValidator.valider()
+        val validationResult = deltakerEndringValidator.validerRequest(endringsrequest)
 
         validationResult shouldBe ValidationResult.Valid
     }
@@ -178,11 +174,10 @@ class DeltakerEndringValidatorTest {
 
         val deltakerEndringValidator = DeltakerEndringValidator(
             deltaker = deltaker,
-            endring = endringsrequest.toDeltakerEndringEndring(),
             deltakerHistorikkService = deltakerHistorikkServiceMock,
         )
 
-        val validationResult = deltakerEndringValidator.valider()
+        val validationResult = deltakerEndringValidator.validerRequest(endringsrequest)
 
         validationResult shouldBe ValidationResult.Valid
     }
@@ -207,11 +202,10 @@ class DeltakerEndringValidatorTest {
 
         val deltakerEndringValidator = DeltakerEndringValidator(
             deltaker = deltaker,
-            endring = endringsrequest.toDeltakerEndringEndring(),
             deltakerHistorikkService = deltakerHistorikkServiceMock,
         )
 
-        val validationResult = deltakerEndringValidator.valider()
+        val validationResult = deltakerEndringValidator.validerRequest(endringsrequest)
 
         validationResult shouldBe ValidationResult.Valid
     }
@@ -226,7 +220,7 @@ class DeltakerEndringValidatorTest {
             ),
             sluttdato = sluttdato,
         )
-        val req = AvbrytDeltakelseRequest(
+        val endringsrequest = AvbrytDeltakelseRequest(
             endretAv = TestData.lagNavAnsatt().navIdent,
             endretAvEnhet = TestData.lagNavEnhet().enhetsnummer,
             sluttdato = sluttdato,
@@ -235,7 +229,7 @@ class DeltakerEndringValidatorTest {
             forslagId = null,
         )
 
-        val res = DeltakerEndringValidator(deltaker, req.toDeltakerEndringEndring(), deltakerHistorikkServiceMock).valider()
+        val res = DeltakerEndringValidator(deltaker, deltakerHistorikkServiceMock).validerRequest(endringsrequest)
 
         res.shouldBeInstanceOf<ValidationResult.Invalid>()
         res.reasons shouldBe listOf("AVBRYT_DELTAKELSE_INGEN_ENDRING")
@@ -247,7 +241,7 @@ class DeltakerEndringValidatorTest {
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
             sluttdato = LocalDate.now().plusDays(20),
         )
-        val req = AvbrytDeltakelseRequest(
+        val endringsrequest = AvbrytDeltakelseRequest(
             endretAv = TestData.lagNavAnsatt().navIdent,
             endretAvEnhet = TestData.lagNavEnhet().enhetsnummer,
             sluttdato = LocalDate.now().plusDays(5),
@@ -256,8 +250,8 @@ class DeltakerEndringValidatorTest {
             forslagId = null,
         )
 
-        DeltakerEndringValidator(deltaker, req.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-            .valider() shouldBe ValidationResult.Valid
+        DeltakerEndringValidator(deltaker, deltakerHistorikkServiceMock)
+            .validerRequest(endringsrequest) shouldBe ValidationResult.Valid
     }
 
     @Test
@@ -267,7 +261,7 @@ class DeltakerEndringValidatorTest {
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.FULLFORT),
             sluttdato = slutt,
         )
-        val req = EndreAvslutningRequest(
+        val endringsrequest = EndreAvslutningRequest(
             endretAv = TestData.lagNavAnsatt().navIdent,
             endretAvEnhet = TestData.lagNavEnhet().enhetsnummer,
             aarsak = null,
@@ -277,8 +271,8 @@ class DeltakerEndringValidatorTest {
             forslagId = null,
         )
 
-        DeltakerEndringValidator(deltaker, req.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-            .valider() shouldBe ValidationResult.Valid
+        DeltakerEndringValidator(deltaker, deltakerHistorikkServiceMock)
+            .validerRequest(endringsrequest) shouldBe ValidationResult.Valid
     }
 
     @Test
@@ -298,7 +292,7 @@ class DeltakerEndringValidatorTest {
             forslagId = null,
         )
 
-        val res = DeltakerEndringValidator(deltaker, req.toDeltakerEndringEndring(), deltakerHistorikkServiceMock).valider()
+        val res = DeltakerEndringValidator(deltaker, req.toDeltakerEndringEndring(), deltakerHistorikkServiceMock).validerRequest()
 
         res.shouldBeInstanceOf<ValidationResult.Invalid>()
         res.reasons shouldBe listOf("ENDRE_AVSLUTNING_INGEN_ENDRING")
@@ -315,7 +309,7 @@ class DeltakerEndringValidatorTest {
         )
 
         val validationResult = DeltakerEndringValidator(deltaker, req.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-            .valider()
+            .validerRequest()
         validationResult.shouldBeInstanceOf<ValidationResult.Invalid>()
         validationResult.reasons shouldBe listOf("ENDRE_BAKGRUNNSINFORMASJON_INGEN_ENDRING")
     }
@@ -330,7 +324,7 @@ class DeltakerEndringValidatorTest {
         )
 
         DeltakerEndringValidator(deltaker, req.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-            .valider() shouldBe ValidationResult.Valid
+            .validerRequest() shouldBe ValidationResult.Valid
     }
 
     @Test
@@ -344,7 +338,7 @@ class DeltakerEndringValidatorTest {
         )
 
         val validationResult = DeltakerEndringValidator(deltaker, req.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-            .valider()
+            .validerRequest()
         validationResult.shouldBeInstanceOf<ValidationResult.Invalid>()
         validationResult.reasons shouldBe listOf("ENDRE_INNHOLD_INGEN_ENDRING")
     }
@@ -361,7 +355,7 @@ class DeltakerEndringValidatorTest {
         )
 
         DeltakerEndringValidator(deltaker, req.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-            .valider() shouldBe ValidationResult.Valid
+            .validerRequest() shouldBe ValidationResult.Valid
     }
 
     @Test
@@ -378,7 +372,7 @@ class DeltakerEndringValidatorTest {
         )
 
         val validationResult = DeltakerEndringValidator(deltaker, req.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-            .valider()
+            .validerRequest()
         validationResult.shouldBeInstanceOf<ValidationResult.Invalid>()
         validationResult.reasons shouldBe listOf("ENDRE_SLUTTAARSAK_INGEN_ENDRING")
     }
@@ -397,7 +391,7 @@ class DeltakerEndringValidatorTest {
         )
 
         DeltakerEndringValidator(deltaker, req.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-            .valider() shouldBe ValidationResult.Valid
+            .validerRequest() shouldBe ValidationResult.Valid
     }
 
     @Test
@@ -413,7 +407,7 @@ class DeltakerEndringValidatorTest {
         )
 
         val validationResult = DeltakerEndringValidator(deltaker, req.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-            .valider()
+            .validerRequest()
         validationResult.shouldBeInstanceOf<ValidationResult.Invalid>()
         validationResult.reasons shouldBe listOf("ENDRE_SLUTTDATO_INGEN_ENDRING")
     }
@@ -430,7 +424,7 @@ class DeltakerEndringValidatorTest {
         )
 
         DeltakerEndringValidator(deltaker, req.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-            .valider() shouldBe ValidationResult.Valid
+            .validerRequest() shouldBe ValidationResult.Valid
     }
 
     @Test
@@ -448,7 +442,7 @@ class DeltakerEndringValidatorTest {
         )
 
         val validationResult = DeltakerEndringValidator(deltaker, req.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-            .valider()
+            .validerRequest()
         validationResult.shouldBeInstanceOf<ValidationResult.Invalid>()
         validationResult.reasons shouldBe listOf("ENDRE_STARTDATO_INGEN_ENDRING")
     }
@@ -468,7 +462,7 @@ class DeltakerEndringValidatorTest {
         )
 
         DeltakerEndringValidator(deltaker, req.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-            .valider() shouldBe ValidationResult.Valid
+            .validerRequest() shouldBe ValidationResult.Valid
     }
 
     @Test
@@ -482,7 +476,7 @@ class DeltakerEndringValidatorTest {
         )
 
         val validationResult = DeltakerEndringValidator(deltaker, req.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-            .valider()
+            .validerRequest()
 
         validationResult.shouldBeInstanceOf<ValidationResult.Invalid>()
         validationResult.reasons shouldBe listOf("FJERN_OPPSTARTSDATO_INGEN_ENDRING")
@@ -499,7 +493,7 @@ class DeltakerEndringValidatorTest {
         )
 
         DeltakerEndringValidator(deltaker, req.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-            .valider() shouldBe ValidationResult.Valid
+            .validerRequest() shouldBe ValidationResult.Valid
     }
 
     @Test
@@ -514,7 +508,7 @@ class DeltakerEndringValidatorTest {
         )
 
         val validationResult = DeltakerEndringValidator(deltaker, req.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-            .valider()
+            .validerRequest()
         validationResult.shouldBeInstanceOf<ValidationResult.Invalid>()
         validationResult.reasons shouldBe listOf(
             "FORLENG_DELTAKELSE_INGEN_ENDRING",
@@ -533,7 +527,7 @@ class DeltakerEndringValidatorTest {
         )
 
         DeltakerEndringValidator(deltaker, req.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-            .valider() shouldBe ValidationResult.Valid
+            .validerRequest() shouldBe ValidationResult.Valid
     }
 
     @Test
@@ -550,7 +544,7 @@ class DeltakerEndringValidatorTest {
         )
 
         val validationResult = DeltakerEndringValidator(deltaker, req.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-            .valider()
+            .validerRequest()
         validationResult.shouldBeInstanceOf<ValidationResult.Invalid>()
         validationResult.reasons shouldBe listOf(
             "SETT_IKKE_AKTUELL_INGEN_ENDRING",
@@ -569,7 +563,7 @@ class DeltakerEndringValidatorTest {
         )
 
         DeltakerEndringValidator(deltaker, req.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-            .valider() shouldBe ValidationResult.Valid
+            .validerRequest() shouldBe ValidationResult.Valid
     }
 
     @Test
@@ -582,7 +576,7 @@ class DeltakerEndringValidatorTest {
         )
 
         DeltakerEndringValidator(deltaker, req.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-            .valider() shouldBe ValidationResult.Valid
+            .validerRequest() shouldBe ValidationResult.Valid
     }
 
     @Test
@@ -595,7 +589,7 @@ class DeltakerEndringValidatorTest {
         )
 
         val validationResult = DeltakerEndringValidator(deltaker, req.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-            .valider()
+            .validerRequest()
 
         validationResult.shouldBeInstanceOf<ValidationResult.Invalid>()
         validationResult.reasons shouldBe listOf(
@@ -631,7 +625,7 @@ class DeltakerEndringValidatorTest {
             )
 
         DeltakerEndringValidator(deltaker, req.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-            .valider() shouldBe ValidationResult.Valid
+            .validerRequest() shouldBe ValidationResult.Valid
     }
 
     @Test
@@ -661,7 +655,7 @@ class DeltakerEndringValidatorTest {
                 ),
             )
 
-        val res = DeltakerEndringValidator(deltaker, req.toDeltakerEndringEndring(), deltakerHistorikkServiceMock).valider()
+        val res = DeltakerEndringValidator(deltaker, req.toDeltakerEndringEndring(), deltakerHistorikkServiceMock).validerRequest()
         res.shouldBeInstanceOf<ValidationResult.Invalid>()
         res.reasons shouldBe listOf("ENDRE_DELTAKELSESMENGDE_IKKE_GYLDIG_ENDRING")
     }
@@ -684,6 +678,6 @@ class DeltakerEndringValidatorTest {
         )
 
         DeltakerEndringValidator(deltaker, req.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-            .valider() shouldBe ValidationResult.Valid
+            .validerRequest() shouldBe ValidationResult.Valid
     }
 }

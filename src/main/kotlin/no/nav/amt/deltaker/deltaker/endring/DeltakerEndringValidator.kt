@@ -2,19 +2,20 @@ package no.nav.amt.deltaker.deltaker.endring
 
 import io.ktor.server.plugins.requestvalidation.ValidationResult
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
+import no.nav.amt.deltaker.deltaker.api.deltaker.toDeltakerEndringEndring
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengde
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.EndringRequest
 import java.time.LocalDateTime
 
 class DeltakerEndringValidator(
     private val deltaker: Deltaker,
-    val endring: DeltakerEndring.Endring,
     private val deltakerHistorikkService: DeltakerHistorikkService,
 ) {
-    fun valider(): ValidationResult = when (endring) {
+    fun validerRequest(request: EndringRequest): ValidationResult = when (val endring = request.toDeltakerEndringEndring()) {
         is DeltakerEndring.Endring.AvsluttDeltakelse -> kanAvslutteDeltakelse(endring)
         is DeltakerEndring.Endring.EndreDeltakelsesmengde -> kanEndreDeltakelsesmengde(endring)
         is DeltakerEndring.Endring.AvbrytDeltakelse -> kanAvbryteDeltakelse(endring)

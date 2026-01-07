@@ -33,11 +33,8 @@ class DeltakerEndringService(
     suspend fun upsertEndring(
         deltaker: Deltaker,
         endring: DeltakerEndring.Endring,
-        utfall: DeltakerEndringUtfall,
         request: EndringRequest,
-    ): DeltakerEndring? {
-        if (utfall.erUgyldig) return null
-
+    ): DeltakerEndring {
         val ansatt = navAnsattService.hentEllerOpprettNavAnsatt(request.endretAv)
         val enhet = navEnhetService.hentEllerOpprettNavEnhet(request.endretAvEnhet)
         val godkjentForslag = request.getForslagId()?.let { forslagId ->
@@ -58,14 +55,14 @@ class DeltakerEndringService(
             forslag = godkjentForslag,
         )
 
-        val behandlet = if (utfall.erVellykket) LocalDateTime.now() else null
+        val behandlet = LocalDateTime.now()
 
         deltakerEndringRepository.upsert(deltakerEndring, behandlet)
-        hendelseService.hendelseForDeltakerEndring(deltakerEndring, utfall.getOrThrow(), ansatt, enhet)
+        hendelseService.hendelseForDeltakerEndring(deltakerEndring, deltaker, ansatt, enhet)
         return deltakerEndring
     }
 
-    fun behandleLagretDeltakelsesmengde(endring: DeltakerEndring, deltaker: Deltaker): DeltakerEndringUtfall {
+    fun behandleLagretDeltakelsesmengde(endring: DeltakerEndring, deltaker: Deltaker): Deltaker {
         val deltakelsesmengde = endring.toDeltakelsesmengde()
             ?: throw IllegalStateException("Endring ${endring.id} er ikke en EndreDeltakelsesmengde")
 
@@ -74,23 +71,22 @@ class DeltakerEndringService(
         val endringenErIkkeUtfort = deltaker.deltakelsesprosent != deltakelsesmengde.deltakelsesprosent ||
             deltaker.dagerPerUke != deltakelsesmengde.dagerPerUke
 
-        val utfall =
+        log.info("Behandler endring: ${endring.id}, deltaker: ${deltaker.id}")
+        val behandletDeltaker =
             if (deltakelsesmengde == gyldigeDeltakelsesmengder.gjeldende && endringenErIkkeUtfort) {
-                DeltakerEndringUtfall.VellykketEndring(
-                    deltaker.copy(
-                        deltakelsesprosent = deltakelsesmengde.deltakelsesprosent,
-                        dagerPerUke = deltakelsesmengde.dagerPerUke,
-                    ),
+                deltaker.copy(
+                    deltakelsesprosent = deltakelsesmengde.deltakelsesprosent,
+                    dagerPerUke = deltakelsesmengde.dagerPerUke,
                 )
             } else {
-                DeltakerEndringUtfall.UgyldigEndring(IllegalStateException("Endringen er ikke lenger gyldig"))
+                throw IllegalStateException("Endringen er ikke lenger gyldig")
             }
 
-        log.info("Behandler endring: ${endring.id}, utfall: ${utfall::class.simpleName}, deltaker: ${deltaker.id}")
+        log.info("Vellykket endring: ${endring.id}, deltaker: ${deltaker.id}")
 
         deltakerEndringRepository.upsert(endring, LocalDateTime.now())
 
-        return utfall
+        return behandletDeltaker
     }
 
     fun getUbehandledeDeltakelsesmengder(offset: Int) = deltakerEndringRepository.getUbehandletDeltakelsesmengder(offset)

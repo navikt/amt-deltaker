@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.deltaker
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
@@ -11,7 +12,6 @@ import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.db.sammenlignDeltakerEndring
 import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringService
-import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringUtfall
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagService
@@ -120,9 +120,7 @@ class DeltakerEndringServiceTest {
         val deltaker = TestData.lagDeltaker()
         val endretAv = TestData.lagNavAnsatt()
         val endretAvEnhet = TestData.lagNavEnhet()
-        val utfall = DeltakerEndringUtfall.VellykketEndring(
-            deltaker = deltaker,
-        )
+
         TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
 
         val endringsrequest = BakgrunnsinformasjonRequest(
@@ -131,7 +129,7 @@ class DeltakerEndringServiceTest {
             bakgrunnsinformasjon = "Nye opplysninger",
         )
 
-        deltakerEndringService.upsertEndring(deltaker, endringsrequest.toDeltakerEndringEndring(), utfall, request = endringsrequest)
+        deltakerEndringService.upsertEndring(deltaker, endringsrequest.toDeltakerEndringEndring(), request = endringsrequest)
 
         val endring = deltakerEndringService.getForDeltaker(deltaker.id).first()
         endring.endretAv shouldBe endretAv.id
@@ -148,7 +146,6 @@ class DeltakerEndringServiceTest {
         val deltaker = TestData.lagDeltaker()
         val endretAv = TestData.lagNavAnsatt()
         val endretAvEnhet = TestData.lagNavEnhet()
-        val utfall = DeltakerEndringUtfall.VellykketEndring(deltaker)
 
         TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
 
@@ -162,7 +159,6 @@ class DeltakerEndringServiceTest {
             .upsertEndring(
                 deltaker,
                 endringsrequest.toDeltakerEndringEndring(),
-                utfall,
                 endringsrequest,
             )!!
             .endring
@@ -195,9 +191,8 @@ class DeltakerEndringServiceTest {
             begrunnelse = "begrunnelse",
             forslagId = forslag.id,
         )
-        val utfall = DeltakerEndringUtfall.VellykketEndring(deltaker)
 
-        deltakerEndringService.upsertEndring(deltaker, endringsrequest.toDeltakerEndringEndring(), utfall, endringsrequest)
+        deltakerEndringService.upsertEndring(deltaker, endringsrequest.toDeltakerEndringEndring(), endringsrequest)
 
         val endring = deltakerEndringService.getForDeltaker(deltaker.id).first()
         endring.endretAv shouldBe endretAv.id
@@ -231,7 +226,6 @@ class DeltakerEndringServiceTest {
         val endretAv = TestData.lagNavAnsatt()
         val endretAvEnhet = TestData.lagNavEnhet()
         val forslag = TestData.lagForslag(deltakerId = deltaker.id, endring = Forslag.IkkeAktuell(EndringAarsak.FattJobb))
-        val utfall = DeltakerEndringUtfall.VellykketEndring(deltaker)
         TestRepository.insertAll(deltaker, endretAv, endretAvEnhet, forslag)
 
         val endringsrequest = IkkeAktuellRequest(
@@ -242,7 +236,7 @@ class DeltakerEndringServiceTest {
             forslagId = forslag.id,
         )
 
-        deltakerEndringService.upsertEndring(deltaker, endringsrequest.toDeltakerEndringEndring(), utfall, endringsrequest)
+        deltakerEndringService.upsertEndring(deltaker, endringsrequest.toDeltakerEndringEndring(), endringsrequest)
 
         val endring = deltakerEndringService.getForDeltaker(deltaker.id).first()
         endring.endretAv shouldBe endretAv.id
@@ -279,7 +273,6 @@ class DeltakerEndringServiceTest {
         )
         val endretAv = TestData.lagNavAnsatt()
         val endretAvEnhet = TestData.lagNavEnhet()
-        val utfall = DeltakerEndringUtfall.VellykketEndring(deltaker)
 
         TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
 
@@ -290,7 +283,7 @@ class DeltakerEndringServiceTest {
             begrunnelse = "begrunnelse",
         )
 
-        deltakerEndringService.upsertEndring(deltaker, endringsrequest.toDeltakerEndringEndring(), utfall, endringsrequest)
+        deltakerEndringService.upsertEndring(deltaker, endringsrequest.toDeltakerEndringEndring(), endringsrequest)
 
         val endring = deltakerEndringService.getForDeltaker(deltaker.id).first()
         endring.endretAv shouldBe endretAv.id
@@ -330,10 +323,7 @@ class DeltakerEndringServiceTest {
             ),
         )
 
-        val resultat = deltakerEndringService.behandleLagretDeltakelsesmengde(ubehandletEndring, deltaker)
-
-        resultat.erVellykket shouldBe true
-        val oppdatertDeltaker = resultat.getOrThrow()
+        val oppdatertDeltaker = deltakerEndringService.behandleLagretDeltakelsesmengde(ubehandletEndring, deltaker)
         oppdatertDeltaker.deltakelsesprosent shouldBe deltakelsesprosent
         oppdatertDeltaker.dagerPerUke shouldBe dagerPerUke
 
@@ -385,9 +375,9 @@ class DeltakerEndringServiceTest {
             ),
         )
 
-        val resultat = deltakerEndringService.behandleLagretDeltakelsesmengde(ugyldigEndring, deltaker)
-
-        resultat.erUgyldig shouldBe true
+        shouldThrow<IllegalStateException> {
+            deltakerEndringService.behandleLagretDeltakelsesmengde(gyldigEndring, deltaker)
+        }
 
         val ubehandlete = deltakerEndringRepository.getUbehandletDeltakelsesmengder()
 
@@ -441,14 +431,15 @@ class DeltakerEndringServiceTest {
             ),
         )
 
-        val resultat = deltakerEndringService.behandleLagretDeltakelsesmengde(
-            fremtidigEndring,
-            deltaker.copy(
-                deltakelsesprosent = fremtidigDeltakelsesprosent,
-                dagerPerUke = fremtidigDagerPerUke,
-            ), // deltaker skal være oppdatert pga startdatoendringen...
-        )
-        resultat.erUgyldig shouldBe true
+        shouldThrow<IllegalStateException> {
+            deltakerEndringService.behandleLagretDeltakelsesmengde(
+                fremtidigEndring,
+                deltaker.copy(
+                    deltakelsesprosent = fremtidigDeltakelsesprosent,
+                    dagerPerUke = fremtidigDagerPerUke,
+                ), // deltaker skal være oppdatert pga startdatoendringen...
+            )
+        }
 
         val ubehandlete = deltakerEndringRepository.getUbehandletDeltakelsesmengder()
         ubehandlete.size shouldBe 0
