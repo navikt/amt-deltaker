@@ -49,6 +49,10 @@ fun Routing.registerInternalApi(
         deltakerService.delete(deltakerId)
     }
 
+    fun slettDeltakerKladd(deltakerId: UUID) {
+        deltakerService.deleteDeltakerKladd(deltakerId)
+    }
+
     suspend fun ApplicationCall.reproduserDeltakere() {
         val request = this.receive<RelastDeltakereRequest>()
         scope.launch {
@@ -224,6 +228,22 @@ fun Routing.registerInternalApi(
                     slettDeltaker(deltakerId)
                 }
                 log.info("Slettet ${request.deltakere.size} deltakere")
+            }
+            call.respond(HttpStatusCode.OK)
+        } else {
+            throw AuthorizationException("Ikke tilgang til api")
+        }
+    }
+
+    post("/internal/slett-kladd") {
+        if (isInternal(call.request.local.remoteAddress)) {
+            val request = call.receive<DeleteDeltakereRequest>()
+            scope.launch {
+                log.info("Sletter ${request.deltakere.size} deltakere med status KLADD")
+                request.deltakere.forEach { deltakerId ->
+                    slettDeltakerKladd(deltakerId)
+                }
+                log.info("Slettet ${request.deltakere.size} deltakere med status KLADD")
             }
             call.respond(HttpStatusCode.OK)
         } else {

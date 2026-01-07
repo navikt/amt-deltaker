@@ -329,6 +329,15 @@ class DeltakerRepository {
         }
     }
 
+    fun deleteDeltakerKladd(deltakerId: UUID) = Database.query { session ->
+        session.transaction { tx ->
+            val deltaker = get(deltakerId).getOrNull() ?: return@transaction
+            if (deltaker.status.type != DeltakerStatus.Type.KLADD) return@transaction
+            tx.update(slettStatus(deltakerId))
+            tx.update(slettDeltaker(deltakerId))
+        }
+    }
+
     fun skalHaStatusDeltar(): List<Deltaker> = Database.query { session ->
         val sql = getDeltakerSql(
             """ where ds.gyldig_til is null
