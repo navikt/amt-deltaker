@@ -135,7 +135,6 @@ class DeltakerStatusOppdateringTest {
                 forslagService,
                 importertFraArenaRepository,
                 deltakerHistorikkService,
-                unleashToggle,
                 endringFraTiltakskoordinatorService,
                 endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
                 navAnsattService = navAnsattService,
@@ -181,7 +180,7 @@ class DeltakerStatusOppdateringTest {
     }
 
     @Test
-    fun `oppdaterDeltakerStatuser - startdato er passert men komet er ikke master - setter ikke status til DELTAR`() {
+    fun `oppdaterDeltakerStatuser - startdato er passert men komet er ikke master - setter status til DELTAR`() {
         val sistEndretAv = TestData.lagNavAnsatt()
         val sistEndretAvEnhet = TestData.lagNavEnhet()
         TestRepository.insert(sistEndretAv)
@@ -202,12 +201,13 @@ class DeltakerStatusOppdateringTest {
         TestRepository.insert(deltaker, vedtak)
 
         every { unleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns false
+        every { unleashToggle.skalLeseArenaDataForTiltakstype(any<Tiltakskode>()) } returns true
 
         runBlocking {
             deltakerService.oppdaterDeltakerStatuser()
 
             val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
-            deltakerFraDb.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
+            deltakerFraDb.status.type shouldBe DeltakerStatus.Type.DELTAR
         }
     }
 
