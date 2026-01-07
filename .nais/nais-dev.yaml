@@ -25,10 +25,10 @@ spec:
     max: 1
   resources:
     requests:
-      cpu: 30m
-      memory: 512Mi
+      cpu: 10m
+      memory: 600Mi
     limits:
-      memory: 1024Mi
+      memory: 1Gi
   envFrom:
     - secret: amt-deltaker-unleash-api-token
   azure:
@@ -65,6 +65,8 @@ spec:
   kafka:
     pool: nav-dev
   env:
+    - name: JDK_JAVA_OPTIONS
+      value: "-XX:MaxRAMPercentage=70.0"
     - name: AMT_PERSONSERVICE_SCOPE
       value: api://dev-gcp.amt.amt-person-service/.default
     - name: AMT_PERSONSERVICE_URL

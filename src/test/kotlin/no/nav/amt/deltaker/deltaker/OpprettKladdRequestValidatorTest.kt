@@ -9,7 +9,6 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.apiclients.oppfolgingstilfelle.IsOppfolgingstilfelleClient
-import no.nav.amt.deltaker.deltakerliste.Deltakerliste.Status
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.navbruker.NavBrukerService
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
@@ -18,6 +17,7 @@ import no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype
 import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.OpprettKladdRequest
+import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -62,8 +62,8 @@ class OpprettKladdRequestValidatorTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = Status::class, names = ["AVBRUTT", "AVLYST", "AVSLUTTET"])
-    fun `validateRequest - deltakerListe er avsluttet - skal returnere Invalid`(status: Status): Unit = runBlocking {
+    @EnumSource(value = GjennomforingStatusType::class, names = ["AVBRUTT", "AVLYST", "AVSLUTTET"])
+    fun `validateRequest - deltakerListe er avsluttet - skal returnere Invalid`(status: GjennomforingStatusType): Unit = runBlocking {
         every { deltakerListeRepository.get(any()) } returns Result.success(
             lagDeltakerliste(status = status),
         )

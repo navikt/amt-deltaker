@@ -84,6 +84,7 @@ class PameldingServiceTest {
     fun setup() {
         cleanDatabase()
         every { unleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns true
+        every { unleashToggle.skalDelesMedEksterne(any<Tiltakskode>()) } returns true
     }
 
     @Test

@@ -30,7 +30,7 @@ class DeltakerProducerService(
 
     fun produceDeltakerV1Topic(deltaker: Deltaker) {
         val deltakerV1Record = deltakerKafkaPayloadBuilder.buildDeltakerV1Record(deltaker)
-        if (unleashToggle.erKometMasterForTiltakstype(deltaker.deltakerliste.tiltakstype.tiltakskode)) {
+        if (unleashToggle.skalDelesMedEksterne(deltaker.deltakerliste.tiltakstype.tiltakskode)) {
             deltakerV1Producer.produce(deltakerV1Record)
         }
     }

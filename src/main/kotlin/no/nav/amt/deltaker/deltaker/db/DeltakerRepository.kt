@@ -9,12 +9,12 @@ import no.nav.amt.deltaker.deltaker.db.DbUtils.nullWhenNearNow
 import no.nav.amt.deltaker.deltaker.model.AVSLUTTENDE_STATUSER
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.Vedtaksinformasjon
-import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.utils.toPGObject
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.deltaker.Kilde
+import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.address.Adressebeskyttelse
@@ -372,10 +372,11 @@ class DeltakerRepository {
     fun deltarPaAvsluttetDeltakerliste(): List<Deltaker> = Database.query { session ->
         val avsluttendeDeltakerStatuser = AVSLUTTENDE_STATUSER.map { it.name }
         val avsluttendeDeltakerlisteStatuser = listOf(
-            Deltakerliste.Status.AVSLUTTET.name,
-            Deltakerliste.Status.AVBRUTT.name,
-            Deltakerliste.Status.AVLYST.name,
-        )
+            GjennomforingStatusType.AVSLUTTET,
+            GjennomforingStatusType.AVBRUTT,
+            GjennomforingStatusType.AVLYST,
+        ).map { it.name }
+
         val sql = getDeltakerSql(
             """ where ds.gyldig_til is null
                 and ds.gyldig_fra < CURRENT_TIMESTAMP
@@ -543,12 +544,14 @@ class DeltakerRepository {
             ds.modified_at as "ds.modified_at",
             dl.id as "dl.id",
             dl.navn as "dl.navn",
+            dl.gjennomforingstype as "dl.gjennomforingstype",
             dl.status as "dl.status",
             dl.start_dato as "dl.start_dato",
             dl.slutt_dato as "dl.slutt_dato",
             dl.oppstart as "dl.oppstart",
             dl.apent_for_pamelding as "dl.apent_for_pamelding",
             dl.oppmote_sted as "dl.oppmote_sted",
+            dl.pameldingstype as "dl.pameldingstype",
             a.navn as "a.navn",
             a.id as "a.id",
             a.organisasjonsnummer as "a.organisasjonsnummer",

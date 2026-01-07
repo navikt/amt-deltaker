@@ -6,10 +6,10 @@ import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.amt.deltaker.deltaker.model.Deltaker
-import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.testing.SingletonPostgres16Container
 import no.nav.amt.lib.testing.shouldBeCloseTo
 import org.junit.jupiter.api.BeforeAll
@@ -469,7 +469,7 @@ class DeltakerRepositoryTest {
                 status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
                 startdato = LocalDate.now().minusDays(10),
                 sluttdato = LocalDate.now().plusDays(2),
-                deltakerliste = TestData.lagDeltakerliste(status = Deltakerliste.Status.AVSLUTTET),
+                deltakerliste = TestData.lagDeltakerliste(status = GjennomforingStatusType.AVSLUTTET),
             )
             TestRepository.insert(deltaker)
 
@@ -485,7 +485,7 @@ class DeltakerRepositoryTest {
                 status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.HAR_SLUTTET),
                 startdato = LocalDate.now().minusDays(10),
                 sluttdato = LocalDate.now(),
-                deltakerliste = TestData.lagDeltakerliste(status = Deltakerliste.Status.AVSLUTTET),
+                deltakerliste = TestData.lagDeltakerliste(status = GjennomforingStatusType.AVSLUTTET),
             )
             TestRepository.insert(deltaker)
 

@@ -5,6 +5,9 @@ import kotliquery.queryOf
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.utils.prefixColumn
 import no.nav.amt.lib.models.deltaker.Arrangor
+import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
+import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
+import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.utils.database.Database
 import org.slf4j.LoggerFactory
@@ -21,12 +24,14 @@ class DeltakerlisteRepository {
                 id = row.uuid(col("id")),
                 tiltakstype = TiltakstypeRepository.rowMapper(row, "t"),
                 navn = row.string(col("navn")),
-                status = row.stringOrNull(col("status"))?.let { Deltakerliste.Status.valueOf(it) },
+                gjennomforingstype = GjennomforingType.valueOf(row.string(col("gjennomforingstype"))),
+                status = row.stringOrNull(col("status"))?.let { GjennomforingStatusType.valueOf(it) },
                 startDato = row.localDateOrNull(col("start_dato")),
                 sluttDato = row.localDateOrNull(col("slutt_dato")),
                 oppstart = row.stringOrNull(col("oppstart"))?.let { Oppstartstype.valueOf(it) },
                 apentForPamelding = row.boolean(col("apent_for_pamelding")),
                 oppmoteSted = row.stringOrNull(col("oppmote_sted")),
+                pameldingstype = row.stringOrNull(col("pameldingstype"))?.let { GjennomforingPameldingType.valueOf(it) },
                 arrangor = Arrangor(
                     id = row.uuid("a.id"),
                     navn = row.string("a.navn"),
@@ -43,6 +48,7 @@ class DeltakerlisteRepository {
             INSERT INTO deltakerliste(
                 id, 
                 navn, 
+                gjennomforingstype,
                 status, 
                 arrangor_id,  
                 tiltakstype_id, 
@@ -50,28 +56,33 @@ class DeltakerlisteRepository {
                 slutt_dato, 
                 oppstart,
                 apent_for_pamelding,
-                oppmote_sted)
+                oppmote_sted,
+                pameldingstype)
             VALUES (:id,
-            		:navn,
-            		:status,
-            		:arrangor_id,
-            		:tiltakstype_id,
-            		:start_dato,
-            		:slutt_dato,
-                    :oppstart,
-                    :apent_for_pamelding,
-                    :oppmote_sted)
+                :navn,
+                :gjennomforingstype,
+                :status,
+                :arrangor_id,
+                :tiltakstype_id,
+                :start_dato,
+                :slutt_dato,
+                :oppstart,
+                :apent_for_pamelding,
+                :oppmote_sted,
+                :pameldingstype)
             ON CONFLICT (id) DO UPDATE SET
-            		navn     				= :navn,
-            		status					= :status,
-            		arrangor_id 			= :arrangor_id,
-            		tiltakstype_id			= :tiltakstype_id,
-            		start_dato				= :start_dato,
-            		slutt_dato				= :slutt_dato,
-                    oppstart                = :oppstart,
-                    apent_for_pamelding     = :apent_for_pamelding,
-                    oppmote_sted            = :oppmote_sted,
-                    modified_at             = current_timestamp
+                navn     				= :navn,
+                gjennomforingstype      = :gjennomforingstype,
+                status					= :status,
+                arrangor_id 			= :arrangor_id,
+                tiltakstype_id			= :tiltakstype_id,
+                start_dato				= :start_dato,
+                slutt_dato				= :slutt_dato,
+                oppstart                = :oppstart,
+                apent_for_pamelding     = :apent_for_pamelding,
+                oppmote_sted            = :oppmote_sted,
+                pameldingstype          = :pameldingstype,
+                modified_at             = current_timestamp
             """.trimIndent()
 
         it.update(
@@ -80,6 +91,7 @@ class DeltakerlisteRepository {
                 mapOf(
                     "id" to deltakerliste.id,
                     "navn" to deltakerliste.navn,
+                    "gjennomforingstype" to deltakerliste.gjennomforingstype.name,
                     "status" to deltakerliste.status?.name,
                     "arrangor_id" to deltakerliste.arrangor.id,
                     "tiltakstype_id" to deltakerliste.tiltakstype.id,
@@ -88,6 +100,7 @@ class DeltakerlisteRepository {
                     "oppstart" to deltakerliste.oppstart?.name,
                     "apent_for_pamelding" to deltakerliste.apentForPamelding,
                     "oppmote_sted" to deltakerliste.oppmoteSted,
+                    "pameldingstype" to deltakerliste.pameldingstype?.name,
                 ),
             ),
         )
@@ -111,12 +124,14 @@ class DeltakerlisteRepository {
             SELECT 
                dl.id as "dl.id",
                dl.navn as "dl.navn",
+               dl.gjennomforingstype as "dl.gjennomforingstype",
                dl.status as "dl.status",
                dl.start_dato as "dl.start_dato",
                dl.slutt_dato as "dl.slutt_dato",
                dl.oppstart as "dl.oppstart",
                dl.apent_for_pamelding as "dl.apent_for_pamelding",
                dl.oppmote_sted as "dl.oppmote_sted",
+               dl.pameldingstype as "dl.pameldingstype",
                a.id as "a.id",
                a.navn as "a.navn",
                a.organisasjonsnummer as "a.organisasjonsnummer",

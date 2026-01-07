@@ -26,7 +26,9 @@ fun Deltaker.toHendelseDeltaker(overordnetArrangor: Arrangor?, forsteVedtakFatte
         arrangor = deltakerliste.arrangor.toHendelseArrangor(overordnetArrangor?.toHendelseArrangor()),
         startdato = deltakerliste.startDato,
         sluttdato = deltakerliste.sluttDato,
-        oppstartstype = HendelseDeltaker.Deltakerliste.Oppstartstype.valueOf(deltakerliste.oppstart.toString()),
+        oppstartstype = deltakerliste.oppstart
+            ?.let { HendelseDeltaker.Deltakerliste.Oppstartstype.valueOf(it.name) }
+            ?: HendelseDeltaker.Deltakerliste.Oppstartstype.LOPENDE,
         tiltak = HendelseDeltaker.Deltakerliste.Tiltak(
             navn = deltakerliste.tiltakstype.visningsnavn,
             ledetekst = deltakerliste.tiltakstype.innhold?.ledetekst,

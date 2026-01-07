@@ -1,6 +1,5 @@
 package no.nav.amt.deltaker.external.data
-
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.ArenaKode
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 
 data class DeltakelserResponse(
     val aktive: List<DeltakerKort>,
@@ -8,6 +7,6 @@ data class DeltakelserResponse(
 ) {
     data class Tiltakstype(
         val navn: String,
-        val tiltakskode: ArenaKode, // skal erstattes med Tiltakskode senere
+        val tiltakskode: Tiltakskode,
     )
 }
