@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.DeltakerUtils.nyDeltakerStatus
+import no.nav.amt.deltaker.deltaker.PameldingService
 import no.nav.amt.deltaker.deltaker.VedtakService
 import no.nav.amt.deltaker.deltaker.extensions.getVedtakOrThrow
 import no.nav.amt.deltaker.deltaker.extensions.tilVedtaksInformasjon
@@ -32,6 +33,7 @@ import java.util.UUID
 
 fun Routing.registerInternalApi(
     deltakerService: DeltakerService,
+    pameldingService: PameldingService,
     deltakerProducerService: DeltakerProducerService,
     vedtakService: VedtakService,
     innsokPaaFellesOppstartService: InnsokPaaFellesOppstartService,
@@ -50,7 +52,7 @@ fun Routing.registerInternalApi(
     }
 
     fun slettDeltakerKladd(deltakerId: UUID) {
-        deltakerService.deleteDeltakerKladd(deltakerId)
+        pameldingService.slettKladd(deltakerId)
     }
 
     suspend fun ApplicationCall.reproduserDeltakere() {

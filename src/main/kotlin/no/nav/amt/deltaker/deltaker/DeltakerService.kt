@@ -95,10 +95,6 @@ class DeltakerService(
         deltakerRepository.deleteDeltakerOgStatus(deltakerId)
     }
 
-    fun deleteDeltakerKladd(deltakerId: UUID) {
-        deltakerRepository.deleteDeltakerKladd(deltakerId)
-    }
-
     suspend fun feilregistrerDeltaker(deltakerId: UUID) {
         val deltaker = get(deltakerId).getOrThrow()
         if (deltaker.status.type == DeltakerStatus.Type.KLADD) {
