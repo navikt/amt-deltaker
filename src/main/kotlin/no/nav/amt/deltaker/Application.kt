@@ -267,7 +267,6 @@ fun Application.module() {
         forslagService = forslagService,
         importertFraArenaRepository = importertFraArenaRepository,
         deltakerHistorikkService = deltakerHistorikkService,
-        unleashToggle = unleashToggle,
         endringFraTiltakskoordinatorService,
         endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
         navAnsattService,
@@ -315,7 +314,7 @@ fun Application.module() {
             tiltakstypeRepository,
             deltakerProducerService,
         ),
-        ArrangorMeldingConsumer(forslagService, deltakerService, vurderingService, deltakerProducerService, unleashToggle),
+        ArrangorMeldingConsumer(forslagService, deltakerService, vurderingService, deltakerProducerService),
         NavEnhetConsumer(navEnhetService),
     )
     consumers.forEach { it.start() }

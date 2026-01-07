@@ -154,7 +154,6 @@ class DeltakerServiceTest {
             forslagService = forslagService,
             importertFraArenaRepository = importertFraArenaRepository,
             deltakerHistorikkService = deltakerHistorikkService,
-            unleashToggle = unleashToggle,
             endringFraTiltakskoordinatorService = endringFraTiltakskoordinatorService,
             endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
             navAnsattService = navAnsattService,
