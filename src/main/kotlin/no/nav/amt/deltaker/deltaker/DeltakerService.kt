@@ -1,12 +1,15 @@
 package no.nav.amt.deltaker.deltaker
 
+import io.ktor.server.plugins.requestvalidation.RequestValidationException
+import io.ktor.server.plugins.requestvalidation.ValidationResult
+import kotliquery.TransactionalSession
 import no.nav.amt.deltaker.deltaker.DeltakerUtils.nyDeltakerStatus
 import no.nav.amt.deltaker.deltaker.api.deltaker.toDeltakerEndringEndring
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerStatusRepository
 import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringHandler
 import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringService
-import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringUtfall
+import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringValidator
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorService
 import no.nav.amt.deltaker.deltaker.extensions.getVedtakOrThrow
 import no.nav.amt.deltaker.deltaker.extensions.tilVedtaksInformasjon
@@ -104,26 +107,20 @@ class DeltakerService(
         val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
         validerIkkeFeilregistrert(deltaker)
 
-        val endring = request.toDeltakerEndringEndring()
-        val deltakerEndringHandler = DeltakerEndringHandler(deltaker, endring, deltakerHistorikkService)
-
-        return when (val utfall = deltakerEndringHandler.sjekkUtfall()) {
-            is DeltakerEndringUtfall.VellykketEndring -> {
-                // TODO: Kan vi bytte om rekkefølgen slik at transactionalDeltakerUpsert kan benyttes
-                deltakerEndringService.upsertEndring(deltaker, endring, utfall, request)
-                upsertDeltaker(utfall.deltaker, nesteStatus = utfall.nesteStatus)
-            }
-
-            is DeltakerEndringUtfall.FremtidigEndring -> {
-                // TODO: Kan vi bytte om rekkefølgen slik at transactionalDeltakerUpsert kan benyttes
-                deltakerEndringService.upsertEndring(deltaker, endring, utfall, request)
-                upsertDeltaker(utfall.deltaker)
-            }
-
-            is DeltakerEndringUtfall.UgyldigEndring -> {
-                deltaker
+        DeltakerEndringValidator(deltaker, deltakerHistorikkService).validerRequest(request).let { validationResult ->
+            if (validationResult is ValidationResult.Invalid) {
+                throw RequestValidationException(request, validationResult.reasons)
             }
         }
+
+        val endring = request.toDeltakerEndringEndring()
+        val endretDeltaker = DeltakerEndringHandler(deltaker, endring, deltakerHistorikkService).getEndretDeltaker()
+        // TODO: Kan vi bytte om rekkefølgen slik at transactionalDeltakerUpsert kan benyttes
+        deltakerEndringService.upsertEndring(deltaker, endring, request)
+
+        upsertDeltaker(endretDeltaker.deltaker, nesteStatus = endretDeltaker.fremtidigStatus)
+
+        return get(deltakerId).getOrThrow()
     }
 
     suspend fun upsertEndretDeltaker(endring: EndringFraArrangor): Deltaker {
