@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.DeltakerUtils.nyDeltakerStatus
+import no.nav.amt.deltaker.deltaker.PameldingService
 import no.nav.amt.deltaker.deltaker.VedtakService
 import no.nav.amt.deltaker.deltaker.extensions.getVedtakOrThrow
 import no.nav.amt.deltaker.deltaker.extensions.tilVedtaksInformasjon
@@ -32,6 +33,7 @@ import java.util.UUID
 
 fun Routing.registerInternalApi(
     deltakerService: DeltakerService,
+    pameldingService: PameldingService,
     deltakerProducerService: DeltakerProducerService,
     vedtakService: VedtakService,
     innsokPaaFellesOppstartService: InnsokPaaFellesOppstartService,
@@ -47,6 +49,10 @@ fun Routing.registerInternalApi(
         innsokPaaFellesOppstartService.deleteForDeltaker(deltakerId)
         vurderingService.deleteForDeltaker(deltakerId)
         deltakerService.delete(deltakerId)
+    }
+
+    fun slettDeltakerKladd(deltakerId: UUID) {
+        pameldingService.slettKladd(deltakerId)
     }
 
     suspend fun ApplicationCall.reproduserDeltakere() {
@@ -224,6 +230,22 @@ fun Routing.registerInternalApi(
                     slettDeltaker(deltakerId)
                 }
                 log.info("Slettet ${request.deltakere.size} deltakere")
+            }
+            call.respond(HttpStatusCode.OK)
+        } else {
+            throw AuthorizationException("Ikke tilgang til api")
+        }
+    }
+
+    post("/internal/slett-kladd") {
+        if (isInternal(call.request.local.remoteAddress)) {
+            val request = call.receive<DeleteDeltakereRequest>()
+            scope.launch {
+                log.info("Sletter ${request.deltakere.size} deltakere med status KLADD")
+                request.deltakere.forEach { deltakerId ->
+                    slettDeltakerKladd(deltakerId)
+                }
+                log.info("Slettet ${request.deltakere.size} deltakere med status KLADD")
             }
             call.respond(HttpStatusCode.OK)
         } else {

@@ -123,7 +123,9 @@ class DeltakerService(
                 upsertDeltaker(utfall.deltaker)
             }
 
-            is DeltakerEndringUtfall.UgyldigEndring -> deltaker
+            is DeltakerEndringUtfall.UgyldigEndring -> {
+                deltaker
+            }
         }
     }
 
