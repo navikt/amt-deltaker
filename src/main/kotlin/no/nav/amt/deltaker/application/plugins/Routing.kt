@@ -100,6 +100,7 @@ fun Application.configureRouting(
         registerDeltakerApi(deltakerService, deltakerHistorikkService)
         registerInternalApi(
             deltakerService,
+            pameldingService,
             deltakerProducerService,
             vedtakService,
             innsokPaaFellesOppstartService,

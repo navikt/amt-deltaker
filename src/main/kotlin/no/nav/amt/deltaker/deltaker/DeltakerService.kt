@@ -21,7 +21,6 @@ import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorService
-import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -49,7 +48,6 @@ class DeltakerService(
     private val forslagService: ForslagService,
     private val importertFraArenaRepository: ImportertFraArenaRepository,
     private val deltakerHistorikkService: DeltakerHistorikkService,
-    private val unleashToggle: UnleashToggle,
     private val endringFraTiltakskoordinatorService: EndringFraTiltakskoordinatorService,
     private val endringFraTiltakskoordinatorRepository: EndringFraTiltakskoordinatorRepository,
     private val navAnsattService: NavAnsattService,
@@ -123,7 +121,9 @@ class DeltakerService(
                 upsertDeltaker(utfall.deltaker)
             }
 
-            is DeltakerEndringUtfall.UgyldigEndring -> deltaker
+            is DeltakerEndringUtfall.UgyldigEndring -> {
+                deltaker
+            }
         }
     }
 
@@ -308,13 +308,11 @@ class DeltakerService(
     private fun deltakereSomSkalHaAvsluttendeStatus() = deltakerRepository
         .skalHaAvsluttendeStatus()
         .plus(deltakerRepository.deltarPaAvsluttetDeltakerliste())
-        .filter { it.kilde == Kilde.KOMET || unleashToggle.erKometMasterForTiltakstype(it.deltakerliste.tiltakstype.tiltakskode) }
         .distinct()
 
     private fun deltakereSomSkalHaStatusDeltar() = deltakerRepository
         .skalHaStatusDeltar()
         .distinct()
-        .filter { it.kilde == Kilde.KOMET || unleashToggle.erKometMasterForTiltakstype(it.deltakerliste.tiltakstype.tiltakskode) }
 
     suspend fun avgrensSluttdatoerTil(deltakerliste: Deltakerliste) {
         val deltakere = getDeltakereForDeltakerliste(deltakerliste.id).filter { it.status.type !in DeltakerStatus.avsluttendeStatuser }

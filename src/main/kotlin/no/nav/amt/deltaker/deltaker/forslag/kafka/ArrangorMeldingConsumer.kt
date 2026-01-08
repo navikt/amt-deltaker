@@ -7,14 +7,12 @@ import no.nav.amt.deltaker.deltaker.extensions.toVurdering
 import no.nav.amt.deltaker.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
-import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.deltaker.utils.buildManagedKafkaConsumer
 import no.nav.amt.lib.kafka.Consumer
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.arrangor.melding.Melding
 import no.nav.amt.lib.models.arrangor.melding.Vurdering
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.utils.objectMapper
 import org.slf4j.LoggerFactory
 import java.util.UUID
@@ -24,7 +22,6 @@ class ArrangorMeldingConsumer(
     private val deltakerService: DeltakerService,
     private val vurderingService: VurderingService,
     private val deltakerProducerService: DeltakerProducerService,
-    private val unleashToggle: UnleashToggle,
     private val isDev: Boolean = Environment.isDev(),
 ) : Consumer<UUID, String?> {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -56,9 +53,7 @@ class ArrangorMeldingConsumer(
 
             is Forslag -> forslagService.upsert(melding)
 
-            is Vurdering -> if (unleashToggle.erKometMasterForTiltakstype(Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING)) {
-                handleVurdering(melding)
-            }
+            is Vurdering -> handleVurdering(melding)
         }
     }
 
