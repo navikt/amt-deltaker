@@ -294,21 +294,20 @@ class DeltakerRepository {
     fun getAvsluttendeDeltakerStatuserForOppdatering() = Database.query { session ->
         val sql =
             """
-            WITH aktive_deltagelser AS (
-                SELECT deltaker_id  
-                FROM deltaker_status
-                WHERE 
-                    gyldig_til is null
-                    AND type = 'DELTAR'
-            )
-            
-            SELECT * 
-            FROM deltaker_status ds
-            JOIN aktive_deltagelser ad ON ds.deltaker_id = ad.deltaker_id
+            SELECT ds.* 
+            FROM deltaker_status ds 
             WHERE 
-                gyldig_til IS NULL
-                AND gyldig_fra::date <= current_date
-                AND type IN ('AVBRUTT', 'FULLFORT', 'HAR_SLUTTET')
+                ds.gyldig_til IS NULL 
+                AND ds.gyldig_fra < current_date + interval '1 day' 
+                AND ds.type IN ('AVBRUTT', 'FULLFORT', 'HAR_SLUTTET') 
+                AND EXISTS ( 
+                    SELECT 1 
+                    FROM deltaker_status AS inner_ds 
+                    WHERE 
+                        inner_ds.deltaker_id = ds.deltaker_id 
+                        AND inner_ds.gyldig_til IS NULL 
+                        AND inner_ds.type = 'DELTAR'
+                )
             """.trimIndent()
 
         val query = queryOf(sql)
