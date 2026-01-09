@@ -9,10 +9,10 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
-class DeltakerProgresjon {
+class DeltakerProgresjonHandler {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun tilAvsluttendeStatusOgDatoer(
+    fun getAvsluttendeStatusUtfall(
         deltakere: List<Deltaker>,
         fremtidigAvsluttendeStatus: List<DeltakerStatusMedDeltakerId>,
     ): List<Deltaker> {
@@ -26,15 +26,15 @@ class DeltakerProgresjon {
                     }
             }
 
-        val deltakereSomSkalBehandles = deltakere
+        val deltakereUtenFremtidigStatus = deltakere
             .filter { deltaker -> deltakereMedFremtidigeAvsluttendeStatus.none { it.id == deltaker.id } }
 
         val deltakereMedAvsluttendeStatus = listOf(
-            avbrytUtkast(deltakereSomSkalBehandles),
-            ikkeAktuell(deltakereSomSkalBehandles),
-            avbrytForAvbruttDeltakerliste(deltakereSomSkalBehandles),
-            harSluttet(deltakereSomSkalBehandles),
-            fullfor(deltakereSomSkalBehandles),
+            getDeltakereSomSkalBliAvbrytUtkast(deltakereUtenFremtidigStatus),
+            getDeltakereSomSkalBliIkkeAktuell(deltakereUtenFremtidigStatus),
+            getDeltakereSomSkalAvbrytesForAvbruttDeltakerliste(deltakereUtenFremtidigStatus),
+            getDeltakereSomHarSluttet(deltakereUtenFremtidigStatus),
+            getDeltakereSomSkalFullfores(deltakereUtenFremtidigStatus),
         ).flatten()
 
         val endredeDeltakere = deltakereMedAvsluttendeStatus + deltakereMedFremtidigeAvsluttendeStatus
@@ -49,7 +49,7 @@ class DeltakerProgresjon {
         .map { it.medNyStatus(DeltakerStatus.Type.DELTAR) }
         .also { log.info("Endret status til DELTAR for ${deltakere.size}") }
 
-    private fun fullfor(deltakere: List<Deltaker>): List<Deltaker> {
+    private fun getDeltakereSomSkalFullfores(deltakere: List<Deltaker>): List<Deltaker> {
         val skalBliFullfort = deltakere
             .filter { it.status.type == DeltakerStatus.Type.DELTAR }
             .filter { it.deltarPaKurs() }
@@ -64,7 +64,7 @@ class DeltakerProgresjon {
         return skalBliFullfort
     }
 
-    private fun avbrytForAvbruttDeltakerliste(deltakere: List<Deltaker>): List<Deltaker> {
+    private fun getDeltakereSomSkalAvbrytesForAvbruttDeltakerliste(deltakere: List<Deltaker>): List<Deltaker> {
         val skalBliAvbrutt = deltakere
             .filter { it.status.type == DeltakerStatus.Type.DELTAR }
             .filter { it.deltarPaKurs() }
@@ -75,7 +75,7 @@ class DeltakerProgresjon {
         return skalBliAvbrutt
     }
 
-    private fun harSluttet(deltakere: List<Deltaker>): List<Deltaker> {
+    private fun getDeltakereSomHarSluttet(deltakere: List<Deltaker>): List<Deltaker> {
         val skalBliHarSluttet = deltakere
             .filter { it.status.type == DeltakerStatus.Type.DELTAR }
             .filter { !it.deltarPaKurs() }
@@ -90,7 +90,7 @@ class DeltakerProgresjon {
         return skalBliHarSluttet
     }
 
-    private fun ikkeAktuell(deltakere: List<Deltaker>): List<Deltaker> {
+    private fun getDeltakereSomSkalBliIkkeAktuell(deltakere: List<Deltaker>): List<Deltaker> {
         val skalBliIkkeAktuell = deltakere
             .filter { it.status.harIkkeStartet() }
             .map {
@@ -104,7 +104,7 @@ class DeltakerProgresjon {
         return skalBliIkkeAktuell
     }
 
-    private fun avbrytUtkast(deltakere: List<Deltaker>): List<Deltaker> {
+    private fun getDeltakereSomSkalBliAvbrytUtkast(deltakere: List<Deltaker>): List<Deltaker> {
         val utkastSomSkalAvbrytes = deltakere
             .filter { it.status.type == DeltakerStatus.Type.UTKAST_TIL_PAMELDING }
             .map {

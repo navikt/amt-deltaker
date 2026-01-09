@@ -16,7 +16,7 @@ import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.hendelse.HendelseService
-import no.nav.amt.deltaker.job.DeltakerProgresjon
+import no.nav.amt.deltaker.job.DeltakerProgresjonHandler
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
@@ -275,7 +275,7 @@ class DeltakerService(
         avsluttDeltakere(deltakereSomSkalAvsluttes)
 
         val deltakereSomSkalDelta = deltakereSomSkalHaStatusDeltar()
-        DeltakerProgresjon()
+        DeltakerProgresjonHandler()
             .tilDeltar(deltakereSomSkalDelta)
             .forEach { upsertDeltaker(it) }
     }
@@ -289,8 +289,8 @@ class DeltakerService(
     }
 
     private suspend fun avsluttDeltakere(deltakereSomSkalAvsluttes: List<Deltaker>) {
-        DeltakerProgresjon()
-            .tilAvsluttendeStatusOgDatoer(deltakereSomSkalAvsluttes, deltakerRepository.getAvsluttendeDeltakerStatuserForOppdatering())
+        DeltakerProgresjonHandler()
+            .getAvsluttendeStatusUtfall(deltakereSomSkalAvsluttes, deltakerRepository.getAvsluttendeDeltakerStatuserForOppdatering())
             .map { oppdaterVedtakForAvbruttUtkast(it) }
             .forEach { upsertDeltaker(it) }
     }
