@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.deltaker
 
 import io.kotest.assertions.assertSoftly
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -8,7 +9,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
@@ -48,12 +48,16 @@ import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinat
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorService
 import no.nav.amt.deltaker.unleash.UnleashToggle
-import no.nav.amt.deltaker.utils.data.TestData
+import no.nav.amt.deltaker.utils.data.TestData.lagArrangor
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerEndring
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
+import no.nav.amt.deltaker.utils.data.TestData.lagInnsoktPaaKurs
 import no.nav.amt.deltaker.utils.data.TestData.lagNavAnsatt
 import no.nav.amt.deltaker.utils.data.TestData.lagNavBruker
 import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
+import no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype
 import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.utils.data.TestRepository.insert
@@ -75,7 +79,6 @@ import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.testing.SingletonKafkaProvider
 import no.nav.amt.lib.testing.SingletonPostgres16Container
 import no.nav.amt.lib.testing.shouldBeCloseTo
-import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
@@ -566,7 +569,7 @@ class DeltakerServiceTest {
     // END tester flyttet fra DeltakerRepository
 
     @Test
-    fun `upsertDeltaker - deltaker endrer status fra kladd til utkast - oppdaterer og publiserer til kafka`() {
+    fun `upsertDeltaker - deltaker endrer status fra kladd til utkast - oppdaterer og publiserer til kafka`() = runTest {
         val sistEndretAv = lagNavAnsatt()
         val sistEndretAvEnhet = lagNavEnhet()
         insert(sistEndretAv)
@@ -591,20 +594,18 @@ class DeltakerServiceTest {
             vedtaksinformasjon = vedtak.tilVedtaksInformasjon(),
         )
 
-        runBlocking {
-            val deltakerFraDb = deltakerService.upsertDeltaker(oppdatertDeltaker)
-            deltakerFraDb.status.type shouldBe DeltakerStatus.Type.UTKAST_TIL_PAMELDING
-            deltakerFraDb.vedtaksinformasjon?.opprettetAv shouldBe vedtak.opprettetAv
+        val deltakerFraDb = deltakerService.upsertDeltaker(oppdatertDeltaker)
+        deltakerFraDb.status.type shouldBe DeltakerStatus.Type.UTKAST_TIL_PAMELDING
+        deltakerFraDb.vedtaksinformasjon?.opprettetAv shouldBe vedtak.opprettetAv
 
-            assertProduced(deltaker.id)
-            assertProducedDeltakerV1(deltaker.id)
-        }
+        assertProduced(deltaker.id)
+        assertProducedDeltakerV1(deltaker.id)
     }
 
     @Test
-    fun `upsertDeltaker - oppretter kladd - oppdaterer i db`() {
-        val arrangor = TestData.lagArrangor()
-        val deltakerliste = TestData.lagDeltakerliste(arrangor = arrangor)
+    fun `upsertDeltaker - oppretter kladd - oppdaterer i db`() = runTest {
+        val arrangor = lagArrangor()
+        val deltakerliste = lagDeltakerliste(arrangor = arrangor)
         insert(deltakerliste)
         val opprettetAv = lagNavAnsatt()
         val opprettetAvEnhet = lagNavEnhet()
@@ -617,11 +618,9 @@ class DeltakerServiceTest {
             status = lagDeltakerStatus(type = DeltakerStatus.Type.KLADD),
         )
 
-        runBlocking {
-            val deltakerFraDb = deltakerService.upsertDeltaker(deltaker)
-            deltakerFraDb.status.type shouldBe DeltakerStatus.Type.KLADD
-            deltakerFraDb.vedtaksinformasjon shouldBe null
-        }
+        val deltakerFraDb = deltakerService.upsertDeltaker(deltaker)
+        deltakerFraDb.status.type shouldBe DeltakerStatus.Type.KLADD
+        deltakerFraDb.vedtaksinformasjon shouldBe null
     }
 
     @Test
@@ -697,8 +696,8 @@ class DeltakerServiceTest {
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
             sluttdato = LocalDate.now().plusMonths(1),
-            deltakerliste = TestData.lagDeltakerliste(
-                tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING),
+            deltakerliste = lagDeltakerliste(
+                tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING),
             ),
         )
         val endretAv = lagNavAnsatt()
@@ -735,12 +734,16 @@ class DeltakerServiceTest {
 
         val statuser = deltakerRepository.getDeltakerStatuser(deltaker.id)
         statuser.size shouldBe 2
+
         statuser.first { it.id == deltaker.status.id }.gyldigTil shouldBe null
         statuser.first { it.id == deltaker.status.id }.type shouldBe DeltakerStatus.Type.DELTAR
-        statuser.first { it.id != deltaker.status.id }.gyldigTil shouldBe null
-        statuser.first { it.id != deltaker.status.id }.gyldigFra.toLocalDate() shouldBe endringsrequest.sluttdato.plusDays(1)
-        statuser.first { it.id != deltaker.status.id }.type shouldBe DeltakerStatus.Type.FULLFORT
-        statuser.first { it.id != deltaker.status.id }.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
+
+        assertSoftly(statuser.first { it.id != deltaker.status.id }) {
+            gyldigTil shouldBe null
+            gyldigFra.toLocalDate() shouldBe endringsrequest.sluttdato.plusDays(1)
+            type shouldBe DeltakerStatus.Type.FULLFORT
+            aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
+        }
     }
 
     @Test
@@ -787,11 +790,17 @@ class DeltakerServiceTest {
 
         val statuser = deltakerRepository.getDeltakerStatuser(deltaker.id)
         statuser.size shouldBe 2
-        statuser.first { it.id == deltaker.status.id }.gyldigTil shouldBe null
-        statuser.first { it.id == deltaker.status.id }.type shouldBe DeltakerStatus.Type.DELTAR
-        statuser.first { it.id == fremtidigHarSluttetStatus.id }.gyldigTil shouldNotBe null
-        statuser.first { it.id == fremtidigHarSluttetStatus.id }.gyldigFra.toLocalDate() shouldBe LocalDate.now().plusDays(2)
-        statuser.first { it.id == fremtidigHarSluttetStatus.id }.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+
+        assertSoftly(statuser.first { it.id == deltaker.status.id }) {
+            gyldigTil shouldBe null
+            type shouldBe DeltakerStatus.Type.DELTAR
+        }
+
+        assertSoftly(statuser.first { it.id == fremtidigHarSluttetStatus.id }) {
+            gyldigTil shouldNotBe null
+            gyldigFra.toLocalDate() shouldBe LocalDate.now().plusDays(2)
+            type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+        }
     }
 
     @Test
@@ -840,12 +849,16 @@ class DeltakerServiceTest {
 
         opprinneligStatus.gyldigTil shouldBeCloseTo LocalDateTime.now()
         opprinneligStatus.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+
         currentStatus.gyldigTil shouldBe null
         currentStatus.type shouldBe DeltakerStatus.Type.DELTAR
-        nesteStatus.gyldigTil shouldBe null
-        nesteStatus.gyldigFra.toLocalDate() shouldBe endringsrequest.sluttdato.plusDays(1)
-        nesteStatus.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
-        nesteStatus.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
+
+        assertSoftly(nesteStatus) {
+            gyldigTil shouldBe null
+            gyldigFra.toLocalDate() shouldBe endringsrequest.sluttdato.plusDays(1)
+            type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+            aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
+        }
     }
 
     @Test
@@ -1022,16 +1035,16 @@ class DeltakerServiceTest {
 
     @Test
     fun `upsertEndretDeltakere - sett på venteliste - upserter endring`() = runTest {
-        val deltakerliste = TestData.lagDeltakerliste(
-            tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING),
+        val deltakerliste = lagDeltakerliste(
+            tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING),
         )
         val deltaker = lagDeltaker(deltakerliste = deltakerliste)
         val deltaker2 = lagDeltaker(deltakerliste = deltakerliste)
         val deltakerIder = listOf(deltaker.id, deltaker2.id)
         val endretAv = lagNavAnsatt()
         val endretAvEnhet = lagNavEnhet(enhetsnummer = "0326")
-        val innsokt = TestData.lagInnsoktPaaKurs(deltakerId = deltaker.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
-        val innsokt2 = TestData.lagInnsoktPaaKurs(deltakerId = deltaker2.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
+        val innsokt = lagInnsoktPaaKurs(deltakerId = deltaker.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
+        val innsokt2 = lagInnsoktPaaKurs(deltakerId = deltaker2.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
 
         TestRepository.insertAll(endretAv, endretAvEnhet, deltaker, deltaker2, innsokt, innsokt2)
 
@@ -1042,14 +1055,12 @@ class DeltakerServiceTest {
             endretAv.navIdent,
         )
 
-        /*
-                endredeDeltakere.size shouldBe 2
-                endredeDeltakere.first { it.deltaker.id == deltaker.id }.deltaker shouldBeComparableWith deltaker.copy(
-                    status = deltaker.status.copy(type = DeltakerStatus.Type.VENTELISTE),
-                    startdato = null,
-                    sluttdato = null,
-                )
-         */
+        endredeDeltakere.size shouldBe 2
+        endredeDeltakere.first { it.deltaker.id == deltaker.id }.deltaker shouldBeComparableWith deltaker.copy(
+            status = deltaker.status.copy(type = DeltakerStatus.Type.VENTELISTE),
+            startdato = null,
+            sluttdato = null,
+        )
 
         endredeDeltakere
             .first {
@@ -1059,28 +1070,26 @@ class DeltakerServiceTest {
             startdato = null,
             sluttdato = null,
         )
-        /*
 
-                val historikk1 = deltakerHistorikkService.getForDeltaker(deltaker.id)
-                historikk1.filterIsInstance<DeltakerHistorikk.EndringFraTiltakskoordinator>().size shouldBe 1
+        val historikk1 = deltakerHistorikkService.getForDeltaker(deltaker.id)
+        historikk1.filterIsInstance<DeltakerHistorikk.EndringFraTiltakskoordinator>().size shouldBe 1
 
-                val historikk2 = deltakerHistorikkService.getForDeltaker(deltaker2.id)
-                historikk2.filterIsInstance<DeltakerHistorikk.EndringFraTiltakskoordinator>().size shouldBe 1
+        val historikk2 = deltakerHistorikkService.getForDeltaker(deltaker2.id)
+        historikk2.filterIsInstance<DeltakerHistorikk.EndringFraTiltakskoordinator>().size shouldBe 1
 
-                assertProducedHendelse(deltaker.id, HendelseType.SettPaaVenteliste::class)
-                assertProduced(deltaker.id)
-                assertProducedDeltakerV1(deltaker.id)
-                assertProduced(deltaker2.id)
-                assertProducedDeltakerV1(deltaker2.id)
-         */
+        assertProducedHendelse(deltaker.id, HendelseType.SettPaaVenteliste::class)
+        assertProduced(deltaker.id)
+        assertProducedDeltakerV1(deltaker.id)
+        assertProduced(deltaker2.id)
+        assertProducedDeltakerV1(deltaker2.id)
     }
 
     @Test
-    fun `upsertEndretDeltakere - tildel plass feiler på upsert - ruller tilbake endringer på samme deltaker`() = runBlocking {
+    fun `upsertEndretDeltakere - tildel plass feiler på upsert - ruller tilbake endringer på samme deltaker`() = runTest {
         val endretAv = lagNavAnsatt()
         val endretAvEnhet = lagNavEnhet(enhetsnummer = "0326")
-        val deltakerliste = TestData.lagDeltakerliste(
-            tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING),
+        val deltakerliste = lagDeltakerliste(
+            tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING),
         )
         val deltaker1Id = UUID.randomUUID()
         val vedtak = lagVedtak(deltakerId = deltaker1Id, opprettetAvEnhet = endretAvEnhet, opprettetAv = endretAv)
@@ -1092,8 +1101,8 @@ class DeltakerServiceTest {
 
         val deltaker2 = lagDeltaker(deltakerliste = deltakerliste)
         val deltakerIder = listOf(deltaker.id, deltaker2.id)
-        val innsokt = TestData.lagInnsoktPaaKurs(deltakerId = deltaker.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
-        val innsokt2 = TestData.lagInnsoktPaaKurs(deltakerId = deltaker2.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
+        val innsokt = lagInnsoktPaaKurs(deltakerId = deltaker.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
+        val innsokt2 = lagInnsoktPaaKurs(deltakerId = deltaker2.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
         TestRepository.insertAll(endretAv, endretAvEnhet, deltaker, deltaker2, innsokt, innsokt2, vedtak)
 
         val endredeDeltakere = deltakerService.oppdaterDeltakere(
@@ -1138,8 +1147,8 @@ class DeltakerServiceTest {
 
     @Test
     fun `upsertEndretDeltakere - tildel plass - upserter endring, bruker deltakerliste sin start og sluttdato`() = runTest {
-        val deltakerliste = TestData.lagDeltakerliste(
-            tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING),
+        val deltakerliste = lagDeltakerliste(
+            tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING),
             startDato = LocalDate.now().plusDays(2),
             sluttDato = LocalDate.now().plusDays(30),
         )
@@ -1164,8 +1173,8 @@ class DeltakerServiceTest {
             sistEndretAvEnhet = endretAvEnhet,
         )
         val deltakerIder = listOf(deltaker.id, deltaker2.id)
-        val innsokt = TestData.lagInnsoktPaaKurs(deltakerId = deltaker.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
-        val innsokt2 = TestData.lagInnsoktPaaKurs(deltakerId = deltaker2.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
+        val innsokt = lagInnsoktPaaKurs(deltakerId = deltaker.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
+        val innsokt2 = lagInnsoktPaaKurs(deltakerId = deltaker2.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
         TestRepository.insertAll(
             endretAv,
             endretAvEnhet,
@@ -1214,8 +1223,8 @@ class DeltakerServiceTest {
 
     @Test
     fun `upsertEndretDeltakere - tildel plass - upserter endring, dato passert får start og sluttdato null`() = runTest {
-        val deltakerliste = TestData.lagDeltakerliste(
-            tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING),
+        val deltakerliste = lagDeltakerliste(
+            tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING),
             startDato = LocalDate.now().minusDays(2),
             sluttDato = LocalDate.now().plusDays(30),
         )
@@ -1240,8 +1249,8 @@ class DeltakerServiceTest {
             sistEndretAv = endretAv,
             sistEndretAvEnhet = endretAvEnhet,
         )
-        val innsokt = TestData.lagInnsoktPaaKurs(deltakerId = deltaker.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
-        val innsokt2 = TestData.lagInnsoktPaaKurs(deltakerId = deltaker2.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
+        val innsokt = lagInnsoktPaaKurs(deltakerId = deltaker.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
+        val innsokt2 = lagInnsoktPaaKurs(deltakerId = deltaker2.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
         TestRepository.insertAll(
             endretAv,
             endretAvEnhet,
@@ -1302,8 +1311,8 @@ class DeltakerServiceTest {
 
         @Test
         fun `ny deltaker - ruller tilbake alle endringer`() = runTest {
-            val deltakerliste = TestData.lagDeltakerliste(
-                tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING),
+            val deltakerliste = lagDeltakerliste(
+                tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING),
                 startDato = LocalDate.now().plusDays(2),
                 sluttDato = LocalDate.now().plusDays(30),
             )
@@ -1325,8 +1334,8 @@ class DeltakerServiceTest {
 
         @Test
         fun `ny status, siste insert feiler - ruller tilbake alle endringer`() = runTest {
-            val deltakerliste = TestData.lagDeltakerliste(
-                tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING),
+            val deltakerliste = lagDeltakerliste(
+                tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING),
                 startDato = LocalDate.now().plusDays(2),
                 sluttDato = LocalDate.now().plusDays(30),
             )
@@ -1368,8 +1377,8 @@ class DeltakerServiceTest {
 
     @Test
     fun `upsertEndretDeltakere - tildel plass feiler på siste deltaker - ruller tilbake en deltaker`() = runTest {
-        val deltakerliste = TestData.lagDeltakerliste(
-            tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING),
+        val deltakerliste = lagDeltakerliste(
+            tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING),
             startDato = LocalDate.now().plusDays(2),
             sluttDato = LocalDate.now().plusDays(30),
         )
@@ -1387,8 +1396,8 @@ class DeltakerServiceTest {
         )
 
         val deltakerIder = listOf(deltakerInsert.id, deltaker2Insert.id)
-        val innsokt = TestData.lagInnsoktPaaKurs(deltakerId = deltakerInsert.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
-        val innsokt2 = TestData.lagInnsoktPaaKurs(
+        val innsokt = lagInnsoktPaaKurs(deltakerId = deltakerInsert.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
+        val innsokt2 = lagInnsoktPaaKurs(
             deltakerId = deltaker2Insert.id,
             innsoktAv = endretAv.id,
             innsoktAvEnhet = endretAvEnhet.id,
@@ -1428,8 +1437,8 @@ class DeltakerServiceTest {
 
     @Test
     fun `upsertEndretDeltakere - del med arrangør - inserter endring og returnerer endret deltaker`() = runTest {
-        val deltakerliste = TestData.lagDeltakerliste(
-            tiltakstype = TestData.lagTiltakstype(
+        val deltakerliste = lagDeltakerliste(
+            tiltakstype = lagTiltakstype(
                 tiltakskode =
                     Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING,
             ),
@@ -1450,8 +1459,8 @@ class DeltakerServiceTest {
         )
 
         val deltakerIder = listOf(deltaker.id, deltaker2.id)
-        val innsokt = TestData.lagInnsoktPaaKurs(deltakerId = deltaker.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
-        val innsokt2 = TestData.lagInnsoktPaaKurs(deltakerId = deltaker2.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
+        val innsokt = lagInnsoktPaaKurs(deltakerId = deltaker.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
+        val innsokt2 = lagInnsoktPaaKurs(deltakerId = deltaker2.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
         TestRepository.insertAll(
             endretAv,
             endretAvEnhet,
@@ -1526,7 +1535,7 @@ class DeltakerServiceTest {
     }
 
     @Test
-    fun `produserDeltakereForPerson - deltaker finnes - publiserer til kafka`() {
+    fun `produserDeltakereForPerson - deltaker finnes - publiserer til kafka`() = runTest {
         val sistEndretAv = lagNavAnsatt()
         val sistEndretAvEnhet = lagNavEnhet()
         insert(sistEndretAv)
@@ -1544,16 +1553,14 @@ class DeltakerServiceTest {
         )
         insert(vedtak)
 
-        runBlocking {
-            deltakerService.produserDeltakereForPerson(deltaker.navBruker.personident)
+        deltakerService.produserDeltakereForPerson(deltaker.navBruker.personident)
 
-            assertProduced(deltaker.id)
-            assertProducedDeltakerV1(deltaker.id)
-        }
+        assertProduced(deltaker.id)
+        assertProducedDeltakerV1(deltaker.id)
     }
 
     @Test
-    fun `innbyggerFattVedtak - deltaker har status utkast - oppretter ny status og upserter`() {
+    fun `innbyggerFattVedtak - deltaker har status utkast - oppretter ny status og upserter`() = runTest {
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
         )
@@ -1564,9 +1571,7 @@ class DeltakerServiceTest {
 
         val deltakerMedVedtak = deltakerService.get(deltaker.id).getOrThrow()
 
-        runBlocking {
-            deltakerService.innbyggerFattVedtak(deltakerMedVedtak)
-        }
+        deltakerService.innbyggerFattVedtak(deltakerMedVedtak)
 
         assertProduced(deltaker.id)
         assertProducedDeltakerV1(deltaker.id)
@@ -1578,7 +1583,7 @@ class DeltakerServiceTest {
     }
 
     @Test
-    fun `innbyggerFattVedtak - deltaker har ikke status utkast - upserter uten å endre status`() {
+    fun `innbyggerFattVedtak - deltaker har ikke status utkast - upserter uten å endre status`() = runTest {
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
         )
@@ -1589,9 +1594,7 @@ class DeltakerServiceTest {
 
         val deltakerMedVedtak = deltakerService.get(deltaker.id).getOrThrow()
 
-        runBlocking {
-            deltakerService.innbyggerFattVedtak(deltakerMedVedtak)
-        }
+        deltakerService.innbyggerFattVedtak(deltakerMedVedtak)
 
         assertProduced(deltaker.id)
         assertProducedDeltakerV1(deltaker.id)
@@ -1602,7 +1605,7 @@ class DeltakerServiceTest {
     }
 
     @Test
-    fun `innbyggerFattVedtak - vedtak kunne ikke fattes - upserter ikke`() {
+    fun `innbyggerFattVedtak - vedtak kunne ikke fattes - upserter ikke`() = runTest {
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
         )
@@ -1611,10 +1614,8 @@ class DeltakerServiceTest {
         val enhet = lagNavEnhet(id = vedtak.opprettetAvEnhet)
         TestRepository.insertAll(deltaker, ansatt, enhet, vedtak)
 
-        assertThrows(IllegalArgumentException::class.java) {
-            runBlocking {
-                deltakerService.innbyggerFattVedtak(deltaker)
-            }
+        shouldThrow<IllegalArgumentException> {
+            deltakerService.innbyggerFattVedtak(deltaker)
         }
 
         val ikkeOppdatertDeltaker = deltakerService.get(deltaker.id).getOrThrow()
@@ -1623,54 +1624,50 @@ class DeltakerServiceTest {
     }
 
     @Test
-    fun `oppdaterSistBesokt - produserer hendelse`() {
+    fun `oppdaterSistBesokt - produserer hendelse`() = runTest {
         val deltaker = lagDeltaker()
         val sistBesokt = ZonedDateTime.now()
 
         insert(deltaker)
 
-        runBlocking {
-            deltakerService.oppdaterSistBesokt(deltaker.id, sistBesokt)
-        }
+        deltakerService.oppdaterSistBesokt(deltaker.id, sistBesokt)
 
         assertProducedHendelse(deltaker.id, HendelseType.DeltakerSistBesokt::class)
     }
 
     @Test
-    fun `feilregistrerDeltaker - deltaker feilregistreres og oppdatert deltaker produseres`() {
+    fun `feilregistrerDeltaker - deltaker feilregistreres og oppdatert deltaker produseres`() = runTest {
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
         )
         val vedtak = lagVedtak(deltakerVedVedtak = deltaker)
         val ansatt = lagNavAnsatt(id = vedtak.opprettetAv)
         val enhet = lagNavEnhet(id = vedtak.opprettetAvEnhet)
-        val deltakerEndring = TestData.lagDeltakerEndring(
+        val deltakerEndring = lagDeltakerEndring(
             deltakerId = deltaker.id,
             endretAv = ansatt.id,
             endretAvEnhet = enhet.id,
         )
         TestRepository.insertAll(deltaker, ansatt, enhet, vedtak, deltakerEndring)
 
-        runBlocking {
-            deltakerService.feilregistrerDeltaker(deltaker.id)
+        deltakerService.feilregistrerDeltaker(deltaker.id)
 
-            val deltakerFraDb = deltakerService.get(deltaker.id).getOrThrow()
-            deltakerFraDb.status.type shouldBe DeltakerStatus.Type.FEILREGISTRERT
-            deltakerFraDb.startdato shouldBe null
-            deltakerFraDb.sluttdato shouldBe null
-            deltakerFraDb.dagerPerUke shouldBe null
-            deltakerFraDb.deltakelsesprosent shouldBe null
-            deltakerFraDb.bakgrunnsinformasjon shouldBe null
-            deltakerFraDb.deltakelsesinnhold shouldBe null
+        val deltakerFraDb = deltakerService.get(deltaker.id).getOrThrow()
+        deltakerFraDb.status.type shouldBe DeltakerStatus.Type.FEILREGISTRERT
+        deltakerFraDb.startdato shouldBe null
+        deltakerFraDb.sluttdato shouldBe null
+        deltakerFraDb.dagerPerUke shouldBe null
+        deltakerFraDb.deltakelsesprosent shouldBe null
+        deltakerFraDb.bakgrunnsinformasjon shouldBe null
+        deltakerFraDb.deltakelsesinnhold shouldBe null
 
-            assertProducedFeilregistrert(deltaker.id)
-            assertProducedDeltakerV1(deltaker.id)
-        }
+        assertProducedFeilregistrert(deltaker.id)
+        assertProducedDeltakerV1(deltaker.id)
     }
 
     @Test
-    fun `avgrensSluttdatoerTil - deltaker har senere sluttdato enn deltakerliste - deltakers sluttdato endres`() {
-        val deltakerliste = TestData.lagDeltakerliste()
+    fun `avgrensSluttdatoerTil - deltaker har senere sluttdato enn deltakerliste - deltakers sluttdato endres`() = runTest {
+        val deltakerliste = lagDeltakerliste()
         val deltaker = lagDeltaker(
             deltakerliste = deltakerliste,
             status = lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
@@ -1682,7 +1679,7 @@ class DeltakerServiceTest {
 
         TestRepository.insertAll(deltakerliste, ansatt, enhet, deltaker, vedtak)
 
-        runBlocking { deltakerService.avgrensSluttdatoerTil(deltakerliste) }
+        deltakerService.avgrensSluttdatoerTil(deltakerliste)
 
         val oppdatertDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
 
@@ -1690,8 +1687,8 @@ class DeltakerServiceTest {
     }
 
     @Test
-    fun `avgrensSluttdatoerTil - deltaker har tidligere sluttdato enn deltakerliste - deltakers sluttdato endres ikke`() {
-        val deltakerliste = TestData.lagDeltakerliste()
+    fun `avgrensSluttdatoerTil - deltaker har tidligere sluttdato enn deltakerliste - deltakers sluttdato endres ikke`() = runTest {
+        val deltakerliste = lagDeltakerliste()
         val deltaker = lagDeltaker(
             deltakerliste = deltakerliste,
             status = lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
@@ -1703,7 +1700,7 @@ class DeltakerServiceTest {
 
         TestRepository.insertAll(deltakerliste, ansatt, enhet, deltaker, vedtak)
 
-        runBlocking { deltakerService.avgrensSluttdatoerTil(deltakerliste) }
+        deltakerService.avgrensSluttdatoerTil(deltakerliste)
 
         val oppdatertDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
 
