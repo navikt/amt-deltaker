@@ -203,6 +203,7 @@ class EnkeltplassDeltakerConsumerTest {
                         it.bakgrunnsinformasjon == null // comes from payload
                 },
                 any(),
+                any(),
             )
         }
 
@@ -272,7 +273,7 @@ class EnkeltplassDeltakerConsumerTest {
         }
 
         coVerify(exactly = 1) {
-            deltakerService.transactionalDeltakerUpsert(any(), any())
+            deltakerService.transactionalDeltakerUpsert(any(), any(), any())
         }
         coVerify(exactly = 1) {
             deltakerProducerService.produce(any(), any(), any())
@@ -345,7 +346,7 @@ class EnkeltplassDeltakerConsumerTest {
         }
 
         coVerify(exactly = 1) {
-            deltakerService.transactionalDeltakerUpsert(any(), any())
+            deltakerService.transactionalDeltakerUpsert(any(), any(), any())
         }
         coVerify(exactly = 1) {
             deltakerProducerService.produce(any(), any(), any())
@@ -418,7 +419,7 @@ class EnkeltplassDeltakerConsumerTest {
         }
 
         coVerify(exactly = 1) {
-            deltakerService.transactionalDeltakerUpsert(any(), any())
+            deltakerService.transactionalDeltakerUpsert(any(), any(), any())
         }
         coVerify(exactly = 1) {
             deltakerProducerService.produce(any(), any(), any())

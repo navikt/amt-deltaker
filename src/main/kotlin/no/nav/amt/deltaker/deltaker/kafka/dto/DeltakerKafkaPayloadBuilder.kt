@@ -223,7 +223,9 @@ data class DeltakerKafkaPayloadBuilder(
     private fun deltakelsesmengderDto(deltaker: Deltaker, historikk: List<DeltakerHistorikk>): List<DeltakerV1Dto.DeltakelsesmengdeDto> {
         val deltakelsesmengder = if (deltaker.deltakerliste.tiltakstype.harDeltakelsesmengde) {
             val mengder = historikk.toDeltakelsesmengder()
-            deltaker.startdato?.let { mengder.periode(deltaker.startdato, deltaker.sluttdato) } ?: mengder
+            deltaker.startdato
+                ?.let { mengder.periode(deltaker.startdato, deltaker.sluttdato) }
+                ?: mengder
         } else {
             emptyList()
         }

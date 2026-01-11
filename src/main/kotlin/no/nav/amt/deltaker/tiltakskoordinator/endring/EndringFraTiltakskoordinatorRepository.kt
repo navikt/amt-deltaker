@@ -2,7 +2,6 @@ package no.nav.amt.deltaker.tiltakskoordinator.endring
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
-import kotliquery.Session
 import kotliquery.queryOf
 import no.nav.amt.deltaker.utils.prefixColumn
 import no.nav.amt.deltaker.utils.toPGObject
@@ -27,7 +26,7 @@ class EndringFraTiltakskoordinatorRepository {
         }
     }
 
-    fun insert(endringer: List<EndringFraTiltakskoordinator>, session: Session) {
+    fun insert(endringer: List<EndringFraTiltakskoordinator>) {
         val sql =
             """
             insert into endring_fra_tiltakskoordinator (id, deltaker_id, nav_ansatt_id, nav_enhet_id, endret, endring) 
@@ -44,11 +43,9 @@ class EndringFraTiltakskoordinatorRepository {
             )
         }
 
-        session.batchPreparedNamedStatement(sql, params)
-    }
-
-    fun insert(endringer: List<EndringFraTiltakskoordinator>) = Database.query {
-        insert(endringer, it)
+        Database.query { session ->
+            session.batchPreparedNamedStatement(sql, params)
+        }
     }
 
     fun getForDeltaker(deltakerId: UUID) = Database.query {

@@ -1,7 +1,6 @@
 package no.nav.amt.deltaker.tiltakskoordinator.endring
 
 import io.kotest.matchers.shouldBe
-import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.utils.data.TestData
@@ -17,6 +16,7 @@ import no.nav.amt.lib.testing.SingletonPostgres16Container
 import no.nav.amt.lib.testing.shouldBeCloseTo
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import java.util.UUID
 
 class EndringFraTiltakskoordinatorRepositoryTest {
     private val repository = EndringFraTiltakskoordinatorRepository()
@@ -86,8 +86,6 @@ data class EndringFraTiltakskoordinatorCtx(
         endretAvEnhet = navEnhet.id,
     ),
 ) {
-    private val deltakerRepository = DeltakerRepository()
-
     init {
         @Suppress("UnusedExpression")
         SingletonPostgres16Container
@@ -98,8 +96,11 @@ data class EndringFraTiltakskoordinatorCtx(
     }
 
     fun medStatusDeltar() {
-        deltaker = deltaker.copy(status = lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR))
-        deltakerRepository.upsert(deltaker)
+        deltaker = deltaker.copy(
+            id = UUID.randomUUID(),
+            status = lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+        )
+        TestRepository.insert(deltaker)
     }
 
     fun medInnsok() {

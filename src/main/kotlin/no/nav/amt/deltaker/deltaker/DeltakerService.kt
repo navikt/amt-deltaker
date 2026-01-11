@@ -1,6 +1,5 @@
 package no.nav.amt.deltaker.deltaker
 
-import kotliquery.TransactionalSession
 import no.nav.amt.deltaker.deltaker.DeltakerUtils.nyDeltakerStatus
 import no.nav.amt.deltaker.deltaker.api.deltaker.toDeltakerEndringEndring
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
@@ -34,6 +33,7 @@ import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.utils.database.Database
 import org.slf4j.LoggerFactory
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import java.util.UUID
@@ -71,10 +71,14 @@ class DeltakerService(
         forcedUpdate: Boolean? = false,
         nesteStatus: DeltakerStatus? = null,
     ): Deltaker {
-        deltakerRepository.upsert(deltaker.copy(sistEndret = LocalDateTime.now()), nesteStatus = nesteStatus)
+        transactionalDeltakerUpsert(
+            deltaker = deltaker.copy(sistEndret = LocalDateTime.now()),
+            nesteStatus = nesteStatus,
+        ).getOrThrow()
 
         val oppdatertDeltaker = get(deltaker.id).getOrThrow()
 
+        // CR note: Til outbox pattern
         if (oppdatertDeltaker.status.type != DeltakerStatus.Type.KLADD) {
             deltakerProducerService.produce(oppdatertDeltaker, forcedUpdate = forcedUpdate)
         }
@@ -83,14 +87,17 @@ class DeltakerService(
         return oppdatertDeltaker
     }
 
-    fun delete(deltakerId: UUID) {
-        importertFraArenaRepository.deleteForDeltaker(deltakerId)
-        vedtakService.deleteForDeltaker(deltakerId)
-        deltakerEndringService.deleteForDeltaker(deltakerId)
-        forslagService.deleteForDeltaker(deltakerId)
-        endringFraArrangorService.deleteForDeltaker(deltakerId)
-        endringFraTiltakskoordinatorService.deleteForDeltaker(deltakerId)
-        deltakerRepository.deleteDeltakerOgStatus(deltakerId)
+    suspend fun delete(deltakerId: UUID) {
+        Database.transaction {
+            importertFraArenaRepository.deleteForDeltaker(deltakerId)
+            vedtakService.deleteForDeltaker(deltakerId)
+            deltakerEndringService.deleteForDeltaker(deltakerId)
+            forslagService.deleteForDeltaker(deltakerId)
+            endringFraArrangorService.deleteForDeltaker(deltakerId)
+            endringFraTiltakskoordinatorService.deleteForDeltaker(deltakerId)
+            deltakerRepository.slettStatus(deltakerId)
+            deltakerRepository.slettDeltaker(deltakerId)
+        }
     }
 
     suspend fun feilregistrerDeltaker(deltakerId: UUID) {
@@ -112,11 +119,13 @@ class DeltakerService(
 
         return when (val utfall = deltakerEndringHandler.sjekkUtfall()) {
             is DeltakerEndringUtfall.VellykketEndring -> {
+                // TODO: Kan vi bytte om rekkefølgen slik at transactionalDeltakerUpsert kan benyttes
                 deltakerEndringService.upsertEndring(deltaker, endring, utfall, request)
                 upsertDeltaker(utfall.deltaker, nesteStatus = utfall.nesteStatus)
             }
 
             is DeltakerEndringUtfall.FremtidigEndring -> {
+                // TODO: Kan vi bytte om rekkefølgen slik at transactionalDeltakerUpsert kan benyttes
                 deltakerEndringService.upsertEndring(deltaker, endring, utfall, request)
                 upsertDeltaker(utfall.deltaker)
             }
@@ -141,18 +150,40 @@ class DeltakerService(
         )
     }
 
-    fun transactionalDeltakerUpsert(deltaker: Deltaker, transactionalUpsert: (t: TransactionalSession) -> Unit = {}) =
-        Database.query { session ->
-            runCatching {
-                session.transaction { transaction ->
-                    deltakerRepository.upsert(deltaker, null, transaction)
-                    transactionalUpsert(transaction)
-                }
-                deltaker
-            }
-        }
+    suspend fun transactionalDeltakerUpsert(
+        deltaker: Deltaker,
+        nesteStatus: DeltakerStatus? = null,
+        additionalDbOperations: () -> Unit = {
+        },
+    ): Result<Deltaker> = runCatching {
+        Database.transaction {
+            deltakerRepository.upsert(deltaker)
+            lagreStatus(deltaker.id, deltaker.status)
 
-    fun upsertDeltaker(
+            nesteStatus?.let {
+                deltakerRepository.lagreStatus(deltaker.id, it)
+            }
+
+            additionalDbOperations()
+            deltaker
+        }
+    }
+
+    // flyttet fra DeltakerRepository
+    private fun lagreStatus(deltakerId: UUID, deltakerStatus: DeltakerStatus) {
+        deltakerRepository.lagreStatus(deltakerId, deltakerStatus)
+
+        val erNyStatusAktiv = deltakerStatus.gyldigFra.toLocalDate() <= LocalDate.now()
+
+        if (erNyStatusAktiv) {
+            deltakerRepository.deaktiverTidligereStatuser(deltakerId, deltakerStatus)
+        } else {
+            // Dette skjer aldri for arenadeltakelser
+            deltakerRepository.slettTidligereFremtidigeStatuser(deltakerId, deltakerStatus)
+        }
+    }
+
+    suspend fun upsertDeltaker(
         deltaker: Deltaker,
         endringsType: EndringFraTiltakskoordinator.Endring,
         endretAv: NavAnsatt,
@@ -175,10 +206,10 @@ class DeltakerService(
                 deltakerResult.exceptionOrNull(),
             )
         }
-        val result = transactionalDeltakerUpsert(deltakerResult.getOrThrow()) { transaction ->
-            endringFraTiltakskoordinatorRepository.insert(listOf(endring), transaction)
+        val result = transactionalDeltakerUpsert(deltakerResult.getOrThrow()) {
+            endringFraTiltakskoordinatorRepository.insert(listOf(endring))
             if (endringsType is EndringFraTiltakskoordinator.TildelPlass && deltaker.kilde == Kilde.KOMET) {
-                vedtakService.navFattVedtak(deltaker, endretAv, endretAvEnhet, transaction)
+                vedtakService.navFattVedtak(deltaker, endretAv, endretAvEnhet)
             }
         }
 
