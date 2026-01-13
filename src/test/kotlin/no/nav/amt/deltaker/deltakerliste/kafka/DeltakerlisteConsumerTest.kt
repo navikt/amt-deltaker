@@ -185,7 +185,7 @@ class DeltakerlisteConsumerTest {
         val deltakerliste = lagDeltakerliste(
             arrangor = arrangor,
             tiltakstype = tiltakstype,
-            pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
+            pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
         )
         val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient(arrangor))
 
@@ -215,7 +215,7 @@ class DeltakerlisteConsumerTest {
         val arrangor = lagArrangor()
         val deltakerliste = lagDeltakerliste(
             arrangor = arrangor,
-            pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
+            pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
         )
         val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
         TestRepository.insert(deltakerliste)
@@ -248,7 +248,7 @@ class DeltakerlisteConsumerTest {
         val arrangor = lagArrangor()
         val deltakerliste = lagDeltakerliste(
             arrangor = arrangor,
-            pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
+            pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
         )
         val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
         TestRepository.insert(deltakerliste)
@@ -306,7 +306,7 @@ class DeltakerlisteConsumerTest {
         val arrangor = lagArrangor()
         val deltakerliste = lagDeltakerliste(
             arrangor = arrangor,
-            pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
+            pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
         )
         val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
         TestRepository.insert(deltakerliste)

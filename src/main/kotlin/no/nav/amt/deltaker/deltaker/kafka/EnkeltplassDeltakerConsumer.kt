@@ -57,6 +57,8 @@ class EnkeltplassDeltakerConsumer(
                 mulighetsrommetApiClient
                     .hentGjennomforingV2(deltakerPayload.gjennomforingId) // Fallback hvis deltakerlisten ikke finnes i databasen
                     .let { gjennomforing ->
+                        gjennomforing.assertPameldingstypeIsValid()
+
                         val arrangor = arrangorService.hentArrangor(gjennomforing.arrangor.organisasjonsnummer)
                         val tiltakstype = tiltakstypeRepository.get(gjennomforing.tiltakskode).getOrThrow()
 

@@ -41,6 +41,8 @@ class DeltakerlisteConsumer(
             return
         }
 
+        deltakerlistePayload.assertPameldingstypeIsValid()
+
         val arrangor = arrangorService.hentArrangor(deltakerlistePayload.arrangor.organisasjonsnummer)
         val tiltakstype = tiltakstypeRepository.get(deltakerlistePayload.tiltakskode).getOrThrow()
 
