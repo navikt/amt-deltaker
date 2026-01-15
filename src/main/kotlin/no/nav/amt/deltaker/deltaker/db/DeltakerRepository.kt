@@ -3,7 +3,6 @@ package no.nav.amt.deltaker.deltaker.db
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Query
 import kotliquery.Row
-import kotliquery.TransactionalSession
 import kotliquery.queryOf
 import no.nav.amt.deltaker.deltaker.db.DbUtils.nullWhenNearNow
 import no.nav.amt.deltaker.deltaker.model.AVSLUTTENDE_STATUSER
