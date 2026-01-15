@@ -7,7 +7,6 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
-import no.nav.amt.deltaker.deltaker.api.deltaker.toDeltakerEndringEndring
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
@@ -282,7 +281,7 @@ class DeltakerEndringValidatorTest {
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.HAR_SLUTTET),
             sluttdato = slutt,
         )
-        val req = EndreAvslutningRequest(
+        val request = EndreAvslutningRequest(
             endretAv = TestData.lagNavAnsatt().navIdent,
             endretAvEnhet = TestData.lagNavEnhet().enhetsnummer,
             aarsak = null,
@@ -292,24 +291,24 @@ class DeltakerEndringValidatorTest {
             forslagId = null,
         )
 
-        val res = DeltakerEndringValidator(deltaker, req.toDeltakerEndringEndring(), deltakerHistorikkServiceMock).validerRequest()
+        val result = DeltakerEndringValidator(deltaker, deltakerHistorikkServiceMock).validerRequest(request)
 
-        res.shouldBeInstanceOf<ValidationResult.Invalid>()
-        res.reasons shouldBe listOf("ENDRE_AVSLUTNING_INGEN_ENDRING")
+        result.shouldBeInstanceOf<ValidationResult.Invalid>()
+        result.reasons shouldBe listOf("ENDRE_AVSLUTNING_INGEN_ENDRING")
     }
 
     @Test
     fun `valider - endre bakgrunnsinformasjon - ingen endring - invalid`(): Unit = runBlocking {
         val tekst = "Søkes inn fordi..."
         val deltaker = TestData.lagDeltaker(bakgrunnsinformasjon = tekst)
-        val req = BakgrunnsinformasjonRequest(
+        val request = BakgrunnsinformasjonRequest(
             endretAv = TestData.lagNavAnsatt().navIdent,
             endretAvEnhet = TestData.lagNavEnhet().enhetsnummer,
             bakgrunnsinformasjon = tekst,
         )
 
-        val validationResult = DeltakerEndringValidator(deltaker, req.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-            .validerRequest()
+        val validationResult = DeltakerEndringValidator(deltaker, deltakerHistorikkServiceMock)
+            .validerRequest(request)
         validationResult.shouldBeInstanceOf<ValidationResult.Invalid>()
         validationResult.reasons shouldBe listOf("ENDRE_BAKGRUNNSINFORMASJON_INGEN_ENDRING")
     }
@@ -317,28 +316,28 @@ class DeltakerEndringValidatorTest {
     @Test
     fun `valider - endre bakgrunnsinformasjon - ny tekst - valid`(): Unit = runBlocking {
         val deltaker = TestData.lagDeltaker(bakgrunnsinformasjon = "gammel")
-        val req = BakgrunnsinformasjonRequest(
+        val request = BakgrunnsinformasjonRequest(
             endretAv = TestData.lagNavAnsatt().navIdent,
             endretAvEnhet = TestData.lagNavEnhet().enhetsnummer,
             bakgrunnsinformasjon = "ny",
         )
 
-        DeltakerEndringValidator(deltaker, req.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-            .validerRequest() shouldBe ValidationResult.Valid
+        DeltakerEndringValidator(deltaker, deltakerHistorikkServiceMock)
+            .validerRequest(request) shouldBe ValidationResult.Valid
     }
 
     @Test
     fun `valider - endre innhold - ingen endring - invalid`(): Unit = runBlocking {
         val innhold = Deltakelsesinnhold("ledetekst", emptyList())
         val deltaker = TestData.lagDeltaker(innhold = innhold)
-        val req = InnholdRequest(
+        val request = InnholdRequest(
             endretAv = TestData.lagNavAnsatt().navIdent,
             endretAvEnhet = TestData.lagNavEnhet().enhetsnummer,
             deltakelsesinnhold = Deltakelsesinnhold("ledetekst", emptyList()),
         )
 
-        val validationResult = DeltakerEndringValidator(deltaker, req.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-            .validerRequest()
+        val validationResult = DeltakerEndringValidator(deltaker, deltakerHistorikkServiceMock)
+            .validerRequest(request)
         validationResult.shouldBeInstanceOf<ValidationResult.Invalid>()
         validationResult.reasons shouldBe listOf("ENDRE_INNHOLD_INGEN_ENDRING")
     }
@@ -348,14 +347,14 @@ class DeltakerEndringValidatorTest {
         val innhold = Deltakelsesinnhold("ledetekst", emptyList())
         val nyttInnhold = Deltakelsesinnhold("ny ledetekst", listOf(Innhold("test", "test", true, null)))
         val deltaker = TestData.lagDeltaker(innhold = innhold)
-        val req = InnholdRequest(
+        val request = InnholdRequest(
             endretAv = TestData.lagNavAnsatt().navIdent,
             endretAvEnhet = TestData.lagNavEnhet().enhetsnummer,
             deltakelsesinnhold = nyttInnhold,
         )
 
-        DeltakerEndringValidator(deltaker, req.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-            .validerRequest() shouldBe ValidationResult.Valid
+        DeltakerEndringValidator(deltaker, deltakerHistorikkServiceMock)
+            .validerRequest(request) shouldBe ValidationResult.Valid
     }
 
     @Test
@@ -363,7 +362,7 @@ class DeltakerEndringValidatorTest {
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.HAR_SLUTTET, aarsak = DeltakerStatus.Aarsak.Type.ANNET),
         )
-        val req = SluttarsakRequest(
+        val request = SluttarsakRequest(
             endretAv = TestData.lagNavAnsatt().navIdent,
             endretAvEnhet = TestData.lagNavEnhet().enhetsnummer,
             aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.ANNET, null),
@@ -371,8 +370,8 @@ class DeltakerEndringValidatorTest {
             begrunnelse = null,
         )
 
-        val validationResult = DeltakerEndringValidator(deltaker, req.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-            .validerRequest()
+        val validationResult = DeltakerEndringValidator(deltaker, deltakerHistorikkServiceMock)
+            .validerRequest(request)
         validationResult.shouldBeInstanceOf<ValidationResult.Invalid>()
         validationResult.reasons shouldBe listOf("ENDRE_SLUTTAARSAK_INGEN_ENDRING")
     }
@@ -382,7 +381,7 @@ class DeltakerEndringValidatorTest {
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.HAR_SLUTTET, aarsak = DeltakerStatus.Aarsak.Type.ANNET),
         )
-        val req = SluttarsakRequest(
+        val request = SluttarsakRequest(
             endretAv = TestData.lagNavAnsatt().navIdent,
             endretAvEnhet = TestData.lagNavEnhet().enhetsnummer,
             aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
@@ -390,15 +389,15 @@ class DeltakerEndringValidatorTest {
             begrunnelse = null,
         )
 
-        DeltakerEndringValidator(deltaker, req.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-            .validerRequest() shouldBe ValidationResult.Valid
+        DeltakerEndringValidator(deltaker, deltakerHistorikkServiceMock)
+            .validerRequest(request) shouldBe ValidationResult.Valid
     }
 
     @Test
     fun `valider - endre sluttdato - ingen endring - invalid`(): Unit = runBlocking {
         val sluttdato = LocalDate.now().plusDays(10)
         val deltaker = TestData.lagDeltaker(sluttdato = sluttdato)
-        val req = SluttdatoRequest(
+        val request = SluttdatoRequest(
             endretAv = TestData.lagNavAnsatt().navIdent,
             endretAvEnhet = TestData.lagNavEnhet().enhetsnummer,
             sluttdato = sluttdato,
@@ -406,8 +405,8 @@ class DeltakerEndringValidatorTest {
             begrunnelse = null,
         )
 
-        val validationResult = DeltakerEndringValidator(deltaker, req.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-            .validerRequest()
+        val validationResult = DeltakerEndringValidator(deltaker, deltakerHistorikkServiceMock)
+            .validerRequest(request)
         validationResult.shouldBeInstanceOf<ValidationResult.Invalid>()
         validationResult.reasons shouldBe listOf("ENDRE_SLUTTDATO_INGEN_ENDRING")
     }
@@ -415,7 +414,7 @@ class DeltakerEndringValidatorTest {
     @Test
     fun `valider - endre sluttdato - endret dato - valid`(): Unit = runBlocking {
         val deltaker = TestData.lagDeltaker(sluttdato = LocalDate.now().plusDays(10))
-        val req = SluttdatoRequest(
+        val request = SluttdatoRequest(
             endretAv = TestData.lagNavAnsatt().navIdent,
             endretAvEnhet = TestData.lagNavEnhet().enhetsnummer,
             sluttdato = LocalDate.now().plusDays(20),
@@ -423,8 +422,8 @@ class DeltakerEndringValidatorTest {
             begrunnelse = null,
         )
 
-        DeltakerEndringValidator(deltaker, req.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-            .validerRequest() shouldBe ValidationResult.Valid
+        DeltakerEndringValidator(deltaker, deltakerHistorikkServiceMock)
+            .validerRequest(request) shouldBe ValidationResult.Valid
     }
 
     @Test
@@ -432,7 +431,7 @@ class DeltakerEndringValidatorTest {
         val start = LocalDate.now().minusDays(5)
         val slutt = LocalDate.now().plusDays(30)
         val deltaker = TestData.lagDeltaker(startdato = start, sluttdato = slutt)
-        val req = StartdatoRequest(
+        val request = StartdatoRequest(
             endretAv = TestData.lagNavAnsatt().navIdent,
             endretAvEnhet = TestData.lagNavEnhet().enhetsnummer,
             startdato = start,
@@ -441,8 +440,8 @@ class DeltakerEndringValidatorTest {
             begrunnelse = null,
         )
 
-        val validationResult = DeltakerEndringValidator(deltaker, req.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-            .validerRequest()
+        val validationResult = DeltakerEndringValidator(deltaker, deltakerHistorikkServiceMock)
+            .validerRequest(request)
         validationResult.shouldBeInstanceOf<ValidationResult.Invalid>()
         validationResult.reasons shouldBe listOf("ENDRE_STARTDATO_INGEN_ENDRING")
     }
@@ -452,7 +451,7 @@ class DeltakerEndringValidatorTest {
         val start = LocalDate.now().minusDays(5)
         val slutt = LocalDate.now().plusDays(30)
         val deltaker = TestData.lagDeltaker(startdato = start, sluttdato = slutt)
-        val req = StartdatoRequest(
+        val request = StartdatoRequest(
             endretAv = TestData.lagNavAnsatt().navIdent,
             endretAvEnhet = TestData.lagNavEnhet().enhetsnummer,
             startdato = start.plusDays(1),
@@ -461,22 +460,22 @@ class DeltakerEndringValidatorTest {
             begrunnelse = null,
         )
 
-        DeltakerEndringValidator(deltaker, req.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-            .validerRequest() shouldBe ValidationResult.Valid
+        DeltakerEndringValidator(deltaker, deltakerHistorikkServiceMock)
+            .validerRequest(request) shouldBe ValidationResult.Valid
     }
 
     @Test
     fun `valider - fjern oppstartsdato - uten startdato - invalid`(): Unit = runBlocking {
         val deltaker = TestData.lagDeltakerKladd() // startdato = null
-        val req = FjernOppstartsdatoRequest(
+        val request = FjernOppstartsdatoRequest(
             endretAv = TestData.lagNavAnsatt().navIdent,
             endretAvEnhet = TestData.lagNavEnhet().enhetsnummer,
             begrunnelse = "begrunnelse",
             forslagId = null,
         )
 
-        val validationResult = DeltakerEndringValidator(deltaker, req.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-            .validerRequest()
+        val validationResult = DeltakerEndringValidator(deltaker, deltakerHistorikkServiceMock)
+            .validerRequest(request)
 
         validationResult.shouldBeInstanceOf<ValidationResult.Invalid>()
         validationResult.reasons shouldBe listOf("FJERN_OPPSTARTSDATO_INGEN_ENDRING")
@@ -485,21 +484,21 @@ class DeltakerEndringValidatorTest {
     @Test
     fun `valider - fjern oppstartsdato - med startdato - valid`(): Unit = runBlocking {
         val deltaker = TestData.lagDeltaker(startdato = LocalDate.now().minusDays(10))
-        val req = FjernOppstartsdatoRequest(
+        val request = FjernOppstartsdatoRequest(
             endretAv = TestData.lagNavAnsatt().navIdent,
             endretAvEnhet = TestData.lagNavEnhet().enhetsnummer,
             begrunnelse = "begrunnelse",
             forslagId = null,
         )
 
-        DeltakerEndringValidator(deltaker, req.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-            .validerRequest() shouldBe ValidationResult.Valid
+        DeltakerEndringValidator(deltaker, deltakerHistorikkServiceMock)
+            .validerRequest(request) shouldBe ValidationResult.Valid
     }
 
     @Test
     fun `valider - forleng deltakelse - uten startdato - invalid`(): Unit = runBlocking {
         val deltaker = TestData.lagDeltakerKladd() // startdato = null
-        val req = ForlengDeltakelseRequest(
+        val request = ForlengDeltakelseRequest(
             endretAv = TestData.lagNavAnsatt().navIdent,
             endretAvEnhet = TestData.lagNavEnhet().enhetsnummer,
             sluttdato = LocalDate.now().plusMonths(1),
@@ -507,8 +506,8 @@ class DeltakerEndringValidatorTest {
             forslagId = null,
         )
 
-        val validationResult = DeltakerEndringValidator(deltaker, req.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-            .validerRequest()
+        val validationResult = DeltakerEndringValidator(deltaker, deltakerHistorikkServiceMock)
+            .validerRequest(request)
         validationResult.shouldBeInstanceOf<ValidationResult.Invalid>()
         validationResult.reasons shouldBe listOf(
             "FORLENG_DELTAKELSE_INGEN_ENDRING",
@@ -518,7 +517,7 @@ class DeltakerEndringValidatorTest {
     @Test
     fun `valider - forleng deltakelse - med startdato - valid`(): Unit = runBlocking {
         val deltaker = TestData.lagDeltaker(startdato = LocalDate.now().minusMonths(1))
-        val req = ForlengDeltakelseRequest(
+        val request = ForlengDeltakelseRequest(
             endretAv = TestData.lagNavAnsatt().navIdent,
             endretAvEnhet = TestData.lagNavEnhet().enhetsnummer,
             sluttdato = LocalDate.now().plusMonths(1),
@@ -526,8 +525,8 @@ class DeltakerEndringValidatorTest {
             forslagId = null,
         )
 
-        DeltakerEndringValidator(deltaker, req.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-            .validerRequest() shouldBe ValidationResult.Valid
+        DeltakerEndringValidator(deltaker, deltakerHistorikkServiceMock)
+            .validerRequest(request) shouldBe ValidationResult.Valid
     }
 
     @Test
@@ -535,7 +534,7 @@ class DeltakerEndringValidatorTest {
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.IKKE_AKTUELL, aarsak = DeltakerStatus.Aarsak.Type.ANNET),
         )
-        val req = IkkeAktuellRequest(
+        val request = IkkeAktuellRequest(
             endretAv = TestData.lagNavAnsatt().navIdent,
             endretAvEnhet = TestData.lagNavEnhet().enhetsnummer,
             aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.ANNET, null),
@@ -543,8 +542,8 @@ class DeltakerEndringValidatorTest {
             forslagId = null,
         )
 
-        val validationResult = DeltakerEndringValidator(deltaker, req.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-            .validerRequest()
+        val validationResult = DeltakerEndringValidator(deltaker, deltakerHistorikkServiceMock)
+            .validerRequest(request)
         validationResult.shouldBeInstanceOf<ValidationResult.Invalid>()
         validationResult.reasons shouldBe listOf(
             "SETT_IKKE_AKTUELL_INGEN_ENDRING",
@@ -554,7 +553,7 @@ class DeltakerEndringValidatorTest {
     @Test
     fun `valider - sett ikke aktuell - ny aarsak - valid`(): Unit = runBlocking {
         val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR, aarsak = null))
-        val req = IkkeAktuellRequest(
+        val request = IkkeAktuellRequest(
             endretAv = TestData.lagNavAnsatt().navIdent,
             endretAvEnhet = TestData.lagNavEnhet().enhetsnummer,
             aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.ANNET, "annet"),
@@ -562,34 +561,34 @@ class DeltakerEndringValidatorTest {
             forslagId = null,
         )
 
-        DeltakerEndringValidator(deltaker, req.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-            .validerRequest() shouldBe ValidationResult.Valid
+        DeltakerEndringValidator(deltaker, deltakerHistorikkServiceMock)
+            .validerRequest(request) shouldBe ValidationResult.Valid
     }
 
     @Test
     fun `valider - reaktiver deltakelse - status ikke aktuell - valid`(): Unit = runBlocking {
         val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.IKKE_AKTUELL))
-        val req = ReaktiverDeltakelseRequest(
+        val request = ReaktiverDeltakelseRequest(
             endretAv = TestData.lagNavAnsatt().navIdent,
             endretAvEnhet = TestData.lagNavEnhet().enhetsnummer,
             begrunnelse = "begrunnelse",
         )
 
-        DeltakerEndringValidator(deltaker, req.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-            .validerRequest() shouldBe ValidationResult.Valid
+        DeltakerEndringValidator(deltaker, deltakerHistorikkServiceMock)
+            .validerRequest(request) shouldBe ValidationResult.Valid
     }
 
     @Test
     fun `valider - reaktiver deltakelse - status ikke IKKE_AKTUELL - invalid`(): Unit = runBlocking {
         val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR))
-        val req = ReaktiverDeltakelseRequest(
+        val request = ReaktiverDeltakelseRequest(
             endretAv = TestData.lagNavAnsatt().navIdent,
             endretAvEnhet = TestData.lagNavEnhet().enhetsnummer,
             begrunnelse = "begrunnelse",
         )
 
-        val validationResult = DeltakerEndringValidator(deltaker, req.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-            .validerRequest()
+        val validationResult = DeltakerEndringValidator(deltaker, deltakerHistorikkServiceMock)
+            .validerRequest(request)
 
         validationResult.shouldBeInstanceOf<ValidationResult.Invalid>()
         validationResult.reasons shouldBe listOf(
@@ -600,7 +599,7 @@ class DeltakerEndringValidatorTest {
     @Test
     fun `valider - endre deltakelsesmengde - gyldig endring - valid`(): Unit = runBlocking {
         val deltaker = TestData.lagDeltaker()
-        val req = DeltakelsesmengdeRequest(
+        val request = DeltakelsesmengdeRequest(
             endretAv = TestData.lagNavAnsatt().navIdent,
             endretAvEnhet = TestData.lagNavEnhet().enhetsnummer,
             deltakelsesprosent = 50,
@@ -624,14 +623,14 @@ class DeltakerEndringValidatorTest {
                 ),
             )
 
-        DeltakerEndringValidator(deltaker, req.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-            .validerRequest() shouldBe ValidationResult.Valid
+        DeltakerEndringValidator(deltaker, deltakerHistorikkServiceMock)
+            .validerRequest(request) shouldBe ValidationResult.Valid
     }
 
     @Test
     fun `valider - endre deltakelsesmengde - ugyldig endring - invalid`(): Unit = runBlocking {
         val deltaker = TestData.lagDeltaker()
-        val req = DeltakelsesmengdeRequest(
+        val request = DeltakelsesmengdeRequest(
             endretAv = TestData.lagNavAnsatt().navIdent,
             endretAvEnhet = TestData.lagNavEnhet().enhetsnummer,
             deltakelsesprosent = 100,
@@ -655,9 +654,9 @@ class DeltakerEndringValidatorTest {
                 ),
             )
 
-        val res = DeltakerEndringValidator(deltaker, req.toDeltakerEndringEndring(), deltakerHistorikkServiceMock).validerRequest()
-        res.shouldBeInstanceOf<ValidationResult.Invalid>()
-        res.reasons shouldBe listOf("ENDRE_DELTAKELSESMENGDE_IKKE_GYLDIG_ENDRING")
+        val result = DeltakerEndringValidator(deltaker, deltakerHistorikkServiceMock).validerRequest(request)
+        result.shouldBeInstanceOf<ValidationResult.Invalid>()
+        result.reasons shouldBe listOf("ENDRE_DELTAKELSESMENGDE_IKKE_GYLDIG_ENDRING")
     }
 
     @Test
@@ -667,7 +666,7 @@ class DeltakerEndringValidatorTest {
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.AVBRUTT),
             sluttdato = slutt,
         )
-        val req = EndreAvslutningRequest(
+        val request = EndreAvslutningRequest(
             endretAv = TestData.lagNavAnsatt().navIdent,
             endretAvEnhet = TestData.lagNavEnhet().enhetsnummer,
             aarsak = null,
@@ -677,7 +676,7 @@ class DeltakerEndringValidatorTest {
             forslagId = null,
         )
 
-        DeltakerEndringValidator(deltaker, req.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
-            .validerRequest() shouldBe ValidationResult.Valid
+        DeltakerEndringValidator(deltaker, deltakerHistorikkServiceMock)
+            .validerRequest(request) shouldBe ValidationResult.Valid
     }
 }
