@@ -293,7 +293,7 @@ class DeltakerRepositoryTest {
             )
             TestRepository.insert(deltaker)
 
-            val statuser = repository.getAvsluttendeDeltakerStatuserForOppdatering()
+            val statuser = repository.getAvsluttendeDeltakerStatuserForOppdatering(listOf(deltaker.id))
             statuser shouldBe emptyList()
         }
 
@@ -310,7 +310,7 @@ class DeltakerRepositoryTest {
             )
             repository.upsert(deltaker, fremtidigStatus)
 
-            val statuser = repository.getAvsluttendeDeltakerStatuserForOppdatering()
+            val statuser = repository.getAvsluttendeDeltakerStatuserForOppdatering(listOf(deltaker.id))
             statuser shouldBe emptyList()
         }
 
@@ -331,7 +331,7 @@ class DeltakerRepositoryTest {
             )
             repository.upsert(deltaker1, status1)
 
-            val statuser = repository.getAvsluttendeDeltakerStatuserForOppdatering()
+            val statuser = repository.getAvsluttendeDeltakerStatuserForOppdatering(listOf(deltaker1.id, deltaker2.id))
             statuser.size shouldBe 1
             statuser.first().deltakerId shouldBe deltaker1.id
         }
@@ -360,7 +360,8 @@ class DeltakerRepositoryTest {
 
             repository.upsert(oppdatertDeltakerDeltar, nesteStatus)
 
-            val statuser: List<DeltakerStatusMedDeltakerId> = repository.getAvsluttendeDeltakerStatuserForOppdatering()
+            val statuser: List<DeltakerStatusMedDeltakerId> =
+                repository.getAvsluttendeDeltakerStatuserForOppdatering(listOf(opprinneligDeltaker.id))
             statuser.size shouldBe 1
 
             assertSoftly(statuser.first()) {

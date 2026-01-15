@@ -291,13 +291,16 @@ class DeltakerRepository {
      * @return en liste av [DeltakerStatusMedDeltakerId] som inneholder både deltaker-id og
      *         den tilhørende avsluttende statusen som bør oppdateres.
      */
-    fun getAvsluttendeDeltakerStatuserForOppdatering() = Database.query { session ->
+    fun getAvsluttendeDeltakerStatuserForOppdatering(deltakerIdListe: List<UUID>): List<DeltakerStatusMedDeltakerId> {
+        if (deltakerIdListe.isEmpty()) return emptyList()
+
         val sql =
             """
             SELECT ds.* 
             FROM deltaker_status ds 
             WHERE 
-                ds.gyldig_til IS NULL 
+                ds.deltaker_id IN (${deltakerIdListe.joinToString { "?" }})
+                AND ds.gyldig_til IS NULL 
                 AND ds.gyldig_fra < current_date + interval '1 day' 
                 AND ds.type IN ('AVBRUTT', 'FULLFORT', 'HAR_SLUTTET') 
                 AND EXISTS ( 
@@ -310,15 +313,19 @@ class DeltakerRepository {
                 )
             """.trimIndent()
 
-        val query = queryOf(sql)
-            .map {
-                DeltakerStatusMedDeltakerId(
-                    deltakerId = it.uuid("deltaker_id"),
-                    deltakerStatus = deltakerStatusRowMapper(it),
-                )
-            }.asList
+        val query = queryOf(
+            sql,
+            *deltakerIdListe.toTypedArray(),
+        ).map {
+            DeltakerStatusMedDeltakerId(
+                deltakerId = it.uuid("deltaker_id"),
+                deltakerStatus = deltakerStatusRowMapper(it),
+            )
+        }.asList
 
-        session.run(query)
+        return Database.query { session ->
+            session.run(query)
+        }
     }
 
     fun deleteDeltakerOgStatus(deltakerId: UUID) = Database.query { session ->
