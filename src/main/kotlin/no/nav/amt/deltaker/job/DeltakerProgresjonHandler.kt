@@ -18,7 +18,9 @@ class DeltakerProgresjonHandler(
         if (deltakere.isEmpty()) {
             return emptyList()
         }
-        val fremtidigAvsluttendeStatus = deltakerRepository.getAvsluttendeDeltakerStatuserForOppdatering()
+        val fremtidigAvsluttendeStatus = deltakerRepository.getAvsluttendeDeltakerStatuserForOppdatering(
+            deltakere.map { it.id },
+        )
 
         val deltakereMedFremtidigeAvsluttendeStatus = deltakere
             .mapNotNull { deltaker ->

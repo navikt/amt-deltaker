@@ -290,8 +290,8 @@ class DeltakerService(
     }
 
     private suspend fun avsluttDeltakere(deltakereSomSkalAvsluttes: List<Deltaker>) {
-        DeltakerProgresjonHandler()
-            .getAvsluttendeStatusUtfall(deltakereSomSkalAvsluttes, deltakerRepository.getAvsluttendeDeltakerStatuserForOppdatering())
+        deltakerProgresjonHandler
+            .getAvsluttendeStatusUtfall(deltakereSomSkalAvsluttes)
             .map { oppdaterVedtakForAvbruttUtkast(it) }
             .forEach { upsertDeltaker(it) }
     }
