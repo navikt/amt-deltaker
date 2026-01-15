@@ -29,6 +29,7 @@ import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
 import no.nav.amt.deltaker.hendelse.HendelseProducer
 import no.nav.amt.deltaker.hendelse.HendelseService
+import no.nav.amt.deltaker.job.DeltakerProgresjonHandler
 import no.nav.amt.deltaker.kafka.utils.assertProduced
 import no.nav.amt.deltaker.kafka.utils.assertProducedDeltakerV1
 import no.nav.amt.deltaker.kafka.utils.assertProducedFeilregistrert
@@ -158,6 +159,7 @@ class DeltakerServiceTest {
             endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
             navAnsattService = navAnsattService,
             navEnhetService = navEnhetService,
+            deltakerProgresjonHandler = DeltakerProgresjonHandler(deltakerRepository),
         )
 
         @JvmStatic
