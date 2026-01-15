@@ -27,7 +27,7 @@ class DeltakerProgresjonTest {
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
         )
 
-        every { deltakerRepository.getAvsluttendeDeltakerStatuserForOppdatering() } returns emptyList()
+        every { deltakerRepository.getAvsluttendeDeltakerStatuserForOppdatering(any()) } returns emptyList()
         val oppdatertDeltaker = deltakerProgresjonHandler
             .getAvsluttendeStatusUtfall(listOf(deltaker))
             .first()
@@ -46,7 +46,7 @@ class DeltakerProgresjonTest {
             sluttdato = deltakerliste.sluttDato,
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
         )
-        every { deltakerRepository.getAvsluttendeDeltakerStatuserForOppdatering() } returns emptyList()
+        every { deltakerRepository.getAvsluttendeDeltakerStatuserForOppdatering(any()) } returns emptyList()
 
         val oppdatertDeltaker = deltakerProgresjonHandler
             .getAvsluttendeStatusUtfall(listOf(deltaker))
@@ -76,7 +76,7 @@ class DeltakerProgresjonTest {
                 gyldigTil = null,
                 opprettet = LocalDateTime.now().minusDays(2),
             )
-        every { deltakerRepository.getAvsluttendeDeltakerStatuserForOppdatering() } returns listOf(
+        every { deltakerRepository.getAvsluttendeDeltakerStatuserForOppdatering(any()) } returns listOf(
             DeltakerStatusMedDeltakerId(fremtidigStatus, deltaker.id),
         )
 
