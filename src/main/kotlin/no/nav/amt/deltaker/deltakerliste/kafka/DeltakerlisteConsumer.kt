@@ -4,6 +4,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerService
+import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.deltakerliste.toModel
@@ -12,6 +13,8 @@ import no.nav.amt.deltaker.utils.buildManagedKafkaConsumer
 import no.nav.amt.lib.kafka.Consumer
 import no.nav.amt.lib.models.deltakerliste.kafka.GjennomforingV2KafkaPayload
 import no.nav.amt.lib.utils.objectMapper
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.util.UUID
 
 class DeltakerlisteConsumer(
@@ -25,6 +28,7 @@ class DeltakerlisteConsumer(
         topic = Environment.DELTAKERLISTE_V2_TOPIC,
         consumeFunc = ::consume,
     )
+    val log: Logger = LoggerFactory.getLogger(javaClass)
 
     override fun start() = consumer.start()
 
@@ -42,28 +46,35 @@ class DeltakerlisteConsumer(
         }
 
         deltakerlistePayload.assertPameldingstypeIsValid()
-
         val arrangor = arrangorService.hentArrangor(deltakerlistePayload.arrangor.organisasjonsnummer)
         val tiltakstype = tiltakstypeRepository.get(deltakerlistePayload.tiltakskode).getOrThrow()
 
-        val oppdatertDeltakerliste = deltakerlistePayload.toModel(
+        val deltakerlisteFromPayload = deltakerlistePayload.toModel(
             { gruppe -> gruppe.toModel(arrangor, tiltakstype) },
             { enkeltplass -> enkeltplass.toModel(arrangor, tiltakstype) },
         )
 
-        if (oppdatertDeltakerliste.erAvlystEllerAvbrutt()) {
-            deltakerService.avsluttDeltakelserPaaDeltakerliste(oppdatertDeltakerliste)
+        val eksisterendeDeltakerliste = deltakerlisteRepository.get(deltakerlistePayload.id).getOrNull()
+        if (eksisterendeDeltakerliste == deltakerlisteFromPayload) {
+            log.info("Deltakerliste med id ${deltakerlisteFromPayload.id} er uendret.")
+            return
         }
 
-        deltakerlisteRepository.get(deltakerlistePayload.id).onSuccess { eksisterendeDeltakerliste ->
-            if (oppdatertDeltakerliste.sluttDato != null &&
-                eksisterendeDeltakerliste.sluttDato != null &&
-                oppdatertDeltakerliste.sluttDato < eksisterendeDeltakerliste.sluttDato
-            ) {
-                deltakerService.avgrensSluttdatoerTil(oppdatertDeltakerliste)
-            }
+        if (eksisterendeDeltakerliste != null) handterDeltakere(deltakerlisteFromPayload, eksisterendeDeltakerliste)
+
+        deltakerlisteRepository.upsert(deltakerlisteFromPayload)
+    }
+
+    suspend fun handterDeltakere(deltakerlisteFromPayload: Deltakerliste, eksisterendeDeltakerliste: Deltakerliste) {
+        if (deltakerlisteFromPayload.erAvlystEllerAvbrutt() && eksisterendeDeltakerliste.status != deltakerlisteFromPayload.status) {
+            deltakerService.avsluttDeltakelserPaaDeltakerliste(deltakerlisteFromPayload)
         }
 
-        deltakerlisteRepository.upsert(oppdatertDeltakerliste)
+        if (deltakerlisteFromPayload.sluttDato != null &&
+            eksisterendeDeltakerliste.sluttDato != null &&
+            deltakerlisteFromPayload.sluttDato < eksisterendeDeltakerliste.sluttDato
+        ) {
+            deltakerService.avgrensSluttdatoerTil(deltakerlisteFromPayload)
+        }
     }
 }

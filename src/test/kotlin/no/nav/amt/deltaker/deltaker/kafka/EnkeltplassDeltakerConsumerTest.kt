@@ -24,6 +24,7 @@ import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
+import no.nav.amt.deltaker.job.DeltakerProgresjonHandler
 import no.nav.amt.deltaker.navbruker.NavBrukerService
 import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.deltaker.utils.data.TestData
@@ -82,6 +83,7 @@ class EnkeltplassDeltakerConsumerTest {
                 endringFraTiltakskoordinatorService = mockk(),
                 endringFraTiltakskoordinatorRepository = mockk(),
                 navEnhetService = mockk(),
+                deltakerProgresjonHandler = DeltakerProgresjonHandler(deltakerRepository),
             ),
         )
 

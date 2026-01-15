@@ -31,6 +31,7 @@ import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.hendelse.HendelseProducer
 import no.nav.amt.deltaker.hendelse.HendelseService
+import no.nav.amt.deltaker.job.DeltakerProgresjonHandler
 import no.nav.amt.deltaker.kafka.utils.assertProduced
 import no.nav.amt.deltaker.kafka.utils.assertProducedDeltakerV1
 import no.nav.amt.deltaker.kafka.utils.assertProducedHendelse
@@ -552,6 +553,7 @@ class PameldingServiceTest {
             navAnsattService = navAnsattService,
             endringFraTiltakskoordinatorRepository = endringFraTiltaksKoordinatorRepository,
             navEnhetService = navEnhetService,
+            deltakerProgresjonHandler = DeltakerProgresjonHandler(deltakerRepository),
         )
 
         private var pameldingService = PameldingService(

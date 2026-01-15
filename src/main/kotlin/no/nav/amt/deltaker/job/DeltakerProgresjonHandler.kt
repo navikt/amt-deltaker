@@ -1,6 +1,6 @@
 package no.nav.amt.deltaker.job
 
-import no.nav.amt.deltaker.deltaker.db.DeltakerStatusMedDeltakerId
+import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.extensions.harIkkeStartet
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -9,19 +9,24 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
-class DeltakerProgresjonHandler {
+class DeltakerProgresjonHandler(
+    private val deltakerRepository: DeltakerRepository,
+) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun getAvsluttendeStatusUtfall(
-        deltakere: List<Deltaker>,
-        fremtidigAvsluttendeStatus: List<DeltakerStatusMedDeltakerId>,
-    ): List<Deltaker> {
+    fun getAvsluttendeStatusUtfall(deltakere: List<Deltaker>): List<Deltaker> {
+        if (deltakere.isEmpty()) {
+            return emptyList()
+        }
+        val fremtidigAvsluttendeStatus = deltakerRepository.getAvsluttendeDeltakerStatuserForOppdatering()
+
         val deltakereMedFremtidigeAvsluttendeStatus = deltakere
             .mapNotNull { deltaker ->
                 fremtidigAvsluttendeStatus
                     .find { status -> status.deltakerId == deltaker.id }
                     ?.let {
                         log.info("Endret status for ${deltaker.id} til ${it.deltakerStatus.type}.")
+                        // Denne forutsetter at endring på deltakerliste er upsertet noe den ikke er
                         deltaker.copy(status = it.deltakerStatus, sluttdato = getOppdatertSluttdato(deltaker))
                     }
             }
@@ -37,12 +42,12 @@ class DeltakerProgresjonHandler {
             getDeltakereSomSkalFullfores(deltakereUtenFremtidigStatus),
         ).flatten()
 
-        val endredeDeltakere = deltakereMedAvsluttendeStatus + deltakereMedFremtidigeAvsluttendeStatus
-        require(endredeDeltakere.size == endredeDeltakere.distinctBy { it.id }.size) {
-            "Deltakere kunne ikke få avsluttende status fordi de fikk to statuser: ${endredeDeltakere.map { it.id }}"
+        val deltakerEndringsUtfall = deltakereMedAvsluttendeStatus + deltakereMedFremtidigeAvsluttendeStatus
+        require(deltakerEndringsUtfall.size == deltakerEndringsUtfall.distinctBy { it.id }.size) {
+            "Deltakere kunne ikke få avsluttende status fordi de fikk to statuser: ${deltakerEndringsUtfall.map { it.id }}"
         }
 
-        return endredeDeltakere
+        return deltakerEndringsUtfall
     }
 
     fun tilDeltar(deltakere: List<Deltaker>): List<Deltaker> = deltakere
