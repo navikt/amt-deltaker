@@ -52,6 +52,7 @@ class DeltakerService(
     private val endringFraTiltakskoordinatorRepository: EndringFraTiltakskoordinatorRepository,
     private val navAnsattService: NavAnsattService,
     private val navEnhetService: NavEnhetService,
+    private val deltakerProgresjonHandler: DeltakerProgresjonHandler,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -275,7 +276,7 @@ class DeltakerService(
         avsluttDeltakere(deltakereSomSkalAvsluttes)
 
         val deltakereSomSkalDelta = deltakereSomSkalHaStatusDeltar()
-        DeltakerProgresjonHandler()
+        deltakerProgresjonHandler
             .tilDeltar(deltakereSomSkalDelta)
             .forEach { upsertDeltaker(it) }
     }
@@ -289,8 +290,8 @@ class DeltakerService(
     }
 
     private suspend fun avsluttDeltakere(deltakereSomSkalAvsluttes: List<Deltaker>) {
-        DeltakerProgresjonHandler()
-            .getAvsluttendeStatusUtfall(deltakereSomSkalAvsluttes, deltakerRepository.getAvsluttendeDeltakerStatuserForOppdatering())
+        deltakerProgresjonHandler
+            .getAvsluttendeStatusUtfall(deltakereSomSkalAvsluttes)
             .map { oppdaterVedtakForAvbruttUtkast(it) }
             .forEach { upsertDeltaker(it) }
     }
