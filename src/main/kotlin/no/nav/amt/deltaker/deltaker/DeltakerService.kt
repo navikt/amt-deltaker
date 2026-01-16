@@ -2,7 +2,6 @@ package no.nav.amt.deltaker.deltaker
 
 import io.ktor.server.plugins.requestvalidation.RequestValidationException
 import io.ktor.server.plugins.requestvalidation.ValidationResult
-import kotliquery.TransactionalSession
 import no.nav.amt.deltaker.deltaker.DeltakerUtils.nyDeltakerStatus
 import no.nav.amt.deltaker.deltaker.api.deltaker.toDeltakerEndringEndring
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
@@ -66,7 +65,7 @@ class DeltakerService(
     ): Deltaker {
         transactionalDeltakerUpsert(
             deltaker = deltaker.copy(sistEndret = LocalDateTime.now()),
-            nesteStatus = nesteStatus,
+            nesteStatus = fremtidigStatus,
         ).getOrThrow()
 
         val oppdatertDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()

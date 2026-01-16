@@ -1,6 +1,5 @@
 package no.nav.amt.deltaker.deltaker
 
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.booleans.shouldBeTrue
@@ -859,7 +858,7 @@ class DeltakerServiceTest {
         currentStatus.gyldigTil shouldBe null
         currentStatus.type shouldBe DeltakerStatus.Type.DELTAR
 
-        assertSoftly(nesteStatus) {
+        assertSoftly(fremtidigStatus) {
             gyldigTil shouldBe null
             gyldigFra.toLocalDate() shouldBe endringsrequest.sluttdato.plusDays(1)
             type shouldBe DeltakerStatus.Type.HAR_SLUTTET
