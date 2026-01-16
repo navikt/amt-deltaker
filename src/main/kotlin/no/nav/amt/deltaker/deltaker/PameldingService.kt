@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.deltaker
 
 import no.nav.amt.deltaker.deltaker.DeltakerUtils.nyDeltakerStatus
+import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.extensions.getVedtakOrThrow
 import no.nav.amt.deltaker.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartService
@@ -24,6 +25,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 class PameldingService(
+    private val deltakerRepository: DeltakerRepository,
     private val deltakerService: DeltakerService,
     private val deltakerListeRepository: DeltakerlisteRepository,
     private val navBrukerService: NavBrukerService,
@@ -36,8 +38,8 @@ class PameldingService(
     private val log = LoggerFactory.getLogger(javaClass)
 
     suspend fun opprettDeltaker(deltakerListeId: UUID, personIdent: String): Deltaker {
-        val eksisterendeDeltaker = deltakerService
-            .getDeltakelserForPerson(personIdent, deltakerListeId)
+        val eksisterendeDeltaker = deltakerRepository
+            .getFlereForPerson(personIdent, deltakerListeId)
             .firstOrNull { !it.harSluttet() }
 
         if (eksisterendeDeltaker != null) {

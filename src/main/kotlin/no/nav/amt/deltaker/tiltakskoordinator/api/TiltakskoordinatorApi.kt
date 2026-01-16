@@ -5,6 +5,7 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.post
+import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerOppdateringResult
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.tiltakskoordinator.api.DtoMappers.fromDeltakerOppdateringResult
@@ -13,13 +14,13 @@ import no.nav.amt.lib.models.deltaker.internalapis.tiltakskoordinator.request.Gi
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.models.tiltakskoordinator.requests.DelMedArrangorRequest
 
-fun Routing.registerTiltakskoordinatorApi(deltakerService: DeltakerService) {
+fun Routing.registerTiltakskoordinatorApi(deltakerService: DeltakerService, deltakerHistorikkService: DeltakerHistorikkService) {
     val apiPath = "/tiltakskoordinator/deltakere"
 
     fun List<DeltakerOppdateringResult>.toDeltakerOppdateringResult() = this.map {
         fromDeltakerOppdateringResult(
             oppdateringResult = it,
-            historikk = deltakerService.getHistorikk(it.deltaker.id),
+            historikk = deltakerHistorikkService.getForDeltaker(it.deltaker.id),
         )
     }
 
@@ -69,7 +70,7 @@ fun Routing.registerTiltakskoordinatorApi(deltakerService: DeltakerService) {
                     request.deltakerId,
                     request.avslag,
                     request.endretAv,
-                ).toDeltakerOppdatering(deltakerService.getHistorikk(request.deltakerId))
+                ).toDeltakerOppdatering(deltakerHistorikkService.getForDeltaker(request.deltakerId))
 
             call.respond(deltakeroppdatering)
         }

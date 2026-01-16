@@ -281,6 +281,7 @@ fun Application.module() {
     )
 
     val pameldingService = PameldingService(
+        deltakerRepository = deltakerRepository,
         deltakerService = deltakerService,
         deltakerListeRepository = deltakerlisteRepository,
         navBrukerService = navBrukerService,

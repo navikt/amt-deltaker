@@ -99,6 +99,7 @@ fun Application.configureRouting(
         )
         registerDeltakerApi(deltakerService, deltakerHistorikkService)
         registerInternalApi(
+            deltakerRepository,
             deltakerService,
             pameldingService,
             deltakerProducerService,
@@ -108,7 +109,7 @@ fun Application.configureRouting(
             hendelseService,
             endringFraTiltakskoordinatorService,
         )
-        registerTiltakskoordinatorApi(deltakerService)
+        registerTiltakskoordinatorApi(deltakerService, deltakerHistorikkService)
         registerExternalApi(deltakerRepository, navEnhetService, tilgangskontrollService, deltakelserResponseMapper, unleashToggle)
 
         val catchAllRoute = "{...}"

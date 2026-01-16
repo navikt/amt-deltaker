@@ -124,7 +124,7 @@ class PameldingServiceTest {
             )
 
             assertSoftly(deltaker) {
-                id shouldBe deltakerService.getDeltakelserForPerson(navBruker.personident, deltakerListe.id).first().id
+                id shouldBe deltakerRepository.getFlereForPerson(navBruker.personident, deltakerListe.id).first().id
                 it.deltakerliste.id shouldBe deltakerListe.id
                 status.type shouldBe DeltakerStatus.Type.KLADD
                 startdato shouldBe null
@@ -175,7 +175,7 @@ class PameldingServiceTest {
             )
 
             assertSoftly(deltaker) {
-                id shouldBe deltakerService.getDeltakelserForPerson(navBruker.personident, deltakerListe.id).first().id
+                id shouldBe deltakerRepository.getFlereForPerson(navBruker.personident, deltakerListe.id).first().id
                 it.deltakerliste.id shouldBe deltakerListe.id
                 status.type shouldBe DeltakerStatus.Type.KLADD
                 startdato shouldBe null
@@ -555,6 +555,7 @@ class PameldingServiceTest {
         )
 
         private var pameldingService = PameldingService(
+            deltakerRepository = deltakerRepository,
             deltakerService = deltakerService,
             deltakerListeRepository = DeltakerlisteRepository(),
             navBrukerService = NavBrukerService(
@@ -566,8 +567,8 @@ class PameldingServiceTest {
             navAnsattService = navAnsattService,
             navEnhetService = navEnhetService,
             vedtakService = vedtakService,
-            hendelseService,
-            innsokPaaFellesOppstartService,
+            hendelseService = hendelseService,
+            innsokPaaFellesOppstartService = innsokPaaFellesOppstartService,
         )
 
         @JvmStatic

@@ -16,6 +16,7 @@ import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.DeltakerUtils.nyDeltakerStatus
 import no.nav.amt.deltaker.deltaker.PameldingService
 import no.nav.amt.deltaker.deltaker.VedtakService
+import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.extensions.getVedtakOrThrow
 import no.nav.amt.deltaker.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartService
@@ -32,6 +33,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 fun Routing.registerInternalApi(
+    deltakerRepository: DeltakerRepository,
     deltakerService: DeltakerService,
     pameldingService: PameldingService,
     deltakerProducerService: DeltakerProducerService,
@@ -167,7 +169,7 @@ fun Routing.registerInternalApi(
 
             scope.launch {
                 log.info("Relaster deltakere for tiltakskode ${tiltakskode.name} på deltaker-v2")
-                val deltakerIder = deltakerService.getDeltakerIderForTiltakskode(tiltakskode)
+                val deltakerIder = deltakerRepository.getDeltakerIderForTiltakskode(tiltakskode)
                 deltakerIder.forEach {
                     deltakerProducerService.produce(
                         deltakerService.get(it).getOrThrow(),
@@ -189,7 +191,7 @@ fun Routing.registerInternalApi(
             scope.launch {
                 log.info("Relaster alle deltakere komet er master for på deltaker-v2")
                 for (tiltakskode in Tiltakskode.entries) {
-                    val deltakerIder = deltakerService.getDeltakerIderForTiltakskode(tiltakskode)
+                    val deltakerIder = deltakerRepository.getDeltakerIderForTiltakskode(tiltakskode)
 
                     log.info("Gjør klar for relast av ${deltakerIder.size} deltakere på tiltakskode ${tiltakskode.name}.")
 

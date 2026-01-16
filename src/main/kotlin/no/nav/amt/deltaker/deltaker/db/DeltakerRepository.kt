@@ -26,7 +26,7 @@ class DeltakerRepository {
     fun upsert(deltaker: Deltaker) {
         val sql =
             """
-            insert into deltaker(
+            INSERT INTO deltaker(
                 id, person_id, deltakerliste_id, startdato, sluttdato, dager_per_uke, 
                 deltakelsesprosent, bakgrunnsinformasjon, innhold, kilde, modified_at,
                 er_manuelt_delt_med_arrangor
@@ -36,7 +36,7 @@ class DeltakerRepository {
                 :deltakelsesprosent, :bakgrunnsinformasjon, :innhold, :kilde, :modified_at,
                 :er_manuelt_delt_med_arrangor
             )
-            on conflict (id) do update set 
+            ON CONFLICT (id) DO UPDATE SET 
                 person_id          = :person_id,
                 startdato            = :startdato,
                 sluttdato            = :sluttdato,
@@ -71,40 +71,50 @@ class DeltakerRepository {
     }
 
     fun get(id: UUID): Result<Deltaker> = runCatching {
-        val sql = getDeltakerSql("where d.id = :id and ds.gyldig_til is null and ds.gyldig_fra < CURRENT_TIMESTAMP")
-
-        val query = queryOf(sql, mapOf("id" to id))
-            .map(::deltakerRowMapper)
-            .asSingle
+        val query = queryOf(
+            buildDeltakerSql(
+                """
+                WHERE 
+                    d.id = :id 
+                    AND ds.gyldig_til IS NULL 
+                    AND ds.gyldig_fra < CURRENT_TIMESTAMP
+                """.trimIndent(),
+            ),
+            mapOf("id" to id),
+        ).map(::deltakerRowMapper).asSingle
 
         Database.query { session ->
-            session.run(query)
-                ?: error("Ingen deltaker med id $id")
+            session.run(query) ?: error("Ingen deltaker med id $id")
         }
     }
 
     fun getMany(deltakerIder: List<UUID>): List<Deltaker> {
-        val sql = getDeltakerSql(
-            """ where ds.gyldig_til is null
-                and ds.gyldig_fra < CURRENT_TIMESTAMP
-                and d.id = any(:ider)
-            """.trimMargin(),
+        val sql = buildDeltakerSql(
+            """
+            WHERE 
+                ds.gyldig_til IS NULL
+                AND ds.gyldig_fra < CURRENT_TIMESTAMP
+                AND d.id = ANY(:ider)
+            """.trimIndent(),
         )
 
-        val query = queryOf(sql, mapOf("ider" to deltakerIder.toTypedArray()))
-            .map(::deltakerRowMapper)
-            .asList
+        val query = queryOf(
+            sql,
+            mapOf("ider" to deltakerIder.toTypedArray()),
+        ).map(::deltakerRowMapper).asList
 
         return Database.query { session -> session.run(query) }
     }
 
     fun getFlereForPerson(personIdent: String, deltakerlisteId: UUID): List<Deltaker> {
-        val sql = getDeltakerSql(
-            """ where nb.personident = :personident 
-                    and d.deltakerliste_id = :deltakerliste_id 
-                    and ds.gyldig_til is null
-                    and ds.gyldig_fra < CURRENT_TIMESTAMP
-            """.trimMargin(),
+        val sql = buildDeltakerSql(
+            """
+            WHERE 
+                nb.personident = :personident 
+                AND d.deltakerliste_id = :deltakerliste_id 
+                AND ds.gyldig_til IS NULL
+                AND ds.gyldig_fra < CURRENT_TIMESTAMP
+            """.trimIndent(),
         )
 
         val query = queryOf(
@@ -119,11 +129,13 @@ class DeltakerRepository {
     }
 
     fun getDeltakereForDeltakerliste(deltakerlisteId: UUID): List<Deltaker> {
-        val sql = getDeltakerSql(
-            """ where d.deltakerliste_id = :deltakerliste_id 
-                    and ds.gyldig_til is null
-                    and ds.gyldig_fra < CURRENT_TIMESTAMP
-            """.trimMargin(),
+        val sql = buildDeltakerSql(
+            """
+            WHERE 
+                d.deltakerliste_id = :deltakerliste_id 
+                AND ds.gyldig_til IS NULL
+                AND ds.gyldig_fra < CURRENT_TIMESTAMP
+            """.trimIndent(),
         )
 
         val query = queryOf(
@@ -139,13 +151,13 @@ class DeltakerRepository {
     fun getDeltakerIderForTiltakskode(tiltakskode: Tiltakskode): List<UUID> {
         val sql =
             """ 
-                select d.id as "d.id"
-                from 
-                    deltaker d
-                    join deltakerliste dl on d.deltakerliste_id = dl.id
-                    join tiltakstype t on t.id = dl.tiltakstype_id
-                where t.tiltakskode = :tiltakskode;
-            """.trimMargin()
+            SELECT d.id as "d.id"
+            FROM 
+                deltaker d
+                JOIN deltakerliste dl ON d.deltakerliste_id = dl.id
+                JOIN tiltakstype t ON t.id = dl.tiltakstype_id
+            WHERE t.tiltakskode = :tiltakskode;
+            """.trimIndent()
 
         val query = queryOf(
             sql,
@@ -156,11 +168,13 @@ class DeltakerRepository {
     }
 
     fun getFlereForPerson(personIdent: String): List<Deltaker> {
-        val sql = getDeltakerSql(
-            """ where nb.personident = :personident
-                    and ds.gyldig_til is null
-                    and ds.gyldig_fra < CURRENT_TIMESTAMP
-            """.trimMargin(),
+        val sql = buildDeltakerSql(
+            """
+            WHERE 
+               nb.personident = :personident
+               AND ds.gyldig_til is null
+               AND ds.gyldig_fra < CURRENT_TIMESTAMP
+            """.trimIndent(),
         )
 
         val query = queryOf(
@@ -172,18 +186,21 @@ class DeltakerRepository {
     }
 
     fun skalHaStatusDeltar(): List<Deltaker> {
-        val sql = getDeltakerSql(
-            """ where ds.gyldig_til is null
-                and ds.gyldig_fra < CURRENT_TIMESTAMP
-                and ds.type = :status
-                and d.startdato <= CURRENT_DATE
-                and (d.sluttdato is null or d.sluttdato >= CURRENT_DATE)
-            """.trimMargin(),
+        val sql = buildDeltakerSql(
+            """
+            WHERE 
+               ds.gyldig_til IS NULL
+               AND ds.gyldig_fra < CURRENT_TIMESTAMP
+               AND ds.type = :status
+               AND d.startdato <= CURRENT_DATE
+               AND (d.sluttdato IS NULL OR d.sluttdato >= CURRENT_DATE)
+            """.trimIndent(),
         )
 
-        val query = queryOf(sql, mapOf("status" to DeltakerStatus.Type.VENTER_PA_OPPSTART.name))
-            .map(::deltakerRowMapper)
-            .asList
+        val query = queryOf(
+            sql,
+            mapOf("status" to DeltakerStatus.Type.VENTER_PA_OPPSTART.name),
+        ).map(::deltakerRowMapper).asList
 
         return Database.query { session -> session.run(query) }
     }
@@ -194,12 +211,14 @@ class DeltakerRepository {
             DeltakerStatus.Type.DELTAR.name,
         )
 
-        val sql = getDeltakerSql(
-            """ where ds.gyldig_til is null
-                and ds.gyldig_fra < CURRENT_TIMESTAMP
-                and ds.type in (${deltakerstatuser.joinToString { "?" }})
-                and d.sluttdato < CURRENT_DATE
-            """.trimMargin(),
+        val sql = buildDeltakerSql(
+            """
+            WHERE 
+               ds.gyldig_til IS NULL
+               AND ds.gyldig_fra < CURRENT_TIMESTAMP
+               AND ds.type IN (${deltakerstatuser.joinToString { "?" }})
+               AND d.sluttdato < CURRENT_DATE
+            """.trimIndent(),
         )
 
         val query = queryOf(
@@ -218,12 +237,14 @@ class DeltakerRepository {
             GjennomforingStatusType.AVLYST,
         ).map { it.name }
 
-        val sql = getDeltakerSql(
-            """ where ds.gyldig_til is null
-                and ds.gyldig_fra < CURRENT_TIMESTAMP
-                and ds.type not in (${avsluttendeDeltakerStatuser.joinToString { "?" }})
-                and dl.status in (${avsluttendeDeltakerlisteStatuser.joinToString { "?" }})
-            """.trimMargin(),
+        val sql = buildDeltakerSql(
+            """
+            WHERE 
+               ds.gyldig_til IS NULL
+               AND ds.gyldig_fra < CURRENT_TIMESTAMP
+               AND ds.type NOT IN (${avsluttendeDeltakerStatuser.joinToString { "?" }})
+               AND dl.status IN (${avsluttendeDeltakerlisteStatuser.joinToString { "?" }})
+            """.trimIndent(),
         )
 
         val query = queryOf(
@@ -238,13 +259,15 @@ class DeltakerRepository {
     fun getDeltakereMedStatus(statusType: DeltakerStatus.Type): List<UUID> {
         val sql =
             """
-                select d.id as "d.id"
-                from deltaker d
-                    join deltaker_status ds on d.id = ds.deltaker_id
-                where ds.type = :status_type
-                and ds.gyldig_til is null
-                and ds.gyldig_fra < CURRENT_TIMESTAMP
-            """.trimMargin()
+            SELECT d.id as "d.id"
+            FROM 
+                deltaker d
+                JOIN deltaker_status ds ON d.id = ds.deltaker_id
+            WHERE 
+                ds.type = :status_type
+                AND ds.gyldig_til IS NULL
+                AND ds.gyldig_fra < CURRENT_TIMESTAMP
+            """.trimIndent()
 
         val query = queryOf(
             sql,
@@ -255,15 +278,14 @@ class DeltakerRepository {
     }
 
     fun slettDeltaker(deltakerId: UUID) {
-        val sql =
-            """
-            delete from deltaker
-            where id = :deltaker_id;
-            """.trimIndent()
-
-        val params = mapOf("deltaker_id" to deltakerId)
-
-        Database.query { session -> session.update(queryOf(sql, params)) }
+        Database.query { session ->
+            session.update(
+                queryOf(
+                    "DELETE FROM deltaker WHERE id = :deltaker_id;",
+                    mapOf("deltaker_id" to deltakerId),
+                ),
+            )
+        }
     }
 
     companion object {
@@ -334,69 +356,69 @@ class DeltakerRepository {
             }
         }
 
-        private fun getDeltakerSql(where: String = "") = """
+        private fun buildDeltakerSql(whereClause: String = "") = """
         SELECT 
-            d.id as "d.id",
-            d.person_id as "d.person_id",
-            d.deltakerliste_id as "d.deltakerliste_id",
-            d.startdato as "d.startdato",
-            d.sluttdato as "d.sluttdato",
-            d.dager_per_uke as "d.dager_per_uke",
-            d.deltakelsesprosent as "d.deltakelsesprosent",
-            d.bakgrunnsinformasjon as "d.bakgrunnsinformasjon",
-            d.innhold as "d.innhold",
-            d.modified_at as "d.modified_at",
-            d.kilde as "d.kilde",
-            d.er_manuelt_delt_med_arrangor as "d.er_manuelt_delt_med_arrangor",
-            d.created_at as "d.created_at",
-            nb.personident as "nb.personident",
-            nb.fornavn as "nb.fornavn",
-            nb.mellomnavn as "nb.mellomnavn",
-            nb.etternavn as "nb.etternavn",
-            nb.nav_veileder_id as "nb.nav_veileder_id",
-            nb.nav_enhet_id as "nb.nav_enhet_id",
-            nb.telefonnummer as "nb.telefonnummer",
-            nb.epost as "nb.epost",
-            nb.er_skjermet as "nb.er_skjermet",
-            nb.adresse as "nb.adresse",
-            nb.adressebeskyttelse as "nb.adressebeskyttelse",
-            nb.oppfolgingsperioder as "nb.oppfolgingsperioder",
-            nb.innsatsgruppe as "nb.innsatsgruppe",
-            ds.id as "ds.id",
-            ds.deltaker_id as "ds.deltaker_id",
-            ds.type as "ds.type",
-            ds.aarsak as "ds.aarsak",
-            ds.gyldig_fra as "ds.gyldig_fra",
-            ds.gyldig_til as "ds.gyldig_til",
-            ds.created_at as "ds.created_at",
-            ds.modified_at as "ds.modified_at",
-            dl.id as "dl.id",
-            dl.navn as "dl.navn",
-            dl.gjennomforingstype as "dl.gjennomforingstype",
-            dl.status as "dl.status",
-            dl.start_dato as "dl.start_dato",
-            dl.slutt_dato as "dl.slutt_dato",
-            dl.oppstart as "dl.oppstart",
-            dl.apent_for_pamelding as "dl.apent_for_pamelding",
-            dl.oppmote_sted as "dl.oppmote_sted",
-            dl.pameldingstype as "dl.pameldingstype",
-            a.navn as "a.navn",
-            a.id as "a.id",
-            a.organisasjonsnummer as "a.organisasjonsnummer",
-            a.overordnet_arrangor_id as "a.overordnet_arrangor_id",
-            t.id as "t.id",
-            t.navn as "t.navn",
-            t.tiltakskode as "t.tiltakskode",
-            t.innsatsgrupper as "t.innsatsgrupper",
-            t.innhold as "t.innhold",
-            v.fattet as "v.fattet",
-            v.fattet_av_nav as "v.fattet_av_nav",
-            v.created_at as "v.opprettet",
-            v.opprettet_av as "v.opprettet_av",
-            v.opprettet_av_enhet as "v.opprettet_av_enhet",
-            v.modified_at as "v.sist_endret",
-            v.sist_endret_av as "v.sist_endret_av",
-            v.sist_endret_av_enhet as "v.sist_endret_av_enhet"
+            d.id AS "d.id",
+            d.person_id AS "d.person_id",
+            d.deltakerliste_id AS "d.deltakerliste_id",
+            d.startdato AS "d.startdato",
+            d.sluttdato AS "d.sluttdato",
+            d.dager_per_uke AS "d.dager_per_uke",
+            d.deltakelsesprosent AS "d.deltakelsesprosent",
+            d.bakgrunnsinformasjon AS "d.bakgrunnsinformasjon",
+            d.innhold AS "d.innhold",
+            d.modified_at AS "d.modified_at",
+            d.kilde AS "d.kilde",
+            d.er_manuelt_delt_med_arrangor AS "d.er_manuelt_delt_med_arrangor",
+            d.created_at AS "d.created_at",
+            nb.personident AS "nb.personident",
+            nb.fornavn AS "nb.fornavn",
+            nb.mellomnavn AS "nb.mellomnavn",
+            nb.etternavn AS "nb.etternavn",
+            nb.nav_veileder_id AS "nb.nav_veileder_id",
+            nb.nav_enhet_id AS "nb.nav_enhet_id",
+            nb.telefonnummer AS "nb.telefonnummer",
+            nb.epost AS "nb.epost",
+            nb.er_skjermet AS "nb.er_skjermet",
+            nb.adresse AS "nb.adresse",
+            nb.adressebeskyttelse AS "nb.adressebeskyttelse",
+            nb.oppfolgingsperioder AS "nb.oppfolgingsperioder",
+            nb.innsatsgruppe AS "nb.innsatsgruppe",
+            ds.id AS "ds.id",
+            ds.deltaker_id AS "ds.deltaker_id",
+            ds.type AS "ds.type",
+            ds.aarsak AS "ds.aarsak",
+            ds.gyldig_fra AS "ds.gyldig_fra",
+            ds.gyldig_til AS "ds.gyldig_til",
+            ds.created_at AS "ds.created_at",
+            ds.modified_at AS "ds.modified_at",
+            dl.id AS "dl.id",
+            dl.navn AS "dl.navn",
+            dl.gjennomforingstype AS "dl.gjennomforingstype",
+            dl.status AS "dl.status",
+            dl.start_dato AS "dl.start_dato",
+            dl.slutt_dato AS "dl.slutt_dato",
+            dl.oppstart AS "dl.oppstart",
+            dl.apent_for_pamelding AS "dl.apent_for_pamelding",
+            dl.oppmote_sted AS "dl.oppmote_sted",
+            dl.pameldingstype AS "dl.pameldingstype",
+            a.navn AS "a.navn",
+            a.id AS "a.id",
+            a.organisasjonsnummer AS "a.organisasjonsnummer",
+            a.overordnet_arrangor_id AS "a.overordnet_arrangor_id",
+            t.id AS "t.id",
+            t.navn AS "t.navn",
+            t.tiltakskode AS "t.tiltakskode",
+            t.innsatsgrupper AS "t.innsatsgrupper",
+            t.innhold AS "t.innhold",
+            v.fattet AS "v.fattet",
+            v.fattet_av_nav AS "v.fattet_av_nav",
+            v.created_at AS "v.opprettet",
+            v.opprettet_av AS "v.opprettet_av",
+            v.opprettet_av_enhet AS "v.opprettet_av_enhet",
+            v.modified_at AS "v.sist_endret",
+            v.sist_endret_av AS "v.sist_endret_av",
+            v.sist_endret_av_enhet AS "v.sist_endret_av_enhet"
         FROM 
             deltaker d 
             JOIN nav_bruker nb ON d.person_id = nb.person_id
@@ -405,7 +427,7 @@ class DeltakerRepository {
             JOIN arrangor a ON a.id = dl.arrangor_id
             JOIN tiltakstype t ON t.id = dl.tiltakstype_id
             LEFT JOIN vedtak v ON d.id = v.deltaker_id and v.gyldig_til is null
-            $where
+            $whereClause
       """
     }
 }

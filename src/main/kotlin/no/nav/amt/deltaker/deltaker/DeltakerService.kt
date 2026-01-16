@@ -22,11 +22,9 @@ import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorService
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
-import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.EndringRequest
-import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.models.person.NavAnsatt
@@ -58,15 +56,6 @@ class DeltakerService(
 
     fun get(id: UUID) = deltakerRepository.get(id)
 
-    fun getHistorikk(deltakerId: UUID): List<DeltakerHistorikk> = deltakerHistorikkService.getForDeltaker(deltakerId)
-
-    fun getDeltakelserForPerson(personident: String, deltakerlisteId: UUID) =
-        deltakerRepository.getFlereForPerson(personident, deltakerlisteId)
-
-    private fun getDeltakereForDeltakerliste(deltakerlisteId: UUID) = deltakerRepository.getDeltakereForDeltakerliste(deltakerlisteId)
-
-    fun getDeltakerIderForTiltakskode(tiltakskode: Tiltakskode) = deltakerRepository.getDeltakerIderForTiltakskode(tiltakskode)
-
     suspend fun upsertDeltaker(
         deltaker: Deltaker,
         forcedUpdate: Boolean? = false,
@@ -77,7 +66,7 @@ class DeltakerService(
             nesteStatus = nesteStatus,
         ).getOrThrow()
 
-        val oppdatertDeltaker = get(deltaker.id).getOrThrow()
+        val oppdatertDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
 
         // CR note: Til outbox pattern
         if (oppdatertDeltaker.status.type != DeltakerStatus.Type.KLADD) {
@@ -102,7 +91,7 @@ class DeltakerService(
     }
 
     suspend fun feilregistrerDeltaker(deltakerId: UUID) {
-        val deltaker = get(deltakerId).getOrThrow()
+        val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
         if (deltaker.status.type == DeltakerStatus.Type.KLADD) {
             log.warn("Kan ikke feilregistrere deltaker-kladd, id $deltakerId")
             throw IllegalArgumentException("Kan ikke feilregistrere deltaker-kladd")
@@ -112,7 +101,7 @@ class DeltakerService(
     }
 
     suspend fun upsertEndretDeltaker(deltakerId: UUID, request: EndringRequest): Deltaker {
-        val deltaker = get(deltakerId).getOrThrow()
+        val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
         validerIkkeFeilregistrert(deltaker)
 
         val endring = request.toDeltakerEndringEndring()
@@ -138,7 +127,7 @@ class DeltakerService(
     }
 
     suspend fun upsertEndretDeltaker(endring: EndringFraArrangor): Deltaker {
-        val deltaker = get(endring.deltakerId).getOrThrow()
+        val deltaker = deltakerRepository.get(endring.deltakerId).getOrThrow()
         validerIkkeFeilregistrert(deltaker)
 
         return endringFraArrangorService.insertEndring(deltaker, endring).fold(
@@ -296,7 +285,7 @@ class DeltakerService(
     }
 
     fun oppdaterSistBesokt(deltakerId: UUID, sistBesokt: ZonedDateTime) {
-        val deltaker = get(deltakerId).getOrThrow()
+        val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
         hendelseService.hendelseForSistBesokt(deltaker, sistBesokt)
     }
 
@@ -313,7 +302,8 @@ class DeltakerService(
     }
 
     suspend fun avsluttDeltakelserPaaDeltakerliste(deltakerliste: Deltakerliste) {
-        val deltakerePaAvbruttDeltakerliste = getDeltakereForDeltakerliste(deltakerliste.id)
+        val deltakerePaAvbruttDeltakerliste = deltakerRepository
+            .getDeltakereForDeltakerliste(deltakerliste.id)
             .filter { it.status.type != DeltakerStatus.Type.KLADD }
             .map { it.copy(deltakerliste = deltakerliste) }
 
@@ -347,7 +337,9 @@ class DeltakerService(
         .distinct()
 
     suspend fun avgrensSluttdatoerTil(deltakerliste: Deltakerliste) {
-        val deltakere = getDeltakereForDeltakerliste(deltakerliste.id).filter { it.status.type !in DeltakerStatus.avsluttendeStatuser }
+        val deltakere = deltakerRepository
+            .getDeltakereForDeltakerliste(deltakerliste.id)
+            .filter { it.status.type !in DeltakerStatus.avsluttendeStatuser }
 
         deltakere.forEach {
             if (it.sluttdato != null && deltakerliste.sluttDato != null && it.sluttdato > deltakerliste.sluttDato) {

@@ -40,7 +40,7 @@ class TiltakskoordinatorApiTest : RouteTestBase() {
     @Test
     fun `del-med-arrangor - har tilgang - returnerer 200`() {
         coEvery { deltakerService.oppdaterDeltakere(any(), any(), any()) } returns listOf(deltaker.toDeltakerOppdateringResult())
-        every { deltakerService.getHistorikk(deltaker.id) } returns emptyList()
+        every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns emptyList()
 
         withTestApplicationContext { client ->
             client.post("$API_PATH/del-med-arrangor") { postRequest(delMedArrangorRequest) }.apply {
@@ -54,7 +54,7 @@ class TiltakskoordinatorApiTest : RouteTestBase() {
     fun `sett-paa-venteliste - har tilgang - returnerer 200`() {
         every { unleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns true
         coEvery { deltakerService.oppdaterDeltakere(any(), any(), any()) } returns listOf(deltaker.toDeltakerOppdateringResult())
-        every { deltakerService.getHistorikk(deltaker.id) } returns historikk
+        every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
 
         val request = DeltakereRequest(
             deltakere = listOf(deltaker.id),
@@ -73,7 +73,7 @@ class TiltakskoordinatorApiTest : RouteTestBase() {
     fun `tildel plass - har tilgang - returnerer 200`() {
         every { unleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns true
         coEvery { deltakerService.oppdaterDeltakere(any(), any(), any()) } returns listOf(deltaker.toDeltakerOppdateringResult())
-        every { deltakerService.getHistorikk(deltaker.id) } returns historikk
+        every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
 
         val request = DeltakereRequest(
             deltakere = listOf(deltaker.id),
