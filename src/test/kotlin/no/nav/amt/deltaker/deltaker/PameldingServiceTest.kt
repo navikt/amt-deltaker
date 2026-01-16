@@ -231,7 +231,7 @@ class PameldingServiceTest {
     }
 
     @Test
-    fun `upsertUtkast - deltaker finnes - oppdaterer deltaker og oppretter vedtak`() {
+    fun `lagreUtkast - deltaker finnes - oppdaterer deltaker og oppretter vedtak`() {
         val deltaker = lagDeltaker(
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.KLADD),
             vedtaksinformasjon = null,
@@ -253,7 +253,7 @@ class PameldingServiceTest {
         )
 
         runBlocking {
-            pameldingService.upsertUtkast(deltaker.id, utkastRequest)
+            pameldingService.lagreUtkast(deltaker.id, utkastRequest)
 
             val deltakerFraDb = deltakerService.get(deltaker.id).getOrThrow()
             deltakerFraDb.status.type shouldBe DeltakerStatus.Type.UTKAST_TIL_PAMELDING
@@ -270,7 +270,7 @@ class PameldingServiceTest {
     }
 
     @Test
-    fun `upsertUtkast - deltaker med lopende oppstart, godkjent av NAV - oppdaterer deltaker og oppretter fattet vedtak`() {
+    fun `lagreUtkast - deltaker med lopende oppstart, godkjent av NAV - oppdaterer deltaker og oppretter fattet vedtak`() {
         val deltaker = lagDeltaker(
             deltakerliste = TestData.lagDeltakerlisteMedLopendeOppstart(),
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.KLADD),
@@ -295,7 +295,7 @@ class PameldingServiceTest {
         )
 
         runBlocking {
-            pameldingService.upsertUtkast(deltaker.id, utkastRequest)
+            pameldingService.lagreUtkast(deltaker.id, utkastRequest)
 
             val deltakerFraDb = deltakerService.get(deltaker.id).getOrThrow()
             deltakerFraDb.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
@@ -314,7 +314,7 @@ class PameldingServiceTest {
     }
 
     @Test
-    fun `upsertUtkast - deltaker med felles oppstart, godkjent av NAV - oppdaterer deltaker`() {
+    fun `lagreUtkast - deltaker med felles oppstart, godkjent av NAV - oppdaterer deltaker`() {
         val deltaker = lagDeltaker(
             deltakerliste = TestData.lagDeltakerlisteMedFellesOppstart(),
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.KLADD),
@@ -339,7 +339,7 @@ class PameldingServiceTest {
         )
 
         runBlocking {
-            pameldingService.upsertUtkast(deltaker.id, utkastRequest)
+            pameldingService.lagreUtkast(deltaker.id, utkastRequest)
 
             val deltakerFraDb = deltakerService.get(deltaker.id).getOrThrow()
             deltakerFraDb.status.type shouldBe DeltakerStatus.Type.SOKT_INN
@@ -458,7 +458,7 @@ class PameldingServiceTest {
     }
 
     @Test
-    fun `innbyggerFattVedtak - vedtak kunne ikke fattes - upserter ikke`() {
+    fun `innbyggerFattVedtak - vedtak kunne ikke fattes - lagrer ikke`() {
         val deltaker = lagDeltaker(
             deltakerliste = TestData.lagDeltakerlisteMedLopendeOppstart(),
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),

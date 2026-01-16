@@ -59,7 +59,7 @@ class DeltakerService(
 
     fun get(id: UUID) = deltakerRepository.get(id)
 
-    suspend fun upsertDeltaker(
+    suspend fun lagreOgHentDeltaker(
         deltaker: Deltaker,
         forcedUpdate: Boolean? = false,
         fremtidigStatus: DeltakerStatus? = null,
@@ -99,7 +99,7 @@ class DeltakerService(
             log.warn("Kan ikke feilregistrere deltaker-kladd, id $deltakerId")
             throw IllegalArgumentException("Kan ikke feilregistrere deltaker-kladd")
         }
-        upsertDeltaker(deltaker.copy(status = nyDeltakerStatus(type = DeltakerStatus.Type.FEILREGISTRERT)))
+        lagreOgHentDeltaker(deltaker.copy(status = nyDeltakerStatus(type = DeltakerStatus.Type.FEILREGISTRERT)))
         log.info("Feilregistrert deltaker med id $deltakerId")
     }
 
@@ -116,9 +116,9 @@ class DeltakerService(
         val endring = request.toDeltakerEndringEndring()
         val endretDeltaker = DeltakerEndringHandler(deltaker, endring, deltakerHistorikkService).getEndretDeltaker()
         // TODO: Kan vi bytte om rekkefølgen slik at transactionalDeltakerUpsert kan benyttes
-        deltakerEndringService.upsertEndring(deltaker, endring, request)
+        deltakerEndringService.lagreEndring(deltaker, endring, request)
 
-        upsertDeltaker(endretDeltaker.deltaker, fremtidigStatus = endretDeltaker.fremtidigStatus)
+        lagreOgHentDeltaker(endretDeltaker.deltaker, fremtidigStatus = endretDeltaker.fremtidigStatus)
 
         return get(deltakerId).getOrThrow()
     }
@@ -129,7 +129,7 @@ class DeltakerService(
 
         return endringFraArrangorService.insertEndring(deltaker, endring).fold(
             onSuccess = { endretDeltaker ->
-                return@fold upsertDeltaker(endretDeltaker)
+                return@fold lagreOgHentDeltaker(endretDeltaker)
             },
             onFailure = {
                 return@fold deltaker
@@ -170,7 +170,7 @@ class DeltakerService(
         }
     }
 
-    suspend fun upsertDeltaker(
+    suspend fun lagreOgHentDeltaker(
         deltaker: Deltaker,
         endringsType: EndringFraTiltakskoordinator.Endring,
         endretAv: NavAnsatt,
@@ -227,7 +227,7 @@ class DeltakerService(
         require(tiltakskoder.first() in Tiltakstype.kursTiltak) { "kan ikke endre på deltakere på tiltakskoden ${tiltakskoder.first()}" }
 
         return deltakere
-            .map { upsertDeltaker(it, endringsType, endretAv, endretAvEnhet) }
+            .map { lagreOgHentDeltaker(it, endringsType, endretAv, endretAvEnhet) }
             .map { deltakerOppdateringResult ->
                 if (!deltakerOppdateringResult.isSuccess) {
                     log.error(
@@ -278,7 +278,7 @@ class DeltakerService(
         val oppdatertDeltaker = deltaker.copy(status = status, sistEndret = LocalDateTime.now())
         vedtakService.innbyggerFattVedtak(oppdatertDeltaker).getVedtakOrThrow()
 
-        return upsertDeltaker(oppdatertDeltaker)
+        return lagreOgHentDeltaker(oppdatertDeltaker)
     }
 
     fun oppdaterSistBesokt(deltakerId: UUID, sistBesokt: ZonedDateTime) {
@@ -295,7 +295,7 @@ class DeltakerService(
         val deltakereSomSkalDelta = deltakereSomSkalHaStatusDeltar()
         DeltakerProgresjonHandler
             .tilDeltar(deltakereSomSkalDelta)
-            .forEach { upsertDeltaker(it) }
+            .forEach { lagreOgHentDeltaker(it) }
     }
 
     suspend fun avsluttDeltakelserPaaDeltakerliste(deltakerliste: Deltakerliste) {
@@ -311,7 +311,7 @@ class DeltakerService(
         DeltakerProgresjonHandler
             .getAvsluttendeStatusUtfall(deltakereSomSkalAvsluttes)
             .map { oppdaterVedtakForAvbruttUtkast(it) }
-            .forEach { upsertDeltaker(it) }
+            .forEach { lagreOgHentDeltaker(it) }
     }
 
     private fun oppdaterVedtakForAvbruttUtkast(deltaker: Deltaker) = if (deltaker.status.type == DeltakerStatus.Type.AVBRUTT_UTKAST) {
@@ -340,7 +340,7 @@ class DeltakerService(
 
         deltakere.forEach {
             if (it.sluttdato != null && deltakerliste.sluttDato != null && it.sluttdato > deltakerliste.sluttDato) {
-                upsertDeltaker(
+                lagreOgHentDeltaker(
                     deltaker = it.copy(sluttdato = deltakerliste.sluttDato),
                     forcedUpdate = true, // For at oppdateringen skal propageres riktig til amt-deltaker-bff så må vi sette denne.
                 )

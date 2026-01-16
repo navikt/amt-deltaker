@@ -33,7 +33,7 @@ class NavAnsattConsumerTest {
     }
 
     @Test
-    fun `consumeNavAnsatt - ny navansatt - upserter`() {
+    fun `consumeNavAnsatt - ny navansatt - lagrer`() {
         val navAnsatt = TestData.lagNavAnsatt()
         coEvery { amtPersonServiceClient.hentNavEnhet(navAnsatt.navEnhetId!!) } returns TestData.lagNavEnhet(navAnsatt.navEnhetId!!)
 
@@ -45,7 +45,7 @@ class NavAnsattConsumerTest {
     }
 
     @Test
-    fun `consumeNavAnsatt - oppdatert navansatt - upserter`() {
+    fun `consumeNavAnsatt - oppdatert navansatt - lagrer`() {
         val navAnsatt = TestData.lagNavAnsatt()
         TestRepository.insert(navAnsatt)
         val oppdatertNavAnsatt = navAnsatt.copy(navn = "Nytt Navn")

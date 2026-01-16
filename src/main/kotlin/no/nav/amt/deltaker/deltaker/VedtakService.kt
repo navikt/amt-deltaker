@@ -69,7 +69,7 @@ class VedtakService(
         }
 
         return Vedtaksutfall.OK(
-            upsertOppdatertVedtak(
+            lagreOppdatertVedtak(
                 eksisterendeVedtak = eksisterendeVedtak,
                 endretAv = endretAv,
                 endretAvEnhet = endretAvEnhet,
@@ -97,7 +97,7 @@ class VedtakService(
 
             is Vedtaksutfall.OK -> {
                 log.info("Fatter hovedvedtak for deltaker ${deltaker.id}")
-                val oppdatertVedtak = upsertOppdatertVedtak(
+                val oppdatertVedtak = lagreOppdatertVedtak(
                     eksisterendeVedtak = utfall.vedtak,
                     fattetAvNav = true,
                     endretAv = endretAv,
@@ -121,7 +121,7 @@ class VedtakService(
             Vedtaksutfall.VedtakAlleredeFattet -> return utfall
         }
 
-        val oppdatertVedtak = upsertOppdatertVedtak(
+        val oppdatertVedtak = lagreOppdatertVedtak(
             eksisterendeVedtak = ikkeFattetVedtak,
             fattetAvNav = true,
             endretAv = endretAv,
@@ -163,7 +163,7 @@ class VedtakService(
 
     fun deleteForDeltaker(deltakerId: UUID) = repository.deleteForDeltaker(deltakerId)
 
-    fun upsertOppdatertVedtak(
+    fun lagreOppdatertVedtak(
         eksisterendeVedtak: Vedtak?,
         fattetAvNav: Boolean,
         endretAv: NavAnsatt,

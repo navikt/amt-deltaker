@@ -573,7 +573,7 @@ class DeltakerServiceTest {
     // END tester flyttet fra DeltakerRepository
 
     @Test
-    fun `upsertDeltaker - deltaker endrer status fra kladd til utkast - oppdaterer og publiserer til kafka`() = runTest {
+    fun `lagreOgHentDeltaker - deltaker endrer status fra kladd til utkast - oppdaterer og publiserer til kafka`() = runTest {
         val sistEndretAv = lagNavAnsatt()
         val sistEndretAvEnhet = lagNavEnhet()
         insert(sistEndretAv)
@@ -598,7 +598,7 @@ class DeltakerServiceTest {
             vedtaksinformasjon = vedtak.tilVedtaksInformasjon(),
         )
 
-        val deltakerFraDb = deltakerService.upsertDeltaker(oppdatertDeltaker)
+        val deltakerFraDb = deltakerService.lagreOgHentDeltaker(oppdatertDeltaker)
         deltakerFraDb.status.type shouldBe DeltakerStatus.Type.UTKAST_TIL_PAMELDING
         deltakerFraDb.vedtaksinformasjon?.opprettetAv shouldBe vedtak.opprettetAv
 
@@ -607,7 +607,7 @@ class DeltakerServiceTest {
     }
 
     @Test
-    fun `upsertDeltaker - oppretter kladd - oppdaterer i db`() = runTest {
+    fun `lagreOgHentDeltaker - oppretter kladd - oppdaterer i db`() = runTest {
         val arrangor = lagArrangor()
         val deltakerliste = lagDeltakerliste(arrangor = arrangor)
         insert(deltakerliste)
@@ -622,13 +622,13 @@ class DeltakerServiceTest {
             status = lagDeltakerStatus(type = DeltakerStatus.Type.KLADD),
         )
 
-        val deltakerFraDb = deltakerService.upsertDeltaker(deltaker)
+        val deltakerFraDb = deltakerService.lagreOgHentDeltaker(deltaker)
         deltakerFraDb.status.type shouldBe DeltakerStatus.Type.KLADD
         deltakerFraDb.vedtaksinformasjon shouldBe null
     }
 
     @Test
-    fun `upsertEndretDeltaker - ingen endring - upserter ikke`() = runTest {
+    fun `endreDeltaker - ingen endring - lagrer ikke`() = runTest {
         val deltaker = lagDeltaker(sistEndret = LocalDateTime.now().minusDays(2))
         val endretAv = lagNavAnsatt()
         val endretAvEnhet = lagNavEnhet()
@@ -650,7 +650,7 @@ class DeltakerServiceTest {
     }
 
     @Test
-    fun `upsertEndretDeltaker - avslutt i fremtiden - setter fremtidig HAR_SLUTTET`() = runTest {
+    fun `endreDeltaker - avslutt i fremtiden - setter fremtidig HAR_SLUTTET`() = runTest {
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
             sluttdato = LocalDate.now().plusMonths(1),
@@ -698,7 +698,7 @@ class DeltakerServiceTest {
     }
 
     @Test
-    fun `upsertEndretDeltaker - avslutt kursdeltaker i fremtiden - setter fremtidig FULLFORT`() = runTest {
+    fun `endreDeltaker - avslutt kursdeltaker i fremtiden - setter fremtidig FULLFORT`() = runTest {
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
             sluttdato = LocalDate.now().plusMonths(1),
@@ -753,7 +753,7 @@ class DeltakerServiceTest {
     }
 
     @Test
-    fun `upsertEndretDeltaker - avslutt i fremtiden, blir forlenget - deaktiverer fremtidig HAR_SLUTTET`() = runTest {
+    fun `endreDeltaker - avslutt i fremtiden, blir forlenget - deaktiverer fremtidig HAR_SLUTTET`() = runTest {
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
             sluttdato = LocalDate.now().plusDays(2),
@@ -810,7 +810,7 @@ class DeltakerServiceTest {
     }
 
     @Test
-    fun `upsertEndretDeltaker - har sluttet, skal delta, avslutt i fremtiden - blir DELTAR, fremtidig HAR_SLUTTET`() = runTest {
+    fun `endreDeltaker - har sluttet, skal delta, avslutt i fremtiden - blir DELTAR, fremtidig HAR_SLUTTET`() = runTest {
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(type = DeltakerStatus.Type.HAR_SLUTTET),
             sluttdato = LocalDate.now().minusWeeks(1),
@@ -868,7 +868,7 @@ class DeltakerServiceTest {
     }
 
     @Test
-    fun `upsertEndretDeltaker - endret deltakelsesmengde - upserter endring`() = runTest {
+    fun `endreDeltaker - endret deltakelsesmengde - lagrer endring`() = runTest {
         val deltaker = lagDeltaker()
         val endretAv = lagNavAnsatt()
         val endretAvEnhet = lagNavEnhet()
@@ -910,7 +910,7 @@ class DeltakerServiceTest {
     }
 
     @Test
-    fun `upsertEndretDeltaker - fremtidig deltakelsesmengde - upserter endring, endrer ikke deltaker`() = runTest {
+    fun `endreDeltaker - fremtidig deltakelsesmengde - lagrer endring, endrer ikke deltaker`() = runTest {
         val deltaker = lagDeltaker()
         val endretAv = lagNavAnsatt()
         val endretAvEnhet = lagNavEnhet()
@@ -951,7 +951,7 @@ class DeltakerServiceTest {
     }
 
     @Test
-    fun `upsertEndretDeltaker - endret datoer - upserter endring`() = runTest {
+    fun `endreDeltaker - endret datoer - lagrer endring`() = runTest {
         val deltaker = lagDeltaker(status = lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR))
         val endretAv = lagNavAnsatt()
         val endretAvEnhet = lagNavEnhet()
@@ -993,7 +993,7 @@ class DeltakerServiceTest {
     }
 
     @Test
-    fun `upsertEndretDeltaker - endret startdato - upserter ny dato og status`() = runTest {
+    fun `endreDeltaker - endret startdato - lagrer ny dato og status`() = runTest {
         val deltakersSluttdato = LocalDate.now().plusWeeks(3)
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
@@ -1040,7 +1040,7 @@ class DeltakerServiceTest {
     }
 
     @Test
-    fun `upsertEndretDeltakere - sett på venteliste - upserter endring`() = runTest {
+    fun `oppdaterDeltakere - sett på venteliste - lagrer endring`() = runTest {
         val deltakerliste = lagDeltakerliste(
             tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING),
         )
@@ -1091,7 +1091,7 @@ class DeltakerServiceTest {
     }
 
     @Test
-    fun `upsertEndretDeltakere - tildel plass feiler på upsert - ruller tilbake endringer på samme deltaker`() = runTest {
+    fun `oppdaterDeltakere - tildel plass feiler på lagring - ruller tilbake endringer på samme deltaker`() = runTest {
         val endretAv = lagNavAnsatt()
         val endretAvEnhet = lagNavEnhet(enhetsnummer = "0326")
         val deltakerliste = lagDeltakerliste(
@@ -1152,7 +1152,7 @@ class DeltakerServiceTest {
     }
 
     @Test
-    fun `upsertEndretDeltakere - tildel plass - upserter endring, bruker deltakerliste sin start og sluttdato`() = runTest {
+    fun `oppdaterDeltakere - tildel plass - lagrer endring, bruker deltakerliste sin start og sluttdato`() = runTest {
         val deltakerliste = lagDeltakerliste(
             tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING),
             startDato = LocalDate.now().plusDays(2),
@@ -1228,7 +1228,7 @@ class DeltakerServiceTest {
     }
 
     @Test
-    fun `upsertEndretDeltakere - tildel plass - upserter endring, dato passert får start og sluttdato null`() = runTest {
+    fun `oppdaterDeltakere - tildel plass - lagrer endring, dato passert får start og sluttdato null`() = runTest {
         val deltakerliste = lagDeltakerliste(
             tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING),
             startDato = LocalDate.now().minusDays(2),
@@ -1382,7 +1382,7 @@ class DeltakerServiceTest {
     }
 
     @Test
-    fun `upsertEndretDeltakere - tildel plass feiler på siste deltaker - ruller tilbake en deltaker`() = runTest {
+    fun `oppdaterDeltakere - tildel plass feiler på siste deltaker - ruller tilbake en deltaker`() = runTest {
         val deltakerliste = lagDeltakerliste(
             tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING),
             startDato = LocalDate.now().plusDays(2),
@@ -1442,7 +1442,7 @@ class DeltakerServiceTest {
     }
 
     @Test
-    fun `upsertEndretDeltakere - del med arrangør - inserter endring og returnerer endret deltaker`() = runTest {
+    fun `oppdaterDeltakere - del med arrangør - lagrer endring og returnerer endret deltaker`() = runTest {
         val deltakerliste = lagDeltakerliste(
             tiltakstype = lagTiltakstype(
                 tiltakskode =
@@ -1566,7 +1566,7 @@ class DeltakerServiceTest {
     }
 
     @Test
-    fun `innbyggerFattVedtak - deltaker har status utkast - oppretter ny status og upserter`() = runTest {
+    fun `innbyggerFattVedtak - deltaker har status utkast - oppretter ny status og lagrer`() = runTest {
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
         )
@@ -1589,7 +1589,7 @@ class DeltakerServiceTest {
     }
 
     @Test
-    fun `innbyggerFattVedtak - deltaker har ikke status utkast - upserter uten å endre status`() = runTest {
+    fun `innbyggerFattVedtak - deltaker har ikke status utkast - lagrer uten å endre status`() = runTest {
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
         )
@@ -1611,7 +1611,7 @@ class DeltakerServiceTest {
     }
 
     @Test
-    fun `innbyggerFattVedtak - vedtak kunne ikke fattes - upserter ikke`() = runTest {
+    fun `innbyggerFattVedtak - vedtak kunne ikke fattes - lagrer ikke`() = runTest {
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
         )

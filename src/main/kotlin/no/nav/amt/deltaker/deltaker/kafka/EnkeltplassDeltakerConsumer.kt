@@ -82,7 +82,7 @@ class EnkeltplassDeltakerConsumer(
             deltakerStatus,
         )
 
-        upsertImportertDeltaker(deltaker)
+        lagreImportertDeltaker(deltaker)
         deltakerProducerService.produce(deltaker)
 
         log.info("Ingest for arenadeltaker med id ${deltaker.id} er ferdig")
@@ -92,7 +92,7 @@ class EnkeltplassDeltakerConsumer(
 
     override suspend fun close() = consumer.close()
 
-    private suspend fun upsertImportertDeltaker(deltaker: Deltaker): Deltaker = deltakerService
+    private suspend fun lagreImportertDeltaker(deltaker: Deltaker): Deltaker = deltakerService
         .transactionalDeltakerUpsert(deltaker) {
             val importertData = deltaker.toImportertData()
             importertFraArenaRepository.upsert(importertData)

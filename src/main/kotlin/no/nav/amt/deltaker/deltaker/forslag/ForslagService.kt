@@ -20,12 +20,13 @@ class ForslagService(
 
     fun get(id: UUID) = forslagRepository.get(id)
 
-    suspend fun upsert(forslag: Forslag) {
+    suspend fun lagre(forslag: Forslag) {
         forslagRepository.upsert(forslag)
         when (forslag.status) {
             is Forslag.Status.Godkjent,
             Forslag.Status.VenterPaSvar,
             -> {}
+
             is Forslag.Status.Avvist,
             is Forslag.Status.Erstattet,
             is Forslag.Status.Tilbakekalt,
@@ -58,7 +59,7 @@ class ForslagService(
                 godkjent = LocalDateTime.now(),
             ),
         )
-        upsert(godkjentForslag)
+        lagre(godkjentForslag)
         arrangorMeldingProducer.produce(godkjentForslag)
         log.info("Godkjent forslag for deltaker ${opprinneligForslag.deltakerId}")
         return godkjentForslag

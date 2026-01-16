@@ -47,7 +47,7 @@ class DeltakelsesmengdeUpdateJob(
                 runCatching {
                     val deltaker = deltakerService.get(endring.deltakerId).getOrThrow()
                     val behandlet = deltakterEndringService.behandleLagretDeltakelsesmengde(endring, deltaker)
-                    deltakerService.upsertDeltaker(behandlet)
+                    deltakerService.lagreOgHentDeltaker(behandlet)
                 }.onFailure { e ->
                     log.error(
                         "Feil ved behandling av deltakelsesmengdeendring. deltakerId={}, endringId={}",

@@ -33,7 +33,7 @@ fun Routing.registerPameldingApi(pameldingService: PameldingService, historikkSe
             val request = call.receive<UtkastRequest>()
             val deltakerId = UUID.fromString(call.parameters["deltakerId"])
 
-            val deltaker = pameldingService.upsertUtkast(deltakerId, request)
+            val deltaker = pameldingService.lagreUtkast(deltakerId, request)
             val historikk = historikkService.getForDeltaker(deltaker.id)
             call.respond(utkastResponseFromDeltaker(deltaker, historikk))
         }

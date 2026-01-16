@@ -41,7 +41,7 @@ class NavBrukerConsumerTest {
     }
 
     @Test
-    fun `consumeNavBruker - ny navBruker - upserter`() {
+    fun `consumeNavBruker - ny navBruker - lagrer`() {
         val navEnhet = TestData.lagNavEnhet()
         TestRepository.insert(navEnhet)
         val navAnsatt = TestData.lagNavAnsatt()
@@ -65,7 +65,7 @@ class NavBrukerConsumerTest {
     }
 
     @Test
-    fun `consumeNavBruker - oppdatert navBruker - ulik personident - upserter - publiserer v1 og v2`() {
+    fun `consumeNavBruker - oppdatert navBruker - ulik personident - lagrer - publiserer v1 og v2`() {
         val navEnhet = TestData.lagNavEnhet()
         TestRepository.insert(navEnhet)
 
@@ -94,7 +94,7 @@ class NavBrukerConsumerTest {
     }
 
     @Test
-    fun `consumeNavBruker - oppdatert navBruker - lik personident - upserter - publiserer kun v2`() {
+    fun `consumeNavBruker - oppdatert navBruker - lik personident - lagrer - publiserer kun v2`() {
         val navEnhet = TestData.lagNavEnhet()
         TestRepository.insert(navEnhet)
 

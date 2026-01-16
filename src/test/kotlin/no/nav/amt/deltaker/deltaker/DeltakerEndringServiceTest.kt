@@ -116,7 +116,7 @@ class DeltakerEndringServiceTest {
     }
 
     @Test
-    fun `upsertEndring - endret bakgrunnsinformasjon - upserter endring og returnerer deltaker`(): Unit = runBlocking {
+    fun `lagreEndring - endret bakgrunnsinformasjon - lagrer endring og returnerer deltaker`(): Unit = runBlocking {
         val deltaker = TestData.lagDeltaker()
         val endretAv = TestData.lagNavAnsatt()
         val endretAvEnhet = TestData.lagNavEnhet()
@@ -129,7 +129,7 @@ class DeltakerEndringServiceTest {
             bakgrunnsinformasjon = "Nye opplysninger",
         )
 
-        deltakerEndringService.upsertEndring(deltaker, endringsrequest.toDeltakerEndringEndring(), request = endringsrequest)
+        deltakerEndringService.lagreEndring(deltaker, endringsrequest.toDeltakerEndringEndring(), request = endringsrequest)
 
         val endring = deltakerEndringService.getForDeltaker(deltaker.id).first()
         endring.endretAv shouldBe endretAv.id
@@ -142,7 +142,7 @@ class DeltakerEndringServiceTest {
     }
 
     @Test
-    fun `upsertEndring - endret innhold - upserter og returnerer endring`(): Unit = runBlocking {
+    fun `lagreEndring - endret innhold - lagrer og returnerer endring`(): Unit = runBlocking {
         val deltaker = TestData.lagDeltaker()
         val endretAv = TestData.lagNavAnsatt()
         val endretAvEnhet = TestData.lagNavEnhet()
@@ -156,7 +156,7 @@ class DeltakerEndringServiceTest {
         )
 
         val resultat = deltakerEndringService
-            .upsertEndring(
+            .lagreEndring(
                 deltaker,
                 endringsrequest.toDeltakerEndringEndring(),
                 endringsrequest,
@@ -175,7 +175,7 @@ class DeltakerEndringServiceTest {
     }
 
     @Test
-    fun `upsertEndring - forleng deltakelse - upserter endring og returnerer deltaker`(): Unit = runBlocking {
+    fun `lagreEndring - forleng deltakelse - lagrer endring og returnerer deltaker`(): Unit = runBlocking {
         val deltaker = TestData.lagDeltaker()
         val endretAv = TestData.lagNavAnsatt()
         val endretAvEnhet = TestData.lagNavEnhet()
@@ -191,7 +191,7 @@ class DeltakerEndringServiceTest {
             forslagId = forslag.id,
         )
 
-        deltakerEndringService.upsertEndring(deltaker, endringsrequest.toDeltakerEndringEndring(), endringsrequest)
+        deltakerEndringService.lagreEndring(deltaker, endringsrequest.toDeltakerEndringEndring(), endringsrequest)
 
         val endring = deltakerEndringService.getForDeltaker(deltaker.id).first()
         endring.endretAv shouldBe endretAv.id
@@ -220,7 +220,7 @@ class DeltakerEndringServiceTest {
     }
 
     @Test
-    fun `upsertEndring - ikke aktuell - upserter endring og returnerer deltaker`(): Unit = runBlocking {
+    fun `lagreEndring - ikke aktuell - lagrer endring og returnerer deltaker`(): Unit = runBlocking {
         val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.VENTER_PA_OPPSTART))
         val endretAv = TestData.lagNavAnsatt()
         val endretAvEnhet = TestData.lagNavEnhet()
@@ -235,7 +235,7 @@ class DeltakerEndringServiceTest {
             forslagId = forslag.id,
         )
 
-        deltakerEndringService.upsertEndring(deltaker, endringsrequest.toDeltakerEndringEndring(), endringsrequest)
+        deltakerEndringService.lagreEndring(deltaker, endringsrequest.toDeltakerEndringEndring(), endringsrequest)
 
         val endring = deltakerEndringService.getForDeltaker(deltaker.id).first()
         endring.endretAv shouldBe endretAv.id
@@ -264,7 +264,7 @@ class DeltakerEndringServiceTest {
     }
 
     @Test
-    fun `upsertEndring - fjern oppstartsdato - upserter endring og returnerer deltaker`(): Unit = runBlocking {
+    fun `lagreEndring - fjern oppstartsdato - lagrer endring og returnerer deltaker`(): Unit = runBlocking {
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
             startdato = LocalDate.now().plusDays(3),
@@ -282,7 +282,7 @@ class DeltakerEndringServiceTest {
             begrunnelse = "begrunnelse",
         )
 
-        deltakerEndringService.upsertEndring(deltaker, endringsrequest.toDeltakerEndringEndring(), endringsrequest)
+        deltakerEndringService.lagreEndring(deltaker, endringsrequest.toDeltakerEndringEndring(), endringsrequest)
 
         val endring = deltakerEndringService.getForDeltaker(deltaker.id).first()
         endring.endretAv shouldBe endretAv.id
@@ -295,7 +295,7 @@ class DeltakerEndringServiceTest {
     }
 
     @Test
-    fun `behandleLagretEndring - ubehandlet gyldig endring - oppdaterer deltaker og upserter endring med behandlet`() {
+    fun `behandleLagretEndring - ubehandlet gyldig endring - oppdaterer deltaker og lagrer endring med behandlet`() {
         val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR))
         val endretAv = TestData.lagNavAnsatt()
         val endretAvEnhet = TestData.lagNavEnhet()
@@ -331,7 +331,7 @@ class DeltakerEndringServiceTest {
     }
 
     @Test
-    fun `behandleLagretEndring - ubehandlet ugyldig endring - oppdaterer ikke deltaker og upserter endring med behandlet`() {
+    fun `behandleLagretEndring - ubehandlet ugyldig endring - oppdaterer ikke deltaker og lagrer endring med behandlet`() {
         val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR))
         val endretAv = TestData.lagNavAnsatt()
         val endretAvEnhet = TestData.lagNavEnhet()
@@ -385,7 +385,7 @@ class DeltakerEndringServiceTest {
     }
 
     @Test
-    fun `behandleLagretEndring - endringen er utfort pga endret startdato - oppdaterer ikke deltaker og upserter endring med behandlet`() {
+    fun `behandleLagretEndring - endringen er utfort pga endret startdato - oppdaterer ikke deltaker og lagrer endring med behandlet`() {
         val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR))
         val endretAv = TestData.lagNavAnsatt()
         val endretAvEnhet = TestData.lagNavEnhet()

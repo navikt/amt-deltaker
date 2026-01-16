@@ -30,7 +30,7 @@ class DeltakerEndringService(
 
     fun deleteForDeltaker(deltakerId: UUID) = deltakerEndringRepository.deleteForDeltaker(deltakerId)
 
-    suspend fun upsertEndring(
+    suspend fun lagreEndring(
         deltaker: Deltaker,
         endring: DeltakerEndring.Endring,
         request: EndringRequest,
@@ -58,7 +58,7 @@ class DeltakerEndringService(
         val behandlet = LocalDateTime.now()
 
         deltakerEndringRepository.upsert(deltakerEndring, behandlet)
-        hendelseService.hendelseForDeltakerEndring(deltakerEndring, deltaker, ansatt, enhet)
+        hendelseService.sendDeltakerEndringHendelse(deltakerEndring, deltaker, ansatt, enhet)
         return deltakerEndring
     }
 

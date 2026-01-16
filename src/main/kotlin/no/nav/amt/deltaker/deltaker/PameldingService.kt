@@ -48,7 +48,7 @@ class PameldingService(
         }
 
         return deltakerService
-            .upsertDeltaker(
+            .lagreOgHentDeltaker(
                 lagDeltaker(
                     navBrukerService.get(personIdent).getOrThrow(),
                     deltakerListeRepository.get(deltakerListeId).getOrThrow(),
@@ -69,11 +69,11 @@ class PameldingService(
         deltakerService.delete(deltakerId)
     }
 
-    suspend fun upsertUtkast(deltakerId: UUID, utkast: UtkastRequest): Deltaker {
+    suspend fun lagreUtkast(deltakerId: UUID, utkast: UtkastRequest): Deltaker {
         val opprinneligDeltaker = deltakerService.get(deltakerId).getOrThrow()
 
-        require(kanUpserteUtkast(opprinneligDeltaker.status)) {
-            "Kan ikke upserte ukast for deltaker $deltakerId " +
+        require(kanLagreUtkast(opprinneligDeltaker.status)) {
+            "Kan ikke lagre ukast for deltaker $deltakerId " +
                 "med status ${opprinneligDeltaker.status.type}," +
                 "status må være ${DeltakerStatus.Type.KLADD} eller ${DeltakerStatus.Type.UTKAST_TIL_PAMELDING}."
         }
@@ -110,7 +110,7 @@ class PameldingService(
             innsokPaaFellesOppstartService.nyttInnsokUtkastGodkjentAvNav(deltakerMedNyttVedtak, opprinneligDeltaker.status)
         }
 
-        val deltaker = deltakerService.upsertDeltaker(deltakerMedNyttVedtak)
+        val deltaker = deltakerService.lagreOgHentDeltaker(deltakerMedNyttVedtak)
 
         hendelseService.hendelseForUtkast(deltaker, endretAv, endretAvNavEnhet) {
             if (utkast.godkjentAvNav) {
@@ -122,7 +122,7 @@ class PameldingService(
             }
         }
 
-        log.info("Upsertet utkast for deltaker med id $deltakerId, meldt på direkte: ${utkast.godkjentAvNav}")
+        log.info("Lagret utkast for deltaker med id $deltakerId, meldt på direkte: ${utkast.godkjentAvNav}")
 
         return deltaker
     }
@@ -149,7 +149,7 @@ class PameldingService(
 
         innsokPaaFellesOppstartService.nyttInnsokUtkastGodkjentAvDeltaker(oppdatertDeltaker, opprinneligDeltaker.status)
 
-        return deltakerService.upsertDeltaker(oppdatertDeltaker)
+        return deltakerService.lagreOgHentDeltaker(oppdatertDeltaker)
     }
 
     suspend fun avbrytUtkast(deltakerId: UUID, avbrytUtkastRequest: AvbrytUtkastRequest) {
@@ -178,14 +178,14 @@ class PameldingService(
             .avbrytVedtak(oppdatertDeltaker, endretAv, endretAvNavEnhet)
             .getVedtakOrThrow("Kunne ikke avbryte vedtak for deltaker $deltakerId")
 
-        deltakerService.upsertDeltaker(oppdatertDeltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksInformasjon()))
+        deltakerService.lagreOgHentDeltaker(oppdatertDeltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksInformasjon()))
 
         hendelseService.hendelseForUtkast(oppdatertDeltaker, endretAv, endretAvNavEnhet) { HendelseType.AvbrytUtkast(it) }
 
         log.info("Avbrutt utkast for deltaker med id $deltakerId")
     }
 
-    private fun kanUpserteUtkast(opprinneligDeltakerStatus: DeltakerStatus) = opprinneligDeltakerStatus.type in listOf(
+    private fun kanLagreUtkast(opprinneligDeltakerStatus: DeltakerStatus) = opprinneligDeltakerStatus.type in listOf(
         DeltakerStatus.Type.KLADD,
         DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
     )
@@ -205,7 +205,7 @@ class PameldingService(
             DeltakerStatus.Type.UTKAST_TIL_PAMELDING -> opprinneligDeltaker.status
 
             else -> throw IllegalArgumentException(
-                "Kan ikke upserte utkast for deltaker " +
+                "Kan ikke lagre utkast for deltaker " +
                     "med status ${opprinneligDeltaker.status.type}," +
                     "status må være ${DeltakerStatus.Type.KLADD} eller ${DeltakerStatus.Type.UTKAST_TIL_PAMELDING}.",
             )

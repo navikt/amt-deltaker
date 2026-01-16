@@ -23,7 +23,7 @@ class NavEnhetConsumer(
         if (value == null) throw IllegalArgumentException("Mottok uventet tombstone for nav-enhet med id $key")
 
         val dto = objectMapper.readValue<NavEnhetDto>(value)
-        navEnhetService.upsert(dto.toModel())
+        navEnhetService.lagre(dto.toModel())
         log.info("Lagret nav-enhet med id $key")
     }
 

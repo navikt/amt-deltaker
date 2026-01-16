@@ -29,7 +29,7 @@ class ArrangorConsumerTest {
     }
 
     @Test
-    fun `consumeArrangor - ny arrangor - upserter`() {
+    fun `consumeArrangor - ny arrangor - lagrer`() {
         val arrangor = TestData.lagArrangor()
         val arrangorConsumer = ArrangorConsumer(repository)
 
@@ -41,7 +41,7 @@ class ArrangorConsumerTest {
     }
 
     @Test
-    fun `consumeArrangor - oppdatert arrangor - upserter`() {
+    fun `consumeArrangor - oppdatert arrangor - lagrer`() {
         val arrangor = TestData.lagArrangor()
         repository.upsert(arrangor)
 

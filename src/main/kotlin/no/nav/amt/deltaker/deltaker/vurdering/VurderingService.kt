@@ -5,7 +5,7 @@ import java.util.UUID
 class VurderingService(
     private val vurderingRepository: VurderingRepository,
 ) {
-    fun upsert(vurdering: Vurdering) {
+    fun lagre(vurdering: Vurdering) {
         vurderingRepository.upsert(vurdering)
     }
 

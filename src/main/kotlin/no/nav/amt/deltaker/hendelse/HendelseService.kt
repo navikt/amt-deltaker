@@ -63,7 +63,7 @@ class HendelseService(
         hendelseProducer.produce(nyHendelseFraKoordinator(deltaker, navAnsatt, navEnhet, hendelseType))
     }
 
-    fun hendelseForDeltakerEndring(
+    fun sendDeltakerEndringHendelse(
         deltakerEndring: DeltakerEndring,
         deltaker: Deltaker,
         navAnsatt: NavAnsatt,

@@ -51,14 +51,14 @@ class ArrangorMeldingConsumer(
         when (melding) {
             is EndringFraArrangor -> deltakerService.endreDeltaker(melding)
 
-            is Forslag -> forslagService.upsert(melding)
+            is Forslag -> forslagService.lagre(melding)
 
             is Vurdering -> handleVurdering(melding)
         }
     }
 
     private suspend fun handleVurdering(vurdering: Vurdering) {
-        vurderingService.upsert(vurdering.toVurdering())
+        vurderingService.lagre(vurdering.toVurdering())
         val deltaker = deltakerService.get(vurdering.deltakerId).getOrThrow()
         deltakerProducerService.produce(deltaker)
     }

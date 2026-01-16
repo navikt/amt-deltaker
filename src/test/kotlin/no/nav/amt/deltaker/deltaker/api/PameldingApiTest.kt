@@ -106,7 +106,7 @@ class PameldingApiTest : RouteTestBase() {
         val historikk: List<DeltakerHistorikk> = listOf(DeltakerHistorikk.Vedtak(TestData.lagVedtak(deltakerVedVedtak = deltaker)))
 
         coEvery { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
-        coEvery { pameldingService.upsertUtkast(deltaker.id, any()) } returns deltaker
+        coEvery { pameldingService.lagreUtkast(deltaker.id, any()) } returns deltaker
 
         withTestApplicationContext { client ->
             client
@@ -122,7 +122,7 @@ class PameldingApiTest : RouteTestBase() {
     @Test
     fun `post pamelding utkast - deltaker finnes ikke - returnerer 404`() {
         val deltakerId = UUID.randomUUID()
-        coEvery { pameldingService.upsertUtkast(deltakerId, any()) } throws NoSuchElementException("Fant ikke deltaker")
+        coEvery { pameldingService.lagreUtkast(deltakerId, any()) } throws NoSuchElementException("Fant ikke deltaker")
 
         withTestApplicationContext { client ->
             client
