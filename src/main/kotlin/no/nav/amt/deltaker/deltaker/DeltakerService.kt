@@ -62,7 +62,7 @@ class DeltakerService(
     suspend fun upsertDeltaker(
         deltaker: Deltaker,
         forcedUpdate: Boolean? = false,
-        nesteStatus: DeltakerStatus? = null,
+        fremtidigStatus: DeltakerStatus? = null,
     ): Deltaker {
         transactionalDeltakerUpsert(
             deltaker = deltaker.copy(sistEndret = LocalDateTime.now()),
@@ -118,7 +118,7 @@ class DeltakerService(
         // TODO: Kan vi bytte om rekkefølgen slik at transactionalDeltakerUpsert kan benyttes
         deltakerEndringService.upsertEndring(deltaker, endring, request)
 
-        upsertDeltaker(endretDeltaker.deltaker, nesteStatus = endretDeltaker.fremtidigStatus)
+        upsertDeltaker(endretDeltaker.deltaker, fremtidigStatus = endretDeltaker.fremtidigStatus)
 
         return get(deltakerId).getOrThrow()
     }

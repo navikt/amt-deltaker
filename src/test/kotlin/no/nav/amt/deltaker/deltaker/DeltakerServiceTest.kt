@@ -851,7 +851,7 @@ class DeltakerServiceTest {
         statuser.size shouldBe 3
         val opprinneligStatus = statuser.first { it.id == deltaker.status.id }
         val currentStatus = statuser.first { it.id == oppdatertDeltaker.status.id }
-        val nesteStatus = statuser.first { it.id != opprinneligStatus.id && it.id != currentStatus.id }
+        val fremtidigStatus = statuser.first { it.id != opprinneligStatus.id && it.id != currentStatus.id }
 
         opprinneligStatus.gyldigTil shouldBeCloseTo LocalDateTime.now()
         opprinneligStatus.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
