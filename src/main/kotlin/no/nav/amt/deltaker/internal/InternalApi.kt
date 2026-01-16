@@ -45,13 +45,13 @@ fun Routing.registerInternalApi(
 
     val log: Logger = LoggerFactory.getLogger(javaClass)
 
-    fun slettDeltaker(deltakerId: UUID) {
+    suspend fun slettDeltaker(deltakerId: UUID) {
         innsokPaaFellesOppstartService.deleteForDeltaker(deltakerId)
         vurderingService.deleteForDeltaker(deltakerId)
         deltakerService.delete(deltakerId)
     }
 
-    fun slettDeltakerKladd(deltakerId: UUID) {
+    suspend fun slettDeltakerKladd(deltakerId: UUID) {
         pameldingService.slettKladd(deltakerId)
     }
 

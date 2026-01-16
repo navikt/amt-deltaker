@@ -56,7 +56,7 @@ class PameldingService(
             }
     }
 
-    fun slettKladd(deltakerId: UUID) {
+    suspend fun slettKladd(deltakerId: UUID) {
         val opprinneligDeltaker = deltakerService.get(deltakerId).getOrThrow()
         if (opprinneligDeltaker.status.type != DeltakerStatus.Type.KLADD) {
             log.warn("Kan ikke slette deltaker med id $deltakerId som har status ${opprinneligDeltaker.status.type}")
@@ -199,7 +199,9 @@ class PameldingService(
     } else {
         when (opprinneligDeltaker.status.type) {
             DeltakerStatus.Type.KLADD -> nyDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING)
+
             DeltakerStatus.Type.UTKAST_TIL_PAMELDING -> opprinneligDeltaker.status
+
             else -> throw IllegalArgumentException(
                 "Kan ikke upserte utkast for deltaker " +
                     "med status ${opprinneligDeltaker.status.type}," +

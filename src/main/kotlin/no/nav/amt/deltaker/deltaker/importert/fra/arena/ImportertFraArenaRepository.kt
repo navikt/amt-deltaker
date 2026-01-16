@@ -2,7 +2,6 @@ package no.nav.amt.deltaker.deltaker.importert.fra.arena
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
-import kotliquery.TransactionalSession
 import kotliquery.queryOf
 import no.nav.amt.deltaker.utils.prefixColumn
 import no.nav.amt.deltaker.utils.toPGObject
@@ -24,11 +23,7 @@ class ImportertFraArenaRepository {
         }
     }
 
-    fun upsert(importertFraArena: ImportertFraArena) = Database.query { session ->
-        session.transaction { upsert(importertFraArena, it) }
-    }
-
-    fun upsert(importertFraArena: ImportertFraArena, transaction: TransactionalSession) {
+    fun upsert(importertFraArena: ImportertFraArena) {
         val sql =
             """
             INSERT INTO importert_fra_arena(
@@ -43,15 +38,17 @@ class ImportertFraArenaRepository {
               deltaker_ved_import = :deltaker_ved_import
             """.trimIndent()
 
-        transaction.update(
-            queryOf(
-                sql,
-                mapOf(
-                    "deltaker_id" to importertFraArena.deltakerId,
-                    "deltaker_ved_import" to toPGObject(importertFraArena.deltakerVedImport),
+        Database.query { session ->
+            session.update(
+                queryOf(
+                    sql,
+                    mapOf(
+                        "deltaker_id" to importertFraArena.deltakerId,
+                        "deltaker_ved_import" to toPGObject(importertFraArena.deltakerVedImport),
+                    ),
                 ),
-            ),
-        )
+            )
+        }
     }
 
     fun getForDeltaker(deltakerId: UUID) = Database.query {

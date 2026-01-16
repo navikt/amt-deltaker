@@ -53,7 +53,7 @@ class DeltakerProgresjonHandler(
     }
 
     fun tilDeltar(deltakere: List<Deltaker>): List<Deltaker> = deltakere
-        .map { it.medNyStatus(DeltakerStatus.Type.DELTAR) }
+        .map { deltaker -> deltaker.medNyStatus(DeltakerStatus.Type.DELTAR) }
         .also { log.info("Endret status til DELTAR for ${deltakere.size}") }
 
     private fun getDeltakereSomSkalFullfores(deltakere: List<Deltaker>): List<Deltaker> {
