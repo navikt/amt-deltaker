@@ -1,10 +1,8 @@
 package no.nav.amt.deltaker.deltaker.db
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import kotliquery.Query
 import kotliquery.Row
 import kotliquery.queryOf
-import no.nav.amt.deltaker.deltaker.db.DbUtils.nullWhenNearNow
 import no.nav.amt.deltaker.deltaker.model.AVSLUTTENDE_STATUSER
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.Vedtaksinformasjon
@@ -24,84 +22,6 @@ import java.util.UUID
 
 class DeltakerRepository {
     private val log = LoggerFactory.getLogger(javaClass)
-
-    companion object {
-        private fun deltakerRowMapper(row: Row): Deltaker {
-            val status = row.string("ds.type").let { DeltakerStatus.Type.valueOf(it) }
-            val deltaker = Deltaker(
-                id = row.uuid("d.id"),
-                navBruker = NavBruker(
-                    personId = row.uuid("d.person_id"),
-                    personident = row.string("nb.personident"),
-                    fornavn = row.string("nb.fornavn"),
-                    mellomnavn = row.stringOrNull("nb.mellomnavn"),
-                    etternavn = row.string("nb.etternavn"),
-                    navVeilederId = row.uuidOrNull("nb.nav_veileder_id"),
-                    navEnhetId = row.uuidOrNull("nb.nav_enhet_id"),
-                    telefon = row.stringOrNull("nb.telefonnummer"),
-                    epost = row.stringOrNull("nb.epost"),
-                    erSkjermet = row.boolean("nb.er_skjermet"),
-                    adresse = row.stringOrNull("nb.adresse")?.let { objectMapper.readValue(it) },
-                    adressebeskyttelse = row.stringOrNull("nb.adressebeskyttelse")?.let { Adressebeskyttelse.valueOf(it) },
-                    oppfolgingsperioder = row.stringOrNull("nb.oppfolgingsperioder")?.let { objectMapper.readValue(it) } ?: emptyList(),
-                    innsatsgruppe = row.stringOrNull("nb.innsatsgruppe")?.let { Innsatsgruppe.valueOf(it) },
-                ),
-                deltakerliste = DeltakerlisteRepository.rowMapper(row),
-                startdato = row.localDateOrNull("d.startdato"),
-                sluttdato = row.localDateOrNull("d.sluttdato"),
-                dagerPerUke = row.floatOrNull("d.dager_per_uke"),
-                deltakelsesprosent = row.floatOrNull("d.deltakelsesprosent"),
-                bakgrunnsinformasjon = row.stringOrNull("d.bakgrunnsinformasjon"),
-                deltakelsesinnhold = row.stringOrNull("d.innhold")?.let { objectMapper.readValue(it) },
-                status = DeltakerStatus(
-                    id = row.uuid("ds.id"),
-                    type = row.string("ds.type").let { DeltakerStatus.Type.valueOf(it) },
-                    aarsak = row.stringOrNull("ds.aarsak")?.let { objectMapper.readValue(it) },
-                    gyldigFra = row.localDateTime("ds.gyldig_fra"),
-                    gyldigTil = row.localDateTimeOrNull("ds.gyldig_til"),
-                    opprettet = row.localDateTime("ds.created_at"),
-                ),
-                vedtaksinformasjon = row.localDateTimeOrNull("v.opprettet")?.let { opprettet ->
-                    Vedtaksinformasjon(
-                        fattet = row.localDateTimeOrNull("v.fattet"),
-                        fattetAvNav = row.boolean("v.fattet_av_nav"),
-                        opprettet = opprettet,
-                        opprettetAv = row.uuid("v.opprettet_av"),
-                        opprettetAvEnhet = row.uuid("v.opprettet_av_enhet"),
-                        sistEndret = row.localDateTime("v.sist_endret"),
-                        sistEndretAv = row.uuid("v.sist_endret_av"),
-                        sistEndretAvEnhet = row.uuid("v.sist_endret_av_enhet"),
-                    )
-                },
-                sistEndret = row.localDateTime("d.modified_at"),
-                kilde = Kilde.valueOf(row.string("d.kilde")),
-                erManueltDeltMedArrangor = row.boolean("d.er_manuelt_delt_med_arrangor"),
-                opprettet = row.localDateTime("d.created_at"),
-            )
-
-            return if (status == DeltakerStatus.Type.FEILREGISTRERT) {
-                deltaker.copy(
-                    startdato = null,
-                    sluttdato = null,
-                    dagerPerUke = null,
-                    deltakelsesprosent = null,
-                    bakgrunnsinformasjon = null,
-                    deltakelsesinnhold = null,
-                )
-            } else {
-                deltaker
-            }
-        }
-
-        private fun deltakerStatusRowMapper(row: Row): DeltakerStatus = DeltakerStatus(
-            id = row.uuid("id"),
-            type = row.string("type").let { t -> DeltakerStatus.Type.valueOf(t) },
-            aarsak = row.stringOrNull("aarsak")?.let { aarsak -> objectMapper.readValue(aarsak) },
-            gyldigFra = row.localDateTime("gyldig_fra"),
-            gyldigTil = row.localDateTimeOrNull("gyldig_til"),
-            opprettet = row.localDateTime("created_at"),
-        )
-    }
 
     fun upsert(deltaker: Deltaker) {
         val sql =
@@ -148,24 +68,6 @@ class DeltakerRepository {
             session.update(queryOf(sql, parameters))
         }
         log.info("Opprettet/oppdaterte deltaker med id ${deltaker.id}")
-    }
-
-    fun lagreStatus(deltakerId: UUID, deltakerStatus: DeltakerStatus) {
-        Database.query { session ->
-            session.update(insertStatusQuery(deltakerStatus, deltakerId))
-        }
-    }
-
-    fun deaktiverTidligereStatuser(deltakerId: UUID, deltakerStatus: DeltakerStatus) {
-        Database.query { session ->
-            session.update(deaktiverTidligereStatuserQuery(deltakerStatus, deltakerId))
-        }
-    }
-
-    fun slettTidligereFremtidigeStatuser(deltakerId: UUID, deltakerStatus: DeltakerStatus) {
-        Database.query { session ->
-            session.update(slettTidligereFremtidigeStatuserQuery(deltakerStatus, deltakerId))
-        }
     }
 
     fun get(id: UUID): Result<Deltaker> = runCatching {
@@ -269,70 +171,6 @@ class DeltakerRepository {
         return Database.query { session -> session.run(query) }
     }
 
-    fun getDeltakerStatuser(deltakerId: UUID): List<DeltakerStatus> {
-        val sql =
-            """
-            select * from deltaker_status where deltaker_id = :deltaker_id
-            """.trimIndent()
-
-        val query = queryOf(sql, mapOf("deltaker_id" to deltakerId))
-            .map(::deltakerStatusRowMapper)
-            .asList
-
-        return Database.query { session -> session.run(query) }
-    }
-
-    /**
-     * Henter alle deltakerstatuser som representerer en avslutning
-     * (f.eks. `AVBRUTT`, `FULLFORT` eller `HAR_SLUTTET`) og som er gyldige for oppdatering.
-     *
-     * Spørringen fungerer slik:
-     * - Først finner vi alle deltakere som har en aktiv status av typen `DELTAR` (dvs. uten `gyldig_til`).
-     * - Deretter henter vi alle statuser knyttet til disse deltakerne som:
-     *   - ikke har en avslutningsdato (`gyldig_til IS NULL`),
-     *   - har startet (`gyldig_fra <= dagens dato`),
-     *   - og er en av de avsluttende statusene (`AVBRUTT`, `FULLFORT`, `HAR_SLUTTET`).
-     *
-     * @return en liste av [DeltakerStatusMedDeltakerId] som inneholder både deltaker-id og
-     *         den tilhørende avsluttende statusen som bør oppdateres.
-     */
-    fun getAvsluttendeDeltakerStatuserForOppdatering(deltakerIdListe: List<UUID>): List<DeltakerStatusMedDeltakerId> {
-        if (deltakerIdListe.isEmpty()) return emptyList()
-
-        val sql =
-            """
-            SELECT ds.* 
-            FROM deltaker_status ds 
-            WHERE 
-                ds.deltaker_id IN (${deltakerIdListe.joinToString { "?" }})
-                AND ds.gyldig_til IS NULL 
-                AND ds.gyldig_fra < current_date + interval '1 day' 
-                AND ds.type IN ('AVBRUTT', 'FULLFORT', 'HAR_SLUTTET') 
-                AND EXISTS ( 
-                    SELECT 1 
-                    FROM deltaker_status AS inner_ds 
-                    WHERE 
-                        inner_ds.deltaker_id = ds.deltaker_id 
-                        AND inner_ds.gyldig_til IS NULL 
-                        AND inner_ds.type = 'DELTAR'
-                )
-            """.trimIndent()
-
-        val query = queryOf(
-            sql,
-            *deltakerIdListe.toTypedArray(),
-        ).map {
-            DeltakerStatusMedDeltakerId(
-                deltakerId = it.uuid("deltaker_id"),
-                deltakerStatus = deltakerStatusRowMapper(it),
-            )
-        }.asList
-
-        return Database.query { session ->
-            session.run(query)
-        }
-    }
-
     fun skalHaStatusDeltar(): List<Deltaker> {
         val sql = getDeltakerSql(
             """ where ds.gyldig_til is null
@@ -416,18 +254,6 @@ class DeltakerRepository {
         return Database.query { session -> session.run(query) }
     }
 
-    fun slettStatus(deltakerId: UUID) {
-        val sql =
-            """
-            delete from deltaker_status
-            where deltaker_id = :deltaker_id;
-            """.trimIndent()
-
-        val params = mapOf("deltaker_id" to deltakerId)
-
-        Database.query { session -> session.update(queryOf(sql, params)) }
-    }
-
     fun slettDeltaker(deltakerId: UUID) {
         val sql =
             """
@@ -440,68 +266,75 @@ class DeltakerRepository {
         Database.query { session -> session.update(queryOf(sql, params)) }
     }
 
-    /**
-     * Oppretter en [Query] for å sette inn en ny rad i tabellen `deltaker_status`.
-     *
-     * - Feltet `gyldig_fra` settes enten til verdien fra [DeltakerStatus.gyldigFra], eller til
-     *   `CURRENT_TIMESTAMP` i databasen dersom tidspunktet er "nær nok" nåværende tidspunkt
-     *   (se [nullWhenNearNow]).
-     *
-     * - Feltet `created_at` settes tilsvarende, basert på [DeltakerStatus.opprettet].
-     *
-     * - Konflikter på primærnøkkelen `id` ignoreres (`ON CONFLICT (id) DO NOTHING`).
-     *
-     * @param status statusobjektet som skal lagres i databasen.
-     * @param deltakerId ID-en til deltakeren statusen tilhører.
-     * @return en ferdig parametrisert [Query] som kan kjøres mot databasen.
-     */
-    private fun insertStatusQuery(status: DeltakerStatus, deltakerId: UUID): Query {
-        val sql =
-            """
-            INSERT INTO deltaker_status(id, deltaker_id, type, aarsak, gyldig_fra, created_at)
-            VALUES (:id, :deltaker_id, :type, :aarsak, COALESCE(:gyldig_fra, CURRENT_TIMESTAMP), COALESCE(:created_at, CURRENT_TIMESTAMP))
-            ON CONFLICT (id) DO NOTHING;
-            """.trimIndent()
+    companion object {
+        private fun deltakerRowMapper(row: Row): Deltaker {
+            val status = row.string("ds.type").let { DeltakerStatus.Type.valueOf(it) }
+            val deltaker = Deltaker(
+                id = row.uuid("d.id"),
+                navBruker = NavBruker(
+                    personId = row.uuid("d.person_id"),
+                    personident = row.string("nb.personident"),
+                    fornavn = row.string("nb.fornavn"),
+                    mellomnavn = row.stringOrNull("nb.mellomnavn"),
+                    etternavn = row.string("nb.etternavn"),
+                    navVeilederId = row.uuidOrNull("nb.nav_veileder_id"),
+                    navEnhetId = row.uuidOrNull("nb.nav_enhet_id"),
+                    telefon = row.stringOrNull("nb.telefonnummer"),
+                    epost = row.stringOrNull("nb.epost"),
+                    erSkjermet = row.boolean("nb.er_skjermet"),
+                    adresse = row.stringOrNull("nb.adresse")?.let { objectMapper.readValue(it) },
+                    adressebeskyttelse = row.stringOrNull("nb.adressebeskyttelse")?.let { Adressebeskyttelse.valueOf(it) },
+                    oppfolgingsperioder = row.stringOrNull("nb.oppfolgingsperioder")?.let { objectMapper.readValue(it) } ?: emptyList(),
+                    innsatsgruppe = row.stringOrNull("nb.innsatsgruppe")?.let { Innsatsgruppe.valueOf(it) },
+                ),
+                deltakerliste = DeltakerlisteRepository.rowMapper(row),
+                startdato = row.localDateOrNull("d.startdato"),
+                sluttdato = row.localDateOrNull("d.sluttdato"),
+                dagerPerUke = row.floatOrNull("d.dager_per_uke"),
+                deltakelsesprosent = row.floatOrNull("d.deltakelsesprosent"),
+                bakgrunnsinformasjon = row.stringOrNull("d.bakgrunnsinformasjon"),
+                deltakelsesinnhold = row.stringOrNull("d.innhold")?.let { objectMapper.readValue(it) },
+                status = DeltakerStatus(
+                    id = row.uuid("ds.id"),
+                    type = row.string("ds.type").let { DeltakerStatus.Type.valueOf(it) },
+                    aarsak = row.stringOrNull("ds.aarsak")?.let { objectMapper.readValue(it) },
+                    gyldigFra = row.localDateTime("ds.gyldig_fra"),
+                    gyldigTil = row.localDateTimeOrNull("ds.gyldig_til"),
+                    opprettet = row.localDateTime("ds.created_at"),
+                ),
+                vedtaksinformasjon = row.localDateTimeOrNull("v.opprettet")?.let { opprettet ->
+                    Vedtaksinformasjon(
+                        fattet = row.localDateTimeOrNull("v.fattet"),
+                        fattetAvNav = row.boolean("v.fattet_av_nav"),
+                        opprettet = opprettet,
+                        opprettetAv = row.uuid("v.opprettet_av"),
+                        opprettetAvEnhet = row.uuid("v.opprettet_av_enhet"),
+                        sistEndret = row.localDateTime("v.sist_endret"),
+                        sistEndretAv = row.uuid("v.sist_endret_av"),
+                        sistEndretAvEnhet = row.uuid("v.sist_endret_av_enhet"),
+                    )
+                },
+                sistEndret = row.localDateTime("d.modified_at"),
+                kilde = Kilde.valueOf(row.string("d.kilde")),
+                erManueltDeltMedArrangor = row.boolean("d.er_manuelt_delt_med_arrangor"),
+                opprettet = row.localDateTime("d.created_at"),
+            )
 
-        val params = mapOf(
-            "id" to status.id,
-            "deltaker_id" to deltakerId,
-            "type" to status.type.name,
-            "aarsak" to toPGObject(status.aarsak),
-            "gyldig_fra" to nullWhenNearNow(status.gyldigFra),
-            "created_at" to nullWhenNearNow(status.opprettet),
-        )
+            return if (status == DeltakerStatus.Type.FEILREGISTRERT) {
+                deltaker.copy(
+                    startdato = null,
+                    sluttdato = null,
+                    dagerPerUke = null,
+                    deltakelsesprosent = null,
+                    bakgrunnsinformasjon = null,
+                    deltakelsesinnhold = null,
+                )
+            } else {
+                deltaker
+            }
+        }
 
-        return queryOf(sql, params)
-    }
-
-    private fun deaktiverTidligereStatuserQuery(status: DeltakerStatus, deltakerId: UUID): Query {
-        val sql =
-            """
-            update deltaker_status
-            set gyldig_til = current_timestamp, modified_at = current_timestamp
-            where deltaker_id = :deltaker_id 
-              and id != :id 
-              and gyldig_til is null;
-            """.trimIndent()
-
-        return queryOf(sql, mapOf("id" to status.id, "deltaker_id" to deltakerId))
-    }
-
-    private fun slettTidligereFremtidigeStatuserQuery(status: DeltakerStatus, deltakerId: UUID): Query {
-        val sql =
-            """
-            delete from deltaker_status
-            where deltaker_id = :deltaker_id 
-              and id != :id 
-              and gyldig_til is null
-              and gyldig_fra > CURRENT_TIMESTAMP;
-            """.trimIndent()
-
-        return queryOf(sql, mapOf("id" to status.id, "deltaker_id" to deltakerId))
-    }
-
-    private fun getDeltakerSql(where: String = "") = """
+        private fun getDeltakerSql(where: String = "") = """
         SELECT 
             d.id as "d.id",
             d.person_id as "d.person_id",
@@ -574,4 +407,5 @@ class DeltakerRepository {
             LEFT JOIN vedtak v ON d.id = v.deltaker_id and v.gyldig_til is null
             $where
       """
+    }
 }

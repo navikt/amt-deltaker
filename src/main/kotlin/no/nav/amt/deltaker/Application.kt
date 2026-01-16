@@ -63,7 +63,6 @@ import no.nav.amt.deltaker.deltakerliste.tiltakstype.kafka.TiltakstypeConsumer
 import no.nav.amt.deltaker.external.DeltakelserResponseMapper
 import no.nav.amt.deltaker.hendelse.HendelseProducer
 import no.nav.amt.deltaker.hendelse.HendelseService
-import no.nav.amt.deltaker.job.DeltakerProgresjonHandler
 import no.nav.amt.deltaker.job.StatusUpdateJob
 import no.nav.amt.deltaker.job.leaderelection.LeaderElection
 import no.nav.amt.deltaker.navansatt.NavAnsattConsumer
@@ -258,7 +257,6 @@ fun Application.module() {
 
     val endringFraArrangorService = EndringFraArrangorService(endringFraArrangorRepository, hendelseService, deltakerHistorikkService)
     val vedtakService = VedtakService(vedtakRepository)
-    val deltakerProgresjonHandler = DeltakerProgresjonHandler(deltakerRepository)
     val deltakerService = DeltakerService(
         deltakerRepository = deltakerRepository,
         deltakerEndringService = deltakerEndringService,
@@ -273,7 +271,6 @@ fun Application.module() {
         endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
         navAnsattService = navAnsattService,
         navEnhetService = navEnhetService,
-        deltakerProgresjonHandler = deltakerProgresjonHandler,
     )
 
     val opprettKladdRequestValidator = OpprettKladdRequestValidator(

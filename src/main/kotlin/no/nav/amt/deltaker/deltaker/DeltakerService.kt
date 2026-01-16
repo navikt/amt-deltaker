@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.deltaker
 import no.nav.amt.deltaker.deltaker.DeltakerUtils.nyDeltakerStatus
 import no.nav.amt.deltaker.deltaker.api.deltaker.toDeltakerEndringEndring
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
+import no.nav.amt.deltaker.deltaker.db.DeltakerStatusRepository
 import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringHandler
 import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringService
 import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringUtfall
@@ -52,7 +53,6 @@ class DeltakerService(
     private val endringFraTiltakskoordinatorRepository: EndringFraTiltakskoordinatorRepository,
     private val navAnsattService: NavAnsattService,
     private val navEnhetService: NavEnhetService,
-    private val deltakerProgresjonHandler: DeltakerProgresjonHandler,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -96,7 +96,7 @@ class DeltakerService(
             forslagService.deleteForDeltaker(deltakerId)
             endringFraArrangorService.deleteForDeltaker(deltakerId)
             endringFraTiltakskoordinatorService.deleteForDeltaker(deltakerId)
-            deltakerRepository.slettStatus(deltakerId)
+            DeltakerStatusRepository.slettStatus(deltakerId)
             deltakerRepository.slettDeltaker(deltakerId)
         }
     }
@@ -162,7 +162,7 @@ class DeltakerService(
             lagreStatus(deltaker.id, deltaker.status)
 
             nesteStatus?.let {
-                deltakerRepository.lagreStatus(deltaker.id, it)
+                DeltakerStatusRepository.lagreStatus(deltaker.id, it)
             }
 
             additionalDbOperations()
@@ -172,15 +172,15 @@ class DeltakerService(
 
     // flyttet fra DeltakerRepository
     private fun lagreStatus(deltakerId: UUID, deltakerStatus: DeltakerStatus) {
-        deltakerRepository.lagreStatus(deltakerId, deltakerStatus)
+        DeltakerStatusRepository.lagreStatus(deltakerId, deltakerStatus)
 
         val erNyStatusAktiv = deltakerStatus.gyldigFra.toLocalDate() <= LocalDate.now()
 
         if (erNyStatusAktiv) {
-            deltakerRepository.deaktiverTidligereStatuser(deltakerId, deltakerStatus)
+            DeltakerStatusRepository.deaktiverTidligereStatuser(deltakerId, deltakerStatus)
         } else {
             // Dette skjer aldri for arenadeltakelser
-            deltakerRepository.slettTidligereFremtidigeStatuser(deltakerId, deltakerStatus)
+            DeltakerStatusRepository.slettTidligereFremtidigeStatuser(deltakerId, deltakerStatus)
         }
     }
 
@@ -307,7 +307,7 @@ class DeltakerService(
         avsluttDeltakere(deltakereSomSkalAvsluttes)
 
         val deltakereSomSkalDelta = deltakereSomSkalHaStatusDeltar()
-        deltakerProgresjonHandler
+        DeltakerProgresjonHandler
             .tilDeltar(deltakereSomSkalDelta)
             .forEach { upsertDeltaker(it) }
     }
@@ -321,7 +321,7 @@ class DeltakerService(
     }
 
     private suspend fun avsluttDeltakere(deltakereSomSkalAvsluttes: List<Deltaker>) {
-        deltakerProgresjonHandler
+        DeltakerProgresjonHandler
             .getAvsluttendeStatusUtfall(deltakereSomSkalAvsluttes)
             .map { oppdaterVedtakForAvbruttUtkast(it) }
             .forEach { upsertDeltaker(it) }

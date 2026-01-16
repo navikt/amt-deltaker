@@ -17,6 +17,7 @@ import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepositoryTest.Companion.assertDeltakereAreEqual
 import no.nav.amt.deltaker.deltaker.db.DeltakerStatusMedDeltakerId
+import no.nav.amt.deltaker.deltaker.db.DeltakerStatusRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringService
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
@@ -36,7 +37,6 @@ import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
 import no.nav.amt.deltaker.hendelse.HendelseProducer
 import no.nav.amt.deltaker.hendelse.HendelseService
-import no.nav.amt.deltaker.job.DeltakerProgresjonHandler
 import no.nav.amt.deltaker.kafka.utils.assertProduced
 import no.nav.amt.deltaker.kafka.utils.assertProducedDeltakerV1
 import no.nav.amt.deltaker.kafka.utils.assertProducedFeilregistrert
@@ -176,7 +176,6 @@ class DeltakerServiceTest {
             endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
             navAnsattService = navAnsattService,
             navEnhetService = navEnhetService,
-            deltakerProgresjonHandler = DeltakerProgresjonHandler(deltakerRepository),
         )
 
         @JvmStatic
@@ -218,7 +217,7 @@ class DeltakerServiceTest {
 
             assertDeltakereAreEqual(deltakerRepository.get(deltaker.id).getOrThrow(), oppdatertDeltaker)
 
-            val statuser = deltakerRepository.getDeltakerStatuser(deltaker.id)
+            val statuser = DeltakerStatusRepository.getDeltakerStatuser(deltaker.id)
 
             statuser.size shouldBe 2
 
@@ -252,7 +251,7 @@ class DeltakerServiceTest {
             deltakerService.transactionalDeltakerUpsert(oppdatertDeltaker)
             assertDeltakereAreEqual(deltakerRepository.get(deltaker.id).getOrThrow(), deltaker)
 
-            val statuser = deltakerRepository.getDeltakerStatuser(deltaker.id)
+            val statuser = DeltakerStatusRepository.getDeltakerStatuser(deltaker.id)
 
             statuser.size shouldBe 2
 
@@ -298,7 +297,7 @@ class DeltakerServiceTest {
 
             assertDeltakereAreEqual(deltakerRepository.get(opprinneligDeltaker.id).getOrThrow(), oppdatertDeltakerForlenget)
 
-            val statuser = deltakerRepository.getDeltakerStatuser(opprinneligDeltaker.id)
+            val statuser = DeltakerStatusRepository.getDeltakerStatuser(opprinneligDeltaker.id)
 
             statuser.size shouldBe 3
 
@@ -353,7 +352,7 @@ class DeltakerServiceTest {
                 opprinneligDeltaker.copy(sluttdato = oppdatertDeltakerHarSluttetNyArsak.sluttdato),
             )
 
-            val statuser = deltakerRepository.getDeltakerStatuser(opprinneligDeltaker.id)
+            val statuser = DeltakerStatusRepository.getDeltakerStatuser(opprinneligDeltaker.id)
             statuser.size shouldBe 2
 
             statuser.map { it.id } shouldNotContain oppdatertDeltakerHarSluttet.status.id
@@ -401,7 +400,7 @@ class DeltakerServiceTest {
                 oppdatertDeltakerDeltar,
             )
 
-            val statuser = deltakerRepository.getDeltakerStatuser(opprinneligDeltaker.id)
+            val statuser = DeltakerStatusRepository.getDeltakerStatuser(opprinneligDeltaker.id)
 
             statuser.size shouldBe 3
 
@@ -483,7 +482,7 @@ class DeltakerServiceTest {
             )
             insert(deltaker)
 
-            val statuser = deltakerRepository.getAvsluttendeDeltakerStatuserForOppdatering(listOf(deltaker.id))
+            val statuser = DeltakerStatusRepository.getAvsluttendeDeltakerStatuserForOppdatering(listOf(deltaker.id))
             statuser shouldBe emptyList()
         }
 
@@ -501,7 +500,7 @@ class DeltakerServiceTest {
 
             deltakerService.transactionalDeltakerUpsert(deltaker.copy(status = fremtidigStatus))
 
-            val statuser = deltakerRepository.getAvsluttendeDeltakerStatuserForOppdatering(listOf(deltaker.id))
+            val statuser = DeltakerStatusRepository.getAvsluttendeDeltakerStatuserForOppdatering(listOf(deltaker.id))
             statuser shouldBe emptyList()
         }
 
@@ -523,7 +522,7 @@ class DeltakerServiceTest {
 
             deltakerService.transactionalDeltakerUpsert(deltaker1, status1)
 
-            val statuser = deltakerRepository.getAvsluttendeDeltakerStatuserForOppdatering(listOf(deltaker1.id, deltaker2.id))
+            val statuser = DeltakerStatusRepository.getAvsluttendeDeltakerStatuserForOppdatering(listOf(deltaker1.id, deltaker2.id))
             statuser.size shouldBe 1
             statuser.first().deltakerId shouldBe deltaker1.id
         }
@@ -553,7 +552,7 @@ class DeltakerServiceTest {
             deltakerService.transactionalDeltakerUpsert(oppdatertDeltakerDeltar, nesteStatus)
 
             val statuser: List<DeltakerStatusMedDeltakerId> =
-                deltakerRepository.getAvsluttendeDeltakerStatuserForOppdatering(listOf(opprinneligDeltaker.id))
+                DeltakerStatusRepository.getAvsluttendeDeltakerStatuserForOppdatering(listOf(opprinneligDeltaker.id))
             statuser.size shouldBe 1
 
             assertSoftly(statuser.first()) {
@@ -684,7 +683,7 @@ class DeltakerServiceTest {
         oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.DELTAR
         oppdatertDeltaker.sluttdato shouldBe endringsrequest.sluttdato
 
-        val statuser = deltakerRepository.getDeltakerStatuser(deltaker.id)
+        val statuser = DeltakerStatusRepository.getDeltakerStatuser(deltaker.id)
         statuser.size shouldBe 2
         statuser.first { it.id == deltaker.status.id }.gyldigTil shouldBe null
         statuser.first { it.id == deltaker.status.id }.type shouldBe DeltakerStatus.Type.DELTAR
@@ -735,7 +734,7 @@ class DeltakerServiceTest {
         oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.DELTAR
         oppdatertDeltaker.sluttdato shouldBe endringsrequest.sluttdato
 
-        val statuser = deltakerRepository.getDeltakerStatuser(deltaker.id)
+        val statuser = DeltakerStatusRepository.getDeltakerStatuser(deltaker.id)
         statuser.size shouldBe 2
 
         statuser.first { it.id == deltaker.status.id }.gyldigTil shouldBe null
@@ -791,7 +790,7 @@ class DeltakerServiceTest {
         oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.DELTAR
         oppdatertDeltaker.sluttdato shouldBe endringsrequest.sluttdato
 
-        val statuser = deltakerRepository.getDeltakerStatuser(deltaker.id)
+        val statuser = DeltakerStatusRepository.getDeltakerStatuser(deltaker.id)
         statuser.size shouldBe 2
 
         assertSoftly(statuser.first { it.id == deltaker.status.id }) {
@@ -844,7 +843,7 @@ class DeltakerServiceTest {
         oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.DELTAR
         oppdatertDeltaker.sluttdato shouldBe endringsrequest.sluttdato
 
-        val statuser = deltakerRepository.getDeltakerStatuser(deltaker.id)
+        val statuser = DeltakerStatusRepository.getDeltakerStatuser(deltaker.id)
         statuser.size shouldBe 3
         val opprinneligStatus = statuser.first { it.id == deltaker.status.id }
         val currentStatus = statuser.first { it.id == oppdatertDeltaker.status.id }

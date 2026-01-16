@@ -33,7 +33,7 @@ class DeltakerRepositoryTest {
             TestRepository.insertAll(expectedDeltaker.deltakerliste, expectedDeltaker.navBruker)
 
             repository.upsert(expectedDeltaker)
-            repository.lagreStatus(expectedDeltaker.id, expectedDeltaker.status)
+            DeltakerStatusRepository.lagreStatus(expectedDeltaker.id, expectedDeltaker.status)
 
             val deltakerFromDb = repository.get(expectedDeltaker.id).getOrThrow()
             assertDeltakereAreEqual(deltakerFromDb, expectedDeltaker)
