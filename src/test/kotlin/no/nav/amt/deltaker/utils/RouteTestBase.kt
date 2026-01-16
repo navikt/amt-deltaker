@@ -25,11 +25,13 @@ import no.nav.amt.deltaker.deltaker.OpprettKladdRequestValidator
 import no.nav.amt.deltaker.deltaker.PameldingService
 import no.nav.amt.deltaker.deltaker.VedtakService
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
+import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
 import no.nav.amt.deltaker.external.DeltakelserResponseMapper
 import no.nav.amt.deltaker.hendelse.HendelseService
+import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorService
 import no.nav.amt.deltaker.unleash.UnleashToggle
@@ -52,6 +54,8 @@ abstract class RouteTestBase {
     protected val endringFraTiltakskoordinatorService: EndringFraTiltakskoordinatorService = mockk(relaxed = true)
     protected val arrangorService = mockk<ArrangorService>()
     protected val navEnhetService = mockk<NavEnhetService>()
+    protected val navAnsattService = mockk<NavAnsattService>()
+    protected val vedtakRepository = mockk<VedtakRepository>()
 
     protected val poaoTilgangCachedClient = mockk<PoaoTilgangCachedClient>()
     protected val tilgangskontrollService = TilgangskontrollService(poaoTilgangCachedClient)
@@ -92,6 +96,8 @@ abstract class RouteTestBase {
                     hendelseService,
                     endringFraTiltakskoordinatorService,
                     navEnhetService,
+                    vedtakRepository,
+                    navAnsattService,
                 )
                 setUpTestRoute()
             }

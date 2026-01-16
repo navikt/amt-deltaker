@@ -22,6 +22,7 @@ import no.nav.amt.deltaker.deltaker.VedtakService
 import no.nav.amt.deltaker.deltaker.api.deltaker.registerDeltakerApi
 import no.nav.amt.deltaker.deltaker.api.paamelding.registerPameldingApi
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
+import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
@@ -29,6 +30,7 @@ import no.nav.amt.deltaker.external.DeltakelserResponseMapper
 import no.nav.amt.deltaker.external.api.registerExternalApi
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.internal.registerInternalApi
+import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.tiltakskoordinator.api.registerTiltakskoordinatorApi
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorService
@@ -63,6 +65,8 @@ fun Application.configureRouting(
     hendelseService: HendelseService,
     endringFraTiltakskoordinatorService: EndringFraTiltakskoordinatorService,
     navEnhetService: NavEnhetService,
+    vedtakRepository: VedtakRepository,
+    navAnsattService: NavAnsattService,
 ) {
     install(StatusPages) {
         exception<IllegalArgumentException> { call, cause ->
@@ -108,6 +112,9 @@ fun Application.configureRouting(
             vurderingService,
             hendelseService,
             endringFraTiltakskoordinatorService,
+            vedtakRepository,
+            navAnsattService,
+            navEnhetService,
         )
         registerTiltakskoordinatorApi(deltakerService, deltakerHistorikkService)
         registerExternalApi(deltakerRepository, navEnhetService, tilgangskontrollService, deltakelserResponseMapper, unleashToggle)

@@ -109,12 +109,12 @@ class HendelseService(
         val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(vedtak.sistEndretAv)
         val navEnhet = navEnhetService.hentEllerOpprettNavEnhet(vedtak.sistEndretAvEnhet)
 
-        hendelseForUtkast(deltaker, navAnsatt, navEnhet) {
+        produceHendelseForUtkast(deltaker, navAnsatt, navEnhet) {
             HendelseType.InnbyggerGodkjennUtkast(it)
         }
     }
 
-    fun hendelseForUtkast(
+    fun produceHendelseForUtkast(
         deltaker: Deltaker,
         navAnsatt: NavAnsatt,
         enhet: NavEnhet,
