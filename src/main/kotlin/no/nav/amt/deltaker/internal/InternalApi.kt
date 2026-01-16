@@ -323,34 +323,41 @@ fun Routing.registerInternalApi(
     post("/internal/relast/produser-hendelse-godkjent-utkast") {
         if (isInternal(call.request.local.remoteAddress)) {
             val request = call.receive<ProduserUtkastHendelseRequest>()
+            log.info("ProduserUtkast: Produserer hendelse for ${request.deltakere.size} deltakere. DryRun: ${request.dryRun}")
+
             scope.launch {
                 request.deltakere.forEach { deltakerId ->
                     val deltaker = deltakerService.get(deltakerId).getOrThrow()
                     val vedtak = vedtakRepository.getForDeltaker(deltakerId).first()
 
                     if (vedtak.fattet == null) {
-                        log.info("Vedtak er ikke fattet for $deltakerId. Avbryter")
+                        log.info("ProduserUtkast: Vedtak er ikke fattet for $deltakerId. Avbryter")
                         return@forEach
                     }
                     if (vedtak.fattetAvNav) {
                         val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(vedtak.sistEndretAv)
                         val navEnhet = navEnhetService.hentEllerOpprettNavEnhet(vedtak.sistEndretAvEnhet)
                         if (request.dryRun) {
-                            log.info("DryRun: Produserer hendelse NavGodkjennUtkast for $deltakerId. status ${deltaker.status.type}")
+                            log.info(
+                                "ProduserUtkast: DryRun: Produserer hendelse NavGodkjennUtkast for $deltakerId. status ${deltaker.status.type}",
+                            )
                             return@forEach
                         }
-                        log.info("Produserer hendelse NavGodkjennUtkast for $deltakerId. status ${deltaker.status.type}")
+                        log.info("ProduserUtkast: Produserer hendelse NavGodkjennUtkast for $deltakerId. status ${deltaker.status.type}")
                         hendelseService.produceHendelseForUtkast(deltaker, navAnsatt, navEnhet) {
                             HendelseType.NavGodkjennUtkast(it)
                         }
+                        log.info("ProduserUtkast: Done: Produserte hendelse NavGodkjennUtkast for $deltakerId")
                     } else {
                         if (request.dryRun) {
-                            log.info("DryRun: Produserer hendelse InnbyggerGodkjennUtkast for $deltakerId")
+                            log.info("ProduserUtkast: DryRun: Produserer hendelse InnbyggerGodkjennUtkast for $deltakerId")
                             return@forEach
                         }
-                        log.info("Produserer hendelse InnbyggerGodkjennUtkast for $deltakerId. status ${deltaker.status.type}")
+                        log.info(
+                            "ProduserUtkast: Produserer hendelse InnbyggerGodkjennUtkast for $deltakerId. status ${deltaker.status.type}",
+                        )
                         hendelseService.hendelseForUtkastGodkjentAvInnbygger(deltaker)
-                        log.info("Done: Produserte hendelse InnbyggerGodkjennUtkast for $deltakerId")
+                        log.info("ProduserUtkast: Done: Produserte hendelse InnbyggerGodkjennUtkast for $deltakerId")
                     }
                 }
             }
