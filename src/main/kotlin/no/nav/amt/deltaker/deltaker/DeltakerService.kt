@@ -103,7 +103,7 @@ class DeltakerService(
         log.info("Feilregistrert deltaker med id $deltakerId")
     }
 
-    suspend fun upsertEndretDeltaker(deltakerId: UUID, request: EndringRequest): Deltaker {
+    suspend fun endreDeltaker(deltakerId: UUID, request: EndringRequest): Deltaker {
         val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
         validerIkkeFeilregistrert(deltaker)
 
@@ -123,7 +123,7 @@ class DeltakerService(
         return get(deltakerId).getOrThrow()
     }
 
-    suspend fun upsertEndretDeltaker(endring: EndringFraArrangor): Deltaker {
+    suspend fun endreDeltaker(endring: EndringFraArrangor): Deltaker {
         val deltaker = deltakerRepository.get(endring.deltakerId).getOrThrow()
         validerIkkeFeilregistrert(deltaker)
 

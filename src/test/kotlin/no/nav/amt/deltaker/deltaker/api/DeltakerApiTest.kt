@@ -67,7 +67,7 @@ class DeltakerApiTest : RouteTestBase() {
         val deltaker = lagDeltaker(bakgrunnsinformasjon = endring.bakgrunnsinformasjon)
         val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = endring)))
 
-        coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
+        coEvery { deltakerService.endreDeltaker(any(), any()) } returns deltaker
         coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
 
         val expectedBody = objectMapper.writeValueAsString(deltakerEndringResponseFromDeltaker(deltaker, historikk))
@@ -96,7 +96,7 @@ class DeltakerApiTest : RouteTestBase() {
         val deltaker = lagDeltaker(innhold = Deltakelsesinnhold("test", endring.innhold))
         val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = endring)))
 
-        coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
+        coEvery { deltakerService.endreDeltaker(any(), any()) } returns deltaker
         coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
 
         val expectedBody = objectMapper.writeValueAsString(deltakerEndringResponseFromDeltaker(deltaker, historikk))
@@ -127,7 +127,7 @@ class DeltakerApiTest : RouteTestBase() {
         )
         val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = endring)))
 
-        coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
+        coEvery { deltakerService.endreDeltaker(any(), any()) } returns deltaker
         coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
 
         val expectedBody = objectMapper.writeValueAsString(deltakerEndringResponseFromDeltaker(deltaker, historikk))
@@ -160,7 +160,7 @@ class DeltakerApiTest : RouteTestBase() {
         val deltaker = lagDeltaker(startdato = endring.startdato)
         val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = endring)))
 
-        coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
+        coEvery { deltakerService.endreDeltaker(any(), any()) } returns deltaker
         coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
 
         val expectedBody = objectMapper.writeValueAsString(deltakerEndringResponseFromDeltaker(deltaker, historikk))
@@ -190,7 +190,7 @@ class DeltakerApiTest : RouteTestBase() {
         val deltaker = lagDeltaker(sluttdato = endring.sluttdato)
         val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = endring)))
 
-        coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
+        coEvery { deltakerService.endreDeltaker(any(), any()) } returns deltaker
         coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
 
         val expectedBody = objectMapper.writeValueAsString(
@@ -237,7 +237,7 @@ class DeltakerApiTest : RouteTestBase() {
         )
         val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = endring)))
 
-        coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
+        coEvery { deltakerService.endreDeltaker(any(), any()) } returns deltaker
         coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
 
         val expectedBody = objectMapper.writeValueAsString(
@@ -272,7 +272,7 @@ class DeltakerApiTest : RouteTestBase() {
         val deltaker = lagDeltaker(sluttdato = endring.sluttdato)
         val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = endring)))
 
-        coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
+        coEvery { deltakerService.endreDeltaker(any(), any()) } returns deltaker
         coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
 
         val expectedBody = objectMapper.writeValueAsString(
@@ -315,7 +315,7 @@ class DeltakerApiTest : RouteTestBase() {
         )
         val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = endring)))
 
-        coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
+        coEvery { deltakerService.endreDeltaker(any(), any()) } returns deltaker
         coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
 
         val expectedBody = objectMapper.writeValueAsString(
@@ -360,7 +360,7 @@ class DeltakerApiTest : RouteTestBase() {
         )
         val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = endring)))
 
-        coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
+        coEvery { deltakerService.endreDeltaker(any(), any()) } returns deltaker
         coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
 
         val expectedBody = objectMapper.writeValueAsString(
@@ -407,7 +407,7 @@ class DeltakerApiTest : RouteTestBase() {
         val historikk =
             listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = endring)))
 
-        coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
+        coEvery { deltakerService.endreDeltaker(any(), any()) } returns deltaker
         coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
 
         val expectedBody = objectMapper.writeValueAsString(
@@ -448,7 +448,7 @@ class DeltakerApiTest : RouteTestBase() {
         val historikk =
             listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = endring)))
 
-        coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
+        coEvery { deltakerService.endreDeltaker(any(), any()) } returns deltaker
         coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
 
         val expectedBody = objectMapper.writeValueAsString(
@@ -485,7 +485,7 @@ class DeltakerApiTest : RouteTestBase() {
         val historikk =
             listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = endring)))
 
-        coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
+        coEvery { deltakerService.endreDeltaker(any(), any()) } returns deltaker
         coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
 
         val expectedBody = objectMapper.writeValueAsString(

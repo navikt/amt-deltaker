@@ -66,6 +66,8 @@ class DeltakerEndringService(
         val deltakelsesmengde = endring.toDeltakelsesmengde()
             ?: throw IllegalStateException("Endring ${endring.id} er ikke en EndreDeltakelsesmengde")
 
+        deltakerEndringRepository.upsert(endring, LocalDateTime.now())
+
         val gyldigeDeltakelsesmengder = deltakerHistorikkService.getForDeltaker(deltaker.id).toDeltakelsesmengder()
 
         val endringenErIkkeUtfort = deltaker.deltakelsesprosent != deltakelsesmengde.deltakelsesprosent ||
@@ -81,10 +83,6 @@ class DeltakerEndringService(
             } else {
                 throw IllegalStateException("Endringen er ikke lenger gyldig")
             }
-
-        log.info("Vellykket endring: ${endring.id}, deltaker: ${deltaker.id}")
-
-        deltakerEndringRepository.upsert(endring, LocalDateTime.now())
 
         return behandletDeltaker
     }

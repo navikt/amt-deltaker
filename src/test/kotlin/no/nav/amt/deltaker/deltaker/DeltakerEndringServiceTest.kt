@@ -160,8 +160,7 @@ class DeltakerEndringServiceTest {
                 deltaker,
                 endringsrequest.toDeltakerEndringEndring(),
                 endringsrequest,
-            )!!
-            .endring
+            ).endring
             as DeltakerEndring.Endring.EndreInnhold
         resultat.innhold shouldBe endringsrequest.deltakelsesinnhold.innhold
         resultat.ledetekst shouldBe endringsrequest.deltakelsesinnhold.ledetekst
@@ -376,7 +375,7 @@ class DeltakerEndringServiceTest {
         )
 
         shouldThrow<IllegalStateException> {
-            deltakerEndringService.behandleLagretDeltakelsesmengde(gyldigEndring, deltaker)
+            deltakerEndringService.behandleLagretDeltakelsesmengde(ugyldigEndring, deltaker)
         }
 
         val ubehandlete = deltakerEndringRepository.getUbehandletDeltakelsesmengder()

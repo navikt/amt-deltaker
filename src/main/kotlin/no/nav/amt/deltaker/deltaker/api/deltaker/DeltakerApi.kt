@@ -121,7 +121,7 @@ private suspend fun ApplicationCall.handleDeltakerEndring(
 ) {
     val deltakerId = UUID.fromString(this.parameters["deltakerId"])
 
-    val deltaker = deltakerService.upsertEndretDeltaker(deltakerId, endringRequest)
+    val deltaker = deltakerService.endreDeltaker(deltakerId, endringRequest)
     val historikk = historikkService.getForDeltaker(deltaker.id)
 
     this.respond(deltakerEndringResponseFromDeltaker(deltaker, historikk))

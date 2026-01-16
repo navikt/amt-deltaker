@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.deltaker
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.booleans.shouldBeTrue
@@ -7,6 +8,7 @@ import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.ktor.server.plugins.requestvalidation.RequestValidationException
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
@@ -639,7 +641,9 @@ class DeltakerServiceTest {
             bakgrunnsinformasjon = deltaker.bakgrunnsinformasjon,
         )
 
-        deltakerService.upsertEndretDeltaker(deltaker.id, endringsrequest)
+        shouldThrow<RequestValidationException> {
+            deltakerService.endreDeltaker(deltaker.id, endringsrequest)
+        }
 
         deltakerService.get(deltaker.id).getOrThrow().sistEndret shouldBeCloseTo deltaker.sistEndret
         deltakerEndringService.getForDeltaker(deltaker.id).isEmpty() shouldBe true
@@ -673,7 +677,7 @@ class DeltakerServiceTest {
             forslagId = null,
         )
 
-        val deltakerrespons = deltakerService.upsertEndretDeltaker(deltaker.id, endringsrequest)
+        val deltakerrespons = deltakerService.endreDeltaker(deltaker.id, endringsrequest)
 
         deltakerrespons.status.type shouldBe DeltakerStatus.Type.DELTAR
         deltakerrespons.sluttdato shouldBe endringsrequest.sluttdato
@@ -724,7 +728,7 @@ class DeltakerServiceTest {
             forslagId = null,
         )
 
-        val deltakerrespons = deltakerService.upsertEndretDeltaker(deltaker.id, endringsrequest)
+        val deltakerrespons = deltakerService.endreDeltaker(deltaker.id, endringsrequest)
 
         deltakerrespons.status.type shouldBe DeltakerStatus.Type.DELTAR
         deltakerrespons.sluttdato shouldBe endringsrequest.sluttdato
@@ -780,7 +784,7 @@ class DeltakerServiceTest {
             forslagId = null,
         )
 
-        val deltakerrespons = deltakerService.upsertEndretDeltaker(deltaker.id, endringsrequest)
+        val deltakerrespons = deltakerService.endreDeltaker(deltaker.id, endringsrequest)
 
         deltakerrespons.status.type shouldBe DeltakerStatus.Type.DELTAR
         deltakerrespons.sluttdato shouldBe endringsrequest.sluttdato
@@ -833,7 +837,7 @@ class DeltakerServiceTest {
             forslagId = null,
         )
 
-        val deltakerrespons = deltakerService.upsertEndretDeltaker(deltaker.id, endringsrequest)
+        val deltakerrespons = deltakerService.endreDeltaker(deltaker.id, endringsrequest)
 
         deltakerrespons.status.type shouldBe DeltakerStatus.Type.DELTAR
         deltakerrespons.sluttdato shouldBe endringsrequest.sluttdato
@@ -882,7 +886,7 @@ class DeltakerServiceTest {
             gyldigFra = LocalDate.now(),
         )
 
-        val resultat = deltakerService.upsertEndretDeltaker(deltaker.id, endringsrequest)
+        val resultat = deltakerService.endreDeltaker(deltaker.id, endringsrequest)
 
         resultat.deltakelsesprosent shouldBe endringsrequest.deltakelsesprosent?.toFloat()
         resultat.dagerPerUke shouldBe null
@@ -924,7 +928,7 @@ class DeltakerServiceTest {
             gyldigFra = LocalDate.now().plusDays(1),
         )
 
-        val resultat = deltakerService.upsertEndretDeltaker(deltaker.id, endringsrequest)
+        val resultat = deltakerService.endreDeltaker(deltaker.id, endringsrequest)
         resultat.deltakelsesprosent shouldBe deltaker.deltakelsesprosent
         resultat.dagerPerUke shouldBe deltaker.dagerPerUke
 
@@ -964,7 +968,7 @@ class DeltakerServiceTest {
             forslagId = null,
         )
 
-        val resultat = deltakerService.upsertEndretDeltaker(deltaker.id, endringsrequest)
+        val resultat = deltakerService.endreDeltaker(deltaker.id, endringsrequest)
         resultat.startdato shouldBe endringsrequest.startdato
         resultat.sluttdato shouldBe endringsrequest.sluttdato
         resultat.status.type shouldBe DeltakerStatus.Type.DELTAR
@@ -1011,7 +1015,7 @@ class DeltakerServiceTest {
             forslagId = null,
         )
 
-        val resultat = deltakerService.upsertEndretDeltaker(deltaker.id, endringsrequest)
+        val resultat = deltakerService.endreDeltaker(deltaker.id, endringsrequest)
         resultat.startdato shouldBe endringsrequest.startdato
         resultat.sluttdato shouldBe deltakersSluttdato
         resultat.status.type shouldBe DeltakerStatus.Type.DELTAR

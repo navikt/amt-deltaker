@@ -49,7 +49,7 @@ class ArrangorMeldingConsumer(
         }
 
         when (melding) {
-            is EndringFraArrangor -> deltakerService.upsertEndretDeltaker(melding)
+            is EndringFraArrangor -> deltakerService.endreDeltaker(melding)
 
             is Forslag -> forslagService.upsert(melding)
 
