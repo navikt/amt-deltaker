@@ -2,20 +2,26 @@ package no.nav.amt.deltaker.job
 
 import io.kotest.matchers.shouldBe
 import io.mockk.every
-import io.mockk.mockk
-import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
+import io.mockk.mockkObject
+import io.mockk.unmockkObject
 import no.nav.amt.deltaker.deltaker.db.DeltakerStatusMedDeltakerId
+import no.nav.amt.deltaker.deltaker.db.DeltakerStatusRepository
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
 class DeltakerProgresjonTest {
-    val deltakerRepository = mockk<DeltakerRepository>()
-    val deltakerProgresjonHandler = DeltakerProgresjonHandler(deltakerRepository)
+    @BeforeEach
+    fun setup() = mockkObject(DeltakerStatusRepository)
+
+    @AfterEach
+    fun teardown() = unmockkObject(DeltakerStatusRepository)
 
     @Test
     fun `getAvsluttendeStatusUtfall - deltar avbrutt deltakerliste - far riktig status og arsak`() {
@@ -27,8 +33,9 @@ class DeltakerProgresjonTest {
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
         )
 
-        every { deltakerRepository.getAvsluttendeDeltakerStatuserForOppdatering(any()) } returns emptyList()
-        val oppdatertDeltaker = deltakerProgresjonHandler
+        every { DeltakerStatusRepository.getAvsluttendeDeltakerStatuserForOppdatering(any()) } returns emptyList()
+
+        val oppdatertDeltaker = DeltakerProgresjonHandler
             .getAvsluttendeStatusUtfall(listOf(deltaker))
             .first()
 
@@ -46,9 +53,10 @@ class DeltakerProgresjonTest {
             sluttdato = deltakerliste.sluttDato,
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
         )
-        every { deltakerRepository.getAvsluttendeDeltakerStatuserForOppdatering(any()) } returns emptyList()
 
-        val oppdatertDeltaker = deltakerProgresjonHandler
+        every { DeltakerStatusRepository.getAvsluttendeDeltakerStatuserForOppdatering(any()) } returns emptyList()
+
+        val oppdatertDeltaker = DeltakerProgresjonHandler
             .getAvsluttendeStatusUtfall(listOf(deltaker))
             .first()
 
@@ -67,6 +75,7 @@ class DeltakerProgresjonTest {
             sluttdato = deltakerliste.sluttDato,
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
         )
+
         val fremtidigStatus =
             DeltakerStatus(
                 UUID.randomUUID(),
@@ -76,11 +85,12 @@ class DeltakerProgresjonTest {
                 gyldigTil = null,
                 opprettet = LocalDateTime.now().minusDays(2),
             )
-        every { deltakerRepository.getAvsluttendeDeltakerStatuserForOppdatering(any()) } returns listOf(
+
+        every { DeltakerStatusRepository.getAvsluttendeDeltakerStatuserForOppdatering(any()) } returns listOf(
             DeltakerStatusMedDeltakerId(fremtidigStatus, deltaker.id),
         )
 
-        val oppdatertDeltaker = deltakerProgresjonHandler
+        val oppdatertDeltaker = DeltakerProgresjonHandler
             .getAvsluttendeStatusUtfall(listOf(deltaker))
             .first()
 

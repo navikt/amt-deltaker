@@ -1,6 +1,6 @@
 package no.nav.amt.deltaker.job
 
-import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
+import no.nav.amt.deltaker.deltaker.db.DeltakerStatusRepository
 import no.nav.amt.deltaker.deltaker.extensions.harIkkeStartet
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -9,16 +9,14 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
-class DeltakerProgresjonHandler(
-    private val deltakerRepository: DeltakerRepository,
-) {
+object DeltakerProgresjonHandler {
     private val log = LoggerFactory.getLogger(javaClass)
 
     fun getAvsluttendeStatusUtfall(deltakere: List<Deltaker>): List<Deltaker> {
         if (deltakere.isEmpty()) {
             return emptyList()
         }
-        val fremtidigAvsluttendeStatus = deltakerRepository.getAvsluttendeDeltakerStatuserForOppdatering(
+        val fremtidigAvsluttendeStatus = DeltakerStatusRepository.getAvsluttendeDeltakerStatuserForOppdatering(
             deltakere.map { it.id },
         )
 

@@ -139,7 +139,6 @@ class DeltakerStatusOppdateringTest {
                 endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
                 navAnsattService = navAnsattService,
                 navEnhetService = navEnhetService,
-                deltakerProgresjonHandler = DeltakerProgresjonHandler(deltakerRepository),
             )
         }
     }
