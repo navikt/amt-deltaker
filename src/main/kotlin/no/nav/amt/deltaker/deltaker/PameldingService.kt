@@ -112,7 +112,7 @@ class PameldingService(
 
         val deltaker = deltakerService.upsertDeltaker(deltakerMedNyttVedtak)
 
-        hendelseService.hendelseForUtkast(deltaker, endretAv, endretAvNavEnhet) {
+        hendelseService.produceHendelseForUtkast(deltaker, endretAv, endretAvNavEnhet) {
             if (utkast.godkjentAvNav) {
                 HendelseType.NavGodkjennUtkast(it)
             } else if (opprinneligDeltaker.status.type == DeltakerStatus.Type.KLADD) {
@@ -180,7 +180,7 @@ class PameldingService(
 
         deltakerService.upsertDeltaker(oppdatertDeltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksInformasjon()))
 
-        hendelseService.hendelseForUtkast(oppdatertDeltaker, endretAv, endretAvNavEnhet) { HendelseType.AvbrytUtkast(it) }
+        hendelseService.produceHendelseForUtkast(oppdatertDeltaker, endretAv, endretAvNavEnhet) { HendelseType.AvbrytUtkast(it) }
 
         log.info("Avbrutt utkast for deltaker med id $deltakerId")
     }

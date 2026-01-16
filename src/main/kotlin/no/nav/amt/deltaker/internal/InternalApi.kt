@@ -17,16 +17,20 @@ import no.nav.amt.deltaker.deltaker.DeltakerUtils.nyDeltakerStatus
 import no.nav.amt.deltaker.deltaker.PameldingService
 import no.nav.amt.deltaker.deltaker.VedtakService
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
+import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.extensions.getVedtakOrThrow
 import no.nav.amt.deltaker.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
 import no.nav.amt.deltaker.hendelse.HendelseService
+import no.nav.amt.deltaker.navansatt.NavAnsattService
+import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorService
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
+import no.nav.amt.lib.models.hendelse.HendelseType
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
@@ -42,6 +46,9 @@ fun Routing.registerInternalApi(
     vurderingService: VurderingService,
     hendelseService: HendelseService,
     endringFraTiltakskoordinatorService: EndringFraTiltakskoordinatorService,
+    vedtakRepository: VedtakRepository,
+    navAnsattService: NavAnsattService,
+    navEnhetService: NavEnhetService,
 ) {
     val scope = CoroutineScope(Dispatchers.IO)
 
@@ -305,6 +312,52 @@ fun Routing.registerInternalApi(
             throw AuthorizationException("Ikke tilgang til api")
         }
     }
+
+    /*
+        Brukes for å produsere hendelse til amt-distribusjon i tilfeller hvor manglende transaksjonshåndtering har ført til
+        at en deltaker har fått godkjent utkast men handlingen ikke har blitt produsert på topic slik at amt-distribusjon ikke
+        får inaktivert oppgave når neste handling blir publisert
+        https://trello.com/c/wHea6vGJ/2630-bug-kan-ikke-inaktivere-oppgave-som-om-den-var-en-beskjed
+        https://trello.com/c/kxsww0I4/2466-prod-feil-amt-distribusjon-noe-gikk-galt-med-jobb-sendventendevarslerjob
+     */
+    post("/internal/relast/produser-hendelse-godkjent-utkast") {
+        if (isInternal(call.request.local.remoteAddress)) {
+            val request = call.receive<ProduserUtkastHendelseRequest>()
+            scope.launch {
+                request.deltakere.forEach { deltakerId ->
+                    val deltaker = deltakerService.get(deltakerId).getOrThrow()
+                    val vedtak = vedtakRepository.getForDeltaker(deltakerId).first()
+
+                    if (vedtak.fattet == null) {
+                        log.info("Vedtak er ikke fattet for $deltakerId. Avbryter")
+                        return@forEach
+                    }
+                    if (vedtak.fattetAvNav) {
+                        val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(vedtak.sistEndretAv)
+                        val navEnhet = navEnhetService.hentEllerOpprettNavEnhet(vedtak.sistEndretAvEnhet)
+                        if (request.dryRun) {
+                            log.info("DryRun: Produserer hendelse NavGodkjennUtkast for $deltakerId. status ${deltaker.status.type}")
+                            return@forEach
+                        }
+                        hendelseService.produceHendelseForUtkast(deltaker, navAnsatt, navEnhet) {
+                            HendelseType.NavGodkjennUtkast(it)
+                        }
+                    } else {
+                        if (request.dryRun) {
+                            log.info("DryRun: Produserer hendelse InnbyggerGodkjennUtkast for $deltakerId")
+                            return@forEach
+                        }
+                        log.info("Produserer hendelse InnbyggerGodkjennUtkast for $deltakerId. status ${deltaker.status.type}")
+                        hendelseService.hendelseForUtkastGodkjentAvInnbygger(deltaker)
+                        log.info("Done: Produserte hendelse InnbyggerGodkjennUtkast for $deltakerId")
+                    }
+                }
+            }
+            call.respond(HttpStatusCode.OK)
+        } else {
+            throw AuthorizationException("Ikke tilgang til api")
+        }
+    }
 }
 
 data class RelastDeltakereRequest(
@@ -312,6 +365,11 @@ data class RelastDeltakereRequest(
     val forcedUpdate: Boolean,
     val publiserTilDeltakerV1: Boolean,
     val publiserTilDeltakerV2: Boolean = true,
+)
+
+data class ProduserUtkastHendelseRequest(
+    val deltakere: List<UUID>,
+    val dryRun: Boolean = false,
 )
 
 data class RelastHendelseRequest(

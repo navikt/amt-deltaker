@@ -341,6 +341,8 @@ fun Application.module() {
         hendelseService = hendelseService,
         endringFraTiltakskoordinatorService = endringFraTiltakskoordinatorService,
         navEnhetService = navEnhetService,
+        navAnsattService = navAnsattService,
+        vedtakRepository = vedtakRepository,
     )
     configureMonitoring()
 
