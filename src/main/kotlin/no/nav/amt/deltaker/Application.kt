@@ -75,7 +75,6 @@ import no.nav.amt.deltaker.navenhet.NavEnhetConsumer
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
-import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorService
 import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.lib.kafka.Producer
 import no.nav.amt.lib.kafka.config.KafkaConfigImpl
@@ -199,8 +198,6 @@ fun Application.module() {
     val innsokPaaFellesOppstartRepository = InnsokPaaFellesOppstartRepository()
     val innsokPaaFellesOppstartService = InnsokPaaFellesOppstartService(innsokPaaFellesOppstartRepository)
     val endringFraTiltakskoordinatorRepository = EndringFraTiltakskoordinatorRepository()
-    val endringFraTiltakskoordinatorService =
-        EndringFraTiltakskoordinatorService(endringFraTiltakskoordinatorRepository, navAnsattService)
 
     val deltakerHistorikkService = DeltakerHistorikkService(
         deltakerEndringRepository,
@@ -267,7 +264,6 @@ fun Application.module() {
         forslagService = forslagService,
         importertFraArenaRepository = importertFraArenaRepository,
         deltakerHistorikkService = deltakerHistorikkService,
-        endringFraTiltakskoordinatorService = endringFraTiltakskoordinatorService,
         endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
         navAnsattService = navAnsattService,
         navEnhetService = navEnhetService,
@@ -339,7 +335,7 @@ fun Application.module() {
         innsokPaaFellesOppstartService = innsokPaaFellesOppstartService,
         vurderingService = vurderingService,
         hendelseService = hendelseService,
-        endringFraTiltakskoordinatorService = endringFraTiltakskoordinatorService,
+        endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
         navEnhetService = navEnhetService,
         navAnsattService = navAnsattService,
         vedtakRepository = vedtakRepository,

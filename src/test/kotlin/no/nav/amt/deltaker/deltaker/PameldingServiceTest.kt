@@ -548,7 +548,6 @@ class PameldingServiceTest {
             forslagService = forslagService,
             importertFraArenaRepository = importertFraArenaRepository,
             deltakerHistorikkService = deltakerHistorikkService,
-            endringFraTiltakskoordinatorService = mockk(),
             navAnsattService = navAnsattService,
             endringFraTiltakskoordinatorRepository = endringFraTiltaksKoordinatorRepository,
             navEnhetService = navEnhetService,

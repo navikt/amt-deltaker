@@ -33,7 +33,7 @@ import no.nav.amt.deltaker.external.DeltakelserResponseMapper
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
-import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorService
+import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.lib.utils.applicationConfig
 import no.nav.poao_tilgang.client.PoaoTilgangCachedClient
@@ -51,7 +51,7 @@ abstract class RouteTestBase {
     protected val innsokPaaFellesOppstartService: InnsokPaaFellesOppstartService = mockk(relaxed = true)
     protected val vurderingService: VurderingService = mockk(relaxed = true)
     protected val hendelseService: HendelseService = mockk(relaxed = true)
-    protected val endringFraTiltakskoordinatorService: EndringFraTiltakskoordinatorService = mockk(relaxed = true)
+    protected val endringFraTiltakskoordinatorRepository: EndringFraTiltakskoordinatorRepository = mockk(relaxed = true)
     protected val arrangorService = mockk<ArrangorService>()
     protected val navEnhetService = mockk<NavEnhetService>()
     protected val navAnsattService = mockk<NavAnsattService>()
@@ -94,7 +94,7 @@ abstract class RouteTestBase {
                     innsokPaaFellesOppstartService,
                     vurderingService,
                     hendelseService,
-                    endringFraTiltakskoordinatorService,
+                    endringFraTiltakskoordinatorRepository,
                     navEnhetService,
                     vedtakRepository,
                     navAnsattService,

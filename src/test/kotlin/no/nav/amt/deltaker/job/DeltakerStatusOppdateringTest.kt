@@ -33,7 +33,6 @@ import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
-import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorService
 import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
@@ -114,10 +113,6 @@ class DeltakerStatusOppdateringTest {
             deltakerHistorikkService = deltakerHistorikkService,
         )
         private val endringFraTiltakskoordinatorRepository = EndringFraTiltakskoordinatorRepository()
-        private val endringFraTiltakskoordinatorService = EndringFraTiltakskoordinatorService(
-            endringFraTiltakskoordinatorRepository,
-            navAnsattService,
-        )
 
         @JvmStatic
         @BeforeAll
@@ -135,7 +130,6 @@ class DeltakerStatusOppdateringTest {
                 forslagService,
                 importertFraArenaRepository,
                 deltakerHistorikkService,
-                endringFraTiltakskoordinatorService,
                 endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
                 navAnsattService = navAnsattService,
                 navEnhetService = navEnhetService,

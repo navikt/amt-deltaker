@@ -26,7 +26,7 @@ import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
-import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorService
+import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
@@ -45,7 +45,7 @@ fun Routing.registerInternalApi(
     innsokPaaFellesOppstartService: InnsokPaaFellesOppstartService,
     vurderingService: VurderingService,
     hendelseService: HendelseService,
-    endringFraTiltakskoordinatorService: EndringFraTiltakskoordinatorService,
+    endringFraTiltakskoordinatorRepository: EndringFraTiltakskoordinatorRepository,
     vedtakRepository: VedtakRepository,
     navAnsattService: NavAnsattService,
     navEnhetService: NavEnhetService,
@@ -287,7 +287,7 @@ fun Routing.registerInternalApi(
             scope.launch {
                 log.info("Relaster hendelse med endringid: ${request.endringId}")
 
-                val endring = endringFraTiltakskoordinatorService.get(request.endringId)
+                val endring = endringFraTiltakskoordinatorRepository.get(request.endringId)
                     ?: throw IllegalArgumentException(
                         "Kunne ikke relaste hendelse med endring med id: ${request.endringId}, kunne ikke finne endring.",
                     )

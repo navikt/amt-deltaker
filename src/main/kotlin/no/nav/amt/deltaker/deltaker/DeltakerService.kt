@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.deltaker
 
 import no.nav.amt.deltaker.deltaker.DeltakerUtils.nyDeltakerStatus
+import no.nav.amt.deltaker.deltaker.DeltakerUtils.sjekkEndringUtfall
 import no.nav.amt.deltaker.deltaker.api.deltaker.toDeltakerEndringEndring
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerStatusRepository
@@ -20,7 +21,6 @@ import no.nav.amt.deltaker.job.DeltakerProgresjonHandler
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
-import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorService
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Kilde
@@ -47,7 +47,6 @@ class DeltakerService(
     private val forslagService: ForslagService,
     private val importertFraArenaRepository: ImportertFraArenaRepository,
     private val deltakerHistorikkService: DeltakerHistorikkService,
-    private val endringFraTiltakskoordinatorService: EndringFraTiltakskoordinatorService,
     private val endringFraTiltakskoordinatorRepository: EndringFraTiltakskoordinatorRepository,
     private val navAnsattService: NavAnsattService,
     private val navEnhetService: NavEnhetService,
@@ -84,7 +83,7 @@ class DeltakerService(
             deltakerEndringService.deleteForDeltaker(deltakerId)
             forslagService.deleteForDeltaker(deltakerId)
             endringFraArrangorService.deleteForDeltaker(deltakerId)
-            endringFraTiltakskoordinatorService.deleteForDeltaker(deltakerId)
+            endringFraTiltakskoordinatorRepository.deleteForDeltaker(deltakerId)
             DeltakerStatusRepository.slettStatus(deltakerId)
             deltakerRepository.slettDeltaker(deltakerId)
         }
@@ -173,7 +172,7 @@ class DeltakerService(
         }
     }
 
-    suspend fun upsertDeltaker(
+    private suspend fun localUpsertDeltaker(
         deltaker: Deltaker,
         endringsType: EndringFraTiltakskoordinator.Endring,
         endretAv: NavAnsatt,
@@ -187,7 +186,7 @@ class DeltakerService(
             endretAvEnhet = endretAvEnhet.id,
             endret = LocalDateTime.now(),
         )
-        val deltakerResult = endringFraTiltakskoordinatorService.sjekkEndringUtfall(deltaker, endring.endring)
+        val deltakerResult = sjekkEndringUtfall(deltaker, endring.endring)
 
         if (deltakerResult.isFailure) {
             return DeltakerOppdateringResult(
@@ -230,7 +229,7 @@ class DeltakerService(
         require(tiltakskoder.first() in Tiltakstype.kursTiltak) { "kan ikke endre på deltakere på tiltakskoden ${tiltakskoder.first()}" }
 
         return deltakere
-            .map { upsertDeltaker(it, endringsType, endretAv, endretAvEnhet) }
+            .map { localUpsertDeltaker(it, endringsType, endretAv, endretAvEnhet) }
             .map { deltakerOppdateringResult ->
                 if (!deltakerOppdateringResult.isSuccess) {
                     log.error(

@@ -79,7 +79,6 @@ class EnkeltplassDeltakerConsumerTest {
                 endringFraArrangorService = mockk(),
                 forslagService = mockk(),
                 deltakerHistorikkService = mockk(),
-                endringFraTiltakskoordinatorService = mockk(),
                 endringFraTiltakskoordinatorRepository = mockk(),
                 navEnhetService = mockk(),
             ),

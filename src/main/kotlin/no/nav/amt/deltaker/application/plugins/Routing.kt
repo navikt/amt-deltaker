@@ -33,7 +33,7 @@ import no.nav.amt.deltaker.internal.registerInternalApi
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.tiltakskoordinator.api.registerTiltakskoordinatorApi
-import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorService
+import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.lib.ktor.auth.exceptions.AuthenticationException
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
@@ -63,7 +63,7 @@ fun Application.configureRouting(
     innsokPaaFellesOppstartService: InnsokPaaFellesOppstartService,
     vurderingService: VurderingService,
     hendelseService: HendelseService,
-    endringFraTiltakskoordinatorService: EndringFraTiltakskoordinatorService,
+    endringFraTiltakskoordinatorRepository: EndringFraTiltakskoordinatorRepository,
     navEnhetService: NavEnhetService,
     vedtakRepository: VedtakRepository,
     navAnsattService: NavAnsattService,
@@ -111,7 +111,7 @@ fun Application.configureRouting(
             innsokPaaFellesOppstartService,
             vurderingService,
             hendelseService,
-            endringFraTiltakskoordinatorService,
+            endringFraTiltakskoordinatorRepository,
             vedtakRepository,
             navAnsattService,
             navEnhetService,

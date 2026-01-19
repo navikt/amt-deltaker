@@ -47,7 +47,6 @@ import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorCtx
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
-import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorService
 import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.deltaker.utils.data.TestData.lagArrangor
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
@@ -157,10 +156,6 @@ class DeltakerServiceTest {
             deltakerHistorikkService = deltakerHistorikkService,
         )
         private val endringFraTiltakskoordinatorRepository = EndringFraTiltakskoordinatorRepository()
-        private val endringFraTiltakskoordinatorService = EndringFraTiltakskoordinatorService(
-            endringFraTiltakskoordinatorRepository,
-            navAnsattService,
-        )
 
         private val deltakerService = DeltakerService(
             deltakerRepository = deltakerRepository,
@@ -172,7 +167,6 @@ class DeltakerServiceTest {
             forslagService = forslagService,
             importertFraArenaRepository = importertFraArenaRepository,
             deltakerHistorikkService = deltakerHistorikkService,
-            endringFraTiltakskoordinatorService = endringFraTiltakskoordinatorService,
             endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
             navAnsattService = navAnsattService,
             navEnhetService = navEnhetService,
@@ -1372,7 +1366,7 @@ class DeltakerServiceTest {
             val deltakerFromDb = deltakerService.get(deltaker.id).getOrThrow()
             deltakerFromDb.status.type shouldBe deltaker.status.type
 
-            val insertedEndring = endringFraTiltakskoordinatorService.getForDeltaker(deltaker.id)
+            val insertedEndring = endringFraTiltakskoordinatorRepository.getForDeltaker(deltaker.id)
             insertedEndring shouldBe emptyList()
         }
     }
@@ -1521,7 +1515,7 @@ class DeltakerServiceTest {
                 navAnsatt.navIdent,
             )
 
-            val endringer = endringFraTiltakskoordinatorService.getForDeltaker(deltaker.id)
+            val endringer = endringFraTiltakskoordinatorRepository.getForDeltaker(deltaker.id)
             endringer.size shouldBe 1
             (endringer.first().endring is EndringFraTiltakskoordinator.Avslag) shouldBe true
 
