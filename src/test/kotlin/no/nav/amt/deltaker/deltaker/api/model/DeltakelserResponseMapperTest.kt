@@ -12,7 +12,6 @@ import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
-import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
 import no.nav.amt.deltaker.external.DeltakelserResponseMapper
 import no.nav.amt.deltaker.external.data.DeltakelserResponse
 import no.nav.amt.deltaker.external.data.Periode
@@ -38,7 +37,7 @@ class DeltakelserResponseMapperTest {
             ImportertFraArenaRepository(),
             InnsokPaaFellesOppstartRepository(),
             EndringFraTiltakskoordinatorRepository(),
-            vurderingService = VurderingService(VurderingRepository()),
+            VurderingRepository(),
         )
         private val arrangorService = ArrangorService(ArrangorRepository(), mockk())
         private val deltakelserResponseMapper = DeltakelserResponseMapper(deltakerHistorikkService, arrangorService)

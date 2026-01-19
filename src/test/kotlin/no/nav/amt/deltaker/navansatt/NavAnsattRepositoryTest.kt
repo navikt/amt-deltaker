@@ -37,4 +37,14 @@ class NavAnsattRepositoryTest {
         faktiskeAnsatte.find { it == ansatte[1] } shouldNotBe null
         faktiskeAnsatte.find { it == ansatte[2] } shouldNotBe null
     }
+
+    @Test
+    fun `slettNavAnsatt - navansatt blir slettet`() {
+        val navAnsatt = TestData.lagNavAnsatt()
+        TestRepository.insert(navAnsatt)
+
+        repository.delete(navAnsatt.id)
+
+        repository.get(navAnsatt.id) shouldBe null
+    }
 }

@@ -20,9 +20,9 @@ import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.extensions.getVedtakOrThrow
 import no.nav.amt.deltaker.deltaker.extensions.tilVedtaksInformasjon
-import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartService
+import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
-import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
+import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
@@ -42,8 +42,8 @@ fun Routing.registerInternalApi(
     pameldingService: PameldingService,
     deltakerProducerService: DeltakerProducerService,
     vedtakService: VedtakService,
-    innsokPaaFellesOppstartService: InnsokPaaFellesOppstartService,
-    vurderingService: VurderingService,
+    innsokPaaFellesOppstartRepository: InnsokPaaFellesOppstartRepository,
+    vurderingRepository: VurderingRepository,
     hendelseService: HendelseService,
     endringFraTiltakskoordinatorRepository: EndringFraTiltakskoordinatorRepository,
     vedtakRepository: VedtakRepository,
@@ -55,8 +55,8 @@ fun Routing.registerInternalApi(
     val log: Logger = LoggerFactory.getLogger(javaClass)
 
     suspend fun slettDeltaker(deltakerId: UUID) {
-        innsokPaaFellesOppstartService.deleteForDeltaker(deltakerId)
-        vurderingService.deleteForDeltaker(deltakerId)
+        innsokPaaFellesOppstartRepository.deleteForDeltaker(deltakerId)
+        vurderingRepository.deleteForDeltaker(deltakerId)
         deltakerService.delete(deltakerId)
     }
 

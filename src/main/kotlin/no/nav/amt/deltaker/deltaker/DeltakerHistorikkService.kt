@@ -9,7 +9,7 @@ import no.nav.amt.deltaker.deltaker.extensions.toVurderingFraArrangorData
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
-import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
+import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import java.time.LocalDate
@@ -23,14 +23,14 @@ class DeltakerHistorikkService(
     private val importertFraArenaRepository: ImportertFraArenaRepository,
     private val innsokPaaFellesOppstartRepository: InnsokPaaFellesOppstartRepository,
     private val endringFraTiltakskoordinatorRepository: EndringFraTiltakskoordinatorRepository,
-    private val vurderingService: VurderingService,
+    private val vurderingRepository: VurderingRepository,
 ) {
     fun getForDeltaker(id: UUID): List<DeltakerHistorikk> {
         val endringer = deltakerEndringRepository.getForDeltaker(id).map { DeltakerHistorikk.Endring(it) }
         val vedtak = vedtakRepository.getForDeltaker(id).map { DeltakerHistorikk.Vedtak(it) }
         val forslag = forslagRepository.getForDeltaker(id).filter { it.skalInkluderesIHistorikk() }.map { DeltakerHistorikk.Forslag(it) }
 
-        val vurderinger = vurderingService
+        val vurderinger = vurderingRepository
             .getForDeltaker(id)
             .map { DeltakerHistorikk.VurderingFraArrangor(it.toVurderingFraArrangorData()) }
 

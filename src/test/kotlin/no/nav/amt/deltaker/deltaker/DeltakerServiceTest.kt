@@ -113,7 +113,7 @@ class DeltakerServiceTest {
                 importertFraArenaRepository,
                 InnsokPaaFellesOppstartRepository(),
                 EndringFraTiltakskoordinatorRepository(),
-                vurderingService,
+                vurderingRepository,
             )
         private val hendelseService = HendelseService(
             HendelseProducer(kafkaProducer),
@@ -164,13 +164,14 @@ class DeltakerServiceTest {
             deltakerEndringService = deltakerEndringService,
             vedtakService = vedtakService,
             hendelseService = hendelseService,
+            endringFraArrangorRepository = endringFraArrangorRepository,
             endringFraArrangorService = endringFraArrangorService,
-            forslagService = forslagService,
             importertFraArenaRepository = importertFraArenaRepository,
             deltakerHistorikkService = deltakerHistorikkService,
             endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
             navAnsattService = navAnsattService,
             navEnhetService = navEnhetService,
+            forslagRepository = forslagRepository,
         )
 
         @JvmStatic

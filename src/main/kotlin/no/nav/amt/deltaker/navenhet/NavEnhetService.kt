@@ -16,7 +16,7 @@ class NavEnhetService(
 
         log.info("Fant ikke nav-enhet med nummer $enhetsnummer, henter fra amt-person-service")
         val navEnhet = amtPersonServiceClient.hentNavEnhet(enhetsnummer)
-        return upsert(navEnhet)
+        return repository.upsert(navEnhet)
     }
 
     suspend fun hentEllerOpprettNavEnhet(id: UUID): NavEnhet {
@@ -24,10 +24,8 @@ class NavEnhetService(
 
         log.info("Fant ikke nav-enhet med id $id, henter fra amt-person-service")
         val navEnhet = amtPersonServiceClient.hentNavEnhet(id)
-        return upsert(navEnhet)
+        return repository.upsert(navEnhet)
     }
-
-    fun upsert(enhet: NavEnhet) = repository.upsert(enhet)
 
     fun getEnheter(ider: Set<UUID>) = repository.getMany(ider).associateBy { it.id }
 }

@@ -493,6 +493,7 @@ class PameldingServiceTest {
         private val innsokPaaFellesOppstartRepository = InnsokPaaFellesOppstartRepository()
         private val innsokPaaFellesOppstartService = InnsokPaaFellesOppstartService(innsokPaaFellesOppstartRepository)
         private val endringFraTiltaksKoordinatorRepository = EndringFraTiltakskoordinatorRepository()
+        private val vurderingRepository = VurderingRepository()
 
         private val deltakerHistorikkService =
             DeltakerHistorikkService(
@@ -503,7 +504,7 @@ class PameldingServiceTest {
                 importertFraArenaRepository,
                 innsokPaaFellesOppstartRepository,
                 endringFraTiltaksKoordinatorRepository,
-                vurderingService = VurderingService(VurderingRepository()),
+                vurderingRepository,
             )
         private val hendelseService = HendelseService(
             HendelseProducer(kafkaProducer),
@@ -545,13 +546,14 @@ class PameldingServiceTest {
             ),
             vedtakService = vedtakService,
             hendelseService = hendelseService,
+            endringFraArrangorRepository = endringFraArrangorRepository,
             endringFraArrangorService = endringFraArrangorService,
-            forslagService = forslagService,
             importertFraArenaRepository = importertFraArenaRepository,
             deltakerHistorikkService = deltakerHistorikkService,
             navAnsattService = navAnsattService,
             endringFraTiltakskoordinatorRepository = endringFraTiltaksKoordinatorRepository,
             navEnhetService = navEnhetService,
+            forslagRepository = forslagRepository,
         )
 
         private var pameldingService = PameldingService(

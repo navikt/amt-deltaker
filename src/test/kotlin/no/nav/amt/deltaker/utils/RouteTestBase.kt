@@ -26,9 +26,9 @@ import no.nav.amt.deltaker.deltaker.PameldingService
 import no.nav.amt.deltaker.deltaker.VedtakService
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
-import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartService
+import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
-import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
+import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
 import no.nav.amt.deltaker.external.DeltakelserResponseMapper
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.navansatt.NavAnsattService
@@ -48,8 +48,8 @@ abstract class RouteTestBase {
     protected val deltakerHistorikkService: DeltakerHistorikkService = mockk(relaxed = true)
     protected val deltakerProducerService: DeltakerProducerService = mockk(relaxed = true)
     protected val vedtakService: VedtakService = mockk(relaxed = true)
-    protected val innsokPaaFellesOppstartService: InnsokPaaFellesOppstartService = mockk(relaxed = true)
-    protected val vurderingService: VurderingService = mockk(relaxed = true)
+    protected val innsokPaaFellesOppstartRepository: InnsokPaaFellesOppstartRepository = mockk(relaxed = true)
+    protected val vurderingRepository: VurderingRepository = mockk(relaxed = true)
     protected val hendelseService: HendelseService = mockk(relaxed = true)
     protected val endringFraTiltakskoordinatorRepository: EndringFraTiltakskoordinatorRepository = mockk(relaxed = true)
     protected val arrangorService = mockk<ArrangorService>()
@@ -91,8 +91,8 @@ abstract class RouteTestBase {
                     deltakerProducerService,
                     vedtakService,
                     unleashToggle,
-                    innsokPaaFellesOppstartService,
-                    vurderingService,
+                    innsokPaaFellesOppstartRepository,
+                    vurderingRepository,
                     hendelseService,
                     endringFraTiltakskoordinatorRepository,
                     navEnhetService,

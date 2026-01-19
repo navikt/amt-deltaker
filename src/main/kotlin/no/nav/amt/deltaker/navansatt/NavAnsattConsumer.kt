@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory
 import java.util.UUID
 
 class NavAnsattConsumer(
+    private val navAnsattRepository: NavAnsattRepository,
     private val navAnsattService: NavAnsattService,
 ) : Consumer<UUID, String?> {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -21,7 +22,7 @@ class NavAnsattConsumer(
 
     suspend fun consume(key: UUID, value: String?) {
         if (value == null) {
-            navAnsattService.slettNavAnsatt(key)
+            navAnsattRepository.delete(key)
             log.info("Slettet navansatt med id $key")
         } else {
             val dto = objectMapper.readValue<NavAnsattDto>(value)

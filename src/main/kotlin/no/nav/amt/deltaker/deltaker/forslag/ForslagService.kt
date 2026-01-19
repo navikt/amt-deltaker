@@ -16,16 +16,13 @@ class ForslagService(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun getForDeltaker(deltakerId: UUID) = forslagRepository.getForDeltaker(deltakerId)
-
-    fun get(id: UUID) = forslagRepository.get(id)
-
     suspend fun upsert(forslag: Forslag) {
         forslagRepository.upsert(forslag)
         when (forslag.status) {
             is Forslag.Status.Godkjent,
             Forslag.Status.VenterPaSvar,
             -> {}
+
             is Forslag.Status.Avvist,
             is Forslag.Status.Erstattet,
             is Forslag.Status.Tilbakekalt,
@@ -37,18 +34,12 @@ class ForslagService(
         log.info("Lagret forslag ${forslag.id}")
     }
 
-    fun delete(id: UUID) = forslagRepository.delete(id)
-
-    fun deleteForDeltaker(deltakerId: UUID) = forslagRepository.deleteForDeltaker(deltakerId)
-
-    fun kanLagres(deltakerId: UUID) = forslagRepository.kanLagres(deltakerId)
-
     suspend fun godkjennForslag(
         forslagId: UUID,
         godkjentAvAnsattId: UUID,
         godkjentAvEnhetId: UUID,
     ): Forslag {
-        val opprinneligForslag = get(forslagId).getOrThrow()
+        val opprinneligForslag = forslagRepository.get(forslagId).getOrThrow()
         val godkjentForslag = opprinneligForslag.copy(
             status = Forslag.Status.Godkjent(
                 godkjentAv = Forslag.NavAnsatt(

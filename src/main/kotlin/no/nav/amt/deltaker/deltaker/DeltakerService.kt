@@ -9,10 +9,11 @@ import no.nav.amt.deltaker.deltaker.db.DeltakerStatusRepository
 import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringHandler
 import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringService
 import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringUtfall
+import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorService
 import no.nav.amt.deltaker.deltaker.extensions.getVedtakOrThrow
 import no.nav.amt.deltaker.deltaker.extensions.tilVedtaksInformasjon
-import no.nav.amt.deltaker.deltaker.forslag.ForslagService
+import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.model.Deltaker
@@ -45,8 +46,9 @@ class DeltakerService(
     private val deltakerProducerService: DeltakerProducerService,
     private val vedtakService: VedtakService,
     private val hendelseService: HendelseService,
+    private val endringFraArrangorRepository: EndringFraArrangorRepository,
     private val endringFraArrangorService: EndringFraArrangorService,
-    private val forslagService: ForslagService,
+    private val forslagRepository: ForslagRepository,
     private val importertFraArenaRepository: ImportertFraArenaRepository,
     private val deltakerHistorikkService: DeltakerHistorikkService,
     private val endringFraTiltakskoordinatorRepository: EndringFraTiltakskoordinatorRepository,
@@ -83,8 +85,8 @@ class DeltakerService(
             importertFraArenaRepository.deleteForDeltaker(deltakerId)
             vedtakService.deleteForDeltaker(deltakerId)
             deltakerEndringRepository.deleteForDeltaker(deltakerId)
-            forslagService.deleteForDeltaker(deltakerId)
-            endringFraArrangorService.deleteForDeltaker(deltakerId)
+            forslagRepository.deleteForDeltaker(deltakerId)
+            endringFraArrangorRepository.deleteForDeltaker(deltakerId)
             endringFraTiltakskoordinatorRepository.deleteForDeltaker(deltakerId)
             DeltakerStatusRepository.slettStatus(deltakerId)
             deltakerRepository.slettDeltaker(deltakerId)

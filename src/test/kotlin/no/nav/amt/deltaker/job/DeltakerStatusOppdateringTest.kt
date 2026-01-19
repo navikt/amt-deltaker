@@ -76,7 +76,7 @@ class DeltakerStatusOppdateringTest {
                 importertFraArenaRepository,
                 InnsokPaaFellesOppstartRepository(),
                 EndringFraTiltakskoordinatorRepository(),
-                vurderingService = VurderingService(VurderingRepository()),
+                VurderingRepository(),
             )
         private val vurderingRepository = VurderingRepository()
         private val unleashToggle = mockk<UnleashToggle>()
@@ -121,19 +121,20 @@ class DeltakerStatusOppdateringTest {
             SingletonPostgres16Container
 
             deltakerService = DeltakerService(
-                deltakerRepository,
-                deltakerEndringRepository,
-                deltakerEndringService,
-                deltakerProducerService,
-                vedtakService,
-                hendelseService,
-                endringFraArrangorService,
-                forslagService,
-                importertFraArenaRepository,
-                deltakerHistorikkService,
-                endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
+                deltakerRepository = deltakerRepository,
+                deltakerEndringRepository = deltakerEndringRepository,
+                deltakerEndringService = deltakerEndringService,
+                deltakerProducerService = deltakerProducerService,
+                vedtakService = vedtakService,
+                hendelseService = hendelseService,
+                endringFraArrangorRepository = endringFraArrangorRepository,
+                endringFraArrangorService = endringFraArrangorService,
+                forslagRepository = forslagRepository,
+                importertFraArenaRepository = importertFraArenaRepository,
+                deltakerHistorikkService = deltakerHistorikkService,
                 navAnsattService = navAnsattService,
                 navEnhetService = navEnhetService,
+                endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
             )
         }
     }

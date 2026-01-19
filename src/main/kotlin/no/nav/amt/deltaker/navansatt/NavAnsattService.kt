@@ -33,8 +33,4 @@ class NavAnsattService(
         navAnsatt.navEnhetId?.let { navEnhetService.hentEllerOpprettNavEnhet(it) }
         return repository.upsert(navAnsatt)
     }
-
-    fun slettNavAnsatt(navAnsattId: UUID) {
-        repository.delete(navAnsattId)
-    }
 }

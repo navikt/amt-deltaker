@@ -55,7 +55,7 @@ class EndringFraArrangorServiceTest {
         ImportertFraArenaRepository(),
         InnsokPaaFellesOppstartRepository(),
         EndringFraTiltakskoordinatorRepository(),
-        vurderingService,
+        VurderingRepository(),
     )
     private val kafkaProducer = Producer<String, String>(LocalKafkaConfig(SingletonKafkaProvider.getHost()))
     private val hendelseService = HendelseService(

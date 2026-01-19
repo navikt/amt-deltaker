@@ -7,7 +7,6 @@ import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
 import org.slf4j.LoggerFactory
-import java.util.UUID
 
 class EndringFraArrangorService(
     private val endringFraArrangorRepository: EndringFraArrangorRepository,
@@ -34,8 +33,6 @@ class EndringFraArrangorService(
 
         return endretDeltaker
     }
-
-    fun deleteForDeltaker(deltakerId: UUID) = endringFraArrangorRepository.deleteForDeltaker(deltakerId)
 
     private fun endretDeltaker(deltaker: Deltaker, endring: EndringFraArrangor.Endring): Result<Deltaker> {
         fun endreDeltaker(erEndret: Boolean, block: () -> Deltaker) = if (erEndret) {

@@ -77,11 +77,12 @@ class EnkeltplassDeltakerConsumerTest {
                 navAnsattService = mockk(),
                 vedtakService = mockk(),
                 hendelseService = mockk(),
+                endringFraArrangorRepository = mockk(),
                 endringFraArrangorService = mockk(),
-                forslagService = mockk(),
                 deltakerHistorikkService = mockk(),
                 endringFraTiltakskoordinatorRepository = mockk(),
                 navEnhetService = mockk(),
+                forslagRepository = mockk(),
             ),
         )
 

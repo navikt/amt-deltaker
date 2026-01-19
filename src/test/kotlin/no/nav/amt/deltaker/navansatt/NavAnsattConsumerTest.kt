@@ -18,7 +18,10 @@ import org.junit.jupiter.api.Test
 class NavAnsattConsumerTest {
     private val amtPersonServiceClient = mockk<AmtPersonServiceClient>()
     private val navEnhetService = NavEnhetService(NavEnhetRepository(), amtPersonServiceClient)
-    private val navAnsattConsumer = NavAnsattConsumer(NavAnsattService(repository, amtPersonServiceClient, navEnhetService))
+    private val navAnsattConsumer = NavAnsattConsumer(
+        NavAnsattRepository(),
+        NavAnsattService(repository, amtPersonServiceClient, navEnhetService),
+    )
 
     companion object {
         lateinit var repository: NavAnsattRepository

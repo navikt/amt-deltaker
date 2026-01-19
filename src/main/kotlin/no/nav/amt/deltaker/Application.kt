@@ -207,7 +207,7 @@ fun Application.module() {
         importertFraArenaRepository,
         innsokPaaFellesOppstartRepository,
         endringFraTiltakskoordinatorRepository,
-        vurderingService,
+        vurderingRepository,
     )
 
     val hendelseProducer = HendelseProducer(kafkaProducer)
@@ -261,13 +261,14 @@ fun Application.module() {
         deltakerProducerService = deltakerProducerService,
         vedtakService = vedtakService,
         hendelseService = hendelseService,
+        endringFraArrangorRepository = endringFraArrangorRepository,
         endringFraArrangorService = endringFraArrangorService,
-        forslagService = forslagService,
         importertFraArenaRepository = importertFraArenaRepository,
         deltakerHistorikkService = deltakerHistorikkService,
         endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
         navAnsattService = navAnsattService,
         navEnhetService = navEnhetService,
+        forslagRepository = forslagRepository,
     )
 
     val opprettKladdRequestValidator = OpprettKladdRequestValidator(
@@ -291,7 +292,7 @@ fun Application.module() {
 
     val consumers = listOf(
         ArrangorConsumer(arrangorRepository),
-        NavAnsattConsumer(navAnsattService),
+        NavAnsattConsumer(navAnsattRepository, navAnsattService),
         NavBrukerConsumer(navBrukerRepository, navEnhetService, deltakerService),
         TiltakstypeConsumer(tiltakstypeRepository),
         DeltakerlisteConsumer(
@@ -312,8 +313,8 @@ fun Application.module() {
             tiltakstypeRepository,
             deltakerProducerService,
         ),
-        ArrangorMeldingConsumer(forslagService, deltakerService, vurderingService, deltakerProducerService),
-        NavEnhetConsumer(navEnhetService),
+        ArrangorMeldingConsumer(forslagRepository, forslagService, deltakerService, vurderingRepository, deltakerProducerService),
+        NavEnhetConsumer(navEnhetRepository),
     )
     consumers.forEach { it.start() }
 
@@ -333,8 +334,8 @@ fun Application.module() {
         deltakerProducerService = deltakerProducerService,
         vedtakService = vedtakService,
         unleashToggle = unleashToggle,
-        innsokPaaFellesOppstartService = innsokPaaFellesOppstartService,
-        vurderingService = vurderingService,
+        innsokPaaFellesOppstartRepository = innsokPaaFellesOppstartRepository,
+        vurderingRepository = vurderingRepository,
         hendelseService = hendelseService,
         endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
         navEnhetService = navEnhetService,

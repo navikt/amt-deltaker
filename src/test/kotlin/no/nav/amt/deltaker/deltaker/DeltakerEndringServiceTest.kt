@@ -66,7 +66,8 @@ class DeltakerEndringServiceTest {
     private val forslagRepository = ForslagRepository()
     private val kafkaProducer = Producer<String, String>(LocalKafkaConfig(SingletonKafkaProvider.getHost()))
     private val deltakerEndringRepository = DeltakerEndringRepository()
-    private val vurderingService = VurderingService(VurderingRepository())
+    private val vurderingRepository = VurderingRepository()
+    private val vurderingService = VurderingService(vurderingRepository)
     private val deltakerHistorikkService = DeltakerHistorikkService(
         deltakerEndringRepository,
         VedtakRepository(),
@@ -75,7 +76,7 @@ class DeltakerEndringServiceTest {
         ImportertFraArenaRepository(),
         InnsokPaaFellesOppstartRepository(),
         EndringFraTiltakskoordinatorRepository(),
-        vurderingService,
+        vurderingRepository,
     )
     private val hendelseService = HendelseService(
         HendelseProducer(kafkaProducer),
@@ -208,7 +209,7 @@ class DeltakerEndringServiceTest {
         (endring.endring as DeltakerEndring.Endring.ForlengDeltakelse)
             .begrunnelse shouldBe endringsrequest.begrunnelse
 
-        val forslagFraDb = forslagService.get(forslag.id).getOrThrow()
+        val forslagFraDb = forslagRepository.get(forslag.id).getOrThrow()
         (forslagFraDb.status as Forslag.Status.Godkjent).godkjentAv shouldBe Forslag.NavAnsatt(endretAv.id, endretAvEnhet.id)
 
         assertProducedHendelse(deltaker.id, HendelseType.ForlengDeltakelse::class)
@@ -253,7 +254,7 @@ class DeltakerEndringServiceTest {
         (endring.endring as DeltakerEndring.Endring.IkkeAktuell)
             .begrunnelse shouldBe endringsrequest.begrunnelse
 
-        val forslagFraDb = forslagService.get(forslag.id).getOrThrow()
+        val forslagFraDb = forslagRepository.get(forslag.id).getOrThrow()
         (forslagFraDb.status as Forslag.Status.Godkjent).godkjentAv shouldBe Forslag.NavAnsatt(endretAv.id, endretAvEnhet.id)
 
         assertProducedHendelse(deltaker.id, HendelseType.IkkeAktuell::class)

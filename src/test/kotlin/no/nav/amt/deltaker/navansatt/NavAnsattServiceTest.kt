@@ -64,14 +64,4 @@ class NavAnsattServiceTest {
 
         repository.get(navAnsatt.id) shouldBe oppdatertNavAnsatt
     }
-
-    @Test
-    fun `slettNavAnsatt - navansatt blir slettet`() {
-        val navAnsatt = TestData.lagNavAnsatt()
-        TestRepository.insert(navAnsatt)
-
-        service.slettNavAnsatt(navAnsatt.id)
-
-        repository.get(navAnsatt.id) shouldBe null
-    }
 }

@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory
 import java.util.UUID
 
 class NavEnhetConsumer(
-    private val navEnhetService: NavEnhetService,
+    private val navEnhetRepository: NavEnhetRepository,
 ) : Consumer<UUID, String?> {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -23,7 +23,7 @@ class NavEnhetConsumer(
         if (value == null) throw IllegalArgumentException("Mottok uventet tombstone for nav-enhet med id $key")
 
         val dto = objectMapper.readValue<NavEnhetDto>(value)
-        navEnhetService.upsert(dto.toModel())
+        navEnhetRepository.upsert(dto.toModel())
         log.info("Lagret nav-enhet med id $key")
     }
 
