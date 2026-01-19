@@ -19,6 +19,7 @@ import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.AvbrytUtka
 import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.UtkastRequest
 import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.models.person.NavBruker
+import no.nav.amt.lib.utils.database.Database
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -66,7 +67,9 @@ class PameldingService(
                 "Kan ikke slette deltaker med id ${opprinneligDeltaker.id} som har status ${opprinneligDeltaker.status.type}",
             )
         }
-        deltakerService.delete(deltakerId)
+        Database.transaction {
+            deltakerService.delete(deltakerId)
+        }
     }
 
     suspend fun upsertUtkast(deltakerId: UUID, utkast: UtkastRequest): Deltaker {

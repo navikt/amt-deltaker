@@ -259,6 +259,7 @@ fun Application.module() {
         deltakerEndringRepository = deltakerEndringRepository,
         deltakerEndringService = deltakerEndringService,
         deltakerProducerService = deltakerProducerService,
+        vedtakRepository = vedtakRepository,
         vedtakService = vedtakService,
         hendelseService = hendelseService,
         endringFraArrangorRepository = endringFraArrangorRepository,

@@ -544,6 +544,7 @@ class PameldingServiceTest {
                 forslagService,
                 deltakerHistorikkService,
             ),
+            vedtakRepository = vedtakRepository,
             vedtakService = vedtakService,
             hendelseService = hendelseService,
             endringFraArrangorRepository = endringFraArrangorRepository,

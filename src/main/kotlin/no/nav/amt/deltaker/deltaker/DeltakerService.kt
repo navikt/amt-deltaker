@@ -6,6 +6,7 @@ import no.nav.amt.deltaker.deltaker.api.deltaker.toDeltakerEndringEndring
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerStatusRepository
+import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringHandler
 import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringService
 import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringUtfall
@@ -44,6 +45,7 @@ class DeltakerService(
     private val deltakerEndringRepository: DeltakerEndringRepository,
     private val deltakerEndringService: DeltakerEndringService,
     private val deltakerProducerService: DeltakerProducerService,
+    private val vedtakRepository: VedtakRepository,
     private val vedtakService: VedtakService,
     private val hendelseService: HendelseService,
     private val endringFraArrangorRepository: EndringFraArrangorRepository,
@@ -80,17 +82,15 @@ class DeltakerService(
         return oppdatertDeltaker
     }
 
-    suspend fun delete(deltakerId: UUID) {
-        Database.transaction {
-            importertFraArenaRepository.deleteForDeltaker(deltakerId)
-            vedtakService.deleteForDeltaker(deltakerId)
-            deltakerEndringRepository.deleteForDeltaker(deltakerId)
-            forslagRepository.deleteForDeltaker(deltakerId)
-            endringFraArrangorRepository.deleteForDeltaker(deltakerId)
-            endringFraTiltakskoordinatorRepository.deleteForDeltaker(deltakerId)
-            DeltakerStatusRepository.slettStatus(deltakerId)
-            deltakerRepository.slettDeltaker(deltakerId)
-        }
+    fun delete(deltakerId: UUID) {
+        importertFraArenaRepository.deleteForDeltaker(deltakerId)
+        vedtakRepository.deleteForDeltaker(deltakerId)
+        deltakerEndringRepository.deleteForDeltaker(deltakerId)
+        forslagRepository.deleteForDeltaker(deltakerId)
+        endringFraArrangorRepository.deleteForDeltaker(deltakerId)
+        endringFraTiltakskoordinatorRepository.deleteForDeltaker(deltakerId)
+        DeltakerStatusRepository.slettStatus(deltakerId)
+        deltakerRepository.slettDeltaker(deltakerId)
     }
 
     suspend fun feilregistrerDeltaker(deltakerId: UUID) {

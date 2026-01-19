@@ -162,6 +162,7 @@ class DeltakerServiceTest {
             deltakerProducerService = deltakerProducerService,
             deltakerEndringRepository = deltakerEndringRepository,
             deltakerEndringService = deltakerEndringService,
+            vedtakRepository = vedtakRepository,
             vedtakService = vedtakService,
             hendelseService = hendelseService,
             endringFraArrangorRepository = endringFraArrangorRepository,

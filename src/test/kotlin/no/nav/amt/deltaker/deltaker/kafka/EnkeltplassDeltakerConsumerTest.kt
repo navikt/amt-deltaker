@@ -75,6 +75,7 @@ class EnkeltplassDeltakerConsumerTest {
                 deltakerEndringRepository = mockk(),
                 deltakerEndringService = mockk(),
                 navAnsattService = mockk(),
+                vedtakRepository = mockk(),
                 vedtakService = mockk(),
                 hendelseService = mockk(),
                 endringFraArrangorRepository = mockk(),

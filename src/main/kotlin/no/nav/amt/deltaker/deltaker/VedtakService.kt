@@ -161,8 +161,6 @@ class VedtakService(
             ?: Vedtaksutfall.VedtakAlleredeFattet
     }
 
-    fun deleteForDeltaker(deltakerId: UUID) = repository.deleteForDeltaker(deltakerId)
-
     fun upsertOppdatertVedtak(
         eksisterendeVedtak: Vedtak?,
         fattetAvNav: Boolean,

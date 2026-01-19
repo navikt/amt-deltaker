@@ -31,6 +31,7 @@ import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.hendelse.HendelseType
+import no.nav.amt.lib.utils.database.Database
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
@@ -54,14 +55,10 @@ fun Routing.registerInternalApi(
 
     val log: Logger = LoggerFactory.getLogger(javaClass)
 
-    suspend fun slettDeltaker(deltakerId: UUID) {
+    suspend fun slettDeltaker(deltakerId: UUID) = Database.transaction {
         innsokPaaFellesOppstartRepository.deleteForDeltaker(deltakerId)
         vurderingRepository.deleteForDeltaker(deltakerId)
         deltakerService.delete(deltakerId)
-    }
-
-    suspend fun slettDeltakerKladd(deltakerId: UUID) {
-        pameldingService.slettKladd(deltakerId)
     }
 
     suspend fun ApplicationCall.reproduserDeltakere() {
@@ -252,7 +249,7 @@ fun Routing.registerInternalApi(
             scope.launch {
                 log.info("Sletter ${request.deltakere.size} deltakere med status KLADD")
                 request.deltakere.forEach { deltakerId ->
-                    slettDeltakerKladd(deltakerId)
+                    pameldingService.slettKladd(deltakerId)
                 }
                 log.info("Slettet ${request.deltakere.size} deltakere med status KLADD")
             }
