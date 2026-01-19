@@ -256,6 +256,7 @@ fun Application.module() {
     val vedtakService = VedtakService(vedtakRepository)
     val deltakerService = DeltakerService(
         deltakerRepository = deltakerRepository,
+        deltakerEndringRepository = deltakerEndringRepository,
         deltakerEndringService = deltakerEndringService,
         deltakerProducerService = deltakerProducerService,
         vedtakService = vedtakService,
@@ -345,7 +346,13 @@ fun Application.module() {
     val statusUpdateJob = StatusUpdateJob(leaderElection, attributes, deltakerService)
     statusUpdateJob.startJob()
 
-    val deltakelsesmengdeUpdateJob = DeltakelsesmengdeUpdateJob(leaderElection, attributes, deltakerEndringService, deltakerService)
+    val deltakelsesmengdeUpdateJob = DeltakelsesmengdeUpdateJob(
+        leaderElection,
+        attributes,
+        deltakerEndringRepository,
+        deltakerEndringService,
+        deltakerService,
+    )
     deltakelsesmengdeUpdateJob.startJob()
 
     attributes.put(isReadyKey, true)

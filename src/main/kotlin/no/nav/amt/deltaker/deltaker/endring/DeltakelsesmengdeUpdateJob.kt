@@ -5,6 +5,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import no.nav.amt.deltaker.deltaker.DeltakerService
+import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.job.leaderelection.LeaderElection
 import no.nav.amt.lib.ktor.routing.isReadyKey
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
@@ -18,7 +19,8 @@ import kotlin.concurrent.fixedRateTimer
 class DeltakelsesmengdeUpdateJob(
     private val leaderElection: LeaderElection,
     private val attributes: Attributes,
-    private val deltakterEndringService: DeltakerEndringService,
+    private val deltakerEndringRepository: DeltakerEndringRepository,
+    private val deltakerEndringService: DeltakerEndringService,
     private val deltakerService: DeltakerService,
 ) {
     private val log: Logger = LoggerFactory.getLogger(javaClass)
@@ -43,10 +45,10 @@ class DeltakelsesmengdeUpdateJob(
         log.info("Starter jobb for å behandle deltakelsesmengder")
 
         do {
-            endringer = deltakterEndringService.getUbehandledeDeltakelsesmengder(offset)
+            endringer = deltakerEndringRepository.getUbehandletDeltakelsesmengder(offset)
             endringer.forEach {
                 val deltaker = deltakerService.get(it.deltakerId).getOrThrow()
-                val endringsutfall = deltakterEndringService.behandleLagretDeltakelsesmengde(it, deltaker)
+                val endringsutfall = deltakerEndringService.behandleLagretDeltakelsesmengde(it, deltaker)
 
                 if (endringsutfall.erVellykket) {
                     deltakerService.upsertDeltaker(endringsutfall.getOrThrow())

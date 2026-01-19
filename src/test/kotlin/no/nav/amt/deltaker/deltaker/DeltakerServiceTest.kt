@@ -160,6 +160,7 @@ class DeltakerServiceTest {
         private val deltakerService = DeltakerService(
             deltakerRepository = deltakerRepository,
             deltakerProducerService = deltakerProducerService,
+            deltakerEndringRepository = deltakerEndringRepository,
             deltakerEndringService = deltakerEndringService,
             vedtakService = vedtakService,
             hendelseService = hendelseService,
@@ -636,7 +637,7 @@ class DeltakerServiceTest {
         deltakerService.upsertEndretDeltaker(deltaker.id, endringsrequest)
 
         deltakerService.get(deltaker.id).getOrThrow().sistEndret shouldBeCloseTo deltaker.sistEndret
-        deltakerEndringService.getForDeltaker(deltaker.id).isEmpty() shouldBe true
+        deltakerEndringRepository.getForDeltaker(deltaker.id).isEmpty() shouldBe true
     }
 
     @Test
@@ -885,7 +886,7 @@ class DeltakerServiceTest {
         oppdatertDeltaker.deltakelsesprosent shouldBe endringsrequest.deltakelsesprosent?.toFloat()
         oppdatertDeltaker.dagerPerUke shouldBe null
 
-        val endring = deltakerEndringService.getForDeltaker(deltaker.id).first()
+        val endring = deltakerEndringRepository.getForDeltaker(deltaker.id).first()
         endring.endretAv shouldBe endretAv.id
         endring.endretAvEnhet shouldBe endretAvEnhet.id
 
@@ -926,7 +927,7 @@ class DeltakerServiceTest {
         oppdatertDeltaker.deltakelsesprosent shouldBe deltaker.deltakelsesprosent
         oppdatertDeltaker.dagerPerUke shouldBe deltaker.dagerPerUke
 
-        val endring = deltakerEndringService.getForDeltaker(deltaker.id).first()
+        val endring = deltakerEndringRepository.getForDeltaker(deltaker.id).first()
         endring.endretAv shouldBe endretAv.id
         endring.endretAvEnhet shouldBe endretAvEnhet.id
 
@@ -968,7 +969,7 @@ class DeltakerServiceTest {
         oppdatertDeltaker.startdato shouldBe endringsrequest.startdato
         oppdatertDeltaker.sluttdato shouldBe endringsrequest.sluttdato
 
-        val endring = deltakerEndringService.getForDeltaker(deltaker.id).first()
+        val endring = deltakerEndringRepository.getForDeltaker(deltaker.id).first()
         endring.endretAv shouldBe endretAv.id
         endring.endretAvEnhet shouldBe endretAvEnhet.id
 
@@ -1015,7 +1016,7 @@ class DeltakerServiceTest {
         oppdatertDeltaker.startdato shouldBe endringsrequest.startdato
         oppdatertDeltaker.sluttdato shouldBe deltakersSluttdato
 
-        val endring = deltakerEndringService.getForDeltaker(deltaker.id).first()
+        val endring = deltakerEndringRepository.getForDeltaker(deltaker.id).first()
         endring.endretAv shouldBe endretAv.id
         endring.endretAvEnhet shouldBe endretAvEnhet.id
 

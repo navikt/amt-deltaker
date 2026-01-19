@@ -534,6 +534,7 @@ class PameldingServiceTest {
         private val deltakerService = DeltakerService(
             deltakerRepository = deltakerRepository,
             deltakerProducerService = deltakerProducerService,
+            deltakerEndringRepository = deltakerEndringRepository,
             deltakerEndringService = DeltakerEndringService(
                 deltakerEndringRepository,
                 navAnsattService,

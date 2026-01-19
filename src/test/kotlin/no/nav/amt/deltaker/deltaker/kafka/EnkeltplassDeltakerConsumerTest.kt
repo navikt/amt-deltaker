@@ -72,6 +72,7 @@ class EnkeltplassDeltakerConsumerTest {
                 deltakerRepository = deltakerRepository,
                 deltakerProducerService = deltakerProducerService,
                 importertFraArenaRepository = importertFraArenaRepository,
+                deltakerEndringRepository = mockk(),
                 deltakerEndringService = mockk(),
                 navAnsattService = mockk(),
                 vedtakService = mockk(),

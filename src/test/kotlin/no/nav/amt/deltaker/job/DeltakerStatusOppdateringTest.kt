@@ -122,6 +122,7 @@ class DeltakerStatusOppdateringTest {
 
             deltakerService = DeltakerService(
                 deltakerRepository,
+                deltakerEndringRepository,
                 deltakerEndringService,
                 deltakerProducerService,
                 vedtakService,

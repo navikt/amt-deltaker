@@ -26,10 +26,6 @@ class DeltakerEndringService(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun getForDeltaker(deltakerId: UUID) = deltakerEndringRepository.getForDeltaker(deltakerId)
-
-    fun deleteForDeltaker(deltakerId: UUID) = deltakerEndringRepository.deleteForDeltaker(deltakerId)
-
     suspend fun upsertEndring(
         deltaker: Deltaker,
         endring: DeltakerEndring.Endring,
@@ -92,6 +88,4 @@ class DeltakerEndringService(
 
         return utfall
     }
-
-    fun getUbehandledeDeltakelsesmengder(offset: Int) = deltakerEndringRepository.getUbehandletDeltakelsesmengder(offset)
 }

@@ -133,7 +133,7 @@ class DeltakerEndringServiceTest {
 
         deltakerEndringService.upsertEndring(deltaker, endringsrequest.toDeltakerEndringEndring(), utfall, request = endringsrequest)
 
-        val endring = deltakerEndringService.getForDeltaker(deltaker.id).first()
+        val endring = deltakerEndringRepository.getForDeltaker(deltaker.id).first()
         endring.endretAv shouldBe endretAv.id
         endring.endretAvEnhet shouldBe endretAvEnhet.id
 
@@ -170,7 +170,7 @@ class DeltakerEndringServiceTest {
         resultat.innhold shouldBe endringsrequest.deltakelsesinnhold.innhold
         resultat.ledetekst shouldBe endringsrequest.deltakelsesinnhold.ledetekst
 
-        val endring = deltakerEndringService.getForDeltaker(deltaker.id).first()
+        val endring = deltakerEndringRepository.getForDeltaker(deltaker.id).first()
         endring.endretAv shouldBe endretAv.id
         endring.endretAvEnhet shouldBe endretAvEnhet.id
 
@@ -199,7 +199,7 @@ class DeltakerEndringServiceTest {
 
         deltakerEndringService.upsertEndring(deltaker, endringsrequest.toDeltakerEndringEndring(), utfall, endringsrequest)
 
-        val endring = deltakerEndringService.getForDeltaker(deltaker.id).first()
+        val endring = deltakerEndringRepository.getForDeltaker(deltaker.id).first()
         endring.endretAv shouldBe endretAv.id
         endring.endretAvEnhet shouldBe endretAvEnhet.id
 
@@ -244,7 +244,7 @@ class DeltakerEndringServiceTest {
 
         deltakerEndringService.upsertEndring(deltaker, endringsrequest.toDeltakerEndringEndring(), utfall, endringsrequest)
 
-        val endring = deltakerEndringService.getForDeltaker(deltaker.id).first()
+        val endring = deltakerEndringRepository.getForDeltaker(deltaker.id).first()
         endring.endretAv shouldBe endretAv.id
         endring.endretAvEnhet shouldBe endretAvEnhet.id
 
@@ -292,7 +292,7 @@ class DeltakerEndringServiceTest {
 
         deltakerEndringService.upsertEndring(deltaker, endringsrequest.toDeltakerEndringEndring(), utfall, endringsrequest)
 
-        val endring = deltakerEndringService.getForDeltaker(deltaker.id).first()
+        val endring = deltakerEndringRepository.getForDeltaker(deltaker.id).first()
         endring.endretAv shouldBe endretAv.id
         endring.endretAvEnhet shouldBe endretAvEnhet.id
 

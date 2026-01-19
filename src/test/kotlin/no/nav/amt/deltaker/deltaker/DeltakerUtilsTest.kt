@@ -1,9 +1,9 @@
-package no.nav.amt.deltaker.tiltakskoordinator.endring
+package no.nav.amt.deltaker.deltaker
 
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
-import no.nav.amt.deltaker.deltaker.DeltakerUtils.sjekkEndringUtfall
-import no.nav.amt.deltaker.utils.data.TestData.lagNavBruker
+import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorCtx
+import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import org.junit.jupiter.api.Test
 
@@ -11,10 +11,11 @@ class DeltakerUtilsTest {
     @Test
     fun `sjekkEndringUtfall - del med arrangør - oppdaterer attributt`(): Unit = runBlocking {
         with(EndringFraTiltakskoordinatorCtx()) {
-            val endretDeltaker = sjekkEndringUtfall(
-                deltaker,
-                EndringFraTiltakskoordinator.DelMedArrangor,
-            ).getOrThrow()
+            val endretDeltaker = DeltakerUtils
+                .sjekkEndringUtfall(
+                    deltaker,
+                    EndringFraTiltakskoordinator.DelMedArrangor,
+                ).getOrThrow()
 
             endretDeltaker.erManueltDeltMedArrangor shouldBe true
             endretDeltaker.status.type shouldBe deltaker.status.type
@@ -25,7 +26,7 @@ class DeltakerUtilsTest {
     fun `sjekkEndringUtfall - del med arrangør - ugyldig endring - returnerer failure`(): Unit = runBlocking {
         with(EndringFraTiltakskoordinatorCtx()) {
             medStatusDeltar()
-            val resultat = sjekkEndringUtfall(
+            val resultat = DeltakerUtils.sjekkEndringUtfall(
                 deltaker,
                 EndringFraTiltakskoordinator.DelMedArrangor,
             )
@@ -38,10 +39,10 @@ class DeltakerUtilsTest {
     fun `sjekkEndringUtfall - mangler oppfolgingsperiode - returnerer failure`(): Unit = runBlocking {
         with(
             EndringFraTiltakskoordinatorCtx(
-                navBruker = lagNavBruker().copy(oppfolgingsperioder = emptyList()),
+                navBruker = TestData.lagNavBruker().copy(oppfolgingsperioder = emptyList()),
             ),
         ) {
-            val resultat = sjekkEndringUtfall(
+            val resultat = DeltakerUtils.sjekkEndringUtfall(
                 deltaker,
                 EndringFraTiltakskoordinator.DelMedArrangor,
             )

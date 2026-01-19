@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.deltaker
 import no.nav.amt.deltaker.deltaker.DeltakerUtils.nyDeltakerStatus
 import no.nav.amt.deltaker.deltaker.DeltakerUtils.sjekkEndringUtfall
 import no.nav.amt.deltaker.deltaker.api.deltaker.toDeltakerEndringEndring
+import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerStatusRepository
 import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringHandler
@@ -39,6 +40,7 @@ import java.util.UUID
 
 class DeltakerService(
     private val deltakerRepository: DeltakerRepository,
+    private val deltakerEndringRepository: DeltakerEndringRepository,
     private val deltakerEndringService: DeltakerEndringService,
     private val deltakerProducerService: DeltakerProducerService,
     private val vedtakService: VedtakService,
@@ -80,7 +82,7 @@ class DeltakerService(
         Database.transaction {
             importertFraArenaRepository.deleteForDeltaker(deltakerId)
             vedtakService.deleteForDeltaker(deltakerId)
-            deltakerEndringService.deleteForDeltaker(deltakerId)
+            deltakerEndringRepository.deleteForDeltaker(deltakerId)
             forslagService.deleteForDeltaker(deltakerId)
             endringFraArrangorService.deleteForDeltaker(deltakerId)
             endringFraTiltakskoordinatorRepository.deleteForDeltaker(deltakerId)
