@@ -31,13 +31,13 @@ class DeltakerRepository {
                 deltakelsesprosent, bakgrunnsinformasjon, innhold, kilde, modified_at,
                 er_manuelt_delt_med_arrangor
             )
-            values (
+            VALUES (
                 :id, :person_id, :deltakerlisteId, :startdato, :sluttdato, :dagerPerUke, 
                 :deltakelsesprosent, :bakgrunnsinformasjon, :innhold, :kilde, :modified_at,
                 :er_manuelt_delt_med_arrangor
             )
             ON CONFLICT (id) DO UPDATE SET 
-                person_id          = :person_id,
+                person_id            = :person_id,
                 startdato            = :startdato,
                 sluttdato            = :sluttdato,
                 dager_per_uke        = :dagerPerUke,
@@ -151,7 +151,7 @@ class DeltakerRepository {
     fun getDeltakerIderForTiltakskode(tiltakskode: Tiltakskode): List<UUID> {
         val sql =
             """ 
-            SELECT d.id as "d.id"
+            SELECT d.id AS "d.id"
             FROM 
                 deltaker d
                 JOIN deltakerliste dl ON d.deltakerliste_id = dl.id
@@ -259,7 +259,7 @@ class DeltakerRepository {
     fun getDeltakereMedStatus(statusType: DeltakerStatus.Type): List<UUID> {
         val sql =
             """
-            SELECT d.id as "d.id"
+            SELECT d.id AS "d.id"
             FROM 
                 deltaker d
                 JOIN deltaker_status ds ON d.id = ds.deltaker_id
