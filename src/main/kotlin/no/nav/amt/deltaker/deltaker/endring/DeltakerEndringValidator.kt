@@ -11,6 +11,22 @@ import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.EndringRequest
 import java.time.LocalDateTime
 
+enum class UgyldigDeltakerEndring {
+    AVSLUTT_DELTAKELSE_INGEN_ENDRING,
+    ENDRE_DELTAKELSESMENGDE_IKKE_GYLDIG_ENDRING,
+    ENDRE_AVSLUTNING_INGEN_ENDRING,
+    AVBRYT_DELTAKELSE_INGEN_ENDRING,
+    ENDRE_BAKGRUNNSINFORMASJON_INGEN_ENDRING,
+    ENDRE_INNHOLD_INGEN_ENDRING,
+    ENDRE_SLUTTAARSAK_INGEN_ENDRING,
+    ENDRE_SLUTTDATO_INGEN_ENDRING,
+    ENDRE_STARTDATO_INGEN_ENDRING,
+    FJERN_OPPSTARTSDATO_INGEN_ENDRING,
+    FORLENG_DELTAKELSE_INGEN_ENDRING,
+    SETT_IKKE_AKTUELL_INGEN_ENDRING,
+    REAKTIVER_DELTAKELSE_INGEN_ENDRING,
+}
+
 class DeltakerEndringValidator(
     private val deltaker: Deltaker,
     private val deltakerHistorikkService: DeltakerHistorikkService,
@@ -38,7 +54,7 @@ class DeltakerEndringValidator(
         return if (erGyldigEndring) {
             ValidationResult.Valid
         } else {
-            ValidationResult.Invalid(listOf("AVSLUTT_DELTAKELSE_INGEN_ENDRING"))
+            ValidationResult.Invalid(UgyldigDeltakerEndring.AVSLUTT_DELTAKELSE_INGEN_ENDRING.name)
         }
     }
 
@@ -50,7 +66,7 @@ class DeltakerEndringValidator(
         return if (erGyldigEndring) {
             ValidationResult.Valid
         } else {
-            ValidationResult.Invalid(listOf("ENDRE_AVSLUTNING_INGEN_ENDRING"))
+            ValidationResult.Invalid(UgyldigDeltakerEndring.ENDRE_AVSLUTNING_INGEN_ENDRING.name)
         }
     }
 
@@ -62,7 +78,7 @@ class DeltakerEndringValidator(
         return if (erGyldigEndring) {
             ValidationResult.Valid
         } else {
-            ValidationResult.Invalid(listOf("AVBRYT_DELTAKELSE_INGEN_ENDRING"))
+            ValidationResult.Invalid(UgyldigDeltakerEndring.AVBRYT_DELTAKELSE_INGEN_ENDRING.name)
         }
     }
 
@@ -71,7 +87,7 @@ class DeltakerEndringValidator(
         return if (erGyldigEndring) {
             ValidationResult.Valid
         } else {
-            ValidationResult.Invalid("ENDRE_BAKGRUNNSINFORMASJON_INGEN_ENDRING")
+            ValidationResult.Invalid(UgyldigDeltakerEndring.ENDRE_BAKGRUNNSINFORMASJON_INGEN_ENDRING.name)
         }
     }
 
@@ -84,7 +100,7 @@ class DeltakerEndringValidator(
         return if (erGyldigEndring) {
             ValidationResult.Valid
         } else {
-            ValidationResult.Invalid("ENDRE_DELTAKELSESMENGDE_IKKE_GYLDIG_ENDRING")
+            ValidationResult.Invalid(UgyldigDeltakerEndring.ENDRE_DELTAKELSESMENGDE_IKKE_GYLDIG_ENDRING.name)
         }
     }
 
@@ -94,7 +110,7 @@ class DeltakerEndringValidator(
         return if (erGyldigEndring) {
             ValidationResult.Valid
         } else {
-            ValidationResult.Invalid("ENDRE_INNHOLD_INGEN_ENDRING")
+            ValidationResult.Invalid(UgyldigDeltakerEndring.ENDRE_INNHOLD_INGEN_ENDRING.name)
         }
     }
 
@@ -104,7 +120,7 @@ class DeltakerEndringValidator(
         return if (erGyldigEndring) {
             ValidationResult.Valid
         } else {
-            ValidationResult.Invalid("ENDRE_SLUTTAARSAK_INGEN_ENDRING")
+            ValidationResult.Invalid(UgyldigDeltakerEndring.ENDRE_SLUTTAARSAK_INGEN_ENDRING.name)
         }
     }
 
@@ -114,7 +130,7 @@ class DeltakerEndringValidator(
         return if (erGyldigEndring) {
             ValidationResult.Valid
         } else {
-            ValidationResult.Invalid("ENDRE_SLUTTDATO_INGEN_ENDRING")
+            ValidationResult.Invalid(UgyldigDeltakerEndring.ENDRE_SLUTTDATO_INGEN_ENDRING.name)
         }
     }
 
@@ -124,7 +140,7 @@ class DeltakerEndringValidator(
         return if (erGyldigEndring) {
             ValidationResult.Valid
         } else {
-            ValidationResult.Invalid("ENDRE_STARTDATO_INGEN_ENDRING")
+            ValidationResult.Invalid(UgyldigDeltakerEndring.ENDRE_STARTDATO_INGEN_ENDRING.name)
         }
     }
 
@@ -134,7 +150,7 @@ class DeltakerEndringValidator(
         return if (erGyldigEndring) {
             ValidationResult.Valid
         } else {
-            ValidationResult.Invalid("FJERN_OPPSTARTSDATO_INGEN_ENDRING")
+            ValidationResult.Invalid(UgyldigDeltakerEndring.FJERN_OPPSTARTSDATO_INGEN_ENDRING.name)
         }
     }
 
@@ -144,7 +160,7 @@ class DeltakerEndringValidator(
         return if (erGyldigEndring) {
             ValidationResult.Valid
         } else {
-            ValidationResult.Invalid("FORLENG_DELTAKELSE_INGEN_ENDRING")
+            ValidationResult.Invalid(UgyldigDeltakerEndring.FORLENG_DELTAKELSE_INGEN_ENDRING.name)
         }
     }
 
@@ -154,7 +170,7 @@ class DeltakerEndringValidator(
         return if (erGyldigEndring) {
             ValidationResult.Valid
         } else {
-            ValidationResult.Invalid("SETT_IKKE_AKTUELL_INGEN_ENDRING")
+            ValidationResult.Invalid(UgyldigDeltakerEndring.SETT_IKKE_AKTUELL_INGEN_ENDRING.name)
         }
     }
 
@@ -164,7 +180,7 @@ class DeltakerEndringValidator(
         return if (erGyldigEndring) {
             ValidationResult.Valid
         } else {
-            ValidationResult.Invalid("REAKTIVER_DELTAKELSE_INGEN_ENDRING")
+            ValidationResult.Invalid(UgyldigDeltakerEndring.REAKTIVER_DELTAKELSE_INGEN_ENDRING.name)
         }
     }
 }
