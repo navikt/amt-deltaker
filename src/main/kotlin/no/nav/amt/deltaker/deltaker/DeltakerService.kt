@@ -114,12 +114,9 @@ class DeltakerService(
 
         val endring = request.toDeltakerEndringEndring()
         val endretDeltaker = DeltakerEndringHandler(deltaker, endring, deltakerHistorikkService).getEndretDeltaker()
-        // TODO: Kan vi bytte om rekkefølgen slik at transactionalDeltakerUpsert kan benyttes
         deltakerEndringService.lagreEndring(deltaker, endring, request)
 
-        lagreOgHentDeltaker(endretDeltaker.deltaker, fremtidigStatus = endretDeltaker.fremtidigStatus)
-
-        return get(deltakerId).getOrThrow()
+        return lagreOgHentDeltaker(endretDeltaker.deltaker, fremtidigStatus = endretDeltaker.fremtidigStatus)
     }
 
     suspend fun endreDeltaker(endring: EndringFraArrangor): Deltaker {
