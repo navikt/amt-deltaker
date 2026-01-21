@@ -1,8 +1,8 @@
 package no.nav.amt.deltaker.kafka.utils
 
 import com.fasterxml.jackson.module.kotlin.readValue
+import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerV1Dto
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerV2Dto
@@ -11,13 +11,12 @@ import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.hendelse.Hendelse
 import no.nav.amt.lib.models.hendelse.HendelseType
-import no.nav.amt.lib.testing.AsyncUtils
 import no.nav.amt.lib.testing.shouldBeCloseTo
 import no.nav.amt.lib.utils.objectMapper
 import java.util.UUID
 import kotlin.reflect.KClass
 
-fun assertProduced(deltakerId: UUID) {
+suspend fun assertProduced(deltakerId: UUID) {
     val cache = mutableMapOf<UUID, DeltakerV2Dto>()
 
     val consumer = stringStringConsumer(Environment.DELTAKER_V2_TOPIC) { k, v ->
@@ -26,15 +25,15 @@ fun assertProduced(deltakerId: UUID) {
 
     consumer.start()
 
-    AsyncUtils.eventually {
+    eventually {
         val cachedDeltaker = cache[deltakerId]!!
         cachedDeltaker.id shouldBe deltakerId
     }
 
-    runBlocking { consumer.close() }
+    consumer.close()
 }
 
-fun assertProducedDeltakerV1(deltakerId: UUID) {
+suspend fun assertProducedDeltakerV1(deltakerId: UUID) {
     val cache = mutableMapOf<UUID, DeltakerV1Dto>()
 
     val consumer = stringStringConsumer(Environment.DELTAKER_V1_TOPIC) { k, v ->
@@ -43,15 +42,15 @@ fun assertProducedDeltakerV1(deltakerId: UUID) {
 
     consumer.start()
 
-    AsyncUtils.eventually {
+    eventually {
         val cachedDeltaker = cache[deltakerId]!!
         cachedDeltaker.id shouldBe deltakerId
     }
 
-    runBlocking { consumer.close() }
+    consumer.close()
 }
 
-fun assertProducedFeilregistrert(deltakerId: UUID) {
+suspend fun assertProducedFeilregistrert(deltakerId: UUID) {
     val cache = mutableMapOf<UUID, DeltakerV2Dto>()
 
     val consumer = stringStringConsumer(Environment.DELTAKER_V2_TOPIC) { k, v ->
@@ -60,7 +59,7 @@ fun assertProducedFeilregistrert(deltakerId: UUID) {
 
     consumer.start()
 
-    AsyncUtils.eventually {
+    eventually {
         val cachedDeltaker = cache[deltakerId]!!
         cachedDeltaker.id shouldBe deltakerId
         cachedDeltaker.status.type shouldBe DeltakerStatus.Type.FEILREGISTRERT
@@ -73,10 +72,10 @@ fun assertProducedFeilregistrert(deltakerId: UUID) {
         cachedDeltaker.historikk?.filterIsInstance<DeltakerHistorikk.Endring>() shouldBe emptyList()
     }
 
-    runBlocking { consumer.close() }
+    consumer.close()
 }
 
-fun <T : HendelseType> assertProducedHendelse(deltakerId: UUID, hendelsetype: KClass<T>) {
+suspend fun <T : HendelseType> assertProducedHendelse(deltakerId: UUID, hendelsetype: KClass<T>) {
     val cache = mutableMapOf<UUID, Hendelse>()
 
     val consumer = stringStringConsumer(Environment.DELTAKER_HENDELSE_TOPIC) { k, v ->
@@ -85,16 +84,16 @@ fun <T : HendelseType> assertProducedHendelse(deltakerId: UUID, hendelsetype: KC
 
     consumer.start()
 
-    AsyncUtils.eventually {
+    eventually {
         val cachedHendelse = cache[deltakerId]!!
         cachedHendelse.deltaker.id shouldBe deltakerId
         cachedHendelse.payload::class shouldBe hendelsetype
     }
 
-    runBlocking { consumer.close() }
+    consumer.close()
 }
 
-fun assertProducedForslag(forslag: Forslag) {
+suspend fun assertProducedForslag(forslag: Forslag) {
     val cache = mutableMapOf<UUID, Forslag>()
 
     val consumer = stringStringConsumer(Environment.ARRANGOR_MELDING_TOPIC) { k, v ->
@@ -103,7 +102,7 @@ fun assertProducedForslag(forslag: Forslag) {
 
     consumer.start()
 
-    AsyncUtils.eventually {
+    eventually {
         val cachedForslag = cache[forslag.id]!!
         cachedForslag.id shouldBe forslag.id
         cachedForslag.deltakerId shouldBe forslag.deltakerId
@@ -114,7 +113,7 @@ fun assertProducedForslag(forslag: Forslag) {
         sammenlignForslagStatus(cachedForslag.status, forslag.status)
     }
 
-    runBlocking { consumer.close() }
+    consumer.close()
 }
 
 fun sammenlignForslagStatus(a: Forslag.Status, b: Forslag.Status) {

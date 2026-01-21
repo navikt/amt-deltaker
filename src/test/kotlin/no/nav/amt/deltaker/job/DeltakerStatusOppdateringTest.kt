@@ -3,7 +3,8 @@ package no.nav.amt.deltaker.job
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
+import no.nav.amt.deltaker.TestOutboxEnvironment
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
@@ -38,15 +39,12 @@ import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.utils.mockAmtArrangorClient
 import no.nav.amt.deltaker.utils.mockPersonServiceClient
-import no.nav.amt.lib.kafka.Producer
-import no.nav.amt.lib.kafka.config.LocalKafkaConfig
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.hendelse.HendelseType
-import no.nav.amt.lib.testing.SingletonKafkaProvider
 import no.nav.amt.lib.testing.SingletonPostgres16Container
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
@@ -66,7 +64,6 @@ class DeltakerStatusOppdateringTest {
         private val forslagRepository = ForslagRepository()
         private val endringFraArrangorRepository = EndringFraArrangorRepository()
         private val importertFraArenaRepository = ImportertFraArenaRepository()
-        private val kafkaProducer = Producer<String, String>(LocalKafkaConfig(SingletonKafkaProvider.getHost()))
         private val deltakerHistorikkService =
             DeltakerHistorikkService(
                 deltakerEndringRepository,
@@ -82,14 +79,14 @@ class DeltakerStatusOppdateringTest {
         private val unleashToggle = mockk<UnleashToggle>()
         private val deltakerKafkaPayloadMapperService =
             DeltakerKafkaPayloadBuilder(navAnsattService, navEnhetService, deltakerHistorikkService, vurderingRepository)
-        private val deltakerProducer = DeltakerProducer(kafkaProducer)
-        private val deltakerV1Producer = DeltakerV1Producer(kafkaProducer)
+        private val deltakerProducer = DeltakerProducer(TestOutboxEnvironment.outboxService, TestOutboxEnvironment.kafkaProducer)
+        private val deltakerV1Producer = DeltakerV1Producer(TestOutboxEnvironment.outboxService, TestOutboxEnvironment.kafkaProducer)
         private val deltakerProducerService =
             DeltakerProducerService(deltakerKafkaPayloadMapperService, deltakerProducer, deltakerV1Producer, unleashToggle)
         private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
         private val vurderingService = VurderingService(vurderingRepository)
         private val hendelseService = HendelseService(
-            HendelseProducer(kafkaProducer),
+            HendelseProducer(TestOutboxEnvironment.outboxService),
             navAnsattService,
             navEnhetService,
             arrangorService,
@@ -167,7 +164,7 @@ class DeltakerStatusOppdateringTest {
         )
         TestRepository.insert(deltaker, vedtak)
 
-        runBlocking {
+        runTest {
             deltakerService.oppdaterDeltakerStatuser()
 
             val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
@@ -200,7 +197,7 @@ class DeltakerStatusOppdateringTest {
         every { unleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns false
         every { unleashToggle.skalLeseArenaDataForTiltakstype(any<Tiltakskode>()) } returns true
 
-        runBlocking {
+        runTest {
             deltakerService.oppdaterDeltakerStatuser()
 
             val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
@@ -232,7 +229,7 @@ class DeltakerStatusOppdateringTest {
         )
         TestRepository.insert(deltaker, vedtak)
 
-        runBlocking {
+        runTest {
             deltakerService.oppdaterDeltakerStatuser()
 
             val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
@@ -272,7 +269,7 @@ class DeltakerStatusOppdateringTest {
         )
         TestRepository.insert(fremtidigStatus, deltaker.id)
 
-        runBlocking {
+        runTest {
             deltakerService.oppdaterDeltakerStatuser()
 
             val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
@@ -306,7 +303,7 @@ class DeltakerStatusOppdateringTest {
         )
         TestRepository.insert(deltaker, vedtak)
 
-        runBlocking {
+        runTest {
             deltakerService.oppdaterDeltakerStatuser()
 
             val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
@@ -339,7 +336,7 @@ class DeltakerStatusOppdateringTest {
         )
         TestRepository.insert(deltaker, vedtak)
 
-        runBlocking {
+        runTest {
             deltakerService.oppdaterDeltakerStatuser()
 
             val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
@@ -373,7 +370,7 @@ class DeltakerStatusOppdateringTest {
         )
         TestRepository.insert(deltaker, vedtak)
 
-        runBlocking {
+        runTest {
             deltakerService.oppdaterDeltakerStatuser()
 
             val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
@@ -408,7 +405,7 @@ class DeltakerStatusOppdateringTest {
         )
         TestRepository.insert(deltaker, vedtak)
 
-        runBlocking {
+        runTest {
             deltakerService.oppdaterDeltakerStatuser()
 
             val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
@@ -443,7 +440,7 @@ class DeltakerStatusOppdateringTest {
         )
         TestRepository.insert(deltaker, vedtak)
 
-        runBlocking {
+        runTest {
             deltakerService.oppdaterDeltakerStatuser()
 
             val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
@@ -478,7 +475,7 @@ class DeltakerStatusOppdateringTest {
         )
         TestRepository.insert(deltaker, vedtak)
 
-        runBlocking {
+        runTest {
             deltakerService.oppdaterDeltakerStatuser()
 
             val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
@@ -512,7 +509,7 @@ class DeltakerStatusOppdateringTest {
         )
         TestRepository.insert(deltaker, vedtak)
 
-        runBlocking {
+        runTest {
             deltakerService.oppdaterDeltakerStatuser()
 
             val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
@@ -564,7 +561,7 @@ class DeltakerStatusOppdateringTest {
         )
         TestRepository.insert(deltaker2, vedtak2)
 
-        runBlocking {
+        runTest {
             deltakerService.avsluttDeltakelserPaaDeltakerliste(deltakerliste)
 
             val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()

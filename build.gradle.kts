@@ -76,6 +76,7 @@ dependencies {
     implementation("no.nav.amt.lib:kafka:$amtLibVersion")
     implementation("no.nav.amt.lib:utils:$amtLibVersion")
     implementation("no.nav.amt.lib:ktor:$amtLibVersion")
+    implementation("no.nav.amt.lib:outbox:$amtLibVersion")
 
     implementation("no.nav.poao-tilgang:client:$poaoTilgangVersion")
     implementation("com.zaxxer:HikariCP:$hikariVersion")

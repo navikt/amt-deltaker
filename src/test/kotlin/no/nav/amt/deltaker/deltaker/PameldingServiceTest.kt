@@ -1,11 +1,13 @@
 package no.nav.amt.deltaker.deltaker
 
 import io.kotest.assertions.assertSoftly
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
+import no.nav.amt.deltaker.TestOutboxEnvironment
 import no.nav.amt.deltaker.apiclients.oppfolgingstilfelle.OppfolgingstilfelleDTO
 import no.nav.amt.deltaker.apiclients.oppfolgingstilfelle.OppfolgingstilfellePersonResponse
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
@@ -54,8 +56,6 @@ import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.utils.data.TestRepository.cleanDatabase
 import no.nav.amt.deltaker.utils.mockAmtArrangorClient
 import no.nav.amt.deltaker.utils.mockPersonServiceClient
-import no.nav.amt.lib.kafka.Producer
-import no.nav.amt.lib.kafka.config.LocalKafkaConfig
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
@@ -67,10 +67,8 @@ import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.NavEnhet
-import no.nav.amt.lib.testing.SingletonKafkaProvider
 import no.nav.amt.lib.testing.SingletonPostgres16Container
 import no.nav.amt.lib.testing.shouldBeCloseTo
-import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -88,7 +86,7 @@ class PameldingServiceTest {
     }
 
     @Test
-    fun `opprettKladd - deltaker finnes og deltar fortsatt - returnerer eksisterende deltaker`(): Unit = runBlocking {
+    fun `opprettKladd - deltaker finnes og deltar fortsatt - returnerer eksisterende deltaker`(): Unit = runTest {
         val expectedDeltaker = lagDeltaker(
             sluttdato = null,
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
@@ -117,7 +115,7 @@ class PameldingServiceTest {
         mockResponses(opprettetAvEnhet, opprettetAv, navBruker)
         TestRepository.insert(deltakerListe)
 
-        runBlocking {
+        runTest {
             val deltaker = pameldingService.opprettDeltaker(
                 deltakerListeId = deltakerListe.id,
                 personIdent = navBruker.personident,
@@ -168,7 +166,7 @@ class PameldingServiceTest {
         )
         TestRepository.insert(deltakerListe)
 
-        runBlocking {
+        runTest {
             val deltaker = pameldingService.opprettDeltaker(
                 deltakerListeId = deltakerListe.id,
                 personIdent = navBruker.personident,
@@ -192,7 +190,7 @@ class PameldingServiceTest {
     @Test
     fun `opprettKladd - deltakerliste finnes ikke - kaster NoSuchElementException`() {
         val personIdent = TestData.randomIdent()
-        runBlocking {
+        runTest {
             assertFailsWith<NoSuchElementException> {
                 pameldingService.opprettDeltaker(UUID.randomUUID(), personIdent)
             }
@@ -218,7 +216,7 @@ class PameldingServiceTest {
         )
         TestRepository.insert(deltaker)
 
-        runBlocking {
+        runTest {
             val nyDeltaker =
                 pameldingService.opprettDeltaker(
                     deltaker.deltakerliste.id,
@@ -252,7 +250,7 @@ class PameldingServiceTest {
             godkjentAvNav = false,
         )
 
-        runBlocking {
+        runTest {
             pameldingService.upsertUtkast(deltaker.id, utkastRequest)
 
             val deltakerFraDb = deltakerService.get(deltaker.id).getOrThrow()
@@ -294,7 +292,7 @@ class PameldingServiceTest {
             godkjentAvNav = true,
         )
 
-        runBlocking {
+        runTest {
             pameldingService.upsertUtkast(deltaker.id, utkastRequest)
 
             val deltakerFraDb = deltakerService.get(deltaker.id).getOrThrow()
@@ -338,7 +336,7 @@ class PameldingServiceTest {
             godkjentAvNav = true,
         )
 
-        runBlocking {
+        runTest {
             pameldingService.upsertUtkast(deltaker.id, utkastRequest)
 
             val deltakerFraDb = deltakerService.get(deltaker.id).getOrThrow()
@@ -383,7 +381,7 @@ class PameldingServiceTest {
             avbruttAvEnhet = sistEndretAvEnhet.enhetsnummer,
         )
 
-        runBlocking {
+        runTest {
             pameldingService.avbrytUtkast(deltaker.id, avbrytUtkastRequest)
 
             val deltakerFraDb = deltakerService.get(deltaker.id).getOrThrow()
@@ -401,7 +399,7 @@ class PameldingServiceTest {
     }
 
     @Test
-    fun `innbyggerFattVedtak - deltaker med lopende oppstart - vedtak fattes og ny status er godkjent utkast`() {
+    fun `innbyggerFattVedtak - deltaker med lopende oppstart - vedtak fattes og ny status er godkjent utkast`() = runTest {
         val deltaker = lagDeltaker(
             deltakerliste = TestData.lagDeltakerlisteMedLopendeOppstart(),
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
@@ -411,9 +409,7 @@ class PameldingServiceTest {
         val enhet = lagNavEnhet(id = vedtak.opprettetAvEnhet)
         TestRepository.insertAll(deltaker, ansatt, enhet, vedtak)
 
-        runBlocking {
-            pameldingService.innbyggerGodkjennUtkast(deltaker.id)
-        }
+        pameldingService.innbyggerGodkjennUtkast(deltaker.id)
 
         assertProduced(deltaker.id)
         assertProducedDeltakerV1(deltaker.id)
@@ -428,7 +424,7 @@ class PameldingServiceTest {
     }
 
     @Test
-    fun `innbyggerFattVedtak - deltaker med felles oppstart - vedtak fattes ikke ny status er sokt inn`() {
+    fun `innbyggerFattVedtak - deltaker med felles oppstart - vedtak fattes ikke ny status er sokt inn`() = runTest {
         val deltaker = lagDeltaker(
             deltakerliste = TestData.lagDeltakerlisteMedFellesOppstart(),
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
@@ -438,9 +434,7 @@ class PameldingServiceTest {
         val enhet = lagNavEnhet(id = vedtak.opprettetAvEnhet)
         TestRepository.insertAll(deltaker, ansatt, enhet, vedtak)
 
-        runBlocking {
-            pameldingService.innbyggerGodkjennUtkast(deltaker.id)
-        }
+        pameldingService.innbyggerGodkjennUtkast(deltaker.id)
 
         assertProduced(deltaker.id)
         assertProducedDeltakerV1(deltaker.id)
@@ -468,8 +462,8 @@ class PameldingServiceTest {
         val enhet = lagNavEnhet(id = vedtak.opprettetAvEnhet)
         TestRepository.insertAll(deltaker, ansatt, enhet, vedtak)
 
-        assertThrows(IllegalArgumentException::class.java) {
-            runBlocking {
+        shouldThrow<IllegalArgumentException> {
+            runTest {
                 pameldingService.innbyggerGodkjennUtkast(deltaker.id)
             }
         }
@@ -489,7 +483,6 @@ class PameldingServiceTest {
         private val endringFraArrangorRepository = EndringFraArrangorRepository()
         private val vedtakRepository = VedtakRepository()
         private val importertFraArenaRepository = ImportertFraArenaRepository()
-        private val kafkaProducer = Producer<String, String>(LocalKafkaConfig(SingletonKafkaProvider.getHost()))
         private val innsokPaaFellesOppstartRepository = InnsokPaaFellesOppstartRepository()
         private val innsokPaaFellesOppstartService = InnsokPaaFellesOppstartService(innsokPaaFellesOppstartRepository)
         private val endringFraTiltaksKoordinatorRepository = EndringFraTiltakskoordinatorRepository()
@@ -507,7 +500,7 @@ class PameldingServiceTest {
                 vurderingRepository,
             )
         private val hendelseService = HendelseService(
-            HendelseProducer(kafkaProducer),
+            HendelseProducer(TestOutboxEnvironment.outboxService),
             navAnsattService,
             navEnhetService,
             arrangorService,
@@ -526,8 +519,8 @@ class PameldingServiceTest {
         private val deltakerKafkaPayloadBuilder =
             DeltakerKafkaPayloadBuilder(navAnsattService, navEnhetService, deltakerHistorikkService, VurderingRepository())
 
-        private val deltakerProducer = DeltakerProducer(kafkaProducer)
-        private val deltakerV1Producer = DeltakerV1Producer(kafkaProducer)
+        private val deltakerProducer = DeltakerProducer(TestOutboxEnvironment.outboxService, TestOutboxEnvironment.kafkaProducer)
+        private val deltakerV1Producer = DeltakerV1Producer(TestOutboxEnvironment.outboxService, TestOutboxEnvironment.kafkaProducer)
 
         private val deltakerProducerService =
             DeltakerProducerService(deltakerKafkaPayloadBuilder, deltakerProducer, deltakerV1Producer, unleashToggle)

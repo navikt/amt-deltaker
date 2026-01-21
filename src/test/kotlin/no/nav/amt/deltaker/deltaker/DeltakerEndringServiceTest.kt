@@ -2,7 +2,8 @@ package no.nav.amt.deltaker.deltaker
 
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
+import no.nav.amt.deltaker.TestOutboxEnvironment
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.api.deltaker.toDeltakerEndringEndring
@@ -33,8 +34,6 @@ import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.utils.mockAmtArrangorClient
 import no.nav.amt.deltaker.utils.mockPersonServiceClient
-import no.nav.amt.lib.kafka.Producer
-import no.nav.amt.lib.kafka.config.LocalKafkaConfig
 import no.nav.amt.lib.models.arrangor.melding.EndringAarsak
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
@@ -49,7 +48,6 @@ import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.ForlengDelta
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.IkkeAktuellRequest
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.InnholdRequest
 import no.nav.amt.lib.models.hendelse.HendelseType
-import no.nav.amt.lib.testing.SingletonKafkaProvider
 import no.nav.amt.lib.testing.SingletonPostgres16Container
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
@@ -64,7 +62,6 @@ class DeltakerEndringServiceTest {
     private val navAnsattService = NavAnsattService(NavAnsattRepository(), amtPersonClient, navEnhetService)
     private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
     private val forslagRepository = ForslagRepository()
-    private val kafkaProducer = Producer<String, String>(LocalKafkaConfig(SingletonKafkaProvider.getHost()))
     private val deltakerEndringRepository = DeltakerEndringRepository()
     private val vurderingRepository = VurderingRepository()
     private val vurderingService = VurderingService(vurderingRepository)
@@ -79,7 +76,7 @@ class DeltakerEndringServiceTest {
         vurderingRepository,
     )
     private val hendelseService = HendelseService(
-        HendelseProducer(kafkaProducer),
+        HendelseProducer(TestOutboxEnvironment.outboxService),
         navAnsattService,
         navEnhetService,
         arrangorService,
@@ -88,7 +85,7 @@ class DeltakerEndringServiceTest {
     )
     private val forslagService = ForslagService(
         forslagRepository,
-        ArrangorMeldingProducer(kafkaProducer),
+        ArrangorMeldingProducer(TestOutboxEnvironment.outboxService),
         DeltakerRepository(),
         mockk(),
     )
@@ -117,7 +114,7 @@ class DeltakerEndringServiceTest {
     }
 
     @Test
-    fun `upsertEndring - endret bakgrunnsinformasjon - upserter endring og returnerer deltaker`(): Unit = runBlocking {
+    fun `upsertEndring - endret bakgrunnsinformasjon - upserter endring og returnerer deltaker`(): Unit = runTest {
         val deltaker = TestData.lagDeltaker()
         val endretAv = TestData.lagNavAnsatt()
         val endretAvEnhet = TestData.lagNavEnhet()
@@ -145,7 +142,7 @@ class DeltakerEndringServiceTest {
     }
 
     @Test
-    fun `upsertEndring - endret innhold - upserter og returnerer endring`(): Unit = runBlocking {
+    fun `upsertEndring - endret innhold - upserter og returnerer endring`(): Unit = runTest {
         val deltaker = TestData.lagDeltaker()
         val endretAv = TestData.lagNavAnsatt()
         val endretAvEnhet = TestData.lagNavEnhet()
@@ -181,7 +178,7 @@ class DeltakerEndringServiceTest {
     }
 
     @Test
-    fun `upsertEndring - forleng deltakelse - upserter endring og returnerer deltaker`(): Unit = runBlocking {
+    fun `upsertEndring - forleng deltakelse - upserter endring og returnerer deltaker`(): Unit = runTest {
         val deltaker = TestData.lagDeltaker()
         val endretAv = TestData.lagNavAnsatt()
         val endretAvEnhet = TestData.lagNavEnhet()
@@ -227,7 +224,7 @@ class DeltakerEndringServiceTest {
     }
 
     @Test
-    fun `upsertEndring - ikke aktuell - upserter endring og returnerer deltaker`(): Unit = runBlocking {
+    fun `upsertEndring - ikke aktuell - upserter endring og returnerer deltaker`(): Unit = runTest {
         val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.VENTER_PA_OPPSTART))
         val endretAv = TestData.lagNavAnsatt()
         val endretAvEnhet = TestData.lagNavEnhet()
@@ -272,7 +269,7 @@ class DeltakerEndringServiceTest {
     }
 
     @Test
-    fun `upsertEndring - fjern oppstartsdato - upserter endring og returnerer deltaker`(): Unit = runBlocking {
+    fun `upsertEndring - fjern oppstartsdato - upserter endring og returnerer deltaker`(): Unit = runTest {
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
             startdato = LocalDate.now().plusDays(3),
