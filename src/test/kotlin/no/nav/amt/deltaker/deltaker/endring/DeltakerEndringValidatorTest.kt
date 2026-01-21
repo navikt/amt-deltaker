@@ -656,7 +656,7 @@ class DeltakerEndringValidatorTest {
 
         val result = DeltakerEndringValidator(deltaker, deltakerHistorikkServiceMock).validerRequest(request)
         result.shouldBeInstanceOf<ValidationResult.Invalid>()
-        result.reasons shouldBe listOf("ENDRE_DELTAKELSESMENGDE_IKKE_GYLDIG_ENDRING")
+        result.reasons shouldBe listOf(UgyldigDeltakerEndring.ENDRE_DELTAKELSESMENGDE_INGEN_ENDRING.name)
     }
 
     @Test
