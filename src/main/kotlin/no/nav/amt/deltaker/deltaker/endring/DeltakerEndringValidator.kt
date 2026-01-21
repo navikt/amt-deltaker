@@ -13,7 +13,7 @@ import java.time.LocalDateTime
 
 enum class UgyldigDeltakerEndring {
     AVSLUTT_DELTAKELSE_INGEN_ENDRING,
-    ENDRE_DELTAKELSESMENGDE_IKKE_GYLDIG_ENDRING,
+    ENDRE_DELTAKELSESMENGDE_INGEN_ENDRING,
     ENDRE_AVSLUTNING_INGEN_ENDRING,
     AVBRYT_DELTAKELSE_INGEN_ENDRING,
     ENDRE_BAKGRUNNSINFORMASJON_INGEN_ENDRING,
@@ -100,7 +100,7 @@ class DeltakerEndringValidator(
         return if (erGyldigEndring) {
             ValidationResult.Valid
         } else {
-            ValidationResult.Invalid(UgyldigDeltakerEndring.ENDRE_DELTAKELSESMENGDE_IKKE_GYLDIG_ENDRING.name)
+            ValidationResult.Invalid(UgyldigDeltakerEndring.ENDRE_DELTAKELSESMENGDE_INGEN_ENDRING.name)
         }
     }
 
