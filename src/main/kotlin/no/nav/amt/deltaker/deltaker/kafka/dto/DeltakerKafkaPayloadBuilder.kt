@@ -80,14 +80,6 @@ class DeltakerKafkaPayloadBuilder(
             navAnsattRepository.get(it) ?: throw IllegalStateException("Fant ikke Nav-ansatt med id $it")
         }
 
-        /*
-                val navEnhet = deltaker.navBruker.navEnhetId
-                    ?.let { navEnhetService.hentEllerOpprettNavEnhet(it) }
-
-                val navAnsatt = deltaker.navBruker.navVeilederId
-                    ?.let { navAnsattService.hentEllerOpprettNavAnsatt(it) }
-         */
-
         if (deltaker.kilde == Kilde.KOMET &&
             deltakerhistorikk.filterIsInstance<DeltakerHistorikk.Vedtak>().isEmpty() &&
             deltakerhistorikk.filterIsInstance<DeltakerHistorikk.InnsokPaaFellesOppstart>().isEmpty()
