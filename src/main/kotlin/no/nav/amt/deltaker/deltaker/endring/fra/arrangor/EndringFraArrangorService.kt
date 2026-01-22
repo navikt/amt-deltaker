@@ -1,6 +1,9 @@
 package no.nav.amt.deltaker.deltaker.endring.fra.arrangor
 
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
+import no.nav.amt.deltaker.deltaker.DeltakerService
+import no.nav.amt.deltaker.deltaker.DeltakerService.Companion.validerIkkeFeilregistrert
+import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.endring.endreDeltakersOppstart
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.hendelse.HendelseService
@@ -9,29 +12,36 @@ import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
 import org.slf4j.LoggerFactory
 
 class EndringFraArrangorService(
+    private val deltakerRepository: DeltakerRepository,
+    private val deltakerService: DeltakerService,
     private val endringFraArrangorRepository: EndringFraArrangorRepository,
     private val hendelseService: HendelseService,
     private val deltakerHistorikkService: DeltakerHistorikkService,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    suspend fun insertEndring(deltaker: Deltaker, endring: EndringFraArrangor): Result<Deltaker> {
-        val endretDeltaker = when (endring.endring) {
+    suspend fun upsertEndretDeltaker(endringFraArrangor: EndringFraArrangor): Deltaker {
+        val deltaker = deltakerRepository.get(endringFraArrangor.deltakerId).getOrThrow()
+        validerIkkeFeilregistrert(deltaker)
+
+        val endretDeltaker = when (endringFraArrangor.endring) {
             is EndringFraArrangor.LeggTilOppstartsdato -> {
-                endretDeltaker(deltaker, endring.endring)
+                endretDeltaker(deltaker, endringFraArrangor.endring)
             }
         }
 
         endretDeltaker.onSuccess {
-            endringFraArrangorRepository.insert(endring)
-            hendelseService.hendelseForEndringFraArrangor(endring, it)
+            return deltakerService.upsertDeltaker(deltaker = it, beforeDeltakerUpsert = {
+                endringFraArrangorRepository.insert(endringFraArrangor)
+                hendelseService.hendelseForEndringFraArrangor(endringFraArrangor, it)
+            })
         }
 
         endretDeltaker.onFailure {
             log.warn("Endring fra arrangor for deltaker ${deltaker.id} medfører ingen endring")
         }
 
-        return endretDeltaker
+        return deltaker
     }
 
     private fun endretDeltaker(deltaker: Deltaker, endring: EndringFraArrangor.Endring): Result<Deltaker> {

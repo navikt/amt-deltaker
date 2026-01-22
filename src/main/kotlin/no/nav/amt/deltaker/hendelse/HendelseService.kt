@@ -5,6 +5,7 @@ import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
 import no.nav.amt.deltaker.navansatt.NavAnsattService
+import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
@@ -25,6 +26,7 @@ import java.util.UUID
 class HendelseService(
     private val hendelseProducer: HendelseProducer,
     private val navAnsattService: NavAnsattService,
+    private val navEnhetRepository: NavEnhetRepository,
     private val navEnhetService: NavEnhetService,
     private val arrangorService: ArrangorService,
     private val deltakerHistorikkService: DeltakerHistorikkService,
@@ -78,26 +80,32 @@ class HendelseService(
         hendelseProducer.produce(nyHendelseFraNavAnsatt(deltaker, navAnsatt, navEnhet, endring))
     }
 
-    suspend fun hendelseForEndringFraArrangor(endringFraArrangor: EndringFraArrangor, deltaker: Deltaker) {
+    fun hendelseForEndringFraArrangor(endringFraArrangor: EndringFraArrangor, deltaker: Deltaker) {
         val navEnhet = getNavEnhet(deltaker)
-
         val endring = endringFraArrangor.toHendelseEndring()
 
         hendelseProducer.produce(nyHendelseForEndringFraArrangor(deltaker, navEnhet, endring))
     }
 
-    private suspend fun getNavEnhet(deltaker: Deltaker): NavEnhet {
+    private fun getNavEnhet(deltaker: Deltaker): NavEnhet {
         val navEnhetId: UUID? = deltaker.navBruker.navEnhetId
 
-        if (deltaker.vedtaksinformasjon != null) {
-            return navEnhetService.hentEllerOpprettNavEnhet(deltaker.vedtaksinformasjon.sistEndretAvEnhet)
-        } else if (navEnhetId != null) {
-            log.info("Deltaker mangler vedtaksinformasjon, bruker oppfølgingsenhet som avsender")
-            return navEnhetService.hentEllerOpprettNavEnhet(navEnhetId)
-        } else {
-            throw IllegalStateException(
-                "Kan ikke produsere hendelse for endring fra arrangør for deltaker uten vedtak og uten oppfølgingsenhet, id ${deltaker.id}",
-            )
+        return when {
+            deltaker.vedtaksinformasjon != null -> {
+                navEnhetRepository.get(deltaker.vedtaksinformasjon.sistEndretAvEnhet)
+                    ?: throw IllegalStateException("Fant ikke nav-enhet med id ${deltaker.vedtaksinformasjon.sistEndretAvEnhet}")
+            }
+
+            navEnhetId != null -> {
+                log.info("Deltaker mangler vedtaksinformasjon, bruker oppfølgingsenhet som avsender")
+                navEnhetRepository.get(navEnhetId) ?: throw IllegalStateException("Fant ikke nav-enhet med id $navEnhetId")
+            }
+
+            else -> {
+                throw IllegalStateException(
+                    "Kan ikke produsere hendelse for endring fra arrangør for deltaker uten vedtak og uten oppfølgingsenhet, id ${deltaker.id}",
+                )
+            }
         }
     }
 

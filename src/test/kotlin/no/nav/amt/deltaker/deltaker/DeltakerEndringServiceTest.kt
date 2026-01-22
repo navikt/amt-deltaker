@@ -58,7 +58,9 @@ import java.util.UUID
 
 class DeltakerEndringServiceTest {
     private val amtPersonClient = mockPersonServiceClient()
-    private val navEnhetService = NavEnhetService(NavEnhetRepository(), amtPersonClient)
+    private val navEnhetRepository = NavEnhetRepository()
+    private val navEnhetService = NavEnhetService(navEnhetRepository, amtPersonClient)
+    private val navAnsattRepository = NavAnsattRepository()
     private val navAnsattService = NavAnsattService(NavAnsattRepository(), amtPersonClient, navEnhetService)
     private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
     private val forslagRepository = ForslagRepository()
@@ -78,6 +80,7 @@ class DeltakerEndringServiceTest {
     private val hendelseService = HendelseService(
         HendelseProducer(TestOutboxEnvironment.outboxService),
         navAnsattService,
+        navEnhetRepository,
         navEnhetService,
         arrangorService,
         deltakerHistorikkService,
@@ -92,8 +95,8 @@ class DeltakerEndringServiceTest {
 
     private val deltakerEndringService = DeltakerEndringService(
         deltakerEndringRepository = deltakerEndringRepository,
-        navAnsattService = navAnsattService,
-        navEnhetService = navEnhetService,
+        navAnsattRepository = navAnsattRepository,
+        navEnhetRepository = navEnhetRepository,
         hendelseService = hendelseService,
         forslagService = forslagService,
         deltakerHistorikkService = deltakerHistorikkService,

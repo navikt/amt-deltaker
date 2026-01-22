@@ -6,8 +6,8 @@ import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.hendelse.HendelseService
-import no.nav.amt.deltaker.navansatt.NavAnsattService
-import no.nav.amt.deltaker.navenhet.NavEnhetService
+import no.nav.amt.deltaker.navansatt.NavAnsattRepository
+import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengde
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
@@ -18,15 +18,15 @@ import java.util.UUID
 
 class DeltakerEndringService(
     private val deltakerEndringRepository: DeltakerEndringRepository,
-    private val navAnsattService: NavAnsattService,
-    private val navEnhetService: NavEnhetService,
+    private val navAnsattRepository: NavAnsattRepository,
+    private val navEnhetRepository: NavEnhetRepository,
     private val hendelseService: HendelseService,
     private val forslagService: ForslagService,
     private val deltakerHistorikkService: DeltakerHistorikkService,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    suspend fun upsertEndring(
+    fun upsertEndring(
         deltaker: Deltaker,
         endring: DeltakerEndring.Endring,
         utfall: DeltakerEndringUtfall,
@@ -34,8 +34,11 @@ class DeltakerEndringService(
     ): DeltakerEndring? {
         if (utfall.erUgyldig) return null
 
-        val ansatt = navAnsattService.hentEllerOpprettNavAnsatt(request.endretAv)
-        val enhet = navEnhetService.hentEllerOpprettNavEnhet(request.endretAvEnhet)
+        val ansatt = navAnsattRepository.get(request.endretAv)
+            ?: throw IllegalStateException("Fant ikke Nav-ansatt med id ${request.endretAv}")
+        val enhet = navEnhetRepository.get(request.endretAvEnhet)
+            ?: throw IllegalStateException("Fant ikke Nav-enhet med id ${request.endretAvEnhet}")
+
         val godkjentForslag = request.getForslagId()?.let { forslagId ->
             forslagService.godkjennForslag(
                 forslagId = forslagId,

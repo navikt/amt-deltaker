@@ -13,6 +13,7 @@ import io.mockk.mockk
 import io.mockk.spyk
 import io.mockk.verify
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.apiclients.mulighetsrommet.MulighetsrommetApiClient
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerService
@@ -79,7 +80,6 @@ class EnkeltplassDeltakerConsumerTest {
                 vedtakService = mockk(),
                 hendelseService = mockk(),
                 endringFraArrangorRepository = mockk(),
-                endringFraArrangorService = mockk(),
                 deltakerHistorikkService = mockk(),
                 endringFraTiltakskoordinatorRepository = mockk(),
                 navEnhetService = mockk(),
@@ -206,6 +206,7 @@ class EnkeltplassDeltakerConsumerTest {
                 },
                 any(),
                 any(),
+                any(),
             )
         }
 
@@ -275,7 +276,7 @@ class EnkeltplassDeltakerConsumerTest {
         }
 
         coVerify(exactly = 1) {
-            deltakerService.transactionalDeltakerUpsert(any(), any(), any())
+            deltakerService.transactionalDeltakerUpsert(any(), any(), any(), any())
         }
         coVerify(exactly = 1) {
             deltakerProducerService.produce(any(), any(), any())
@@ -343,12 +344,18 @@ class EnkeltplassDeltakerConsumerTest {
         coEvery { navBrukerService.get(deltaker.navBruker.personident) } returns Result.success(deltaker.navBruker)
         coEvery { deltakerKafkaPayloadBuilder.buildDeltakerV1Record(any()) } returns mockk()
         coEvery { deltakerKafkaPayloadBuilder.buildDeltakerV2Record(any()) } returns mockk()
-        runBlocking {
+
+        runTest {
             consumer.consumeDeltaker(toPayload(deltakerMedNyStatus))
         }
 
         coVerify(exactly = 1) {
-            deltakerService.transactionalDeltakerUpsert(any(), any(), any())
+            deltakerService.transactionalDeltakerUpsert(
+                deltaker = any(),
+                nesteStatus = any(),
+                beforeDeltakerUpsert = any(),
+                additionalDbOperations = any(),
+            )
         }
         coVerify(exactly = 1) {
             deltakerProducerService.produce(any(), any(), any())
@@ -421,7 +428,7 @@ class EnkeltplassDeltakerConsumerTest {
         }
 
         coVerify(exactly = 1) {
-            deltakerService.transactionalDeltakerUpsert(any(), any(), any())
+            deltakerService.transactionalDeltakerUpsert(any(), any(), any(), any())
         }
         coVerify(exactly = 1) {
             deltakerProducerService.produce(any(), any(), any())

@@ -16,12 +16,13 @@ class ForslagService(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    suspend fun upsert(forslag: Forslag) {
+    fun upsert(forslag: Forslag) {
         forslagRepository.upsert(forslag)
         when (forslag.status) {
             is Forslag.Status.Godkjent,
             Forslag.Status.VenterPaSvar,
-            -> {}
+            -> {
+            }
 
             is Forslag.Status.Avvist,
             is Forslag.Status.Erstattet,
@@ -34,7 +35,7 @@ class ForslagService(
         log.info("Lagret forslag ${forslag.id}")
     }
 
-    suspend fun godkjennForslag(
+    fun godkjennForslag(
         forslagId: UUID,
         godkjentAvAnsattId: UUID,
         godkjentAvEnhetId: UUID,
@@ -51,6 +52,7 @@ class ForslagService(
         )
         upsert(godkjentForslag)
         arrangorMeldingProducer.produce(godkjentForslag)
+
         log.info("Godkjent forslag for deltaker ${opprinneligForslag.deltakerId}")
         return godkjentForslag
     }

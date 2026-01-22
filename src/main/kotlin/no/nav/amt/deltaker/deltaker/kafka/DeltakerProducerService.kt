@@ -12,7 +12,7 @@ class DeltakerProducerService(
     private val deltakerV1Producer: DeltakerV1Producer,
     private val unleashToggle: UnleashToggle,
 ) {
-    suspend fun produce(
+    fun produce(
         deltaker: Deltaker,
         forcedUpdate: Boolean? = false,
         publiserTilDeltakerV1: Boolean = true,
@@ -35,7 +35,7 @@ class DeltakerProducerService(
         }
     }
 
-    suspend fun produceDeltakerV2Topic(deltaker: Deltaker, forcedUpdate: Boolean? = false) {
+    fun produceDeltakerV2Topic(deltaker: Deltaker, forcedUpdate: Boolean? = false) {
         val deltakerV2Record = deltakerKafkaPayloadBuilder.buildDeltakerV2Record(deltaker, forcedUpdate)
         if (unleashToggle.erKometMasterForTiltakstype(deltaker.deltakerliste.tiltakstype.tiltakskode) ||
             unleashToggle.skalLeseArenaDataForTiltakstype(deltaker.deltakerliste.tiltakstype.tiltakskode)

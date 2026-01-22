@@ -22,7 +22,6 @@ import no.nav.amt.deltaker.deltaker.db.DeltakerStatusRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringService
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
-import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorService
 import no.nav.amt.deltaker.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagService
@@ -90,8 +89,13 @@ import java.util.UUID
 class DeltakerServiceTest {
     companion object {
         private val amtPersonClientMock = mockPersonServiceClient()
-        private val navEnhetService = NavEnhetService(NavEnhetRepository(), amtPersonClientMock)
-        private val navAnsattService = NavAnsattService(NavAnsattRepository(), amtPersonClientMock, navEnhetService)
+
+        private val navEnhetRepository = NavEnhetRepository()
+        private val navEnhetService = NavEnhetService(navEnhetRepository, amtPersonClientMock)
+
+        private val navAnsattRepository = NavAnsattRepository()
+        private val navAnsattService = NavAnsattService(navAnsattRepository, amtPersonClientMock, navEnhetService)
+
         private val deltakerRepository = DeltakerRepository()
         private val deltakerEndringRepository = DeltakerEndringRepository()
         private val vedtakRepository = VedtakRepository()
@@ -115,18 +119,29 @@ class DeltakerServiceTest {
         private val hendelseService = HendelseService(
             HendelseProducer(TestOutboxEnvironment.outboxService),
             navAnsattService,
+            navEnhetRepository,
             navEnhetService,
             arrangorService,
             deltakerHistorikkService,
             vurderingService,
         )
         private val unleashToggle = mockk<UnleashToggle>()
-        private val deltakerKafkaPayloadBuilder =
-            DeltakerKafkaPayloadBuilder(navAnsattService, navEnhetService, deltakerHistorikkService, vurderingRepository)
+        private val deltakerKafkaPayloadBuilder = DeltakerKafkaPayloadBuilder(
+            navAnsattRepository = navAnsattRepository,
+            navEnhetRepository = navEnhetRepository,
+            deltakerHistorikkService,
+            vurderingRepository,
+        )
+
         private val deltakerProducer = DeltakerProducer(TestOutboxEnvironment.outboxService, TestOutboxEnvironment.kafkaProducer)
         private val deltakerV1Producer = DeltakerV1Producer(TestOutboxEnvironment.outboxService, TestOutboxEnvironment.kafkaProducer)
-        private val deltakerProducerService =
-            DeltakerProducerService(deltakerKafkaPayloadBuilder, deltakerProducer, deltakerV1Producer, unleashToggle)
+        private val deltakerProducerService = DeltakerProducerService(
+            deltakerKafkaPayloadBuilder,
+            deltakerProducer,
+            deltakerV1Producer,
+            unleashToggle,
+        )
+
         private val forslagService = ForslagService(
             forslagRepository,
             ArrangorMeldingProducer(TestOutboxEnvironment.outboxService),
@@ -137,17 +152,13 @@ class DeltakerServiceTest {
         private val deltakerEndringService =
             DeltakerEndringService(
                 deltakerEndringRepository,
-                navAnsattService,
-                navEnhetService,
+                navAnsattRepository,
+                navEnhetRepository,
                 hendelseService,
                 forslagService,
                 deltakerHistorikkService,
             )
-        private val endringFraArrangorService = EndringFraArrangorService(
-            endringFraArrangorRepository = endringFraArrangorRepository,
-            hendelseService = hendelseService,
-            deltakerHistorikkService = deltakerHistorikkService,
-        )
+
         private val endringFraTiltakskoordinatorRepository = EndringFraTiltakskoordinatorRepository()
 
         private val deltakerService = DeltakerService(
@@ -159,7 +170,6 @@ class DeltakerServiceTest {
             vedtakService = vedtakService,
             hendelseService = hendelseService,
             endringFraArrangorRepository = endringFraArrangorRepository,
-            endringFraArrangorService = endringFraArrangorService,
             importertFraArenaRepository = importertFraArenaRepository,
             deltakerHistorikkService = deltakerHistorikkService,
             endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
@@ -805,6 +815,7 @@ class DeltakerServiceTest {
         val endretAvEnhet = lagNavEnhet()
 
         TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
+
         val vedtak = lagVedtak(
             deltakerId = deltaker.id,
             deltakerVedVedtak = deltaker,
@@ -1097,14 +1108,14 @@ class DeltakerServiceTest {
         val innsokt2 = lagInnsoktPaaKurs(deltakerId = deltaker2.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
         TestRepository.insertAll(endretAv, endretAvEnhet, deltaker, deltaker2, innsokt, innsokt2, vedtak)
 
-        val endredeDeltakere = deltakerService.oppdaterDeltakere(
+        val endredeDeltakereResults = deltakerService.oppdaterDeltakere(
             deltakerIder,
             EndringFraTiltakskoordinator.TildelPlass,
             endretAv.navIdent,
         )
 
-        endredeDeltakere.size shouldBe 2
-        endredeDeltakere
+        endredeDeltakereResults.size shouldBe 2
+        endredeDeltakereResults
             .first {
                 it.deltaker.id == deltaker.id
             }.deltaker shouldBeComparableWith deltaker.copy(
@@ -1119,12 +1130,15 @@ class DeltakerServiceTest {
                     sistEndretAvEnhet = vedtak.opprettetAvEnhet,
                 ).tilVedtaksInformasjon(),
         )
-        val ikkeEndretDeltaker = endredeDeltakere.first {
+
+        val ikkeEndretDeltakerResult = endredeDeltakereResults.first {
             it.deltaker.id == deltaker2.id
         }
-        ikkeEndretDeltaker.deltaker shouldBeComparableWith deltaker2
-        ikkeEndretDeltaker.isSuccess shouldBe false
-        ikkeEndretDeltaker.exceptionOrNull shouldBe IllegalStateException("Deltaker ${deltaker2.id} mangler et vedtak som kan fattes")
+
+        ikkeEndretDeltakerResult.deltaker shouldBeComparableWith deltaker2
+
+        ikkeEndretDeltakerResult.isSuccess shouldBe false
+        ikkeEndretDeltakerResult.exceptionOrNull shouldBe IllegalStateException("Deltaker ${deltaker2.id} mangler et vedtak som kan fattes")
 
         val historikk1 = deltakerHistorikkService.getForDeltaker(deltaker.id)
         historikk1.filterIsInstance<DeltakerHistorikk.EndringFraTiltakskoordinator>().size shouldBe 1
@@ -1403,6 +1417,7 @@ class DeltakerServiceTest {
             innsokt2,
             vedtak,
         )
+
         val deltakereResult = deltakerService.oppdaterDeltakere(
             deltakerIder,
             EndringFraTiltakskoordinator.TildelPlass,
@@ -1412,15 +1427,17 @@ class DeltakerServiceTest {
         deltakereResult.size shouldBe 2
         deltakereResult.filter { it.isSuccess }.size shouldBe 1
 
-        val resDeltaker1 = deltakereResult.first { it.deltaker.id == deltakerInsert.id }.deltaker
-        resDeltaker1.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
-        resDeltaker1.startdato shouldBe deltakerliste.startDato
-        resDeltaker1.sluttdato shouldBe deltakerliste.sluttDato
+        assertSoftly(deltakereResult.first { it.deltaker.id == deltakerInsert.id }.deltaker) {
+            status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
+            startdato shouldBe deltakerliste.startDato
+            sluttdato shouldBe deltakerliste.sluttDato
+        }
 
-        val resDeltaker2 = deltakereResult.first { it.deltaker.id == deltaker2Insert.id }.deltaker
-        resDeltaker2.status.type shouldBe deltaker2Insert.status.type
-        resDeltaker2.startdato shouldBe deltaker2Insert.startdato
-        resDeltaker2.sluttdato shouldBe deltaker2Insert.sluttdato
+        assertSoftly(deltakereResult.first { it.deltaker.id == deltaker2Insert.id }.deltaker) {
+            status.type shouldBe deltaker2Insert.status.type
+            startdato shouldBe deltaker2Insert.startdato
+            sluttdato shouldBe deltaker2Insert.sluttdato
+        }
 
         assertProduced(deltakerInsert.id)
         assertProducedDeltakerV1(deltakerInsert.id)

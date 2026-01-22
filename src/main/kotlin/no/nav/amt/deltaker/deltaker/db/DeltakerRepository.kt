@@ -77,7 +77,7 @@ class DeltakerRepository {
                 WHERE 
                     d.id = :id 
                     AND ds.gyldig_til IS NULL 
-                    AND ds.gyldig_fra < CURRENT_TIMESTAMP
+                    AND ds.gyldig_fra <= CURRENT_TIMESTAMP
                 """.trimIndent(),
             ),
             mapOf("id" to id),

@@ -13,13 +13,10 @@ import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerKafkaPayloadBuilder
 import no.nav.amt.deltaker.deltaker.sammenlignHistorikk
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
-import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
-import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
-import no.nav.amt.deltaker.utils.mockPersonServiceClient
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
@@ -39,8 +36,8 @@ import java.util.UUID
 
 class DeltakerResponseMapperServiceTest {
     companion object {
-        private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockPersonServiceClient())
-        private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockPersonServiceClient(), navEnhetService)
+        private val navEnhetRepository = NavEnhetRepository()
+        private val navAnsattRepository = NavAnsattRepository()
         private val vurderingRepository = VurderingRepository()
         private val deltakerHistorikkService = DeltakerHistorikkService(
             DeltakerEndringRepository(),
@@ -53,7 +50,7 @@ class DeltakerResponseMapperServiceTest {
             vurderingRepository,
         )
         private val deltakerKafkaPayloadBuilder =
-            DeltakerKafkaPayloadBuilder(navAnsattService, navEnhetService, deltakerHistorikkService, vurderingRepository)
+            DeltakerKafkaPayloadBuilder(navAnsattRepository, navEnhetRepository, deltakerHistorikkService, vurderingRepository)
 
         @BeforeAll
         @JvmStatic

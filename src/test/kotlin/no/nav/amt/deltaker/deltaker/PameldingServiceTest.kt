@@ -17,7 +17,6 @@ import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringService
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
-import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorService
 import no.nav.amt.deltaker.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagService
@@ -474,8 +473,12 @@ class PameldingServiceTest {
     }
 
     companion object {
-        private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockPersonServiceClient())
-        private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockPersonServiceClient(), navEnhetService)
+        private val navEnhetRepository = NavEnhetRepository()
+        private val navEnhetService = NavEnhetService(navEnhetRepository, mockPersonServiceClient())
+
+        private val navAnsattRepository = NavAnsattRepository()
+        private val navAnsattService = NavAnsattService(navAnsattRepository, mockPersonServiceClient(), navEnhetService)
+
         private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
         private val forslagRepository = ForslagRepository()
         private val deltakerRepository = DeltakerRepository()
@@ -502,6 +505,7 @@ class PameldingServiceTest {
         private val hendelseService = HendelseService(
             HendelseProducer(TestOutboxEnvironment.outboxService),
             navAnsattService,
+            navEnhetRepository,
             navEnhetService,
             arrangorService,
             deltakerHistorikkService,
@@ -510,14 +514,9 @@ class PameldingServiceTest {
 
         private val vedtakService = VedtakService(vedtakRepository)
         private val forslagService = ForslagService(forslagRepository, mockk(), deltakerRepository, mockk())
-        private val endringFraArrangorService = EndringFraArrangorService(
-            endringFraArrangorRepository = endringFraArrangorRepository,
-            hendelseService = hendelseService,
-            deltakerHistorikkService = deltakerHistorikkService,
-        )
         private val unleashToggle = mockk<UnleashToggle>(relaxed = true)
         private val deltakerKafkaPayloadBuilder =
-            DeltakerKafkaPayloadBuilder(navAnsattService, navEnhetService, deltakerHistorikkService, VurderingRepository())
+            DeltakerKafkaPayloadBuilder(navAnsattRepository, navEnhetRepository, deltakerHistorikkService, VurderingRepository())
 
         private val deltakerProducer = DeltakerProducer(TestOutboxEnvironment.outboxService, TestOutboxEnvironment.kafkaProducer)
         private val deltakerV1Producer = DeltakerV1Producer(TestOutboxEnvironment.outboxService, TestOutboxEnvironment.kafkaProducer)
@@ -531,8 +530,8 @@ class PameldingServiceTest {
             deltakerEndringRepository = deltakerEndringRepository,
             deltakerEndringService = DeltakerEndringService(
                 deltakerEndringRepository,
-                navAnsattService,
-                navEnhetService,
+                navAnsattRepository,
+                navEnhetRepository,
                 hendelseService,
                 forslagService,
                 deltakerHistorikkService,
@@ -541,7 +540,6 @@ class PameldingServiceTest {
             vedtakService = vedtakService,
             hendelseService = hendelseService,
             endringFraArrangorRepository = endringFraArrangorRepository,
-            endringFraArrangorService = endringFraArrangorService,
             importertFraArenaRepository = importertFraArenaRepository,
             deltakerHistorikkService = deltakerHistorikkService,
             navAnsattService = navAnsattService,

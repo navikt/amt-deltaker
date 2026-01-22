@@ -227,6 +227,7 @@ fun Application.module() {
     val hendelseService = HendelseService(
         hendelseProducer = hendelseProducer,
         navAnsattService = navAnsattService,
+        navEnhetRepository = navEnhetRepository,
         navEnhetService = navEnhetService,
         arrangorService = arrangorService,
         deltakerHistorikkService = deltakerHistorikkService,
@@ -245,7 +246,7 @@ fun Application.module() {
     val unleashToggle = UnleashToggle(unleash)
 
     val deltakerKafkaPayloadBuilder =
-        DeltakerKafkaPayloadBuilder(navAnsattService, navEnhetService, deltakerHistorikkService, vurderingRepository)
+        DeltakerKafkaPayloadBuilder(navAnsattRepository, navEnhetRepository, deltakerHistorikkService, vurderingRepository)
 
     val deltakerProducer = DeltakerProducer(
         outboxService = outboxService,
@@ -270,16 +271,17 @@ fun Application.module() {
     val deltakerEndringService =
         DeltakerEndringService(
             deltakerEndringRepository,
-            navAnsattService,
-            navEnhetService,
+            navAnsattRepository,
+            navEnhetRepository,
             hendelseService,
             forslagService,
             deltakerHistorikkService,
         )
+
     val deltakelserResponseMapper = DeltakelserResponseMapper(deltakerHistorikkService, arrangorService)
 
-    val endringFraArrangorService = EndringFraArrangorService(endringFraArrangorRepository, hendelseService, deltakerHistorikkService)
     val vedtakService = VedtakService(vedtakRepository)
+
     val deltakerService = DeltakerService(
         deltakerRepository = deltakerRepository,
         deltakerEndringRepository = deltakerEndringRepository,
@@ -289,13 +291,20 @@ fun Application.module() {
         vedtakService = vedtakService,
         hendelseService = hendelseService,
         endringFraArrangorRepository = endringFraArrangorRepository,
-        endringFraArrangorService = endringFraArrangorService,
         importertFraArenaRepository = importertFraArenaRepository,
         deltakerHistorikkService = deltakerHistorikkService,
         endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
         navAnsattService = navAnsattService,
         navEnhetService = navEnhetService,
         forslagRepository = forslagRepository,
+    )
+
+    val endringFraArrangorService = EndringFraArrangorService(
+        deltakerRepository,
+        deltakerService,
+        endringFraArrangorRepository,
+        hendelseService,
+        deltakerHistorikkService,
     )
 
     val opprettKladdRequestValidator = OpprettKladdRequestValidator(
@@ -340,7 +349,14 @@ fun Application.module() {
             tiltakstypeRepository,
             deltakerProducerService,
         ),
-        ArrangorMeldingConsumer(forslagRepository, forslagService, deltakerService, vurderingRepository, deltakerProducerService),
+        ArrangorMeldingConsumer(
+            endringFraArrangorService,
+            forslagRepository,
+            forslagService,
+            deltakerRepository,
+            vurderingRepository,
+            deltakerProducerService,
+        ),
         NavEnhetConsumer(navEnhetRepository),
     )
     consumers.forEach { it.start() }

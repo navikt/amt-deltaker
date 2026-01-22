@@ -1,17 +1,27 @@
 package no.nav.amt.deltaker.deltaker.endring.fra.arrangor
 
 import io.kotest.matchers.shouldBe
+import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.TestOutboxEnvironment
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
+import no.nav.amt.deltaker.deltaker.DeltakerService
+import no.nav.amt.deltaker.deltaker.VedtakService
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
+import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringService
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
+import no.nav.amt.deltaker.deltaker.forslag.ForslagService
+import no.nav.amt.deltaker.deltaker.forslag.kafka.ArrangorMeldingProducer
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
+import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
+import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
+import no.nav.amt.deltaker.deltaker.kafka.DeltakerV1Producer
+import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerKafkaPayloadBuilder
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
 import no.nav.amt.deltaker.hendelse.HendelseProducer
@@ -22,6 +32,7 @@ import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
+import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.utils.mockAmtArrangorClient
@@ -37,33 +48,100 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 class EndringFraArrangorServiceTest {
-    private val amtPersonClient = mockPersonServiceClient()
-    private val navEnhetService = NavEnhetService(NavEnhetRepository(), amtPersonClient)
-    private val navAnsattService = NavAnsattService(NavAnsattRepository(), amtPersonClient, navEnhetService)
-    private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
+    private val amtPersonClientMock = mockPersonServiceClient()
+
+    private val navEnhetRepository = NavEnhetRepository()
+    private val navEnhetService = NavEnhetService(navEnhetRepository, amtPersonClientMock)
+
+    private val navAnsattRepository = NavAnsattRepository()
+    private val navAnsattService = NavAnsattService(navAnsattRepository, amtPersonClientMock, navEnhetService)
+
+    private val deltakerRepository = DeltakerRepository()
+    private val deltakerEndringRepository = DeltakerEndringRepository()
+    private val vedtakRepository = VedtakRepository()
     private val forslagRepository = ForslagRepository()
     private val endringFraArrangorRepository = EndringFraArrangorRepository()
-    private val deltakerRepository = DeltakerRepository()
-    private val vurderingService = VurderingService(VurderingRepository())
-    private val deltakerHistorikkService = DeltakerHistorikkService(
-        DeltakerEndringRepository(),
-        VedtakRepository(),
-        forslagRepository,
-        endringFraArrangorRepository,
-        ImportertFraArenaRepository(),
-        InnsokPaaFellesOppstartRepository(),
-        EndringFraTiltakskoordinatorRepository(),
-        VurderingRepository(),
-    )
+    private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
+    private val importertFraArenaRepository = ImportertFraArenaRepository()
+    private val vurderingRepository = VurderingRepository()
+    private val vurderingService = VurderingService(vurderingRepository)
+    private val deltakerHistorikkService =
+        DeltakerHistorikkService(
+            deltakerEndringRepository,
+            vedtakRepository,
+            forslagRepository,
+            endringFraArrangorRepository,
+            importertFraArenaRepository,
+            InnsokPaaFellesOppstartRepository(),
+            EndringFraTiltakskoordinatorRepository(),
+            vurderingRepository,
+        )
     private val hendelseService = HendelseService(
         HendelseProducer(TestOutboxEnvironment.outboxService),
         navAnsattService,
+        navEnhetRepository,
         navEnhetService,
         arrangorService,
         deltakerHistorikkService,
         vurderingService,
     )
+    private val unleashToggle = mockk<UnleashToggle>(relaxed = true)
+
+    private val deltakerKafkaPayloadBuilder = DeltakerKafkaPayloadBuilder(
+        navAnsattRepository = navAnsattRepository,
+        navEnhetRepository = navEnhetRepository,
+        deltakerHistorikkService,
+        vurderingRepository,
+    )
+
+    private val deltakerProducer = DeltakerProducer(TestOutboxEnvironment.outboxService, TestOutboxEnvironment.kafkaProducer)
+    private val deltakerV1Producer = DeltakerV1Producer(TestOutboxEnvironment.outboxService, TestOutboxEnvironment.kafkaProducer)
+    private val deltakerProducerService = DeltakerProducerService(
+        deltakerKafkaPayloadBuilder,
+        deltakerProducer,
+        deltakerV1Producer,
+        unleashToggle,
+    )
+
+    private val forslagService = ForslagService(
+        forslagRepository,
+        ArrangorMeldingProducer(TestOutboxEnvironment.outboxService),
+        deltakerRepository,
+        deltakerProducerService,
+    )
+    private val vedtakService = VedtakService(vedtakRepository)
+    private val deltakerEndringService =
+        DeltakerEndringService(
+            deltakerEndringRepository,
+            navAnsattRepository,
+            navEnhetRepository,
+            hendelseService,
+            forslagService,
+            deltakerHistorikkService,
+        )
+
+    private val endringFraTiltakskoordinatorRepository = EndringFraTiltakskoordinatorRepository()
+
+    private val deltakerService = DeltakerService(
+        deltakerRepository = deltakerRepository,
+        deltakerProducerService = deltakerProducerService,
+        deltakerEndringRepository = deltakerEndringRepository,
+        deltakerEndringService = deltakerEndringService,
+        vedtakRepository = vedtakRepository,
+        vedtakService = vedtakService,
+        hendelseService = hendelseService,
+        endringFraArrangorRepository = endringFraArrangorRepository,
+        importertFraArenaRepository = importertFraArenaRepository,
+        deltakerHistorikkService = deltakerHistorikkService,
+        endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
+        navAnsattService = navAnsattService,
+        navEnhetService = navEnhetService,
+        forslagRepository = forslagRepository,
+    )
+
     private val endringFraArrangorService = EndringFraArrangorService(
+        deltakerRepository = deltakerRepository,
+        deltakerService = deltakerService,
         endringFraArrangorRepository = endringFraArrangorRepository,
         hendelseService = hendelseService,
         deltakerHistorikkService = deltakerHistorikkService,
@@ -84,7 +162,7 @@ class EndringFraArrangorServiceTest {
     }
 
     @Test
-    fun `insertEndring - legg til oppstartsdato, dato ikke passert - inserter endring og returnerer deltaker`(): Unit = runTest {
+    fun `upsertEndretDeltaker - legg til oppstartsdato, dato ikke passert - inserter endring og returnerer deltaker`(): Unit = runTest {
         val deltaker = TestData.lagDeltaker(
             startdato = null,
             sluttdato = null,
@@ -101,7 +179,6 @@ class EndringFraArrangorServiceTest {
             fattet = LocalDateTime.now(),
         )
         TestRepository.insert(vedtak)
-        val komplettDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
 
         val startdato = LocalDate.now().plusDays(2)
         val sluttdato = LocalDate.now().plusMonths(3)
@@ -113,12 +190,11 @@ class EndringFraArrangorServiceTest {
             ),
         )
 
-        val resultat = endringFraArrangorService.insertEndring(komplettDeltaker, endringFraArrangor)
+        val oppdatertDeltaker = endringFraArrangorService.upsertEndretDeltaker(endringFraArrangor)
 
-        resultat.isSuccess shouldBe true
-        resultat.getOrThrow().startdato shouldBe startdato
-        resultat.getOrThrow().sluttdato shouldBe sluttdato
-        resultat.getOrThrow().status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
+        oppdatertDeltaker.startdato shouldBe startdato
+        oppdatertDeltaker.sluttdato shouldBe sluttdato
+        oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
 
         val endring = endringFraArrangorRepository.getForDeltaker(deltaker.id).first()
         endring.opprettetAvArrangorAnsattId shouldBe endringFraArrangor.opprettetAvArrangorAnsattId
@@ -128,7 +204,7 @@ class EndringFraArrangorServiceTest {
     }
 
     @Test
-    fun `insertEndring - legg til oppstartsdato, dato passert - inserter endring og returnerer deltaker`(): Unit = runTest {
+    fun `upsertEndretDeltaker - legg til oppstartsdato, dato passert - inserter endring og returnerer deltaker`(): Unit = runTest {
         val deltaker = TestData.lagDeltaker(
             startdato = null,
             sluttdato = null,
@@ -145,7 +221,6 @@ class EndringFraArrangorServiceTest {
             fattet = LocalDateTime.now(),
         )
         TestRepository.insert(vedtak)
-        val komplettDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
 
         val startdato = LocalDate.now().minusDays(2)
         val sluttdato = LocalDate.now().plusMonths(3)
@@ -157,12 +232,11 @@ class EndringFraArrangorServiceTest {
             ),
         )
 
-        val resultat = endringFraArrangorService.insertEndring(komplettDeltaker, endringFraArrangor)
+        val oppdatertDeltaker = endringFraArrangorService.upsertEndretDeltaker(endringFraArrangor)
 
-        resultat.isSuccess shouldBe true
-        resultat.getOrThrow().startdato shouldBe startdato
-        resultat.getOrThrow().sluttdato shouldBe sluttdato
-        resultat.getOrThrow().status.type shouldBe DeltakerStatus.Type.DELTAR
+        oppdatertDeltaker.startdato shouldBe startdato
+        oppdatertDeltaker.sluttdato shouldBe sluttdato
+        oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.DELTAR
 
         val endring = endringFraArrangorRepository.getForDeltaker(deltaker.id).first()
         endring.opprettetAvArrangorAnsattId shouldBe endringFraArrangor.opprettetAvArrangorAnsattId
@@ -172,50 +246,49 @@ class EndringFraArrangorServiceTest {
     }
 
     @Test
-    fun `insertEndring - legg til oppstartsdato uten sluttdato, dato passert - inserter endring og returnerer deltaker`(): Unit = runTest {
-        val deltaker = TestData.lagDeltaker(
-            startdato = null,
-            sluttdato = null,
-            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
-        )
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
-
-        TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
-        val vedtak = TestData.lagVedtak(
-            deltakerVedVedtak = deltaker,
-            opprettetAv = endretAv,
-            opprettetAvEnhet = endretAvEnhet,
-            fattet = LocalDateTime.now(),
-        )
-        TestRepository.insert(vedtak)
-        val komplettDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
-
-        val startdato = LocalDate.now().minusDays(2)
-        val endringFraArrangor = TestData.lagEndringFraArrangor(
-            deltakerId = deltaker.id,
-            endring = EndringFraArrangor.LeggTilOppstartsdato(
-                startdato = startdato,
+    fun `upsertEndretDeltaker - legg til oppstartsdato uten sluttdato, dato passert - inserter endring og returnerer deltaker`(): Unit =
+        runTest {
+            val deltaker = TestData.lagDeltaker(
+                startdato = null,
                 sluttdato = null,
-            ),
-        )
+                status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
+            )
+            val endretAv = TestData.lagNavAnsatt()
+            val endretAvEnhet = TestData.lagNavEnhet()
 
-        val resultat = endringFraArrangorService.insertEndring(komplettDeltaker, endringFraArrangor)
+            TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
+            val vedtak = TestData.lagVedtak(
+                deltakerVedVedtak = deltaker,
+                opprettetAv = endretAv,
+                opprettetAvEnhet = endretAvEnhet,
+                fattet = LocalDateTime.now(),
+            )
+            TestRepository.insert(vedtak)
 
-        resultat.isSuccess shouldBe true
-        resultat.getOrThrow().startdato shouldBe startdato
-        resultat.getOrThrow().sluttdato shouldBe null
-        resultat.getOrThrow().status.type shouldBe DeltakerStatus.Type.DELTAR
+            val startdato = LocalDate.now().minusDays(2)
+            val endringFraArrangor = TestData.lagEndringFraArrangor(
+                deltakerId = deltaker.id,
+                endring = EndringFraArrangor.LeggTilOppstartsdato(
+                    startdato = startdato,
+                    sluttdato = null,
+                ),
+            )
 
-        val endring = endringFraArrangorRepository.getForDeltaker(deltaker.id).first()
-        endring.opprettetAvArrangorAnsattId shouldBe endringFraArrangor.opprettetAvArrangorAnsattId
-        endring.endring shouldBe endringFraArrangor.endring
+            val oppdatertDeltaker = endringFraArrangorService.upsertEndretDeltaker(endringFraArrangor)
 
-        assertProducedHendelse(deltaker.id, HendelseType.LeggTilOppstartsdato::class)
-    }
+            oppdatertDeltaker.startdato shouldBe startdato
+            oppdatertDeltaker.sluttdato shouldBe null
+            oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.DELTAR
+
+            val endring = endringFraArrangorRepository.getForDeltaker(deltaker.id).first()
+            endring.opprettetAvArrangorAnsattId shouldBe endringFraArrangor.opprettetAvArrangorAnsattId
+            endring.endring shouldBe endringFraArrangor.endring
+
+            assertProducedHendelse(deltaker.id, HendelseType.LeggTilOppstartsdato::class)
+        }
 
     @Test
-    fun `insertEndring - legg til oppstartsdato uten sluttdato - fjerner ikke eksisterende sluttdato`(): Unit = runTest {
+    fun `upsertEndretDeltaker - legg til oppstartsdato uten sluttdato - fjerner ikke eksisterende sluttdato`(): Unit = runTest {
         val gammelsluttdato = LocalDate.now().plusDays(2)
         val deltaker = TestData.lagDeltaker(
             startdato = LocalDate.of(2021, 1, 1),
@@ -233,7 +306,6 @@ class EndringFraArrangorServiceTest {
             fattet = LocalDateTime.now(),
         )
         TestRepository.insert(vedtak)
-        val komplettDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
 
         val startdato = LocalDate.of(2021, 1, 2)
         val endringFraArrangor = TestData.lagEndringFraArrangor(
@@ -244,12 +316,11 @@ class EndringFraArrangorServiceTest {
             ),
         )
 
-        val resultat = endringFraArrangorService.insertEndring(komplettDeltaker, endringFraArrangor)
+        val oppdatertDeltaker = endringFraArrangorService.upsertEndretDeltaker(endringFraArrangor)
 
-        resultat.isSuccess shouldBe true
-        resultat.getOrThrow().startdato shouldBe startdato
-        resultat.getOrThrow().sluttdato shouldBe gammelsluttdato
-        resultat.getOrThrow().status.type shouldBe DeltakerStatus.Type.DELTAR
+        oppdatertDeltaker.startdato shouldBe startdato
+        oppdatertDeltaker.sluttdato shouldBe gammelsluttdato
+        oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.DELTAR
 
         val endring = endringFraArrangorRepository.getForDeltaker(deltaker.id).first()
         endring.opprettetAvArrangorAnsattId shouldBe endringFraArrangor.opprettetAvArrangorAnsattId
@@ -264,46 +335,45 @@ class EndringFraArrangorServiceTest {
     }
 
     @Test
-    fun `insertEndring - legg til oppstartsdato, start- og sluttdato passert - inserter endring og returnerer deltaker`(): Unit = runTest {
-        val deltaker = TestData.lagDeltaker(
-            startdato = null,
-            sluttdato = null,
-            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
-        )
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
+    fun `upsertEndretDeltaker - legg til oppstartsdato, start- og sluttdato passert - inserter endring og returnerer deltaker`(): Unit =
+        runTest {
+            val deltaker = TestData.lagDeltaker(
+                startdato = null,
+                sluttdato = null,
+                status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
+            )
+            val endretAv = TestData.lagNavAnsatt()
+            val endretAvEnhet = TestData.lagNavEnhet()
 
-        TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
-        val vedtak = TestData.lagVedtak(
-            deltakerVedVedtak = deltaker,
-            opprettetAv = endretAv,
-            opprettetAvEnhet = endretAvEnhet,
-            fattet = LocalDateTime.now(),
-        )
-        TestRepository.insert(vedtak)
-        val komplettDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
+            TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
+            val vedtak = TestData.lagVedtak(
+                deltakerVedVedtak = deltaker,
+                opprettetAv = endretAv,
+                opprettetAvEnhet = endretAvEnhet,
+                fattet = LocalDateTime.now(),
+            )
+            TestRepository.insert(vedtak)
 
-        val startdato = LocalDate.now().minusMonths(2)
-        val sluttdato = LocalDate.now().minusDays(5)
-        val endringFraArrangor = TestData.lagEndringFraArrangor(
-            deltakerId = deltaker.id,
-            endring = EndringFraArrangor.LeggTilOppstartsdato(
-                startdato = startdato,
-                sluttdato = sluttdato,
-            ),
-        )
+            val startdato = LocalDate.now().minusMonths(2)
+            val sluttdato = LocalDate.now().minusDays(5)
+            val endringFraArrangor = TestData.lagEndringFraArrangor(
+                deltakerId = deltaker.id,
+                endring = EndringFraArrangor.LeggTilOppstartsdato(
+                    startdato = startdato,
+                    sluttdato = sluttdato,
+                ),
+            )
 
-        val resultat = endringFraArrangorService.insertEndring(komplettDeltaker, endringFraArrangor)
+            val oppdatertDeltaker = endringFraArrangorService.upsertEndretDeltaker(endringFraArrangor)
 
-        resultat.isSuccess shouldBe true
-        resultat.getOrThrow().startdato shouldBe startdato
-        resultat.getOrThrow().sluttdato shouldBe sluttdato
-        resultat.getOrThrow().status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+            oppdatertDeltaker.startdato shouldBe startdato
+            oppdatertDeltaker.sluttdato shouldBe sluttdato
+            oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
 
-        val endring = endringFraArrangorRepository.getForDeltaker(deltaker.id).first()
-        endring.opprettetAvArrangorAnsattId shouldBe endringFraArrangor.opprettetAvArrangorAnsattId
-        endring.endring shouldBe endringFraArrangor.endring
+            val endring = endringFraArrangorRepository.getForDeltaker(deltaker.id).first()
+            endring.opprettetAvArrangorAnsattId shouldBe endringFraArrangor.opprettetAvArrangorAnsattId
+            endring.endring shouldBe endringFraArrangor.endring
 
-        assertProducedHendelse(deltaker.id, HendelseType.LeggTilOppstartsdato::class)
-    }
+            assertProducedHendelse(deltaker.id, HendelseType.LeggTilOppstartsdato::class)
+        }
 }

@@ -15,7 +15,6 @@ import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringService
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
-import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorService
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
@@ -57,8 +56,12 @@ class DeltakerStatusOppdateringTest {
         private val deltakerRepository: DeltakerRepository = DeltakerRepository()
         private lateinit var deltakerService: DeltakerService
 
-        private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockPersonServiceClient())
-        private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockPersonServiceClient(), navEnhetService)
+        private val navEnhetRepository = NavEnhetRepository()
+        private val navEnhetService = NavEnhetService(navEnhetRepository, mockPersonServiceClient())
+
+        private val navAnsattRepository = NavAnsattRepository()
+        private val navAnsattService = NavAnsattService(navAnsattRepository, mockPersonServiceClient(), navEnhetService)
+
         private val deltakerEndringRepository = DeltakerEndringRepository()
         private val vedtakRepository = VedtakRepository()
         private val forslagRepository = ForslagRepository()
@@ -78,7 +81,8 @@ class DeltakerStatusOppdateringTest {
         private val vurderingRepository = VurderingRepository()
         private val unleashToggle = mockk<UnleashToggle>()
         private val deltakerKafkaPayloadMapperService =
-            DeltakerKafkaPayloadBuilder(navAnsattService, navEnhetService, deltakerHistorikkService, vurderingRepository)
+            DeltakerKafkaPayloadBuilder(navAnsattRepository, navEnhetRepository, deltakerHistorikkService, vurderingRepository)
+
         private val deltakerProducer = DeltakerProducer(TestOutboxEnvironment.outboxService, TestOutboxEnvironment.kafkaProducer)
         private val deltakerV1Producer = DeltakerV1Producer(TestOutboxEnvironment.outboxService, TestOutboxEnvironment.kafkaProducer)
         private val deltakerProducerService =
@@ -88,6 +92,7 @@ class DeltakerStatusOppdateringTest {
         private val hendelseService = HendelseService(
             HendelseProducer(TestOutboxEnvironment.outboxService),
             navAnsattService,
+            navEnhetRepository,
             navEnhetService,
             arrangorService,
             deltakerHistorikkService,
@@ -97,18 +102,13 @@ class DeltakerStatusOppdateringTest {
 
         private val deltakerEndringService = DeltakerEndringService(
             deltakerEndringRepository = deltakerEndringRepository,
-            navAnsattService = navAnsattService,
-            navEnhetService = navEnhetService,
+            navAnsattRepository = navAnsattRepository,
+            navEnhetRepository = navEnhetRepository,
             hendelseService = hendelseService,
             forslagService = forslagService,
             deltakerHistorikkService = deltakerHistorikkService,
         )
         private val vedtakService = VedtakService(vedtakRepository)
-        private val endringFraArrangorService = EndringFraArrangorService(
-            endringFraArrangorRepository = endringFraArrangorRepository,
-            hendelseService = hendelseService,
-            deltakerHistorikkService = deltakerHistorikkService,
-        )
         private val endringFraTiltakskoordinatorRepository = EndringFraTiltakskoordinatorRepository()
 
         @JvmStatic
@@ -126,7 +126,6 @@ class DeltakerStatusOppdateringTest {
                 vedtakService = vedtakService,
                 hendelseService = hendelseService,
                 endringFraArrangorRepository = endringFraArrangorRepository,
-                endringFraArrangorService = endringFraArrangorService,
                 forslagRepository = forslagRepository,
                 importertFraArenaRepository = importertFraArenaRepository,
                 deltakerHistorikkService = deltakerHistorikkService,

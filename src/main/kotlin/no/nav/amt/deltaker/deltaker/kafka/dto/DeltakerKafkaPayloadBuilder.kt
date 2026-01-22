@@ -8,8 +8,8 @@ import no.nav.amt.deltaker.deltaker.extensions.getVisningsnavn
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.vurdering.Vurdering
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
-import no.nav.amt.deltaker.navansatt.NavAnsattService
-import no.nav.amt.deltaker.navenhet.NavEnhetService
+import no.nav.amt.deltaker.navansatt.NavAnsattRepository
+import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.lib.models.arrangor.melding.Vurderingstype
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
@@ -27,9 +27,9 @@ import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltak
 import java.time.LocalDate
 import java.util.UUID
 
-data class DeltakerKafkaPayloadBuilder(
-    private val navAnsattService: NavAnsattService,
-    private val navEnhetService: NavEnhetService,
+class DeltakerKafkaPayloadBuilder(
+    private val navAnsattRepository: NavAnsattRepository,
+    private val navEnhetRepository: NavEnhetRepository,
     private val deltakerHistorikkService: DeltakerHistorikkService,
     private val vurderingRepository: VurderingRepository,
 ) {
@@ -65,17 +65,29 @@ data class DeltakerKafkaPayloadBuilder(
         )
     }
 
-    suspend fun buildDeltakerV2Record(deltaker: Deltaker, forcedUpdate: Boolean? = false): DeltakerKafkaPayload {
+    fun buildDeltakerV2Record(deltaker: Deltaker, forcedUpdate: Boolean? = false): DeltakerKafkaPayload {
         val deltakerhistorikk = deltakerHistorikkService.getForDeltaker(deltaker.id)
         val vurderinger = vurderingRepository.getForDeltaker(deltaker.id)
         val sisteEndring = deltakerhistorikk.getSisteEndring()
         val innsoktDato = deltakerhistorikk.getInnsoktDato()
             ?: throw IllegalStateException("Skal ikke produsere deltaker som mangler vedtak til topic")
-        val navEnhet = deltaker.navBruker.navEnhetId
-            ?.let { navEnhetService.hentEllerOpprettNavEnhet(it) }
 
-        val navAnsatt = deltaker.navBruker.navVeilederId
-            ?.let { navAnsattService.hentEllerOpprettNavAnsatt(it) }
+        val navEnhet = deltaker.navBruker.navEnhetId?.let {
+            navEnhetRepository.get(it) ?: throw IllegalStateException("Fant ikke Nav-enhet med id $it")
+        }
+
+        val navAnsatt = deltaker.navBruker.navVeilederId?.let {
+            navAnsattRepository.get(it) ?: throw IllegalStateException("Fant ikke Nav-ansatt med id $it")
+        }
+
+        /*
+                val navEnhet = deltaker.navBruker.navEnhetId
+                    ?.let { navEnhetService.hentEllerOpprettNavEnhet(it) }
+
+                val navAnsatt = deltaker.navBruker.navVeilederId
+                    ?.let { navAnsattService.hentEllerOpprettNavAnsatt(it) }
+         */
+
         if (deltaker.kilde == Kilde.KOMET &&
             deltakerhistorikk.filterIsInstance<DeltakerHistorikk.Vedtak>().isEmpty() &&
             deltakerhistorikk.filterIsInstance<DeltakerHistorikk.InnsokPaaFellesOppstart>().isEmpty()

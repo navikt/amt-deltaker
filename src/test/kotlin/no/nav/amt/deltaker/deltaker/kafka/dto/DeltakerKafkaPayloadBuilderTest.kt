@@ -6,7 +6,8 @@ import io.mockk.mockk
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
-import no.nav.amt.deltaker.navansatt.NavAnsattService
+import no.nav.amt.deltaker.navansatt.NavAnsattRepository
+import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
@@ -22,13 +23,15 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
 class DeltakerKafkaPayloadBuilderTest {
-    val navAnsattService = mockk<NavAnsattService>()
+    val navAnsattRepository = mockk<NavAnsattRepository>()
+    val navEnhetRepository = mockk<NavEnhetRepository>()
     val navEnhetService = mockk<NavEnhetService>()
+
     val deltakerHistorikkService = mockk<DeltakerHistorikkService>()
     val vurderingRepository = mockk<VurderingRepository>()
     val deltakerKafkaPayloadBuilder = DeltakerKafkaPayloadBuilder(
-        navAnsattService = navAnsattService,
-        navEnhetService = navEnhetService,
+        navAnsattRepository = navAnsattRepository,
+        navEnhetRepository = navEnhetRepository,
         deltakerHistorikkService = deltakerHistorikkService,
         vurderingRepository = vurderingRepository,
     )

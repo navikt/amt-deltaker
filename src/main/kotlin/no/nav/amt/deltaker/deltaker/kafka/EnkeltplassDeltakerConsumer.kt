@@ -96,6 +96,7 @@ class EnkeltplassDeltakerConsumer(
         .transactionalDeltakerUpsert(deltaker) {
             val importertData = deltaker.toImportertData()
             importertFraArenaRepository.upsert(importertData)
+            deltaker
         }.getOrThrow()
 
     private fun Deltaker.toImportertData() = ImportertFraArena(
