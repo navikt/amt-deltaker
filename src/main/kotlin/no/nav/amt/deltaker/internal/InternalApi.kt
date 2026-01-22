@@ -87,7 +87,7 @@ fun Routing.registerInternalApi(
 
                 deltakerIder.forEach {
                     val deltaker = deltakerService.get(it).getOrThrow()
-                    deltakerService.upsertDeltaker(
+                    deltakerService.upsertAndProduceDeltaker(
                         deltaker.copy(
                             status = DeltakerStatus(
                                 id = UUID.randomUUID(),
@@ -275,7 +275,7 @@ fun Routing.registerInternalApi(
 
         val oppdatertDeltaker = deltaker.copy(status = status, vedtaksinformasjon = vedtak.tilVedtaksInformasjon())
 
-        deltakerService.upsertDeltaker(oppdatertDeltaker)
+        deltakerService.upsertAndProduceDeltaker(oppdatertDeltaker)
     }
 
     post("/internal/relast/hendelse-fra-tiltakskoordinator") {

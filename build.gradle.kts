@@ -34,7 +34,7 @@ val caffeineVersion = "3.2.3"
 val mockkVersion = "1.14.7"
 val nimbusVersion = "10.7"
 val unleashVersion = "11.2.1"
-val amtLibVersion = "1.2026.01.21_14.13-fb1afbc4927f"
+val amtLibVersion = "1.2026.01.22_14.14-9b31297c8594"
 
 // fjernes ved neste release av org.apache.kafka:kafka-clients
 configurations.configureEach {

@@ -25,7 +25,7 @@ object TestOutboxEnvironment {
             ),
             kafkaProducer,
         ).apply {
-            start(initialDelay = Duration.ofMillis(100), period = Duration.ofMillis(100))
+            start(initialDelay = Duration.ofMillis(1000), period = Duration.ofMillis(100))
 
             Runtime.getRuntime().addShutdownHook(
                 Thread {

@@ -76,6 +76,7 @@ import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.testing.SingletonPostgres16Container
 import no.nav.amt.lib.testing.shouldBeCloseTo
+import no.nav.amt.lib.utils.database.Database
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
@@ -596,7 +597,7 @@ class DeltakerServiceTest {
             vedtaksinformasjon = vedtak.tilVedtaksInformasjon(),
         )
 
-        val deltakerFraDb = deltakerService.upsertDeltaker(oppdatertDeltaker)
+        val deltakerFraDb = deltakerService.upsertAndProduceDeltaker(oppdatertDeltaker)
         deltakerFraDb.status.type shouldBe DeltakerStatus.Type.UTKAST_TIL_PAMELDING
         deltakerFraDb.vedtaksinformasjon?.opprettetAv shouldBe vedtak.opprettetAv
 
@@ -620,7 +621,7 @@ class DeltakerServiceTest {
             status = lagDeltakerStatus(type = DeltakerStatus.Type.KLADD),
         )
 
-        val deltakerFraDb = deltakerService.upsertDeltaker(deltaker)
+        val deltakerFraDb = deltakerService.upsertAndProduceDeltaker(deltaker)
         deltakerFraDb.status.type shouldBe DeltakerStatus.Type.KLADD
         deltakerFraDb.vedtaksinformasjon shouldBe null
     }
@@ -1562,7 +1563,9 @@ class DeltakerServiceTest {
         )
         insert(vedtak)
 
-        deltakerService.produserDeltakereForPerson(deltaker.navBruker.personident)
+        Database.transaction {
+            deltakerService.produserDeltakereForPerson(deltaker.navBruker.personident)
+        }
 
         assertProduced(deltaker.id)
         assertProducedDeltakerV1(deltaker.id)

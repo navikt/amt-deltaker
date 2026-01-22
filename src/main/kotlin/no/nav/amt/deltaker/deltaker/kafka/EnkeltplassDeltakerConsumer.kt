@@ -93,11 +93,12 @@ class EnkeltplassDeltakerConsumer(
     override suspend fun close() = consumer.close()
 
     private suspend fun upsertImportertDeltaker(deltaker: Deltaker): Deltaker = deltakerService
-        .transactionalDeltakerUpsert(deltaker) {
+        .transactionalDeltakerUpsert(deltaker = deltaker, additionalDbOperations = {
             val importertData = deltaker.toImportertData()
             importertFraArenaRepository.upsert(importertData)
             deltaker
-        }.getOrThrow()
+        })
+        .getOrThrow()
 
     private fun Deltaker.toImportertData() = ImportertFraArena(
         deltakerId = id,

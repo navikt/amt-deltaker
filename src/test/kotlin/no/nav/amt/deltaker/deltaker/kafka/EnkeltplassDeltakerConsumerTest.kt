@@ -155,7 +155,7 @@ class EnkeltplassDeltakerConsumerTest {
             consumer.consumeDeltaker(toPayload(deltaker))
         }
 
-        coVerify(exactly = 0) { deltakerService.upsertDeltaker(any()) }
+        coVerify(exactly = 0) { deltakerService.upsertAndProduceDeltaker(any()) }
         verify(exactly = 0) { deltakerProducer.produce(any()) }
     }
 

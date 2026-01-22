@@ -49,6 +49,7 @@ import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.IkkeAktuellR
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.InnholdRequest
 import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.testing.SingletonPostgres16Container
+import no.nav.amt.lib.utils.database.Database
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -132,7 +133,9 @@ class DeltakerEndringServiceTest {
             bakgrunnsinformasjon = "Nye opplysninger",
         )
 
-        deltakerEndringService.upsertEndring(deltaker, endringsrequest.toDeltakerEndringEndring(), utfall, request = endringsrequest)
+        Database.transaction {
+            deltakerEndringService.upsertEndring(deltaker, endringsrequest.toDeltakerEndringEndring(), utfall, request = endringsrequest)
+        }
 
         val endring = deltakerEndringRepository.getForDeltaker(deltaker.id).first()
         endring.endretAv shouldBe endretAv.id
@@ -159,15 +162,20 @@ class DeltakerEndringServiceTest {
             deltakelsesinnhold = Deltakelsesinnhold("tekst", listOf(Innhold("Tekst", "kode", true, null))),
         )
 
-        val resultat = deltakerEndringService
-            .upsertEndring(
-                deltaker,
-                endringsrequest.toDeltakerEndringEndring(),
-                utfall,
-                endringsrequest,
-            )!!
-            .endring
-            as DeltakerEndring.Endring.EndreInnhold
+        lateinit var resultat: DeltakerEndring.Endring.EndreInnhold
+
+        Database.transaction {
+            resultat = deltakerEndringService
+                .upsertEndring(
+                    deltaker = deltaker,
+                    endring = endringsrequest.toDeltakerEndringEndring(),
+                    utfall = utfall,
+                    request = endringsrequest,
+                )!!
+                .endring
+                as DeltakerEndring.Endring.EndreInnhold
+        }
+
         resultat.innhold shouldBe endringsrequest.deltakelsesinnhold.innhold
         resultat.ledetekst shouldBe endringsrequest.deltakelsesinnhold.ledetekst
 
@@ -198,7 +206,9 @@ class DeltakerEndringServiceTest {
         )
         val utfall = DeltakerEndringUtfall.VellykketEndring(deltaker)
 
-        deltakerEndringService.upsertEndring(deltaker, endringsrequest.toDeltakerEndringEndring(), utfall, endringsrequest)
+        Database.transaction {
+            deltakerEndringService.upsertEndring(deltaker, endringsrequest.toDeltakerEndringEndring(), utfall, endringsrequest)
+        }
 
         val endring = deltakerEndringRepository.getForDeltaker(deltaker.id).first()
         endring.endretAv shouldBe endretAv.id
@@ -243,7 +253,9 @@ class DeltakerEndringServiceTest {
             forslagId = forslag.id,
         )
 
-        deltakerEndringService.upsertEndring(deltaker, endringsrequest.toDeltakerEndringEndring(), utfall, endringsrequest)
+        Database.transaction {
+            deltakerEndringService.upsertEndring(deltaker, endringsrequest.toDeltakerEndringEndring(), utfall, endringsrequest)
+        }
 
         val endring = deltakerEndringRepository.getForDeltaker(deltaker.id).first()
         endring.endretAv shouldBe endretAv.id
@@ -291,7 +303,9 @@ class DeltakerEndringServiceTest {
             begrunnelse = "begrunnelse",
         )
 
-        deltakerEndringService.upsertEndring(deltaker, endringsrequest.toDeltakerEndringEndring(), utfall, endringsrequest)
+        Database.transaction {
+            deltakerEndringService.upsertEndring(deltaker, endringsrequest.toDeltakerEndringEndring(), utfall, endringsrequest)
+        }
 
         val endring = deltakerEndringRepository.getForDeltaker(deltaker.id).first()
         endring.endretAv shouldBe endretAv.id
@@ -343,7 +357,7 @@ class DeltakerEndringServiceTest {
     }
 
     @Test
-    fun `behandleLagretEndring - ubehandlet ugyldig endring - oppdaterer ikke deltaker og upserter endring med behandlet`() {
+    fun `behandleLagretEndring - ubehandlet ugyldig endring - oppdaterer ikke deltaker og upserter endring med behandlet`() = runTest {
         val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR))
         val endretAv = TestData.lagNavAnsatt()
         val endretAvEnhet = TestData.lagNavEnhet()
@@ -386,7 +400,10 @@ class DeltakerEndringServiceTest {
             ),
         )
 
-        val resultat = deltakerEndringService.behandleLagretDeltakelsesmengde(ugyldigEndring, deltaker)
+        lateinit var resultat: DeltakerEndringUtfall
+        Database.transaction {
+            resultat = deltakerEndringService.behandleLagretDeltakelsesmengde(ugyldigEndring, deltaker)
+        }
 
         resultat.erUgyldig shouldBe true
 

@@ -197,7 +197,7 @@ class HendelseService(
             navn = deltaker.navBruker.fulltNavn,
         )
         val hendelse = nyHendelse(deltaker, ansvarlig, HendelseType.DeltakerSistBesokt(sistBesokt))
-        hendelseProducer.produce(hendelse)
+        hendelseProducer.produce(hendelse) // OK at denne kalles utenfor transaksjon
     }
 
     private fun nyHendelse(

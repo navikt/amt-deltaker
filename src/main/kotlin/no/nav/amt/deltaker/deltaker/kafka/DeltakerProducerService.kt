@@ -28,14 +28,14 @@ class DeltakerProducerService(
         }
     }
 
-    fun produceDeltakerV1Topic(deltaker: Deltaker) {
+    private fun produceDeltakerV1Topic(deltaker: Deltaker) {
         val deltakerV1Record = deltakerKafkaPayloadBuilder.buildDeltakerV1Record(deltaker)
         if (unleashToggle.skalDelesMedEksterne(deltaker.deltakerliste.tiltakstype.tiltakskode)) {
             deltakerV1Producer.produce(deltakerV1Record)
         }
     }
 
-    fun produceDeltakerV2Topic(deltaker: Deltaker, forcedUpdate: Boolean? = false) {
+    private fun produceDeltakerV2Topic(deltaker: Deltaker, forcedUpdate: Boolean? = false) {
         val deltakerV2Record = deltakerKafkaPayloadBuilder.buildDeltakerV2Record(deltaker, forcedUpdate)
         if (unleashToggle.erKometMasterForTiltakstype(deltaker.deltakerliste.tiltakstype.tiltakskode) ||
             unleashToggle.skalLeseArenaDataForTiltakstype(deltaker.deltakerliste.tiltakstype.tiltakskode)

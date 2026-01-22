@@ -51,7 +51,7 @@ class DeltakelsesmengdeUpdateJob(
                 val endringsutfall = deltakerEndringService.behandleLagretDeltakelsesmengde(it, deltaker)
 
                 if (endringsutfall.erVellykket) {
-                    deltakerService.upsertDeltaker(endringsutfall.getOrThrow())
+                    deltakerService.upsertAndProduceDeltaker(endringsutfall.getOrThrow())
                 }
             }
             offset += endringer.size
