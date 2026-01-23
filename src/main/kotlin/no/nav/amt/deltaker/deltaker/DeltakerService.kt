@@ -70,9 +70,7 @@ class DeltakerService(
         beforeDeltakerUpsert = beforeDeltakerUpsert,
         additionalDbOperations = {
             val oppdatertDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
-            if (oppdatertDeltaker.status.type != DeltakerStatus.Type.KLADD) {
-                deltakerProducerService.produce(oppdatertDeltaker, forcedUpdate = forcedUpdate)
-            }
+            deltakerProducerService.produce(oppdatertDeltaker, forcedUpdate = forcedUpdate)
             log.info("Oppdatert deltaker med id ${deltaker.id}")
             afterDeltakerUpsert(oppdatertDeltaker)
             oppdatertDeltaker
