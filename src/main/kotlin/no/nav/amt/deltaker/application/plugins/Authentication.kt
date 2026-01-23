@@ -29,7 +29,7 @@ fun Application.configureAuthentication(environment: Environment) {
         }
 
         jwt("EXTERNAL-SYSTEM") {
-            validerPreAuthorizedApps(jwkProvider, setOf("veilarboppfolging", "tiltakspenger-tiltak"), environment)
+            validerPreAuthorizedApps(jwkProvider, setOf("veilarboppfolging"), environment)
         }
 
         jwt("MULIGHETSROMMET-SYSTEM") {
