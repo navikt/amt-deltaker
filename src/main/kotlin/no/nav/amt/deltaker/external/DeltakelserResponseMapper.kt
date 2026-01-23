@@ -82,7 +82,7 @@ class DeltakelserResponseMapper(
         return if (status.type in skalViseArsakStatuser && aarsak != null) {
             aarsak.getVisningsnavn()
         } else {
-            return null
+            null
         }
     }
 
