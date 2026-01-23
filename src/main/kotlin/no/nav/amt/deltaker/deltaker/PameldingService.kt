@@ -187,25 +187,29 @@ class PameldingService(
             )
         }
 
-        val status = nyDeltakerStatus(DeltakerStatus.Type.AVBRUTT_UTKAST)
-
-        val oppdatertDeltaker = opprinneligDeltaker.copy(
-            status = status,
-            sistEndret = LocalDateTime.now(),
-        )
-
         val endretAv = navAnsattService.hentEllerOpprettNavAnsatt(avbrytUtkastRequest.avbruttAv)
         val endretAvNavEnhet = navEnhetService.hentEllerOpprettNavEnhet(avbrytUtkastRequest.avbruttAvEnhet)
 
-        val vedtak = vedtakService
-            .avbrytVedtak(oppdatertDeltaker, endretAv, endretAvNavEnhet)
-            .getVedtakOrThrow("Kunne ikke avbryte vedtak for deltaker $deltakerId")
+        val oppdatertDeltaker = opprinneligDeltaker.copy(
+            status = nyDeltakerStatus(DeltakerStatus.Type.AVBRUTT_UTKAST),
+            sistEndret = LocalDateTime.now(),
+        )
 
-        deltakerService.upsertAndProduceDeltaker(oppdatertDeltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksInformasjon()))
+        deltakerService.upsertAndProduceDeltaker(
+            deltaker = oppdatertDeltaker,
+            beforeUpsert = { deltaker ->
+                val vedtak = vedtakService
+                    .avbrytVedtak(deltaker, endretAv, endretAvNavEnhet)
+                    .getVedtakOrThrow("Kunne ikke avbryte vedtak for deltaker $deltakerId")
 
-        hendelseService.produceHendelseForUtkast(oppdatertDeltaker, endretAv, endretAvNavEnhet) { utkastDto ->
-            HendelseType.AvbrytUtkast(utkastDto)
-        }
+                deltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksInformasjon())
+            },
+            afterUpsert = { deltaker ->
+                hendelseService.produceHendelseForUtkast(deltaker, endretAv, endretAvNavEnhet) { utkastDto ->
+                    HendelseType.AvbrytUtkast(utkastDto)
+                }
+            },
+        )
 
         log.info("Avbrutt utkast for deltaker med id $deltakerId")
     }

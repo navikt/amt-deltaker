@@ -355,10 +355,10 @@ class PameldingServiceTest {
 
     @Test
     fun `avbrytUtkast - utkast finnes - oppdaterer deltaker og vedtak`() {
-        val sistEndretAv = lagNavAnsatt()
-        val sistEndretAvEnhet = lagNavEnhet()
-        TestRepository.insert(sistEndretAv)
-        TestRepository.insert(sistEndretAvEnhet)
+        val sistEndretAvNavAnsatt = lagNavAnsatt()
+        val sistEndretAvNavEnhet = lagNavEnhet()
+        TestRepository.insertAll(sistEndretAvNavAnsatt, sistEndretAvNavEnhet)
+
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
             startdato = null,
@@ -366,31 +366,37 @@ class PameldingServiceTest {
         )
         val vedtak = lagVedtak(
             deltakerVedVedtak = deltaker,
-            opprettetAv = sistEndretAv,
-            opprettetAvEnhet = sistEndretAvEnhet,
+            opprettetAv = sistEndretAvNavAnsatt,
+            opprettetAvEnhet = sistEndretAvNavEnhet,
             fattet = null,
             gyldigTil = null,
         )
-        TestRepository.insert(deltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksInformasjon()), vedtak)
+        TestRepository.insert(
+            deltaker = deltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksInformasjon()),
+            vedtak = vedtak,
+        )
 
         val avbrytUtkastRequest = AvbrytUtkastRequest(
-            avbruttAv = sistEndretAv.navIdent,
-            avbruttAvEnhet = sistEndretAvEnhet.enhetsnummer,
+            avbruttAv = sistEndretAvNavAnsatt.navIdent,
+            avbruttAvEnhet = sistEndretAvNavEnhet.enhetsnummer,
         )
 
         runTest {
             pameldingService.avbrytUtkast(deltaker.id, avbrytUtkastRequest)
 
-            val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
-            deltakerFraDb.status.type shouldBe DeltakerStatus.Type.AVBRUTT_UTKAST
-            deltakerFraDb.vedtaksinformasjon shouldBe null
+            assertSoftly(deltakerRepository.get(deltaker.id).getOrThrow()) {
+                status.type shouldBe DeltakerStatus.Type.AVBRUTT_UTKAST
+                vedtaksinformasjon shouldBe null
+            }
 
-            val vedtakFraDb = vedtakRepository.getForDeltaker(deltaker.id).first()
-            vedtakFraDb.fattet shouldBe null
-            vedtakFraDb.fattetAvNav shouldBe false
-            vedtakFraDb.gyldigTil shouldNotBe null
-            vedtakFraDb.sistEndretAv shouldBe sistEndretAv.id
-            vedtakFraDb.sistEndretAvEnhet shouldBe sistEndretAvEnhet.id
+            assertSoftly(vedtakRepository.getForDeltaker(deltaker.id).first()) {
+                fattet shouldBe null
+                fattetAvNav shouldBe false
+                gyldigTil shouldNotBe null
+                sistEndretAv shouldBe sistEndretAvNavAnsatt.id
+                sistEndretAvEnhet shouldBe sistEndretAvNavEnhet.id
+            }
+
             assertProducedHendelse(deltaker.id, HendelseType.AvbrytUtkast::class)
         }
     }
