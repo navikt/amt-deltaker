@@ -83,7 +83,7 @@ fun Routing.registerInternalApi(
             scope.launch {
                 val fraStatus = DeltakerStatus.Type.valueOf(call.parameters["fra-status"]!!)
                 log.info("Mottatt forespørsel for å endre deltakere med status $fraStatus til IKKE_AKTUELL.")
-                val deltakerIder = deltakerService.getDeltakereMedStatus(fraStatus)
+                val deltakerIder = deltakerRepository.getDeltakereMedStatus(fraStatus)
 
                 deltakerIder.forEach {
                     val deltaker = deltakerRepository.get(it).getOrThrow()

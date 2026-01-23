@@ -276,8 +276,6 @@ class DeltakerService(
         hendelseService.hendelseForSistBesokt(deltaker, sistBesokt)
     }
 
-    fun getDeltakereMedStatus(statusType: DeltakerStatus.Type) = deltakerRepository.getDeltakereMedStatus(statusType)
-
     suspend fun oppdaterDeltakerStatuser() {
         val deltakereSomSkalAvsluttes = deltakereSomSkalHaAvsluttendeStatus()
         avsluttDeltakere(deltakereSomSkalAvsluttes)
