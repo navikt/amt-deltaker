@@ -72,13 +72,8 @@ class DeltakerKafkaPayloadBuilder(
         val innsoktDato = deltakerhistorikk.getInnsoktDato()
             ?: throw IllegalStateException("Skal ikke produsere deltaker som mangler vedtak til topic")
 
-        val navEnhet = deltaker.navBruker.navEnhetId?.let {
-            navEnhetRepository.get(it) ?: throw IllegalStateException("Fant ikke Nav-enhet med id $it")
-        }
-
-        val navAnsatt = deltaker.navBruker.navVeilederId?.let {
-            navAnsattRepository.get(it) ?: throw IllegalStateException("Fant ikke Nav-ansatt med id $it")
-        }
+        val navEnhet = deltaker.navBruker.navEnhetId?.let { navEnhetRepository.getOrThrow(it) }
+        val navAnsatt = deltaker.navBruker.navVeilederId?.let { navAnsattRepository.getOrThrow(it) }
 
         if (deltaker.kilde == Kilde.KOMET &&
             deltakerhistorikk.filterIsInstance<DeltakerHistorikk.Vedtak>().isEmpty() &&

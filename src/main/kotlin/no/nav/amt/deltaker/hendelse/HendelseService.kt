@@ -94,13 +94,12 @@ class HendelseService(
 
         return when {
             deltaker.vedtaksinformasjon != null -> {
-                navEnhetRepository.get(deltaker.vedtaksinformasjon.sistEndretAvEnhet)
-                    ?: throw IllegalStateException("Fant ikke nav-enhet med id ${deltaker.vedtaksinformasjon.sistEndretAvEnhet}")
+                navEnhetRepository.getOrThrow(deltaker.vedtaksinformasjon.sistEndretAvEnhet)
             }
 
             navEnhetId != null -> {
                 log.info("Deltaker mangler vedtaksinformasjon, bruker oppfølgingsenhet som avsender")
-                navEnhetRepository.get(navEnhetId) ?: throw IllegalStateException("Fant ikke nav-enhet med id $navEnhetId")
+                navEnhetRepository.getOrThrow(navEnhetId)
             }
 
             else -> {
@@ -116,10 +115,8 @@ class HendelseService(
             "Kan ikke produsere hendelse for utkast godkjent av innbygger for deltaker ${deltaker.id} uten vedtak",
         )
 
-        val navAnsatt = navAnsattRepository.get(vedtak.sistEndretAv)
-            ?: throw IllegalStateException("Fant ikke Nav-ansatt med id ${vedtak.sistEndretAv}")
-        val navEnhet = navEnhetRepository.get(vedtak.sistEndretAvEnhet)
-            ?: throw IllegalStateException("Fant ikke Nav-enhet med id ${vedtak.sistEndretAvEnhet}")
+        val navAnsatt = navAnsattRepository.getOrThrow(vedtak.sistEndretAv)
+        val navEnhet = navEnhetRepository.getOrThrow(vedtak.sistEndretAvEnhet)
 
         produceHendelseForUtkast(deltaker, navAnsatt, navEnhet) { utkastDto ->
             HendelseType.InnbyggerGodkjennUtkast(utkastDto)

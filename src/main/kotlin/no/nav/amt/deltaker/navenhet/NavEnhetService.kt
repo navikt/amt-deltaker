@@ -14,7 +14,7 @@ class NavEnhetService(
     suspend fun hentEllerOpprettNavEnhet(enhetsnummer: String): NavEnhet {
         repository.get(enhetsnummer)?.let { return it }
 
-        log.info("Fant ikke nav-enhet med nummer $enhetsnummer, henter fra amt-person-service")
+        log.info("Fant ikke Nav-enhet med nummer $enhetsnummer, henter fra amt-person-service")
         val navEnhet = amtPersonServiceClient.hentNavEnhet(enhetsnummer)
         return repository.upsert(navEnhet)
     }
@@ -22,7 +22,7 @@ class NavEnhetService(
     suspend fun hentEllerOpprettNavEnhet(id: UUID): NavEnhet {
         repository.get(id)?.let { return it }
 
-        log.info("Fant ikke nav-enhet med id $id, henter fra amt-person-service")
+        log.info("Fant ikke Nav-enhet med id $id, henter fra amt-person-service")
         val navEnhet = amtPersonServiceClient.hentNavEnhet(id)
         return repository.upsert(navEnhet)
     }

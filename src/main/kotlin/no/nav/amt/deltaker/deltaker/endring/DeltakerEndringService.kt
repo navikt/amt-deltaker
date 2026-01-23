@@ -34,10 +34,8 @@ class DeltakerEndringService(
     ): DeltakerEndring? {
         if (utfall.erUgyldig) return null
 
-        val ansatt = navAnsattRepository.get(request.endretAv)
-            ?: throw IllegalStateException("Fant ikke Nav-ansatt med id ${request.endretAv}")
-        val enhet = navEnhetRepository.get(request.endretAvEnhet)
-            ?: throw IllegalStateException("Fant ikke Nav-enhet med id ${request.endretAvEnhet}")
+        val ansatt = navAnsattRepository.getOrThrow(request.endretAv)
+        val enhet = navEnhetRepository.getOrThrow(request.endretAvEnhet)
 
         val godkjentForslag = request.getForslagId()?.let { forslagId ->
             forslagService.godkjennForslag(
