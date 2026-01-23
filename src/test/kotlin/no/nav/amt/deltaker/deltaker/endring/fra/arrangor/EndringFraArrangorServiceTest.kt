@@ -78,6 +78,7 @@ class EndringFraArrangorServiceTest {
         )
     private val hendelseService = HendelseService(
         HendelseProducer(TestOutboxEnvironment.outboxService),
+        navAnsattRepository,
         navAnsattService,
         navEnhetRepository,
         navEnhetService,

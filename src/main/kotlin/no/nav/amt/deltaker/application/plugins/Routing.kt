@@ -101,7 +101,7 @@ fun Application.configureRouting(
             pameldingService = pameldingService,
             historikkService = deltakerHistorikkService,
         )
-        registerDeltakerApi(deltakerService, deltakerHistorikkService)
+        registerDeltakerApi(deltakerRepository, deltakerService, deltakerHistorikkService)
         registerInternalApi(
             deltakerRepository,
             deltakerService,

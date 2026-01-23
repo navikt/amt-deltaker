@@ -88,6 +88,7 @@ class EnkeltplassDeltakerConsumerTest {
         )
 
         private val consumer = EnkeltplassDeltakerConsumer(
+            deltakerRepository,
             deltakerService,
             deltakerlisteRepository,
             navBrukerService,
@@ -215,7 +216,7 @@ class EnkeltplassDeltakerConsumerTest {
         }
         verify { deltakerProducer.produce(any()) }
 
-        val deltakerFromDb = deltakerService.get(deltaker.id).getOrThrow()
+        val deltakerFromDb = deltakerRepository.get(deltaker.id).getOrThrow()
         deltakerFromDb.shouldNotBeNull()
         val importertFraArenaFromDb = importertFraArenaRepository.getForDeltaker(deltaker.id)
         importertFraArenaFromDb.shouldNotBeNull()
@@ -285,7 +286,7 @@ class EnkeltplassDeltakerConsumerTest {
 
         coVerify(exactly = 1) { mulighetsrommetApiClient.hentGjennomforingV2(deltakerListe.id) }
 
-        val deltakerFromDb = deltakerService.get(deltaker.id).getOrThrow()
+        val deltakerFromDb = deltakerRepository.get(deltaker.id).getOrThrow()
         deltakerFromDb.shouldNotBeNull()
         val importertFraArenaFromDb = importertFraArenaRepository.getForDeltaker(deltaker.id)
         importertFraArenaFromDb.shouldNotBeNull()
@@ -354,7 +355,7 @@ class EnkeltplassDeltakerConsumerTest {
                 deltaker = any(),
                 nesteStatus = any(),
                 beforeDeltakerUpsert = any(),
-                additionalDbOperations = any(),
+                afterDeltakerUpsert = any(),
             )
         }
         coVerify(exactly = 1) {
@@ -362,7 +363,7 @@ class EnkeltplassDeltakerConsumerTest {
         }
         verify { deltakerProducer.produce(any()) }
 
-        val deltakerFromDb = deltakerService.get(deltaker.id).getOrThrow()
+        val deltakerFromDb = deltakerRepository.get(deltaker.id).getOrThrow()
         deltakerFromDb.shouldNotBeNull()
         val importertFraArenaFromDb = importertFraArenaRepository.getForDeltaker(deltaker.id)
         importertFraArenaFromDb.shouldNotBeNull()
@@ -436,7 +437,7 @@ class EnkeltplassDeltakerConsumerTest {
 
         verify { deltakerProducer.produce(any()) }
 
-        val deltakerFromDb = deltakerService.get(deltaker.id).getOrThrow()
+        val deltakerFromDb = deltakerRepository.get(deltaker.id).getOrThrow()
         deltakerFromDb.shouldNotBeNull()
         val importertFraArenaFromDb = importertFraArenaRepository.getForDeltaker(deltaker.id)
         importertFraArenaFromDb.shouldNotBeNull()

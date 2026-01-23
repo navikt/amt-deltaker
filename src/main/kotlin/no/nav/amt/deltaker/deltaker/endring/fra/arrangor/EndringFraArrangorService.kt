@@ -30,11 +30,15 @@ class EndringFraArrangorService(
             }
         }
 
-        endretDeltaker.onSuccess {
-            return deltakerService.upsertAndProduceDeltaker(deltaker = it, beforeDeltakerUpsert = {
-                endringFraArrangorRepository.insert(endringFraArrangor)
-                hendelseService.hendelseForEndringFraArrangor(endringFraArrangor, it)
-            })
+        endretDeltaker.onSuccess { deltaker ->
+            return deltakerService.upsertAndProduceDeltaker(
+                deltaker = deltaker,
+                beforeUpsert = { deltaker ->
+                    endringFraArrangorRepository.insert(endringFraArrangor)
+                    hendelseService.hendelseForEndringFraArrangor(endringFraArrangor, deltaker)
+                    deltaker
+                },
+            )
         }
 
         endretDeltaker.onFailure {

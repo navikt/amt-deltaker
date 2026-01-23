@@ -56,23 +56,22 @@ class DeltakerService(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun get(id: UUID) = deltakerRepository.get(id)
-
     suspend fun upsertAndProduceDeltaker(
         deltaker: Deltaker,
         forcedUpdate: Boolean? = false,
         nesteStatus: DeltakerStatus? = null,
-        beforeDeltakerUpsert: () -> Unit = {},
-        afterDeltakerUpsert: (Deltaker) -> Unit = {},
+        beforeUpsert: (Deltaker) -> Deltaker = { it },
+        afterUpsert: (Deltaker) -> Unit = { },
     ): Deltaker = transactionalDeltakerUpsert(
         deltaker = deltaker.copy(sistEndret = LocalDateTime.now()),
         nesteStatus = nesteStatus,
-        beforeDeltakerUpsert = beforeDeltakerUpsert,
-        additionalDbOperations = {
+        beforeDeltakerUpsert = beforeUpsert,
+        afterDeltakerUpsert = { deltaker ->
             val oppdatertDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
             deltakerProducerService.produce(oppdatertDeltaker, forcedUpdate = forcedUpdate)
             log.info("Oppdatert deltaker med id ${deltaker.id}")
-            afterDeltakerUpsert(oppdatertDeltaker)
+
+            afterUpsert(oppdatertDeltaker)
             oppdatertDeltaker
         },
     ).getOrThrow()
@@ -110,8 +109,9 @@ class DeltakerService(
                 upsertAndProduceDeltaker(
                     utfall.deltaker,
                     nesteStatus = utfall.nesteStatus,
-                    beforeDeltakerUpsert = {
+                    beforeUpsert = { deltaker ->
                         deltakerEndringService.upsertEndring(deltaker, endring, utfall, request)
+                        deltaker
                     },
                 )
             }
@@ -119,8 +119,9 @@ class DeltakerService(
             is DeltakerEndringUtfall.FremtidigEndring -> {
                 upsertAndProduceDeltaker(
                     utfall.deltaker,
-                    beforeDeltakerUpsert = {
+                    beforeUpsert = { deltaker ->
                         deltakerEndringService.upsertEndring(deltaker, endring, utfall, request)
+                        deltaker
                     },
                 )
             }
@@ -134,20 +135,20 @@ class DeltakerService(
     suspend fun transactionalDeltakerUpsert(
         deltaker: Deltaker,
         nesteStatus: DeltakerStatus? = null,
-        beforeDeltakerUpsert: () -> Unit = {},
-        additionalDbOperations: () -> Deltaker = { deltaker },
+        beforeDeltakerUpsert: (Deltaker) -> Deltaker = { it },
+        afterDeltakerUpsert: (Deltaker) -> Deltaker = { it },
     ): Result<Deltaker> = runCatching {
         Database.transaction {
-            beforeDeltakerUpsert()
+            val deltakerToUpsert = beforeDeltakerUpsert(deltaker)
 
-            deltakerRepository.upsert(deltaker)
-            lagreStatus(deltaker.id, deltaker.status)
+            deltakerRepository.upsert(deltakerToUpsert)
+            lagreStatus(deltakerToUpsert.id, deltakerToUpsert.status)
 
             nesteStatus?.let {
-                DeltakerStatusRepository.lagreStatus(deltaker.id, it)
+                DeltakerStatusRepository.lagreStatus(deltakerToUpsert.id, it)
             }
 
-            additionalDbOperations()
+            afterDeltakerUpsert(deltakerToUpsert)
         }
     }
 
@@ -165,7 +166,7 @@ class DeltakerService(
         }
     }
 
-    private suspend fun localUpsertDeltaker(
+    private suspend fun upsertSingleDeltaker(
         deltaker: Deltaker,
         endringsType: EndringFraTiltakskoordinator.Endring,
         endretAv: NavAnsatt,
@@ -186,7 +187,7 @@ class DeltakerService(
 
         val oppdatertDeltaker = transactionalDeltakerUpsert(
             deltaker = deltakerToUpdate,
-            additionalDbOperations = {
+            afterDeltakerUpsert = {
                 endringFraTiltakskoordinatorRepository.insert(listOf(endring))
                 if (endringsType is EndringFraTiltakskoordinator.TildelPlass && deltaker.kilde == Kilde.KOMET) {
                     vedtakService.navFattVedtak(deltaker, endretAv, endretAvEnhet)
@@ -231,7 +232,7 @@ class DeltakerService(
         require(tiltakskoder.first() in Tiltakstype.kursTiltak) { "kan ikke endre på deltakere på tiltakskoden ${tiltakskoder.first()}" }
 
         return deltakere.map { deltaker ->
-            val oppdateringResult = localUpsertDeltaker(deltaker, endringsType, endretAv, endretAvEnhet)
+            val oppdateringResult = upsertSingleDeltaker(deltaker, endringsType, endretAv, endretAvEnhet)
 
             if (!oppdateringResult.isSuccess) {
                 log.error(
@@ -269,19 +270,6 @@ class DeltakerService(
                 publiserTilDeltakerV1 = publiserTilDeltakerV1,
             )
         }
-
-    suspend fun innbyggerFattVedtak(deltaker: Deltaker): Deltaker {
-        val status = if (deltaker.status.type == DeltakerStatus.Type.UTKAST_TIL_PAMELDING) {
-            nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART)
-        } else {
-            deltaker.status
-        }
-
-        val oppdatertDeltaker = deltaker.copy(status = status, sistEndret = LocalDateTime.now())
-        vedtakService.innbyggerFattVedtak(oppdatertDeltaker).getVedtakOrThrow()
-
-        return upsertAndProduceDeltaker(oppdatertDeltaker)
-    }
 
     fun oppdaterSistBesokt(deltakerId: UUID, sistBesokt: ZonedDateTime) {
         val deltaker = deltakerRepository.get(deltakerId).getOrThrow()

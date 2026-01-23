@@ -115,14 +115,12 @@ class PameldingService(
 
         val deltaker = deltakerService.upsertAndProduceDeltaker(
             deltaker = deltakerMedNyttVedtak,
-            afterDeltakerUpsert = { deltaker ->
-                hendelseService.produceHendelseForUtkast(deltaker, endretAv, endretAvNavEnhet) {
-                    if (utkast.godkjentAvNav) {
-                        HendelseType.NavGodkjennUtkast(it)
-                    } else if (opprinneligDeltaker.status.type == DeltakerStatus.Type.KLADD) {
-                        HendelseType.OpprettUtkast(it)
-                    } else {
-                        HendelseType.EndreUtkast(it)
+            afterUpsert = { deltaker ->
+                hendelseService.produceHendelseForUtkast(deltaker, endretAv, endretAvNavEnhet) { utkastDto ->
+                    when {
+                        utkast.godkjentAvNav -> HendelseType.NavGodkjennUtkast(utkastDto)
+                        opprinneligDeltaker.status.type == DeltakerStatus.Type.KLADD -> HendelseType.OpprettUtkast(utkastDto)
+                        else -> HendelseType.EndreUtkast(utkastDto)
                     }
                 }
             },
@@ -132,30 +130,49 @@ class PameldingService(
         return deltaker
     }
 
-    // TODO: Transaction
-    suspend fun innbyggerGodkjennUtkast(deltakerId: UUID): Deltaker {
-        val opprinneligDeltaker = deltakerRepository.get(deltakerId).getOrThrow()
+    suspend fun innbyggerGodkjennUtkast(deltakerId: UUID): Deltaker = deltakerService.upsertAndProduceDeltaker(
+        deltaker = deltakerRepository.get(deltakerId).getOrThrow(),
+        beforeUpsert = { deltaker ->
+            if (deltaker.deltakerliste.erFellesOppstart) {
+                innbyggerGodkjennInnsok(deltaker)
+            } else {
+                innbyggerFattVedtak(deltaker)
+            }
+        },
+        afterUpsert = { deltaker ->
+            hendelseService.hendelseForUtkastGodkjentAvInnbygger(deltaker)
+        },
+    )
 
-        val oppdatertDeltaker = if (opprinneligDeltaker.deltakerliste.erFellesOppstart) {
-            innbyggerGodkjennInnsok(opprinneligDeltaker)
+    // benyttes kun i denne klassen og i tester
+    internal fun innbyggerFattVedtak(deltaker: Deltaker): Deltaker {
+        val status = if (deltaker.status.type == DeltakerStatus.Type.UTKAST_TIL_PAMELDING) {
+            nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART)
         } else {
-            deltakerService.innbyggerFattVedtak(opprinneligDeltaker)
+            deltaker.status
         }
 
-        hendelseService.hendelseForUtkastGodkjentAvInnbygger(oppdatertDeltaker)
+        val oppdatertDeltaker = deltaker.copy(
+            status = status,
+            sistEndret = LocalDateTime.now(),
+        )
 
+        vedtakService.innbyggerFattVedtak(oppdatertDeltaker).getVedtakOrThrow()
         return oppdatertDeltaker
     }
 
-    private suspend fun innbyggerGodkjennInnsok(opprinneligDeltaker: Deltaker): Deltaker {
+    private fun innbyggerGodkjennInnsok(opprinneligDeltaker: Deltaker): Deltaker {
         val oppdatertDeltaker = opprinneligDeltaker.copy(
             status = nyDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
             sistEndret = LocalDateTime.now(),
         )
 
-        innsokPaaFellesOppstartService.nyttInnsokUtkastGodkjentAvDeltaker(oppdatertDeltaker, opprinneligDeltaker.status)
+        innsokPaaFellesOppstartService.nyttInnsokUtkastGodkjentAvDeltaker(
+            deltaker = oppdatertDeltaker,
+            forrigeStatus = opprinneligDeltaker.status,
+        )
 
-        return deltakerService.upsertAndProduceDeltaker(oppdatertDeltaker)
+        return oppdatertDeltaker
     }
 
     suspend fun avbrytUtkast(deltakerId: UUID, avbrytUtkastRequest: AvbrytUtkastRequest) {
@@ -186,7 +203,9 @@ class PameldingService(
 
         deltakerService.upsertAndProduceDeltaker(oppdatertDeltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksInformasjon()))
 
-        hendelseService.produceHendelseForUtkast(oppdatertDeltaker, endretAv, endretAvNavEnhet) { HendelseType.AvbrytUtkast(it) }
+        hendelseService.produceHendelseForUtkast(oppdatertDeltaker, endretAv, endretAvNavEnhet) { utkastDto ->
+            HendelseType.AvbrytUtkast(utkastDto)
+        }
 
         log.info("Avbrutt utkast for deltaker med id $deltakerId")
     }
@@ -198,12 +217,18 @@ class PameldingService(
         )
 
         private fun getOppdatertStatus(opprinneligDeltaker: Deltaker, godkjentAvNav: Boolean): DeltakerStatus = if (godkjentAvNav) {
-            if (opprinneligDeltaker.deltakerliste.erFellesOppstart) {
-                nyDeltakerStatus(DeltakerStatus.Type.SOKT_INN)
-            } else if (opprinneligDeltaker.startdato != null && opprinneligDeltaker.startdato.isBefore(LocalDate.now())) {
-                nyDeltakerStatus(DeltakerStatus.Type.DELTAR)
-            } else {
-                nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART)
+            when {
+                opprinneligDeltaker.deltakerliste.erFellesOppstart -> {
+                    nyDeltakerStatus(DeltakerStatus.Type.SOKT_INN)
+                }
+
+                opprinneligDeltaker.startdato != null && opprinneligDeltaker.startdato.isBefore(LocalDate.now()) -> {
+                    nyDeltakerStatus(DeltakerStatus.Type.DELTAR)
+                }
+
+                else -> {
+                    nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART)
+                }
             }
         } else {
             when (opprinneligDeltaker.status.type) {

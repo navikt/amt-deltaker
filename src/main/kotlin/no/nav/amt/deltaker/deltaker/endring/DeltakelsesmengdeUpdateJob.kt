@@ -6,6 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
+import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.job.leaderelection.LeaderElection
 import no.nav.amt.lib.ktor.routing.isReadyKey
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
@@ -21,6 +22,7 @@ class DeltakelsesmengdeUpdateJob(
     private val attributes: Attributes,
     private val deltakerEndringRepository: DeltakerEndringRepository,
     private val deltakerEndringService: DeltakerEndringService,
+    private val deltakerRepository: DeltakerRepository,
     private val deltakerService: DeltakerService,
 ) {
     private val log: Logger = LoggerFactory.getLogger(javaClass)
@@ -47,7 +49,7 @@ class DeltakelsesmengdeUpdateJob(
         do {
             endringer = deltakerEndringRepository.getUbehandletDeltakelsesmengder(offset)
             endringer.forEach {
-                val deltaker = deltakerService.get(it.deltakerId).getOrThrow()
+                val deltaker = deltakerRepository.get(it.deltakerId).getOrThrow()
                 val endringsutfall = deltakerEndringService.behandleLagretDeltakelsesmengde(it, deltaker)
 
                 if (endringsutfall.erVellykket) {

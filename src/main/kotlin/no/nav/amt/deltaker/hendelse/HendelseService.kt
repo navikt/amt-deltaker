@@ -4,6 +4,7 @@ import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
+import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetService
@@ -25,6 +26,7 @@ import java.util.UUID
 
 class HendelseService(
     private val hendelseProducer: HendelseProducer,
+    private val navAnsattRepository: NavAnsattRepository,
     private val navAnsattService: NavAnsattService,
     private val navEnhetRepository: NavEnhetRepository,
     private val navEnhetService: NavEnhetService,
@@ -109,16 +111,18 @@ class HendelseService(
         }
     }
 
-    suspend fun hendelseForUtkastGodkjentAvInnbygger(deltaker: Deltaker) {
+    fun hendelseForUtkastGodkjentAvInnbygger(deltaker: Deltaker) {
         val vedtak = deltaker.vedtaksinformasjon ?: throw IllegalStateException(
             "Kan ikke produsere hendelse for utkast godkjent av innbygger for deltaker ${deltaker.id} uten vedtak",
         )
 
-        val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(vedtak.sistEndretAv)
-        val navEnhet = navEnhetService.hentEllerOpprettNavEnhet(vedtak.sistEndretAvEnhet)
+        val navAnsatt = navAnsattRepository.get(vedtak.sistEndretAv)
+            ?: throw IllegalStateException("Fant ikke Nav-ansatt med id ${vedtak.sistEndretAv}")
+        val navEnhet = navEnhetRepository.get(vedtak.sistEndretAvEnhet)
+            ?: throw IllegalStateException("Fant ikke Nav-enhet med id ${vedtak.sistEndretAvEnhet}")
 
-        produceHendelseForUtkast(deltaker, navAnsatt, navEnhet) {
-            HendelseType.InnbyggerGodkjennUtkast(it)
+        produceHendelseForUtkast(deltaker, navAnsatt, navEnhet) { utkastDto ->
+            HendelseType.InnbyggerGodkjennUtkast(utkastDto)
         }
     }
 

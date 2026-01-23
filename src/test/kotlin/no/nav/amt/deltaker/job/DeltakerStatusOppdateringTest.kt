@@ -91,6 +91,7 @@ class DeltakerStatusOppdateringTest {
         private val vurderingService = VurderingService(vurderingRepository)
         private val hendelseService = HendelseService(
             HendelseProducer(TestOutboxEnvironment.outboxService),
+            navAnsattRepository,
             navAnsattService,
             navEnhetRepository,
             navEnhetService,

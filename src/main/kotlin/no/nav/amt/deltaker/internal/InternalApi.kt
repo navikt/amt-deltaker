@@ -67,7 +67,7 @@ fun Routing.registerInternalApi(
             log.info("Relaster ${request.deltakere.size} deltakere komet er master for på deltaker-v2")
             request.deltakere.forEach { deltakerId ->
                 deltakerProducerService.produce(
-                    deltakerService.get(deltakerId).getOrThrow(),
+                    deltakerRepository.get(deltakerId).getOrThrow(),
                     forcedUpdate = request.forcedUpdate,
                     publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
                     publiserTilDeltakerV2 = request.publiserTilDeltakerV2,
@@ -86,7 +86,7 @@ fun Routing.registerInternalApi(
                 val deltakerIder = deltakerService.getDeltakereMedStatus(fraStatus)
 
                 deltakerIder.forEach {
-                    val deltaker = deltakerService.get(it).getOrThrow()
+                    val deltaker = deltakerRepository.get(it).getOrThrow()
                     deltakerService.upsertAndProduceDeltaker(
                         deltaker.copy(
                             status = DeltakerStatus(
@@ -124,7 +124,7 @@ fun Routing.registerInternalApi(
         if (isInternal(call.request.local.remoteAddress)) {
             val deltakerId = UUID.fromString(call.parameters["deltakerId"])
             val request = call.receive<RepubliserRequest>()
-            val deltaker = deltakerService.get(deltakerId)
+            val deltaker = deltakerRepository.get(deltakerId)
             log.info("Relaster deltaker $deltakerId på deltaker-v2")
             deltakerProducerService.produce(
                 deltaker.getOrThrow(),
@@ -148,7 +148,7 @@ fun Routing.registerInternalApi(
             log.info("Republiser deltakere:${request.deltakere} deltakere med ny endretDato på deltaker-v1")
             request.deltakere.forEach { deltakerId ->
                 deltakerProducerService.produce(
-                    deltakerService.get(deltakerId).getOrThrow().copy(sistEndret = LocalDateTime.now()),
+                    deltakerRepository.get(deltakerId).getOrThrow().copy(sistEndret = LocalDateTime.now()),
                     forcedUpdate = request.forcedUpdate,
                     publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
                     publiserTilDeltakerV2 = false,
@@ -176,7 +176,7 @@ fun Routing.registerInternalApi(
                 val deltakerIder = deltakerRepository.getDeltakerIderForTiltakskode(tiltakskode)
                 deltakerIder.forEach {
                     deltakerProducerService.produce(
-                        deltakerService.get(it).getOrThrow(),
+                        deltakerRepository.get(it).getOrThrow(),
                         forcedUpdate = request.forcedUpdate,
                         publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
                     )
@@ -201,7 +201,7 @@ fun Routing.registerInternalApi(
 
                     deltakerIder.forEach { deltakerId ->
                         deltakerProducerService.produce(
-                            deltakerService.get(deltakerId).getOrThrow(),
+                            deltakerRepository.get(deltakerId).getOrThrow(),
                             forcedUpdate = request.forcedUpdate,
                             publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
                         )
@@ -265,7 +265,7 @@ fun Routing.registerInternalApi(
         }
 
         val deltakerId = call.parameters.getOrFail("deltakerId").let { UUID.fromString(it) }
-        val deltaker = deltakerService.get(deltakerId).getOrThrow()
+        val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
 
         val vedtak = vedtakService.avbrytVedtakVedAvsluttetDeltakerliste(deltaker).getVedtakOrThrow()
         val status = nyDeltakerStatus(
@@ -289,7 +289,7 @@ fun Routing.registerInternalApi(
                         "Kunne ikke relaste hendelse med endring med id: ${request.endringId}, kunne ikke finne endring.",
                     )
 
-                val deltaker = deltakerService.get(endring.deltakerId).getOrThrow()
+                val deltaker = deltakerRepository.get(endring.deltakerId).getOrThrow()
 
                 if (request.relastDeltaker) {
                     deltakerProducerService.produce(
@@ -324,7 +324,7 @@ fun Routing.registerInternalApi(
 
             scope.launch {
                 request.deltakere.forEach { deltakerId ->
-                    val deltaker = deltakerService.get(deltakerId).getOrThrow()
+                    val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
                     val vedtak = vedtakRepository.getForDeltaker(deltakerId).first()
 
                     if (vedtak.fattet == null) {
@@ -341,8 +341,8 @@ fun Routing.registerInternalApi(
                             return@forEach
                         }
                         log.info("ProduserUtkast: Produserer hendelse NavGodkjennUtkast for $deltakerId. status ${deltaker.status.type}")
-                        hendelseService.produceHendelseForUtkast(deltaker, navAnsatt, navEnhet) {
-                            HendelseType.NavGodkjennUtkast(it)
+                        hendelseService.produceHendelseForUtkast(deltaker, navAnsatt, navEnhet) { utkastDto ->
+                            HendelseType.NavGodkjennUtkast(utkastDto)
                         }
                         log.info("ProduserUtkast: Done: Produserte hendelse NavGodkjennUtkast for $deltakerId")
                     } else {

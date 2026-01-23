@@ -226,6 +226,7 @@ fun Application.module() {
     val hendelseProducer = HendelseProducer(outboxService)
     val hendelseService = HendelseService(
         hendelseProducer = hendelseProducer,
+        navAnsattRepository = navAnsattRepository,
         navAnsattService = navAnsattService,
         navEnhetRepository = navEnhetRepository,
         navEnhetService = navEnhetService,
@@ -339,6 +340,7 @@ fun Application.module() {
             unleashToggle,
         ),
         EnkeltplassDeltakerConsumer(
+            deltakerRepository,
             deltakerService,
             deltakerlisteRepository,
             navBrukerService,
@@ -395,6 +397,7 @@ fun Application.module() {
         attributes,
         deltakerEndringRepository,
         deltakerEndringService,
+        deltakerRepository,
         deltakerService,
     )
     deltakelsesmengdeUpdateJob.startJob()
