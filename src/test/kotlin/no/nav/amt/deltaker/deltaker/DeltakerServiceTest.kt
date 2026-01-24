@@ -9,6 +9,7 @@ import io.kotest.matchers.shouldNotBe
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
+import no.nav.amt.deltaker.DatabaseTestExtension
 import no.nav.amt.deltaker.TestOutboxEnvironment
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
@@ -73,22 +74,26 @@ import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.StartdatoReq
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
-import no.nav.amt.lib.testing.SingletonPostgres16Container
 import no.nav.amt.lib.testing.shouldBeCloseTo
 import no.nav.amt.lib.utils.database.Database
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.RegisterExtension
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import java.util.UUID
 
 class DeltakerServiceTest {
+    companion object {
+        @JvmField
+        @RegisterExtension
+        val dbExtension = DatabaseTestExtension()
+    }
+
     @BeforeEach
-    fun cleanDatabase() {
-        TestRepository.cleanDatabase()
+    fun setup() {
         every { unleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns true
         every { unleashToggle.skalDelesMedEksterne(any<Tiltakskode>()) } returns true
     }
@@ -1571,105 +1576,96 @@ class DeltakerServiceTest {
         }
     }
 
-    companion object {
-        private val amtPersonClientMock = mockPersonServiceClient()
+    private val amtPersonClientMock = mockPersonServiceClient()
 
-        private val navEnhetRepository = NavEnhetRepository()
-        private val navEnhetService = NavEnhetService(navEnhetRepository, amtPersonClientMock)
+    private val navEnhetRepository = NavEnhetRepository()
+    private val navEnhetService = NavEnhetService(navEnhetRepository, amtPersonClientMock)
 
-        private val navAnsattRepository = NavAnsattRepository()
-        private val navAnsattService = NavAnsattService(navAnsattRepository, amtPersonClientMock, navEnhetService)
+    private val navAnsattRepository = NavAnsattRepository()
+    private val navAnsattService = NavAnsattService(navAnsattRepository, amtPersonClientMock, navEnhetService)
 
-        private val deltakerRepository = DeltakerRepository()
-        private val deltakerEndringRepository = DeltakerEndringRepository()
-        private val vedtakRepository = VedtakRepository()
-        private val forslagRepository = ForslagRepository()
-        private val endringFraArrangorRepository = EndringFraArrangorRepository()
-        private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
-        private val importertFraArenaRepository = ImportertFraArenaRepository()
-        private val vurderingRepository = VurderingRepository()
-        private val vurderingService = VurderingService(vurderingRepository)
-        private val deltakerHistorikkService =
-            DeltakerHistorikkService(
-                deltakerEndringRepository,
-                vedtakRepository,
-                forslagRepository,
-                endringFraArrangorRepository,
-                importertFraArenaRepository,
-                InnsokPaaFellesOppstartRepository(),
-                EndringFraTiltakskoordinatorRepository(),
-                vurderingRepository,
-            )
-        private val hendelseService = HendelseService(
-            HendelseProducer(TestOutboxEnvironment.outboxService),
-            navAnsattRepository,
-            navAnsattService,
-            navEnhetRepository,
-            navEnhetService,
-            arrangorService,
-            deltakerHistorikkService,
-            vurderingService,
-        )
-        private val unleashToggle = mockk<UnleashToggle>()
-        private val deltakerKafkaPayloadBuilder = DeltakerKafkaPayloadBuilder(
-            navAnsattRepository = navAnsattRepository,
-            navEnhetRepository = navEnhetRepository,
-            deltakerHistorikkService,
+    private val deltakerRepository = DeltakerRepository()
+    private val deltakerEndringRepository = DeltakerEndringRepository()
+    private val vedtakRepository = VedtakRepository()
+    private val forslagRepository = ForslagRepository()
+    private val endringFraArrangorRepository = EndringFraArrangorRepository()
+    private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
+    private val importertFraArenaRepository = ImportertFraArenaRepository()
+    private val vurderingRepository = VurderingRepository()
+    private val vurderingService = VurderingService(vurderingRepository)
+    private val deltakerHistorikkService =
+        DeltakerHistorikkService(
+            deltakerEndringRepository,
+            vedtakRepository,
+            forslagRepository,
+            endringFraArrangorRepository,
+            importertFraArenaRepository,
+            InnsokPaaFellesOppstartRepository(),
+            EndringFraTiltakskoordinatorRepository(),
             vurderingRepository,
         )
+    private val hendelseService = HendelseService(
+        HendelseProducer(TestOutboxEnvironment.outboxService),
+        navAnsattRepository,
+        navAnsattService,
+        navEnhetRepository,
+        navEnhetService,
+        arrangorService,
+        deltakerHistorikkService,
+        vurderingService,
+    )
+    private val unleashToggle = mockk<UnleashToggle>()
+    private val deltakerKafkaPayloadBuilder = DeltakerKafkaPayloadBuilder(
+        navAnsattRepository = navAnsattRepository,
+        navEnhetRepository = navEnhetRepository,
+        deltakerHistorikkService,
+        vurderingRepository,
+    )
 
-        private val deltakerProducer = DeltakerProducer(TestOutboxEnvironment.outboxService, TestOutboxEnvironment.kafkaProducer)
-        private val deltakerV1Producer = DeltakerV1Producer(TestOutboxEnvironment.outboxService, TestOutboxEnvironment.kafkaProducer)
-        private val deltakerProducerService = DeltakerProducerService(
-            deltakerKafkaPayloadBuilder,
-            deltakerProducer,
-            deltakerV1Producer,
-            unleashToggle,
+    private val deltakerProducer = DeltakerProducer(TestOutboxEnvironment.outboxService, TestOutboxEnvironment.kafkaProducer)
+    private val deltakerV1Producer = DeltakerV1Producer(TestOutboxEnvironment.outboxService, TestOutboxEnvironment.kafkaProducer)
+    private val deltakerProducerService = DeltakerProducerService(
+        deltakerKafkaPayloadBuilder,
+        deltakerProducer,
+        deltakerV1Producer,
+        unleashToggle,
+    )
+
+    private val forslagService = ForslagService(
+        forslagRepository,
+        ArrangorMeldingProducer(TestOutboxEnvironment.outboxService),
+        deltakerRepository,
+        deltakerProducerService,
+    )
+    private val vedtakService = VedtakService(vedtakRepository)
+    private val deltakerEndringService =
+        DeltakerEndringService(
+            deltakerEndringRepository,
+            navAnsattRepository,
+            navEnhetRepository,
+            hendelseService,
+            forslagService,
+            deltakerHistorikkService,
         )
 
-        private val forslagService = ForslagService(
-            forslagRepository,
-            ArrangorMeldingProducer(TestOutboxEnvironment.outboxService),
-            deltakerRepository,
-            deltakerProducerService,
-        )
-        private val vedtakService = VedtakService(vedtakRepository)
-        private val deltakerEndringService =
-            DeltakerEndringService(
-                deltakerEndringRepository,
-                navAnsattRepository,
-                navEnhetRepository,
-                hendelseService,
-                forslagService,
-                deltakerHistorikkService,
-            )
+    private val endringFraTiltakskoordinatorRepository = EndringFraTiltakskoordinatorRepository()
 
-        private val endringFraTiltakskoordinatorRepository = EndringFraTiltakskoordinatorRepository()
-
-        private val deltakerService = DeltakerService(
-            deltakerRepository = deltakerRepository,
-            deltakerProducerService = deltakerProducerService,
-            deltakerEndringRepository = deltakerEndringRepository,
-            deltakerEndringService = deltakerEndringService,
-            vedtakRepository = vedtakRepository,
-            vedtakService = vedtakService,
-            hendelseService = hendelseService,
-            endringFraArrangorRepository = endringFraArrangorRepository,
-            importertFraArenaRepository = importertFraArenaRepository,
-            deltakerHistorikkService = deltakerHistorikkService,
-            endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
-            navAnsattService = navAnsattService,
-            navEnhetService = navEnhetService,
-            forslagRepository = forslagRepository,
-        )
-
-        @JvmStatic
-        @BeforeAll
-        fun setup() {
-            @Suppress("UnusedExpression")
-            SingletonPostgres16Container
-        }
-    }
+    private val deltakerService = DeltakerService(
+        deltakerRepository = deltakerRepository,
+        deltakerProducerService = deltakerProducerService,
+        deltakerEndringRepository = deltakerEndringRepository,
+        deltakerEndringService = deltakerEndringService,
+        vedtakRepository = vedtakRepository,
+        vedtakService = vedtakService,
+        hendelseService = hendelseService,
+        endringFraArrangorRepository = endringFraArrangorRepository,
+        importertFraArenaRepository = importertFraArenaRepository,
+        deltakerHistorikkService = deltakerHistorikkService,
+        endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
+        navAnsattService = navAnsattService,
+        navEnhetService = navEnhetService,
+        forslagRepository = forslagRepository,
+    )
 }
 
 infix fun Deltaker.shouldBeComparableWith(expected: Deltaker?) {

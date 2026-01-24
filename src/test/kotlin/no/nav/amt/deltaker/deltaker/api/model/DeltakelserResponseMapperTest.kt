@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.deltaker.api.model
 
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
+import no.nav.amt.deltaker.DatabaseTestExtension
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
@@ -20,39 +21,29 @@ import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
-import no.nav.amt.lib.testing.SingletonPostgres16Container
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.RegisterExtension
 import java.time.LocalDate
 import java.time.LocalDateTime
 
 class DeltakelserResponseMapperTest {
+    private val deltakerHistorikkService = DeltakerHistorikkService(
+        DeltakerEndringRepository(),
+        VedtakRepository(),
+        ForslagRepository(),
+        EndringFraArrangorRepository(),
+        ImportertFraArenaRepository(),
+        InnsokPaaFellesOppstartRepository(),
+        EndringFraTiltakskoordinatorRepository(),
+        VurderingRepository(),
+    )
+    private val arrangorService = ArrangorService(ArrangorRepository(), mockk())
+    private val deltakelserResponseMapper = DeltakelserResponseMapper(deltakerHistorikkService, arrangorService)
+
     companion object {
-        private val deltakerHistorikkService = DeltakerHistorikkService(
-            DeltakerEndringRepository(),
-            VedtakRepository(),
-            ForslagRepository(),
-            EndringFraArrangorRepository(),
-            ImportertFraArenaRepository(),
-            InnsokPaaFellesOppstartRepository(),
-            EndringFraTiltakskoordinatorRepository(),
-            VurderingRepository(),
-        )
-        private val arrangorService = ArrangorService(ArrangorRepository(), mockk())
-        private val deltakelserResponseMapper = DeltakelserResponseMapper(deltakerHistorikkService, arrangorService)
-
-        @BeforeAll
-        @JvmStatic
-        fun setup() {
-            @Suppress("UnusedExpression")
-            SingletonPostgres16Container
-        }
-    }
-
-    @BeforeEach
-    fun cleanDatabase() {
-        TestRepository.cleanDatabase()
+        @JvmField
+        @RegisterExtension
+        val dbExtension = DatabaseTestExtension()
     }
 
     @Test

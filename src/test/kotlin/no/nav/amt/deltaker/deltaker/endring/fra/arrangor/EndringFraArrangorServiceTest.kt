@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.deltaker.endring.fra.arrangor
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
+import no.nav.amt.deltaker.DatabaseTestExtension
 import no.nav.amt.deltaker.TestOutboxEnvironment
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
@@ -40,10 +41,8 @@ import no.nav.amt.deltaker.utils.mockPersonServiceClient
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.hendelse.HendelseType
-import no.nav.amt.lib.testing.SingletonPostgres16Container
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.RegisterExtension
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -149,17 +148,9 @@ class EndringFraArrangorServiceTest {
     )
 
     companion object {
-        @JvmStatic
-        @BeforeAll
-        fun setup() {
-            @Suppress("UnusedExpression")
-            SingletonPostgres16Container
-        }
-    }
-
-    @BeforeEach
-    fun cleanDatabase() {
-        TestRepository.cleanDatabase()
+        @JvmField
+        @RegisterExtension
+        val dbExtension = DatabaseTestExtension()
     }
 
     @Test

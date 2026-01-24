@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.deltaker
 
 import io.kotest.matchers.shouldBe
+import no.nav.amt.deltaker.DatabaseTestExtension
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.db.sammenlignDeltakereVedVedtak
@@ -19,39 +20,29 @@ import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltaker.InnsokPaaFellesOppstart
-import no.nav.amt.lib.testing.SingletonPostgres16Container
 import no.nav.amt.lib.testing.shouldBeCloseTo
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.RegisterExtension
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
 class DeltakerHistorikkServiceTest {
+    private val deltakerHistorikkService = DeltakerHistorikkService(
+        DeltakerEndringRepository(),
+        VedtakRepository(),
+        ForslagRepository(),
+        EndringFraArrangorRepository(),
+        ImportertFraArenaRepository(),
+        InnsokPaaFellesOppstartRepository(),
+        EndringFraTiltakskoordinatorRepository(),
+        VurderingRepository(),
+    )
+
     companion object {
-        private val service = DeltakerHistorikkService(
-            DeltakerEndringRepository(),
-            VedtakRepository(),
-            ForslagRepository(),
-            EndringFraArrangorRepository(),
-            ImportertFraArenaRepository(),
-            InnsokPaaFellesOppstartRepository(),
-            EndringFraTiltakskoordinatorRepository(),
-            VurderingRepository(),
-        )
-
-        @BeforeAll
-        @JvmStatic
-        fun setup() {
-            @Suppress("UnusedExpression")
-            SingletonPostgres16Container
-        }
-    }
-
-    @BeforeEach
-    fun cleanDatabase() {
-        TestRepository.cleanDatabase()
+        @JvmField
+        @RegisterExtension
+        val dbExtension = DatabaseTestExtension()
     }
 
     @Test
@@ -115,7 +106,7 @@ class DeltakerHistorikkServiceTest {
         TestRepository.insert(forslagVenter)
         TestRepository.insert(nyVurdering)
 
-        val historikk = service.getForDeltaker(deltaker.id)
+        val historikk = deltakerHistorikkService.getForDeltaker(deltaker.id)
 
         historikk.size shouldBe 7
         sammenlignHistorikk(historikk[0], DeltakerHistorikk.Vedtak(ikkeFattetVedtak))
@@ -132,7 +123,7 @@ class DeltakerHistorikkServiceTest {
         val deltaker = TestData.lagDeltaker()
         TestRepository.insert(deltaker)
 
-        service.getForDeltaker(deltaker.id) shouldBe emptyList()
+        deltakerHistorikkService.getForDeltaker(deltaker.id) shouldBe emptyList()
     }
 
     @Test

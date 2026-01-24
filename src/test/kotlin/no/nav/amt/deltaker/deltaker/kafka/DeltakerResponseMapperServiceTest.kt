@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.deltaker.kafka
 
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
+import no.nav.amt.deltaker.DatabaseTestExtension
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
@@ -25,44 +26,34 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatusDto
 import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltaker.Personalia
 import no.nav.amt.lib.models.person.NavBruker
-import no.nav.amt.lib.testing.SingletonPostgres16Container
 import no.nav.amt.lib.testing.shouldBeCloseTo
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.RegisterExtension
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
 class DeltakerResponseMapperServiceTest {
+    private val navEnhetRepository = NavEnhetRepository()
+    private val navAnsattRepository = NavAnsattRepository()
+    private val vurderingRepository = VurderingRepository()
+    private val deltakerHistorikkService = DeltakerHistorikkService(
+        DeltakerEndringRepository(),
+        VedtakRepository(),
+        ForslagRepository(),
+        EndringFraArrangorRepository(),
+        ImportertFraArenaRepository(),
+        InnsokPaaFellesOppstartRepository(),
+        EndringFraTiltakskoordinatorRepository(),
+        vurderingRepository,
+    )
+    private val deltakerKafkaPayloadBuilder =
+        DeltakerKafkaPayloadBuilder(navAnsattRepository, navEnhetRepository, deltakerHistorikkService, vurderingRepository)
+
     companion object {
-        private val navEnhetRepository = NavEnhetRepository()
-        private val navAnsattRepository = NavAnsattRepository()
-        private val vurderingRepository = VurderingRepository()
-        private val deltakerHistorikkService = DeltakerHistorikkService(
-            DeltakerEndringRepository(),
-            VedtakRepository(),
-            ForslagRepository(),
-            EndringFraArrangorRepository(),
-            ImportertFraArenaRepository(),
-            InnsokPaaFellesOppstartRepository(),
-            EndringFraTiltakskoordinatorRepository(),
-            vurderingRepository,
-        )
-        private val deltakerKafkaPayloadBuilder =
-            DeltakerKafkaPayloadBuilder(navAnsattRepository, navEnhetRepository, deltakerHistorikkService, vurderingRepository)
-
-        @BeforeAll
-        @JvmStatic
-        fun setup() {
-            @Suppress("UnusedExpression")
-            SingletonPostgres16Container
-        }
-    }
-
-    @BeforeEach
-    fun cleanDatabase() {
-        TestRepository.cleanDatabase()
+        @JvmField
+        @RegisterExtension
+        val dbExtension = DatabaseTestExtension()
     }
 
     @Test

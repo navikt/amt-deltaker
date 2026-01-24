@@ -14,6 +14,7 @@ import io.mockk.spyk
 import io.mockk.verify
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
+import no.nav.amt.deltaker.DatabaseTestExtension
 import no.nav.amt.deltaker.apiclients.mulighetsrommet.MulighetsrommetApiClient
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerService
@@ -39,78 +40,73 @@ import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.kafka.GjennomforingV2KafkaPayload
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
-import no.nav.amt.lib.testing.SingletonPostgres16Container
 import no.nav.amt.lib.testing.shouldBeEqualTo
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.RegisterExtension
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 
 class EnkeltplassDeltakerConsumerTest {
+    private val unleashToggle = mockk<UnleashToggle>()
+    private val mulighetsrommetApiClient = mockk<MulighetsrommetApiClient>()
+    private val arrangorService = mockk<ArrangorService>()
+    private val navBrukerService = mockk<NavBrukerService>()
+    private val deltakerKafkaPayloadBuilder = mockk<DeltakerKafkaPayloadBuilder>()
+    private val deltakerProducer = mockk<DeltakerProducer>()
+    private val deltakerRepository = spyk(DeltakerRepository())
+    private val importertFraArenaRepository = ImportertFraArenaRepository()
+    private val deltakerlisteRepository = DeltakerlisteRepository()
+    private val tiltakstypeRepository = mockk<TiltakstypeRepository>()
+    private val deltakerProducerService = spyk(
+        DeltakerProducerService(
+            deltakerKafkaPayloadBuilder = deltakerKafkaPayloadBuilder,
+            deltakerProducer = deltakerProducer,
+            deltakerV1Producer = mockk(),
+            unleashToggle = unleashToggle,
+        ),
+    )
+    private val deltakerService = spyk(
+        DeltakerService(
+            deltakerRepository = deltakerRepository,
+            deltakerProducerService = deltakerProducerService,
+            importertFraArenaRepository = importertFraArenaRepository,
+            deltakerEndringRepository = mockk(),
+            deltakerEndringService = mockk(),
+            navAnsattService = mockk(),
+            vedtakRepository = mockk(),
+            vedtakService = mockk(),
+            hendelseService = mockk(),
+            endringFraArrangorRepository = mockk(),
+            deltakerHistorikkService = mockk(),
+            endringFraTiltakskoordinatorRepository = mockk(),
+            navEnhetService = mockk(),
+            forslagRepository = mockk(),
+        ),
+    )
+
+    private val consumer = EnkeltplassDeltakerConsumer(
+        deltakerRepository,
+        deltakerService,
+        deltakerlisteRepository,
+        navBrukerService,
+        importertFraArenaRepository,
+        unleashToggle,
+        mulighetsrommetApiClient,
+        arrangorService,
+        tiltakstypeRepository,
+        deltakerProducerService,
+    )
+
     companion object {
-        private val unleashToggle = mockk<UnleashToggle>()
-        private val mulighetsrommetApiClient = mockk<MulighetsrommetApiClient>()
-        private val arrangorService = mockk<ArrangorService>()
-        private val navBrukerService = mockk<NavBrukerService>()
-        private val deltakerKafkaPayloadBuilder = mockk<DeltakerKafkaPayloadBuilder>()
-        private val deltakerProducer = mockk<DeltakerProducer>()
-        private val deltakerRepository = spyk(DeltakerRepository())
-        private val importertFraArenaRepository = ImportertFraArenaRepository()
-        private val deltakerlisteRepository = DeltakerlisteRepository()
-        private val tiltakstypeRepository = mockk<TiltakstypeRepository>()
-        private val deltakerProducerService = spyk(
-            DeltakerProducerService(
-                deltakerKafkaPayloadBuilder = deltakerKafkaPayloadBuilder,
-                deltakerProducer = deltakerProducer,
-                deltakerV1Producer = mockk(),
-                unleashToggle = unleashToggle,
-            ),
-        )
-        private val deltakerService = spyk(
-            DeltakerService(
-                deltakerRepository = deltakerRepository,
-                deltakerProducerService = deltakerProducerService,
-                importertFraArenaRepository = importertFraArenaRepository,
-                deltakerEndringRepository = mockk(),
-                deltakerEndringService = mockk(),
-                navAnsattService = mockk(),
-                vedtakRepository = mockk(),
-                vedtakService = mockk(),
-                hendelseService = mockk(),
-                endringFraArrangorRepository = mockk(),
-                deltakerHistorikkService = mockk(),
-                endringFraTiltakskoordinatorRepository = mockk(),
-                navEnhetService = mockk(),
-                forslagRepository = mockk(),
-            ),
-        )
-
-        private val consumer = EnkeltplassDeltakerConsumer(
-            deltakerRepository,
-            deltakerService,
-            deltakerlisteRepository,
-            navBrukerService,
-            importertFraArenaRepository,
-            unleashToggle,
-            mulighetsrommetApiClient,
-            arrangorService,
-            tiltakstypeRepository,
-            deltakerProducerService,
-        )
-
-        @JvmStatic
-        @BeforeAll
-        fun setup() {
-            @Suppress("UnusedExpression")
-            SingletonPostgres16Container
-        }
+        @JvmField
+        @RegisterExtension
+        val dbExtension = DatabaseTestExtension()
     }
 
     @BeforeEach
-    fun cleanDatabase() {
-        TestRepository.cleanDatabase()
+    fun setup() {
         clearAllMocks()
         every { unleashToggle.skalDelesMedEksterne(any()) } returns false
     }

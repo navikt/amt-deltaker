@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.kafka.utils
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.assertions.nondeterministic.eventually
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerV1Dto
@@ -26,7 +27,7 @@ suspend fun assertProduced(deltakerId: UUID) {
     consumer.start()
 
     eventually {
-        val cachedDeltaker = cache[deltakerId]!!
+        val cachedDeltaker = cache[deltakerId].shouldNotBeNull()
         cachedDeltaker.id shouldBe deltakerId
     }
 

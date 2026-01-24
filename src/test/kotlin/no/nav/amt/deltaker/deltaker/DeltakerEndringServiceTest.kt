@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.deltaker
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
+import no.nav.amt.deltaker.DatabaseTestExtension
 import no.nav.amt.deltaker.TestOutboxEnvironment
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
@@ -48,11 +49,9 @@ import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.ForlengDelta
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.IkkeAktuellRequest
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.InnholdRequest
 import no.nav.amt.lib.models.hendelse.HendelseType
-import no.nav.amt.lib.testing.SingletonPostgres16Container
 import no.nav.amt.lib.utils.database.Database
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.RegisterExtension
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -105,17 +104,9 @@ class DeltakerEndringServiceTest {
     )
 
     companion object {
-        @JvmStatic
-        @BeforeAll
-        fun setup() {
-            @Suppress("UnusedExpression")
-            SingletonPostgres16Container
-        }
-    }
-
-    @BeforeEach
-    fun cleanDatabase() {
-        TestRepository.cleanDatabase()
+        @JvmField
+        @RegisterExtension
+        val dbExtension = DatabaseTestExtension()
     }
 
     @Test

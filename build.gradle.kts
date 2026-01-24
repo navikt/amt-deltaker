@@ -94,6 +94,8 @@ dependencies {
     testImplementation("io.mockk:mockk-jvm:$mockkVersion")
     testImplementation("com.nimbusds:nimbus-jose-jwt:$nimbusVersion")
     testImplementation("no.nav.amt.lib:testing:$amtLibVersion")
+
+    testImplementation("org.testcontainers:testcontainers-postgresql:2.0.3")
 }
 
 kotlin {

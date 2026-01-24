@@ -2,33 +2,23 @@ package no.nav.amt.deltaker.deltakerliste
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import no.nav.amt.deltaker.DatabaseTestExtension
 import no.nav.amt.deltaker.utils.data.TestData.lagArrangor
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype
 import no.nav.amt.deltaker.utils.data.TestRepository
-import no.nav.amt.lib.testing.SingletonPostgres16Container
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.RegisterExtension
 import java.time.LocalDate
 
 class DeltakerlisteRepositoryTest {
+    private val deltakerlisteRepository = DeltakerlisteRepository()
+
     companion object {
-        lateinit var repository: DeltakerlisteRepository
-
-        @JvmStatic
-        @BeforeAll
-        fun setup() {
-            @Suppress("UnusedExpression")
-            SingletonPostgres16Container
-            repository = DeltakerlisteRepository()
-        }
-    }
-
-    @BeforeEach
-    fun cleanDatabase() {
-        TestRepository.cleanDatabase()
+        @JvmField
+        @RegisterExtension
+        val dbExtension = DatabaseTestExtension()
     }
 
     @Nested
@@ -51,9 +41,9 @@ class DeltakerlisteRepositoryTest {
                 oppstart = null,
             )
 
-            repository.upsert(deltakerliste)
+            deltakerlisteRepository.upsert(deltakerliste)
 
-            repository.get(deltakerliste.id).getOrNull() shouldBe deltakerliste
+            deltakerlisteRepository.get(deltakerliste.id).getOrNull() shouldBe deltakerliste
         }
 
         @Test
@@ -64,9 +54,9 @@ class DeltakerlisteRepositoryTest {
             TestRepository.insert(arrangor)
             TestRepository.insert(tiltakstype)
 
-            repository.upsert(deltakerliste)
+            deltakerlisteRepository.upsert(deltakerliste)
 
-            repository.get(deltakerliste.id).getOrNull() shouldBe deltakerliste
+            deltakerlisteRepository.get(deltakerliste.id).getOrNull() shouldBe deltakerliste
         }
 
         @Test
@@ -77,13 +67,13 @@ class DeltakerlisteRepositoryTest {
             TestRepository.insert(arrangor)
             TestRepository.insert(tiltakstype)
 
-            repository.upsert(deltakerliste)
+            deltakerlisteRepository.upsert(deltakerliste)
 
             val oppdatertListe = deltakerliste.copy(sluttDato = LocalDate.now())
 
-            repository.upsert(oppdatertListe)
+            deltakerlisteRepository.upsert(oppdatertListe)
 
-            repository.get(deltakerliste.id).getOrNull() shouldBe oppdatertListe
+            deltakerlisteRepository.get(deltakerliste.id).getOrNull() shouldBe oppdatertListe
         }
     }
 
@@ -95,11 +85,11 @@ class DeltakerlisteRepositoryTest {
         TestRepository.insert(arrangor)
         TestRepository.insert(tiltakstype)
 
-        repository.upsert(deltakerliste)
+        deltakerlisteRepository.upsert(deltakerliste)
 
-        repository.delete(deltakerliste.id)
+        deltakerlisteRepository.delete(deltakerliste.id)
 
-        repository.get(deltakerliste.id).getOrNull() shouldBe null
+        deltakerlisteRepository.get(deltakerliste.id).getOrNull() shouldBe null
     }
 
     @Test
@@ -109,9 +99,9 @@ class DeltakerlisteRepositoryTest {
         val deltakerliste = lagDeltakerliste(arrangor = arrangor, tiltakstype = tiltakstype)
         TestRepository.insert(arrangor)
         TestRepository.insert(tiltakstype)
-        repository.upsert(deltakerliste)
+        deltakerlisteRepository.upsert(deltakerliste)
 
-        val deltakerlisteMedArrangor = repository.get(deltakerliste.id).getOrThrow()
+        val deltakerlisteMedArrangor = deltakerlisteRepository.get(deltakerliste.id).getOrThrow()
 
         deltakerlisteMedArrangor shouldNotBe null
         deltakerlisteMedArrangor.navn shouldBe deltakerliste.navn

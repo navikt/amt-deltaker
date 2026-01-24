@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.tiltakskoordinator.endring
 
 import io.kotest.matchers.shouldBe
+import no.nav.amt.deltaker.DatabaseTestExtension
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.utils.data.TestData
@@ -12,33 +13,29 @@ import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
-import no.nav.amt.lib.testing.SingletonPostgres16Container
 import no.nav.amt.lib.testing.shouldBeCloseTo
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.RegisterExtension
 import java.util.UUID
 
 class EndringFraTiltakskoordinatorRepositoryTest {
-    private val repository = EndringFraTiltakskoordinatorRepository()
+    private val endringFraTiltakskoordinatorRepository = EndringFraTiltakskoordinatorRepository()
 
     companion object {
-        @JvmStatic
-        @BeforeAll
-        fun setup() {
-            @Suppress("UnusedExpression")
-            SingletonPostgres16Container
-        }
+        @JvmField
+        @RegisterExtension
+        val dbExtension = DatabaseTestExtension()
     }
 
     @Test
     fun `insert - ingen endring - feiler ikke`() {
-        repository.insert(emptyList()) shouldBe Unit
+        endringFraTiltakskoordinatorRepository.insert(emptyList()) shouldBe Unit
     }
 
     @Test
     fun `insert - en endring - inserter`() {
         with(EndringFraTiltakskoordinatorCtx()) {
-            repository.insert(listOf(endring))
+            endringFraTiltakskoordinatorRepository.insert(listOf(endring))
             assertEndringLagret(this)
         }
     }
@@ -48,14 +45,14 @@ class EndringFraTiltakskoordinatorRepositoryTest {
         val endring1Ctx = EndringFraTiltakskoordinatorCtx()
         val endring2Ctx = EndringFraTiltakskoordinatorCtx()
 
-        repository.insert(listOf(endring1Ctx.endring, endring2Ctx.endring))
+        endringFraTiltakskoordinatorRepository.insert(listOf(endring1Ctx.endring, endring2Ctx.endring))
 
         assertEndringLagret(endring1Ctx)
         assertEndringLagret(endring2Ctx)
     }
 
     private fun assertEndringLagret(ctx: EndringFraTiltakskoordinatorCtx) {
-        val lagretEndring1 = repository.getForDeltaker(ctx.deltaker.id).first()
+        val lagretEndring1 = endringFraTiltakskoordinatorRepository.getForDeltaker(ctx.deltaker.id).first()
         sammenlignEndringFraTiltakskoordinator(ctx.endring, lagretEndring1)
     }
 }
@@ -87,12 +84,7 @@ data class EndringFraTiltakskoordinatorCtx(
     ),
 ) {
     init {
-        @Suppress("UnusedExpression")
-        SingletonPostgres16Container
-        TestRepository.insert(navEnhet)
-        TestRepository.insert(navAnsatt)
-        TestRepository.insert(deltakerliste)
-        TestRepository.insert(deltaker)
+        TestRepository.insertAll(navEnhet, navAnsatt, deltakerliste, deltaker)
     }
 
     fun medStatusDeltar() {

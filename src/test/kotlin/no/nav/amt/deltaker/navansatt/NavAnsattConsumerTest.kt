@@ -4,35 +4,30 @@ import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
+import no.nav.amt.deltaker.DatabaseTestExtension
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.models.person.NavAnsatt
-import no.nav.amt.lib.testing.SingletonPostgres16Container
 import no.nav.amt.lib.utils.objectMapper
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.RegisterExtension
 
 class NavAnsattConsumerTest {
+    private val navAnsattRepository = NavAnsattRepository()
     private val amtPersonServiceClient = mockk<AmtPersonServiceClient>()
     private val navEnhetService = NavEnhetService(NavEnhetRepository(), amtPersonServiceClient)
     private val navAnsattConsumer = NavAnsattConsumer(
-        NavAnsattRepository(),
-        NavAnsattService(repository, amtPersonServiceClient, navEnhetService),
+        navAnsattRepository,
+        NavAnsattService(navAnsattRepository, amtPersonServiceClient, navEnhetService),
     )
 
     companion object {
-        lateinit var repository: NavAnsattRepository
-
-        @JvmStatic
-        @BeforeAll
-        fun setup() {
-            @Suppress("UnusedExpression")
-            SingletonPostgres16Container
-            repository = NavAnsattRepository()
-        }
+        @JvmField
+        @RegisterExtension
+        val dbExtension = DatabaseTestExtension()
     }
 
     @Test
@@ -44,7 +39,7 @@ class NavAnsattConsumerTest {
             navAnsattConsumer.consume(navAnsatt.id, objectMapper.writeValueAsString(navAnsatt.toDto()))
         }
 
-        repository.get(navAnsatt.id) shouldBe navAnsatt
+        navAnsattRepository.get(navAnsatt.id) shouldBe navAnsatt
     }
 
     @Test
@@ -57,7 +52,7 @@ class NavAnsattConsumerTest {
             navAnsattConsumer.consume(navAnsatt.id, objectMapper.writeValueAsString(oppdatertNavAnsatt.toDto()))
         }
 
-        repository.get(navAnsatt.id) shouldBe oppdatertNavAnsatt
+        navAnsattRepository.get(navAnsatt.id) shouldBe oppdatertNavAnsatt
     }
 
     @Test
@@ -69,7 +64,7 @@ class NavAnsattConsumerTest {
             navAnsattConsumer.consume(navAnsatt.id, null)
         }
 
-        repository.get(navAnsatt.id) shouldBe null
+        navAnsattRepository.get(navAnsatt.id) shouldBe null
     }
 }
 

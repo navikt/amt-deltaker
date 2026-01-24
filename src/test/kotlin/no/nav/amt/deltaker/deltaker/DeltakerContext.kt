@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.deltaker
 
+import no.nav.amt.deltaker.TestPostgres
 import no.nav.amt.deltaker.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.utils.data.TestData
@@ -10,7 +11,6 @@ import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet
-import no.nav.amt.lib.testing.SingletonPostgres16Container
 import java.time.LocalDate
 
 data class DeltakerContext(
@@ -35,8 +35,7 @@ data class DeltakerContext(
     val historikk: MutableList<DeltakerHistorikk> = mutableListOf(DeltakerHistorikk.Vedtak(vedtak))
 
     init {
-        @Suppress("UnusedExpression")
-        SingletonPostgres16Container
+        TestPostgres.bootstrap()
         TestRepository.insert(veileder)
         TestRepository.insert(navEnhet)
     }

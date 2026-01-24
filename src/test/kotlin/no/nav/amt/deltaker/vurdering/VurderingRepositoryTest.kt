@@ -1,24 +1,20 @@
 package no.nav.amt.deltaker.vurdering
 
 import io.kotest.matchers.shouldBe
+import no.nav.amt.deltaker.DatabaseTestExtension
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
-import no.nav.amt.lib.testing.SingletonPostgres16Container
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.RegisterExtension
 
 class VurderingRepositoryTest {
-    companion object {
-        lateinit var repository: VurderingRepository
+    private val vurderingRepository = VurderingRepository()
 
-        @JvmStatic
-        @BeforeAll
-        fun setup() {
-            @Suppress("UnusedExpression")
-            SingletonPostgres16Container
-            repository = VurderingRepository()
-        }
+    companion object {
+        @JvmField
+        @RegisterExtension
+        val dbExtension = DatabaseTestExtension()
     }
 
     @Test
@@ -27,8 +23,8 @@ class VurderingRepositoryTest {
         val vurdering = TestData.lagVurdering(deltakerId = deltaker.id)
         TestRepository.insert(deltaker)
 
-        repository.upsert(vurdering)
+        vurderingRepository.upsert(vurdering)
 
-        repository.getForDeltaker(vurdering.deltakerId).size shouldBe 1
+        vurderingRepository.getForDeltaker(vurdering.deltakerId).size shouldBe 1
     }
 }

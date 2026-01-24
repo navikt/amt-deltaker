@@ -3,33 +3,29 @@ package no.nav.amt.deltaker.navenhet
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
+import no.nav.amt.deltaker.DatabaseTestExtension
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.mockAzureAdClient
 import no.nav.amt.deltaker.utils.mockHttpClient
 import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
-import no.nav.amt.lib.testing.SingletonPostgres16Container
 import no.nav.amt.lib.utils.objectMapper
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.RegisterExtension
 
 class NavEnhetServiceTest {
-    companion object {
-        lateinit var repository: NavEnhetRepository
+    private val navEnhetRepository = NavEnhetRepository()
 
-        @JvmStatic
-        @BeforeAll
-        fun setup() {
-            @Suppress("UnusedExpression")
-            SingletonPostgres16Container
-            repository = NavEnhetRepository()
-        }
+    companion object {
+        @JvmField
+        @RegisterExtension
+        val dbExtension = DatabaseTestExtension()
     }
 
     @Test
     fun `hentEllerOpprettNavEnhet - navenhet finnes i db - henter fra db`() {
         val navEnhet = TestData.lagNavEnhet()
-        repository.upsert(navEnhet)
-        val navEnhetService = NavEnhetService(repository, mockk())
+        navEnhetRepository.upsert(navEnhet)
+        val navEnhetService = NavEnhetService(navEnhetRepository, mockk())
 
         runBlocking {
             val navEnhetFraDb = navEnhetService.hentEllerOpprettNavEnhet(navEnhet.enhetsnummer)
@@ -47,13 +43,13 @@ class NavEnhetServiceTest {
             httpClient = httpClient,
             azureAdTokenClient = mockAzureAdClient(),
         )
-        val navEnhetService = NavEnhetService(repository, amtPersonServiceClient)
+        val navEnhetService = NavEnhetService(navEnhetRepository, amtPersonServiceClient)
 
         runBlocking {
             val navEnhet = navEnhetService.hentEllerOpprettNavEnhet(navEnhetResponse.enhetsnummer)
 
             navEnhet shouldBe navEnhetResponse
-            repository.get(navEnhetResponse.enhetsnummer) shouldBe navEnhetResponse
+            navEnhetRepository.get(navEnhetResponse.enhetsnummer) shouldBe navEnhetResponse
         }
     }
 }

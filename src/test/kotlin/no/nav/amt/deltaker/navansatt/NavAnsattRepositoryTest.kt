@@ -2,23 +2,19 @@ package no.nav.amt.deltaker.navansatt
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import no.nav.amt.deltaker.DatabaseTestExtension
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
-import no.nav.amt.lib.testing.SingletonPostgres16Container
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.RegisterExtension
 
 class NavAnsattRepositoryTest {
-    companion object {
-        lateinit var repository: NavAnsattRepository
+    private val navAnsattRepository = NavAnsattRepository()
 
-        @JvmStatic
-        @BeforeAll
-        fun setup() {
-            @Suppress("UnusedExpression")
-            SingletonPostgres16Container
-            repository = NavAnsattRepository()
-        }
+    companion object {
+        @JvmField
+        @RegisterExtension
+        val dbExtension = DatabaseTestExtension()
     }
 
     @Test
@@ -30,7 +26,7 @@ class NavAnsattRepositoryTest {
         )
         ansatte.forEach { TestRepository.insert(it) }
 
-        val faktiskeAnsatte = repository.getMany(ansatte.map { it.navIdent })
+        val faktiskeAnsatte = navAnsattRepository.getMany(ansatte.map { it.navIdent })
 
         faktiskeAnsatte.size shouldBe ansatte.size
         faktiskeAnsatte.find { it == ansatte[0] } shouldNotBe null
@@ -43,8 +39,8 @@ class NavAnsattRepositoryTest {
         val navAnsatt = TestData.lagNavAnsatt()
         TestRepository.insert(navAnsatt)
 
-        repository.delete(navAnsatt.id)
+        navAnsattRepository.delete(navAnsatt.id)
 
-        repository.get(navAnsatt.id) shouldBe null
+        navAnsattRepository.get(navAnsatt.id) shouldBe null
     }
 }

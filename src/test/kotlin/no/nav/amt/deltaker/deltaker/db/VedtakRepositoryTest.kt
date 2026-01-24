@@ -1,33 +1,23 @@
 package no.nav.amt.deltaker.deltaker.db
 
 import io.kotest.matchers.shouldBe
+import no.nav.amt.deltaker.DatabaseTestExtension
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.models.deltaker.DeltakerVedVedtak
 import no.nav.amt.lib.models.deltaker.Vedtak
-import no.nav.amt.lib.testing.SingletonPostgres16Container
 import no.nav.amt.lib.testing.shouldBeCloseTo
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.RegisterExtension
 import java.time.LocalDateTime
 
 class VedtakRepositoryTest {
+    private val vedtakRepository = VedtakRepository()
+
     companion object {
-        lateinit var repository: VedtakRepository
-
-        @JvmStatic
-        @BeforeAll
-        fun setup() {
-            @Suppress("UnusedExpression")
-            SingletonPostgres16Container
-            repository = VedtakRepository()
-        }
-    }
-
-    @BeforeEach
-    fun cleanDatabase() {
-        TestRepository.cleanDatabase()
+        @JvmField
+        @RegisterExtension
+        val dbExtension = DatabaseTestExtension()
     }
 
     @Test
@@ -44,9 +34,9 @@ class VedtakRepositoryTest {
         )
         TestRepository.insert(deltaker)
 
-        repository.upsert(vedtak)
+        vedtakRepository.upsert(vedtak)
 
-        sammenlignVedtak(repository.get(vedtak.id)!!, vedtak)
+        sammenlignVedtak(vedtakRepository.get(vedtak.id)!!, vedtak)
     }
 
     @Test
@@ -62,12 +52,12 @@ class VedtakRepositoryTest {
             opprettetAvEnhet = navEnhet,
         )
         TestRepository.insert(deltaker)
-        repository.upsert(vedtak)
+        vedtakRepository.upsert(vedtak)
 
         val oppdatertVedtak = vedtak.copy(fattet = LocalDateTime.now())
-        repository.upsert(oppdatertVedtak)
+        vedtakRepository.upsert(oppdatertVedtak)
 
-        sammenlignVedtak(repository.get(vedtak.id)!!, oppdatertVedtak)
+        sammenlignVedtak(vedtakRepository.get(vedtak.id)!!, oppdatertVedtak)
     }
 
     @Test
@@ -86,9 +76,9 @@ class VedtakRepositoryTest {
         )
         TestRepository.insert(deltaker)
 
-        repository.upsert(vedtak)
+        vedtakRepository.upsert(vedtak)
 
-        sammenlignVedtak(repository.get(vedtak.id)!!, vedtak)
+        sammenlignVedtak(vedtakRepository.get(vedtak.id)!!, vedtak)
     }
 }
 

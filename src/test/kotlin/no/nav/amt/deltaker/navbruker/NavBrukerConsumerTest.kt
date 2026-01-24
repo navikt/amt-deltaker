@@ -5,6 +5,7 @@ import io.mockk.clearMocks
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
+import no.nav.amt.deltaker.DatabaseTestExtension
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetService
@@ -12,33 +13,24 @@ import no.nav.amt.deltaker.utils.MockResponseHandler
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.utils.mockPersonServiceClient
-import no.nav.amt.lib.testing.SingletonPostgres16Container
 import no.nav.amt.lib.utils.objectMapper
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.RegisterExtension
 
 class NavBrukerConsumerTest {
-    companion object {
-        lateinit var navBrukerRepository: NavBrukerRepository
-        lateinit var navEnhetRepository: NavEnhetRepository
-        private val deltakerService = mockk<DeltakerService>(relaxed = true)
+    private val navBrukerRepository = NavBrukerRepository()
+    private val navEnhetRepository = NavEnhetRepository()
+    private val deltakerService = mockk<DeltakerService>(relaxed = true)
 
-        @JvmStatic
-        @BeforeAll
-        fun setup() {
-            @Suppress("UnusedExpression")
-            SingletonPostgres16Container
-            navBrukerRepository = NavBrukerRepository()
-            navEnhetRepository = NavEnhetRepository()
-        }
+    companion object {
+        @JvmField
+        @RegisterExtension
+        val dbExtension = DatabaseTestExtension()
     }
 
     @BeforeEach
-    fun cleanDatabase() {
-        TestRepository.cleanDatabase()
-        clearMocks(deltakerService)
-    }
+    fun setup() = clearMocks(deltakerService)
 
     @Test
     fun `consumeNavBruker - ny navBruker - upserter`() {

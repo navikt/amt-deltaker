@@ -76,7 +76,7 @@ class PameldingService(
         val opprinneligDeltaker = deltakerRepository.get(deltakerId).getOrThrow()
 
         require(kanUpserteUtkast(opprinneligDeltaker.status)) {
-            "Kan ikke upserte ukast for deltaker $deltakerId " +
+            "Kan ikke upserte utkast for deltaker $deltakerId " +
                 "med status ${opprinneligDeltaker.status.type}," +
                 "status må være ${DeltakerStatus.Type.KLADD} eller ${DeltakerStatus.Type.UTKAST_TIL_PAMELDING}."
         }

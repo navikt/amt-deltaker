@@ -4,6 +4,7 @@ import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
+import no.nav.amt.deltaker.DatabaseTestExtension
 import no.nav.amt.deltaker.TestOutboxEnvironment
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
@@ -44,102 +45,96 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.hendelse.HendelseType
-import no.nav.amt.lib.testing.SingletonPostgres16Container
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.RegisterExtension
 import java.time.LocalDate
 import java.time.LocalDateTime
 
 class DeltakerStatusOppdateringTest {
+    private val deltakerRepository: DeltakerRepository = DeltakerRepository()
+
+    private val navEnhetRepository = NavEnhetRepository()
+    private val navEnhetService = NavEnhetService(navEnhetRepository, mockPersonServiceClient())
+
+    private val navAnsattRepository = NavAnsattRepository()
+    private val navAnsattService = NavAnsattService(navAnsattRepository, mockPersonServiceClient(), navEnhetService)
+
+    private val deltakerEndringRepository = DeltakerEndringRepository()
+    private val vedtakRepository = VedtakRepository()
+    private val forslagRepository = ForslagRepository()
+    private val endringFraArrangorRepository = EndringFraArrangorRepository()
+    private val importertFraArenaRepository = ImportertFraArenaRepository()
+    private val deltakerHistorikkService =
+        DeltakerHistorikkService(
+            deltakerEndringRepository,
+            vedtakRepository,
+            forslagRepository,
+            endringFraArrangorRepository,
+            importertFraArenaRepository,
+            InnsokPaaFellesOppstartRepository(),
+            EndringFraTiltakskoordinatorRepository(),
+            VurderingRepository(),
+        )
+    private val vurderingRepository = VurderingRepository()
+    private val unleashToggle = mockk<UnleashToggle>()
+    private val deltakerKafkaPayloadMapperService =
+        DeltakerKafkaPayloadBuilder(navAnsattRepository, navEnhetRepository, deltakerHistorikkService, vurderingRepository)
+
+    private val deltakerProducer = DeltakerProducer(TestOutboxEnvironment.outboxService, TestOutboxEnvironment.kafkaProducer)
+    private val deltakerV1Producer = DeltakerV1Producer(TestOutboxEnvironment.outboxService, TestOutboxEnvironment.kafkaProducer)
+    private val deltakerProducerService =
+        DeltakerProducerService(deltakerKafkaPayloadMapperService, deltakerProducer, deltakerV1Producer, unleashToggle)
+    private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
+    private val vurderingService = VurderingService(vurderingRepository)
+    private val hendelseService = HendelseService(
+        HendelseProducer(TestOutboxEnvironment.outboxService),
+        navAnsattRepository,
+        navAnsattService,
+        navEnhetRepository,
+        navEnhetService,
+        arrangorService,
+        deltakerHistorikkService,
+        vurderingService,
+    )
+    private val forslagService = ForslagService(forslagRepository, mockk(), deltakerRepository, deltakerProducerService)
+
+    private val deltakerEndringService = DeltakerEndringService(
+        deltakerEndringRepository = deltakerEndringRepository,
+        navAnsattRepository = navAnsattRepository,
+        navEnhetRepository = navEnhetRepository,
+        hendelseService = hendelseService,
+        forslagService = forslagService,
+        deltakerHistorikkService = deltakerHistorikkService,
+    )
+    private val vedtakService = VedtakService(vedtakRepository)
+    private val endringFraTiltakskoordinatorRepository = EndringFraTiltakskoordinatorRepository()
+
+    private val deltakerService = DeltakerService(
+        deltakerRepository = deltakerRepository,
+        deltakerEndringRepository = deltakerEndringRepository,
+        deltakerEndringService = deltakerEndringService,
+        deltakerProducerService = deltakerProducerService,
+        vedtakRepository = vedtakRepository,
+        vedtakService = vedtakService,
+        hendelseService = hendelseService,
+        endringFraArrangorRepository = endringFraArrangorRepository,
+        forslagRepository = forslagRepository,
+        importertFraArenaRepository = importertFraArenaRepository,
+        deltakerHistorikkService = deltakerHistorikkService,
+        navAnsattService = navAnsattService,
+        navEnhetService = navEnhetService,
+        endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
+    )
+
     companion object {
-        private val deltakerRepository: DeltakerRepository = DeltakerRepository()
-        private lateinit var deltakerService: DeltakerService
-
-        private val navEnhetRepository = NavEnhetRepository()
-        private val navEnhetService = NavEnhetService(navEnhetRepository, mockPersonServiceClient())
-
-        private val navAnsattRepository = NavAnsattRepository()
-        private val navAnsattService = NavAnsattService(navAnsattRepository, mockPersonServiceClient(), navEnhetService)
-
-        private val deltakerEndringRepository = DeltakerEndringRepository()
-        private val vedtakRepository = VedtakRepository()
-        private val forslagRepository = ForslagRepository()
-        private val endringFraArrangorRepository = EndringFraArrangorRepository()
-        private val importertFraArenaRepository = ImportertFraArenaRepository()
-        private val deltakerHistorikkService =
-            DeltakerHistorikkService(
-                deltakerEndringRepository,
-                vedtakRepository,
-                forslagRepository,
-                endringFraArrangorRepository,
-                importertFraArenaRepository,
-                InnsokPaaFellesOppstartRepository(),
-                EndringFraTiltakskoordinatorRepository(),
-                VurderingRepository(),
-            )
-        private val vurderingRepository = VurderingRepository()
-        private val unleashToggle = mockk<UnleashToggle>()
-        private val deltakerKafkaPayloadMapperService =
-            DeltakerKafkaPayloadBuilder(navAnsattRepository, navEnhetRepository, deltakerHistorikkService, vurderingRepository)
-
-        private val deltakerProducer = DeltakerProducer(TestOutboxEnvironment.outboxService, TestOutboxEnvironment.kafkaProducer)
-        private val deltakerV1Producer = DeltakerV1Producer(TestOutboxEnvironment.outboxService, TestOutboxEnvironment.kafkaProducer)
-        private val deltakerProducerService =
-            DeltakerProducerService(deltakerKafkaPayloadMapperService, deltakerProducer, deltakerV1Producer, unleashToggle)
-        private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
-        private val vurderingService = VurderingService(vurderingRepository)
-        private val hendelseService = HendelseService(
-            HendelseProducer(TestOutboxEnvironment.outboxService),
-            navAnsattRepository,
-            navAnsattService,
-            navEnhetRepository,
-            navEnhetService,
-            arrangorService,
-            deltakerHistorikkService,
-            vurderingService,
-        )
-        private val forslagService = ForslagService(forslagRepository, mockk(), deltakerRepository, deltakerProducerService)
-
-        private val deltakerEndringService = DeltakerEndringService(
-            deltakerEndringRepository = deltakerEndringRepository,
-            navAnsattRepository = navAnsattRepository,
-            navEnhetRepository = navEnhetRepository,
-            hendelseService = hendelseService,
-            forslagService = forslagService,
-            deltakerHistorikkService = deltakerHistorikkService,
-        )
-        private val vedtakService = VedtakService(vedtakRepository)
-        private val endringFraTiltakskoordinatorRepository = EndringFraTiltakskoordinatorRepository()
-
-        @JvmStatic
-        @BeforeAll
-        fun setup() {
-            @Suppress("UnusedExpression")
-            SingletonPostgres16Container
-
-            deltakerService = DeltakerService(
-                deltakerRepository = deltakerRepository,
-                deltakerEndringRepository = deltakerEndringRepository,
-                deltakerEndringService = deltakerEndringService,
-                deltakerProducerService = deltakerProducerService,
-                vedtakRepository = vedtakRepository,
-                vedtakService = vedtakService,
-                hendelseService = hendelseService,
-                endringFraArrangorRepository = endringFraArrangorRepository,
-                forslagRepository = forslagRepository,
-                importertFraArenaRepository = importertFraArenaRepository,
-                deltakerHistorikkService = deltakerHistorikkService,
-                navAnsattService = navAnsattService,
-                navEnhetService = navEnhetService,
-                endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
-            )
-        }
+        @JvmField
+        @RegisterExtension
+        val dbExtension = DatabaseTestExtension()
     }
 
     @BeforeEach
-    fun cleanDatabase() {
-        TestRepository.cleanDatabase()
+    fun setup() {
         every { unleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns true
         every { unleashToggle.skalDelesMedEksterne(any<Tiltakskode>()) } returns true
     }
