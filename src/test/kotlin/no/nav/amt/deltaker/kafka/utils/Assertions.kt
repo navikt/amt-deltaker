@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.kafka.utils
 
 import com.fasterxml.jackson.module.kotlin.readValue
+import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -44,7 +45,7 @@ suspend fun assertProducedDeltakerV1(deltakerId: UUID) {
     consumer.start()
 
     eventually {
-        val cachedDeltaker = cache[deltakerId]!!
+        val cachedDeltaker = cache[deltakerId].shouldNotBeNull()
         cachedDeltaker.id shouldBe deltakerId
     }
 
@@ -61,16 +62,17 @@ suspend fun assertProducedFeilregistrert(deltakerId: UUID) {
     consumer.start()
 
     eventually {
-        val cachedDeltaker = cache[deltakerId]!!
-        cachedDeltaker.id shouldBe deltakerId
-        cachedDeltaker.status.type shouldBe DeltakerStatus.Type.FEILREGISTRERT
-        cachedDeltaker.dagerPerUke shouldBe null
-        cachedDeltaker.prosentStilling shouldBe null
-        cachedDeltaker.oppstartsdato shouldBe null
-        cachedDeltaker.sluttdato shouldBe null
-        cachedDeltaker.bestillingTekst shouldBe null
-        cachedDeltaker.innhold shouldBe null
-        cachedDeltaker.historikk?.filterIsInstance<DeltakerHistorikk.Endring>() shouldBe emptyList()
+        assertSoftly(cache[deltakerId].shouldNotBeNull()) {
+            id shouldBe deltakerId
+            status.type shouldBe DeltakerStatus.Type.FEILREGISTRERT
+            dagerPerUke shouldBe null
+            prosentStilling shouldBe null
+            oppstartsdato shouldBe null
+            sluttdato shouldBe null
+            bestillingTekst shouldBe null
+            innhold shouldBe null
+            historikk?.filterIsInstance<DeltakerHistorikk.Endring>() shouldBe emptyList()
+        }
     }
 
     consumer.close()
@@ -86,9 +88,10 @@ suspend fun <T : HendelseType> assertProducedHendelse(deltakerId: UUID, hendelse
     consumer.start()
 
     eventually {
-        val cachedHendelse = cache[deltakerId]!!
-        cachedHendelse.deltaker.id shouldBe deltakerId
-        cachedHendelse.payload::class shouldBe hendelsetype
+        assertSoftly(cache[deltakerId].shouldNotBeNull()) {
+            deltaker.id shouldBe deltakerId
+            payload::class shouldBe hendelsetype
+        }
     }
 
     consumer.close()
