@@ -1,13 +1,11 @@
 package no.nav.amt.deltaker
 
 import kotlinx.coroutines.runBlocking
-import kotliquery.queryOf
 import no.nav.amt.lib.kafka.Producer
 import no.nav.amt.lib.kafka.config.LocalKafkaConfig
 import no.nav.amt.lib.outbox.OutboxProcessor
 import no.nav.amt.lib.outbox.OutboxService
 import no.nav.amt.lib.testing.SingletonKafkaProvider
-import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.job.JobManager
 import java.time.Duration
 
@@ -20,7 +18,7 @@ object TestOutboxEnvironment {
     val outboxService: OutboxService by lazy {
         val jobManager = JobManager(
             isLeader = { true },
-            applicationIsReady = { Database.isReady() },
+            applicationIsReady = { TestPostgres.isInitialized },
         )
 
         OutboxService().also { innerOutboxService ->
@@ -42,14 +40,5 @@ object TestOutboxEnvironment {
                 )
             }
         }
-    }
-
-    fun Database.isReady(): Boolean = try {
-        val query = queryOf("SELECT 1 FROM outbox_record LIMIT 1").map { it.long(1) }.asSingle
-        this.query { session -> session.run(query) }
-        true
-    } catch (_: Exception) {
-        println("Database is not ready")
-        false
     }
 }
