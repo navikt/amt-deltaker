@@ -45,7 +45,7 @@ object TestOutboxEnvironment {
     }
 
     fun Database.isReady(): Boolean = try {
-        val query = queryOf("SELECT 1").map { it.long(1) }.asSingle
+        val query = queryOf("SELECT 1 FROM outbox_record LIMIT 1").map { it.long(1) }.asSingle
         this.query { session -> session.run(query) }
         true
     } catch (_: Exception) {
