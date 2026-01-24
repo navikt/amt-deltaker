@@ -34,7 +34,7 @@ val caffeineVersion = "3.2.3"
 val mockkVersion = "1.14.7"
 val nimbusVersion = "10.7"
 val unleashVersion = "11.2.1"
-val amtLibVersion = "1.2026.01.23_12.39-c7f597a2693f"
+val amtLibVersion = "1.2026.01.24_13.41-1e2b7ee8db55"
 
 // fjernes ved neste release av org.apache.kafka:kafka-clients
 configurations.configureEach {
@@ -94,8 +94,6 @@ dependencies {
     testImplementation("io.mockk:mockk-jvm:$mockkVersion")
     testImplementation("com.nimbusds:nimbus-jose-jwt:$nimbusVersion")
     testImplementation("no.nav.amt.lib:testing:$amtLibVersion")
-
-    testImplementation("org.testcontainers:testcontainers-postgresql:2.0.3")
 }
 
 kotlin {

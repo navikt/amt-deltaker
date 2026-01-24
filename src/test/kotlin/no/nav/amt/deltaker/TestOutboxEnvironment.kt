@@ -6,6 +6,7 @@ import no.nav.amt.lib.kafka.config.LocalKafkaConfig
 import no.nav.amt.lib.outbox.OutboxProcessor
 import no.nav.amt.lib.outbox.OutboxService
 import no.nav.amt.lib.testing.SingletonKafkaProvider
+import no.nav.amt.lib.testing.TestPostgresContainer
 import no.nav.amt.lib.utils.job.JobManager
 import java.time.Duration
 
@@ -18,7 +19,7 @@ object TestOutboxEnvironment {
     val outboxService: OutboxService by lazy {
         val jobManager = JobManager(
             isLeader = { true },
-            applicationIsReady = { TestPostgres.isInitialized },
+            applicationIsReady = { TestPostgresContainer.isInitialized },
         )
 
         OutboxService().also { innerOutboxService ->
