@@ -37,8 +37,8 @@ class TiltakstypeConsumerTest {
                 tiltakstype.id,
                 objectMapper.writeValueAsString(tiltakstypeDto),
             )
-
-            tiltakstypeRepository.get(tiltakstype.tiltakskode).getOrThrow() shouldBe tiltakstype
         }
+
+        tiltakstypeRepository.get(tiltakstype.tiltakskode).getOrThrow() shouldBe tiltakstype
     }
 }

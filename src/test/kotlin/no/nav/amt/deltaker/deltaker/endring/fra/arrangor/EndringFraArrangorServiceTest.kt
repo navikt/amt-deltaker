@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.deltaker.endring.fra.arrangor
 
+import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
@@ -183,14 +184,16 @@ class EndringFraArrangorServiceTest {
         )
 
         val oppdatertDeltaker = endringFraArrangorService.upsertEndretDeltaker(endringFraArrangor)
+        assertSoftly(oppdatertDeltaker) {
+            it.startdato shouldBe startdato
+            it.sluttdato shouldBe sluttdato
+            it.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
+        }
 
-        oppdatertDeltaker.startdato shouldBe startdato
-        oppdatertDeltaker.sluttdato shouldBe sluttdato
-        oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
-
-        val endring = endringFraArrangorRepository.getForDeltaker(deltaker.id).first()
-        endring.opprettetAvArrangorAnsattId shouldBe endringFraArrangor.opprettetAvArrangorAnsattId
-        endring.endring shouldBe endringFraArrangor.endring
+        assertSoftly(endringFraArrangorRepository.getForDeltaker(deltaker.id).first()) {
+            it.opprettetAvArrangorAnsattId shouldBe endringFraArrangor.opprettetAvArrangorAnsattId
+            it.endring shouldBe endringFraArrangor.endring
+        }
 
         assertProducedHendelse(deltaker.id, HendelseType.LeggTilOppstartsdato::class)
     }
@@ -225,14 +228,16 @@ class EndringFraArrangorServiceTest {
         )
 
         val oppdatertDeltaker = endringFraArrangorService.upsertEndretDeltaker(endringFraArrangor)
+        assertSoftly(oppdatertDeltaker) {
+            it.startdato shouldBe startdato
+            it.sluttdato shouldBe sluttdato
+            it.status.type shouldBe DeltakerStatus.Type.DELTAR
+        }
 
-        oppdatertDeltaker.startdato shouldBe startdato
-        oppdatertDeltaker.sluttdato shouldBe sluttdato
-        oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.DELTAR
-
-        val endring = endringFraArrangorRepository.getForDeltaker(deltaker.id).first()
-        endring.opprettetAvArrangorAnsattId shouldBe endringFraArrangor.opprettetAvArrangorAnsattId
-        endring.endring shouldBe endringFraArrangor.endring
+        assertSoftly(endringFraArrangorRepository.getForDeltaker(deltaker.id).first()) {
+            it.opprettetAvArrangorAnsattId shouldBe endringFraArrangor.opprettetAvArrangorAnsattId
+            it.endring shouldBe endringFraArrangor.endring
+        }
 
         assertProducedHendelse(deltaker.id, HendelseType.LeggTilOppstartsdato::class)
     }
@@ -267,14 +272,16 @@ class EndringFraArrangorServiceTest {
             )
 
             val oppdatertDeltaker = endringFraArrangorService.upsertEndretDeltaker(endringFraArrangor)
+            assertSoftly(oppdatertDeltaker) {
+                it.startdato shouldBe startdato
+                it.sluttdato shouldBe null
+                it.status.type shouldBe DeltakerStatus.Type.DELTAR
+            }
 
-            oppdatertDeltaker.startdato shouldBe startdato
-            oppdatertDeltaker.sluttdato shouldBe null
-            oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.DELTAR
-
-            val endring = endringFraArrangorRepository.getForDeltaker(deltaker.id).first()
-            endring.opprettetAvArrangorAnsattId shouldBe endringFraArrangor.opprettetAvArrangorAnsattId
-            endring.endring shouldBe endringFraArrangor.endring
+            assertSoftly(endringFraArrangorRepository.getForDeltaker(deltaker.id).first()) {
+                it.opprettetAvArrangorAnsattId shouldBe endringFraArrangor.opprettetAvArrangorAnsattId
+                it.endring shouldBe endringFraArrangor.endring
+            }
 
             assertProducedHendelse(deltaker.id, HendelseType.LeggTilOppstartsdato::class)
         }
@@ -309,10 +316,11 @@ class EndringFraArrangorServiceTest {
         )
 
         val oppdatertDeltaker = endringFraArrangorService.upsertEndretDeltaker(endringFraArrangor)
-
-        oppdatertDeltaker.startdato shouldBe startdato
-        oppdatertDeltaker.sluttdato shouldBe gammelsluttdato
-        oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.DELTAR
+        assertSoftly(oppdatertDeltaker) {
+            it.startdato shouldBe startdato
+            it.sluttdato shouldBe gammelsluttdato
+            it.status.type shouldBe DeltakerStatus.Type.DELTAR
+        }
 
         val endring = endringFraArrangorRepository.getForDeltaker(deltaker.id).first()
         endring.opprettetAvArrangorAnsattId shouldBe endringFraArrangor.opprettetAvArrangorAnsattId
@@ -357,14 +365,16 @@ class EndringFraArrangorServiceTest {
             )
 
             val oppdatertDeltaker = endringFraArrangorService.upsertEndretDeltaker(endringFraArrangor)
+            assertSoftly(oppdatertDeltaker) {
+                it.startdato shouldBe startdato
+                it.sluttdato shouldBe sluttdato
+                it.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+            }
 
-            oppdatertDeltaker.startdato shouldBe startdato
-            oppdatertDeltaker.sluttdato shouldBe sluttdato
-            oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
-
-            val endring = endringFraArrangorRepository.getForDeltaker(deltaker.id).first()
-            endring.opprettetAvArrangorAnsattId shouldBe endringFraArrangor.opprettetAvArrangorAnsattId
-            endring.endring shouldBe endringFraArrangor.endring
+            assertSoftly(endringFraArrangorRepository.getForDeltaker(deltaker.id).first()) {
+                it.opprettetAvArrangorAnsattId shouldBe endringFraArrangor.opprettetAvArrangorAnsattId
+                it.endring shouldBe endringFraArrangor.endring
+            }
 
             assertProducedHendelse(deltaker.id, HendelseType.LeggTilOppstartsdato::class)
         }

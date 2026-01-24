@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.job
 
+import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockkObject
@@ -39,9 +40,11 @@ class DeltakerProgresjonTest {
             .getAvsluttendeStatusUtfall(listOf(deltaker))
             .first()
 
-        oppdatertDeltaker.sluttdato shouldBe LocalDate.now()
-        oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.AVBRUTT
-        oppdatertDeltaker.status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT
+        assertSoftly(oppdatertDeltaker) {
+            sluttdato shouldBe LocalDate.now()
+            status.type shouldBe DeltakerStatus.Type.AVBRUTT
+            status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT
+        }
     }
 
     @Test
@@ -60,10 +63,12 @@ class DeltakerProgresjonTest {
             .getAvsluttendeStatusUtfall(listOf(deltaker))
             .first()
 
-        oppdatertDeltaker.startdato shouldBe null
-        oppdatertDeltaker.sluttdato shouldBe null
-        oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.IKKE_AKTUELL
-        oppdatertDeltaker.status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT
+        assertSoftly(oppdatertDeltaker) {
+            startdato shouldBe null
+            sluttdato shouldBe null
+            status.type shouldBe DeltakerStatus.Type.IKKE_AKTUELL
+            status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT
+        }
     }
 
     @Test
@@ -94,8 +99,10 @@ class DeltakerProgresjonTest {
             .getAvsluttendeStatusUtfall(listOf(deltaker))
             .first()
 
-        oppdatertDeltaker.startdato shouldBe deltaker.startdato
-        oppdatertDeltaker.sluttdato shouldBe LocalDate.now()
-        oppdatertDeltaker.status shouldBe fremtidigStatus
+        assertSoftly(oppdatertDeltaker) {
+            startdato shouldBe deltaker.startdato
+            sluttdato shouldBe LocalDate.now()
+            status shouldBe fremtidigStatus
+        }
     }
 }

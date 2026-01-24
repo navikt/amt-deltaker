@@ -4,7 +4,7 @@ import io.kotest.matchers.shouldBe
 import io.mockk.clearMocks
 import io.mockk.coVerify
 import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.DatabaseTestExtension
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
@@ -45,7 +45,7 @@ class NavBrukerConsumerTest {
             deltakerService,
         )
 
-        runBlocking {
+        runTest {
             navBrukerConsumer.consume(
                 navBruker.personId,
                 objectMapper.writeValueAsString(TestData.lagNavBrukerDto(navBruker, navEnhet)),
@@ -74,7 +74,7 @@ class NavBrukerConsumerTest {
             deltakerService,
         )
 
-        runBlocking {
+        runTest {
             navBrukerConsumer.consume(
                 navBruker.personId,
                 objectMapper.writeValueAsString(TestData.lagNavBrukerDto(oppdatertNavBruker, navEnhet)),
@@ -103,7 +103,7 @@ class NavBrukerConsumerTest {
             deltakerService,
         )
 
-        runBlocking {
+        runTest {
             navBrukerConsumer.consume(
                 navBruker.personId,
                 objectMapper.writeValueAsString(TestData.lagNavBrukerDto(oppdatertNavBruker, navEnhet)),
@@ -128,7 +128,7 @@ class NavBrukerConsumerTest {
             deltakerService,
         )
 
-        runBlocking {
+        runTest {
             navBrukerConsumer.consume(
                 navBruker.personId,
                 objectMapper.writeValueAsString(TestData.lagNavBrukerDto(navBruker, navEnhet)),
@@ -155,7 +155,7 @@ class NavBrukerConsumerTest {
             deltakerService,
         )
 
-        runBlocking {
+        runTest {
             navBrukerConsumer.consume(
                 navBruker.personId,
                 objectMapper.writeValueAsString(TestData.lagNavBrukerDto(navBruker, navEnhet)),

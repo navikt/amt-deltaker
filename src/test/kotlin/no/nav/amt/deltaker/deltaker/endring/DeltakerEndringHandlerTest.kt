@@ -1,5 +1,7 @@
 package no.nav.amt.deltaker.deltaker.endring
 
+import io.kotest.assertions.assertSoftly
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
@@ -62,10 +64,11 @@ class DeltakerEndringHandlerTest {
         )
 
         val endretDeltaker = endreDeltakersOppstart(deltaker, nyStartdato, null, gammelDeltakelsesmengder)
-
-        endretDeltaker.startdato shouldBe nyStartdato
-        endretDeltaker.dagerPerUke shouldBe fremtidigMengde.dagerPerUke
-        endretDeltaker.deltakelsesprosent shouldBe fremtidigMengde.deltakelsesprosent
+        assertSoftly(endretDeltaker) {
+            startdato shouldBe nyStartdato
+            dagerPerUke shouldBe fremtidigMengde.dagerPerUke
+            deltakelsesprosent shouldBe fremtidigMengde.deltakelsesprosent
+        }
     }
 
     @Test
@@ -98,10 +101,11 @@ class DeltakerEndringHandlerTest {
         )
 
         val endretDeltaker = endreDeltakersOppstart(deltaker, nyStartdato, null, gammelDeltakelsesmengder)
-
-        endretDeltaker.startdato shouldBe nyStartdato
-        endretDeltaker.dagerPerUke shouldBe gjeldendeMengde.dagerPerUke
-        endretDeltaker.deltakelsesprosent shouldBe gjeldendeMengde.deltakelsesprosent
+        assertSoftly(endretDeltaker) {
+            startdato shouldBe nyStartdato
+            dagerPerUke shouldBe gjeldendeMengde.dagerPerUke
+            deltakelsesprosent shouldBe gjeldendeMengde.deltakelsesprosent
+        }
     }
 
     @Test
@@ -134,10 +138,11 @@ class DeltakerEndringHandlerTest {
         )
 
         val endretDeltaker = endreDeltakersOppstart(deltaker, nyStartdato, null, gammelDeltakelsesmengder)
-
-        endretDeltaker.startdato shouldBe nyStartdato
-        endretDeltaker.dagerPerUke shouldBe gjeldendeMengde.dagerPerUke
-        endretDeltaker.deltakelsesprosent shouldBe gjeldendeMengde.deltakelsesprosent
+        assertSoftly(endretDeltaker) {
+            startdato shouldBe nyStartdato
+            dagerPerUke shouldBe gjeldendeMengde.dagerPerUke
+            deltakelsesprosent shouldBe gjeldendeMengde.deltakelsesprosent
+        }
     }
 
     @Test
@@ -158,10 +163,12 @@ class DeltakerEndringHandlerTest {
         val resultat = deltakerEndringHandler.sjekkUtfall()
 
         resultat.erVellykket shouldBe true
-        val deltakerResult = resultat.getOrThrow()
-        deltakerResult.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
-        deltakerResult.startdato shouldBe endringsrequest.startdato
-        deltakerResult.sluttdato shouldBe endringsrequest.sluttdato
+
+        assertSoftly(resultat.getOrThrow()) {
+            status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+            startdato shouldBe endringsrequest.startdato
+            sluttdato shouldBe endringsrequest.sluttdato
+        }
     }
 
     @Test
@@ -182,10 +189,12 @@ class DeltakerEndringHandlerTest {
         val resultat = deltakerEndringHandler.sjekkUtfall()
 
         resultat.erVellykket shouldBe true
-        val deltakerResult = resultat.getOrThrow()
-        deltakerResult.status.type shouldBe DeltakerStatus.Type.IKKE_AKTUELL
-        deltakerResult.startdato shouldBe null
-        deltakerResult.sluttdato shouldBe null
+
+        assertSoftly(resultat.getOrThrow()) {
+            status.type shouldBe DeltakerStatus.Type.IKKE_AKTUELL
+            startdato shouldBe null
+            sluttdato shouldBe null
+        }
     }
 
     @Test
@@ -207,10 +216,12 @@ class DeltakerEndringHandlerTest {
         val resultat = deltakerEndringHandler.sjekkUtfall()
 
         resultat.erVellykket shouldBe true
-        val deltakerResult = resultat.getOrThrow()
-        deltakerResult.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
-        deltakerResult.startdato shouldBe endringsrequest.startdato
-        deltakerResult.sluttdato shouldBe endringsrequest.sluttdato
+
+        assertSoftly(resultat.getOrThrow()) {
+            status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+            startdato shouldBe endringsrequest.startdato
+            sluttdato shouldBe endringsrequest.sluttdato
+        }
     }
 
     @Test
@@ -232,10 +243,12 @@ class DeltakerEndringHandlerTest {
         val resultat = deltakerEndringHandler.sjekkUtfall()
 
         resultat.erVellykket shouldBe true
-        val deltakerResult = resultat.getOrThrow()
-        deltakerResult.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
-        deltakerResult.startdato shouldBe endringsrequest.startdato
-        deltakerResult.sluttdato shouldBe endringsrequest.sluttdato
+
+        assertSoftly(resultat.getOrThrow()) {
+            status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
+            startdato shouldBe endringsrequest.startdato
+            sluttdato shouldBe endringsrequest.sluttdato
+        }
     }
 
     @Test
@@ -262,10 +275,12 @@ class DeltakerEndringHandlerTest {
         val resultat = deltakerEndringHandler.sjekkUtfall()
 
         resultat.erVellykket shouldBe true
-        val deltakerResult = resultat.getOrThrow()
-        deltakerResult.status.type shouldBe DeltakerStatus.Type.DELTAR
-        deltakerResult.startdato shouldBe endringsrequest.startdato
-        deltakerResult.sluttdato shouldBe endringsrequest.sluttdato
+
+        assertSoftly(resultat.getOrThrow()) {
+            status.type shouldBe DeltakerStatus.Type.DELTAR
+            startdato shouldBe endringsrequest.startdato
+            sluttdato shouldBe endringsrequest.sluttdato
+        }
     }
 
     @Test
@@ -366,10 +381,12 @@ class DeltakerEndringHandlerTest {
         val resultat = deltakerEndringHandler.sjekkUtfall()
 
         resultat.erVellykket shouldBe true
-        val deltakerResult = resultat.getOrThrow()
-        deltakerResult.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
-        deltakerResult.status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
-        deltakerResult.sluttdato shouldBe endringsrequest.sluttdato
+
+        assertSoftly(resultat.getOrThrow()) {
+            status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+            status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
+            sluttdato shouldBe endringsrequest.sluttdato
+        }
     }
 
     @Test
@@ -394,10 +411,11 @@ class DeltakerEndringHandlerTest {
         val resultat = deltakerEndringHandler.sjekkUtfall()
         resultat.erVellykket shouldBe true
 
-        val deltakerResult = resultat.getOrThrow()
-        deltakerResult.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
-        deltakerResult.status.gyldigFra.toLocalDate() shouldBe endringsrequest.sluttdato.plusDays(1)
-        deltakerResult.sluttdato shouldBe endringsrequest.sluttdato
+        assertSoftly(resultat.getOrThrow()) {
+            status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+            status.gyldigFra.toLocalDate() shouldBe endringsrequest.sluttdato.plusDays(1)
+            sluttdato shouldBe endringsrequest.sluttdato
+        }
     }
 
     @Test
@@ -426,14 +444,18 @@ class DeltakerEndringHandlerTest {
         val deltakerResult = resultat.deltaker
         val nesteStatus = resultat.nesteStatus
 
-        deltakerResult.status.type shouldBe DeltakerStatus.Type.DELTAR
-        deltakerResult.status.gyldigFra.toLocalDate() shouldBe LocalDate.now()
-        deltakerResult.sluttdato shouldBe endringsrequest.sluttdato
+        assertSoftly(deltakerResult) {
+            status.type shouldBe DeltakerStatus.Type.DELTAR
+            status.gyldigFra.toLocalDate() shouldBe LocalDate.now()
+            sluttdato shouldBe endringsrequest.sluttdato
+        }
 
-        nesteStatus?.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
-        nesteStatus?.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
-        nesteStatus?.gyldigFra?.toLocalDate() shouldBe endringsrequest.sluttdato.plusDays(1)
-        nesteStatus?.gyldigTil shouldBe null
+        assertSoftly(nesteStatus.shouldNotBeNull()) {
+            type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+            aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
+            gyldigFra.toLocalDate() shouldBe endringsrequest.sluttdato.plusDays(1)
+            gyldigTil shouldBe null
+        }
     }
 
     @Test
@@ -462,10 +484,12 @@ class DeltakerEndringHandlerTest {
         val deltakerResult = resultat.deltaker
         val nesteStatus = resultat.nesteStatus
 
-        deltakerResult.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
-        deltakerResult.status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
-        deltakerResult.status.gyldigFra.toLocalDate() shouldBe LocalDate.now()
-        deltakerResult.sluttdato shouldBe endringsrequest.sluttdato
+        assertSoftly(deltakerResult) {
+            status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+            status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
+            status.gyldigFra.toLocalDate() shouldBe LocalDate.now()
+            sluttdato shouldBe endringsrequest.sluttdato
+        }
 
         nesteStatus shouldBe null
     }
@@ -588,10 +612,12 @@ class DeltakerEndringHandlerTest {
         val resultat = deltakerEndringHandler.sjekkUtfall()
 
         resultat.erVellykket shouldBe true
-        val deltakerResult = resultat.getOrThrow()
-        deltakerResult.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
-        deltakerResult.startdato shouldBe null
-        deltakerResult.sluttdato shouldBe null
+
+        assertSoftly(resultat.getOrThrow()) {
+            status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
+            startdato shouldBe null
+            sluttdato shouldBe null
+        }
     }
 
     @Test
@@ -613,9 +639,11 @@ class DeltakerEndringHandlerTest {
         val resultat = deltakerEndringHandler.sjekkUtfall()
 
         resultat.erVellykket shouldBe true
-        val deltakerResult = resultat.getOrThrow()
-        deltakerResult.status.type shouldBe DeltakerStatus.Type.SOKT_INN
-        deltakerResult.startdato shouldBe null
-        deltakerResult.sluttdato shouldBe null
+
+        assertSoftly(resultat.getOrThrow()) {
+            status.type shouldBe DeltakerStatus.Type.SOKT_INN
+            startdato shouldBe null
+            sluttdato shouldBe null
+        }
     }
 }

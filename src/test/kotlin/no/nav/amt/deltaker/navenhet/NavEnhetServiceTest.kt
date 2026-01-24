@@ -2,7 +2,7 @@ package no.nav.amt.deltaker.navenhet
 
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.DatabaseTestExtension
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.mockAzureAdClient
@@ -27,7 +27,7 @@ class NavEnhetServiceTest {
         navEnhetRepository.upsert(navEnhet)
         val navEnhetService = NavEnhetService(navEnhetRepository, mockk())
 
-        runBlocking {
+        runTest {
             val navEnhetFraDb = navEnhetService.hentEllerOpprettNavEnhet(navEnhet.enhetsnummer)
             navEnhetFraDb shouldBe navEnhet
         }
@@ -45,7 +45,7 @@ class NavEnhetServiceTest {
         )
         val navEnhetService = NavEnhetService(navEnhetRepository, amtPersonServiceClient)
 
-        runBlocking {
+        runTest {
             val navEnhet = navEnhetService.hentEllerOpprettNavEnhet(navEnhetResponse.enhetsnummer)
 
             navEnhet shouldBe navEnhetResponse

@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.deltaker.kafka
 
+import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -99,37 +100,11 @@ class EnkeltplassDeltakerConsumerTest {
         deltakerProducerService,
     )
 
-    companion object {
-        @JvmField
-        @RegisterExtension
-        val dbExtension = DatabaseTestExtension()
-    }
-
     @BeforeEach
     fun setup() {
         clearAllMocks()
         every { unleashToggle.skalDelesMedEksterne(any()) } returns false
     }
-
-    private fun toPayload(
-        deltaker: Deltaker,
-        registrertDato: LocalDateTime = deltaker.opprettet,
-        statusEndretDato: LocalDateTime = deltaker.status.gyldigFra,
-        innsokBegrunnelse: String? = null,
-    ) = EnkeltplassDeltakerPayload(
-        id = deltaker.id,
-        gjennomforingId = deltaker.deltakerliste.id,
-        personIdent = deltaker.navBruker.personident,
-        startDato = deltaker.startdato,
-        sluttDato = deltaker.sluttdato,
-        status = deltaker.status.type,
-        statusAarsak = deltaker.status.aarsak?.type,
-        dagerPerUke = deltaker.dagerPerUke,
-        prosentDeltid = deltaker.deltakelsesprosent,
-        registrertDato = registrertDato,
-        statusEndretDato = statusEndretDato,
-        innsokBegrunnelse = innsokBegrunnelse,
-    )
 
     @Test
     fun `consumeDeltaker - skalLeseArenaDataForTiltakstype=false - lagrer ikke enkeltplasser og produserer ikke til deltaker-v2 topic`() {
@@ -217,15 +192,18 @@ class EnkeltplassDeltakerConsumerTest {
         val importertFraArenaFromDb = importertFraArenaRepository.getForDeltaker(deltaker.id)
         importertFraArenaFromDb.shouldNotBeNull()
 
-        deltakerFromDb.id shouldBe deltaker.id
-        deltakerFromDb.deltakerliste.id shouldBe deltaker.deltakerliste.id
-        deltakerFromDb.status.type shouldBe deltaker.status.type
-        deltakerFromDb.bakgrunnsinformasjon.shouldBeNull() // comes from payload
+        assertSoftly(deltakerFromDb) {
+            id shouldBe deltaker.id
+            deltakerliste.id shouldBe deltaker.deltakerliste.id
+            status.type shouldBe deltaker.status.type
+            bakgrunnsinformasjon.shouldBeNull() // comes from payload
+        }
 
-        importertFraArenaFromDb.deltakerId shouldBe importertFraArena.importertFraArena.deltakerId
-        importertFraArenaFromDb.deltakerVedImport.status.type shouldBe importertFraArena.importertFraArena.deltakerVedImport.status.type
-
-        importertFraArenaFromDb.importertDato.shouldBeEqualTo(importertFraArena.importertFraArena.importertDato)
+        assertSoftly(importertFraArenaFromDb) {
+            deltakerId shouldBe importertFraArena.importertFraArena.deltakerId
+            deltakerVedImport.status.type shouldBe importertFraArena.importertFraArena.deltakerVedImport.status.type
+            importertDato.shouldBeEqualTo(importertFraArena.importertFraArena.importertDato)
+        }
     }
 
     @Test
@@ -296,9 +274,11 @@ class EnkeltplassDeltakerConsumerTest {
 
         deltakerFromDb shouldBe expectedDeltaker
 
-        importertFraArenaFromDb.deltakerId shouldBe importertFraArena.importertFraArena.deltakerId
-        importertFraArenaFromDb.deltakerVedImport.status.type shouldBe importertFraArena.importertFraArena.deltakerVedImport.status.type
-        importertFraArenaFromDb.importertDato.shouldBeEqualTo(importertFraArena.importertFraArena.importertDato)
+        assertSoftly(importertFraArenaFromDb) {
+            deltakerId shouldBe importertFraArena.importertFraArena.deltakerId
+            deltakerVedImport.status.type shouldBe importertFraArena.importertFraArena.deltakerVedImport.status.type
+            importertDato.shouldBeEqualTo(importertFraArena.importertFraArena.importertDato)
+        }
     }
 
     @Test
@@ -376,9 +356,11 @@ class EnkeltplassDeltakerConsumerTest {
 
         expectedDeltaker shouldBe deltakerFromDb
 
-        importertFraArenaFromDb.deltakerId shouldBe importertFraArena.importertFraArena.deltakerId
-        importertFraArenaFromDb.deltakerVedImport.status.type shouldBe importertFraArena.importertFraArena.deltakerVedImport.status.type
-        importertFraArenaFromDb.importertDato.shouldBeEqualTo(importertFraArena.importertFraArena.importertDato)
+        assertSoftly(importertFraArenaFromDb) {
+            deltakerId shouldBe importertFraArena.importertFraArena.deltakerId
+            deltakerVedImport.status.type shouldBe importertFraArena.importertFraArena.deltakerVedImport.status.type
+            importertDato.shouldBeEqualTo(importertFraArena.importertFraArena.importertDato)
+        }
     }
 
     @Test
@@ -447,27 +429,55 @@ class EnkeltplassDeltakerConsumerTest {
 
         expectedDeltaker shouldBe deltakerFromDb
 
-        importertFraArenaFromDb.deltakerId shouldBe importertFraArena.importertFraArena.deltakerId
-        importertFraArenaFromDb.deltakerVedImport.status.type shouldBe importertFraArena.importertFraArena.deltakerVedImport.status.type
-        importertFraArenaFromDb.importertDato.shouldBeEqualTo(importertFraArena.importertFraArena.importertDato)
+        assertSoftly(importertFraArenaFromDb) {
+            deltakerId shouldBe importertFraArena.importertFraArena.deltakerId
+            deltakerVedImport.status.type shouldBe importertFraArena.importertFraArena.deltakerVedImport.status.type
+            importertDato.shouldBeEqualTo(importertFraArena.importertFraArena.importertDato)
+        }
     }
 
-    private fun Deltakerliste.toV2Response() = GjennomforingV2KafkaPayload.Gruppe(
-        id = id,
-        navn = navn,
-        startDato = startDato!!,
-        sluttDato = sluttDato,
-        status = status!!,
-        oppstart = oppstart!!,
-        apentForPamelding = apentForPamelding,
-        opprettetTidspunkt = OffsetDateTime.now(),
-        oppdatertTidspunkt = OffsetDateTime.now(),
-        tiltakskode = tiltakstype.tiltakskode,
-        antallPlasser = 42,
-        tilgjengeligForArrangorFraOgMedDato = startDato,
-        deltidsprosent = 42.0,
-        oppmoteSted = oppmoteSted,
-        arrangor = GjennomforingV2KafkaPayload.Arrangor(arrangor.organisasjonsnummer),
-        pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
-    )
+    companion object {
+        @JvmField
+        @RegisterExtension
+        val dbExtension = DatabaseTestExtension()
+
+        private fun toPayload(
+            deltaker: Deltaker,
+            registrertDato: LocalDateTime = deltaker.opprettet,
+            statusEndretDato: LocalDateTime = deltaker.status.gyldigFra,
+            innsokBegrunnelse: String? = null,
+        ) = EnkeltplassDeltakerPayload(
+            id = deltaker.id,
+            gjennomforingId = deltaker.deltakerliste.id,
+            personIdent = deltaker.navBruker.personident,
+            startDato = deltaker.startdato,
+            sluttDato = deltaker.sluttdato,
+            status = deltaker.status.type,
+            statusAarsak = deltaker.status.aarsak?.type,
+            dagerPerUke = deltaker.dagerPerUke,
+            prosentDeltid = deltaker.deltakelsesprosent,
+            registrertDato = registrertDato,
+            statusEndretDato = statusEndretDato,
+            innsokBegrunnelse = innsokBegrunnelse,
+        )
+
+        private fun Deltakerliste.toV2Response() = GjennomforingV2KafkaPayload.Gruppe(
+            id = id,
+            navn = navn,
+            startDato = startDato!!,
+            sluttDato = sluttDato,
+            status = status!!,
+            oppstart = oppstart!!,
+            apentForPamelding = apentForPamelding,
+            opprettetTidspunkt = OffsetDateTime.now(),
+            oppdatertTidspunkt = OffsetDateTime.now(),
+            tiltakskode = tiltakstype.tiltakskode,
+            antallPlasser = 42,
+            tilgjengeligForArrangorFraOgMedDato = startDato,
+            deltidsprosent = 42.0,
+            oppmoteSted = oppmoteSted,
+            arrangor = GjennomforingV2KafkaPayload.Arrangor(arrangor.organisasjonsnummer),
+            pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
+        )
+    }
 }

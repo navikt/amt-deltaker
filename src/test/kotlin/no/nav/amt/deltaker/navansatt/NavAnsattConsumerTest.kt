@@ -24,12 +24,6 @@ class NavAnsattConsumerTest {
         NavAnsattService(navAnsattRepository, amtPersonServiceClient, navEnhetService),
     )
 
-    companion object {
-        @JvmField
-        @RegisterExtension
-        val dbExtension = DatabaseTestExtension()
-    }
-
     @Test
     fun `consumeNavAnsatt - ny navansatt - upserter`() {
         val navAnsatt = TestData.lagNavAnsatt()
@@ -66,6 +60,12 @@ class NavAnsattConsumerTest {
 
         navAnsattRepository.get(navAnsatt.id) shouldBe null
     }
-}
 
-private fun NavAnsatt.toDto() = NavAnsattDto(id, navIdent, navn, epost, telefon, navEnhetId)
+    companion object {
+        @JvmField
+        @RegisterExtension
+        val dbExtension = DatabaseTestExtension()
+
+        private fun NavAnsatt.toDto() = NavAnsattDto(id, navIdent, navn, epost, telefon, navEnhetId)
+    }
+}

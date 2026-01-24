@@ -151,11 +151,11 @@ class DeltakerEndringRepositoryTest {
     }
 }
 
-fun sammenlignDeltakerEndring(a: DeltakerEndring, b: DeltakerEndring) {
-    a.id shouldBe b.id
-    a.deltakerId shouldBe b.deltakerId
-    a.endring shouldBe b.endring
-    a.endretAv shouldBe b.endretAv
-    a.endretAvEnhet shouldBe b.endretAvEnhet
-    a.endret shouldBeCloseTo b.endret
+fun sammenlignDeltakerEndring(first: DeltakerEndring, second: DeltakerEndring) {
+    first.id shouldBe second.id
+    first.deltakerId shouldBe second.deltakerId
+    first.endring shouldBe second.endring
+    first.endretAv shouldBe second.endretAv
+    first.endretAvEnhet shouldBe second.endretAvEnhet
+    first.endret shouldBeCloseTo second.endret
 }

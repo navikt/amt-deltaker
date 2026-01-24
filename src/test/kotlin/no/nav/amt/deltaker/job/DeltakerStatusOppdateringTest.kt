@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.job
 
+import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
@@ -268,9 +269,11 @@ class DeltakerStatusOppdateringTest {
             deltakerService.oppdaterDeltakerStatuser()
 
             val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
-            deltakerFraDb.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
-            deltakerFraDb.status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
-            deltakerFraDb.sluttdato shouldBe deltaker.sluttdato
+            assertSoftly(deltakerFraDb) {
+                status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+                status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
+                sluttdato shouldBe deltaker.sluttdato
+            }
         }
     }
 
@@ -368,10 +371,11 @@ class DeltakerStatusOppdateringTest {
         runTest {
             deltakerService.oppdaterDeltakerStatuser()
 
-            val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
-            deltakerFraDb.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
-            deltakerFraDb.status.aarsak shouldBe null
-            deltakerFraDb.sluttdato shouldBe deltaker.deltakerliste.sluttDato
+            assertSoftly(deltakerRepository.get(deltaker.id).getOrThrow()) {
+                status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+                status.aarsak shouldBe null
+                sluttdato shouldBe deltaker.deltakerliste.sluttDato
+            }
         }
     }
 
@@ -403,10 +407,11 @@ class DeltakerStatusOppdateringTest {
         runTest {
             deltakerService.oppdaterDeltakerStatuser()
 
-            val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
-            deltakerFraDb.status.type shouldBe DeltakerStatus.Type.IKKE_AKTUELL
-            deltakerFraDb.status.aarsak shouldBe null
-            deltakerFraDb.sluttdato shouldBe null
+            assertSoftly(deltakerRepository.get(deltaker.id).getOrThrow()) {
+                status.type shouldBe DeltakerStatus.Type.IKKE_AKTUELL
+                status.aarsak shouldBe null
+                sluttdato shouldBe null
+            }
         }
     }
 
@@ -559,14 +564,17 @@ class DeltakerStatusOppdateringTest {
         runTest {
             deltakerService.avsluttDeltakelserPaaDeltakerliste(deltakerliste)
 
-            val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
-            deltakerFraDb.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
-            deltakerFraDb.status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT
-            deltakerFraDb.sluttdato shouldBe deltakerliste.sluttDato
-            val deltaker2FraDb = deltakerRepository.get(deltaker2.id).getOrThrow()
-            deltaker2FraDb.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
-            deltaker2FraDb.status.aarsak?.type shouldBe null
-            deltaker2FraDb.sluttdato shouldBe deltaker2.sluttdato
+            assertSoftly(deltakerRepository.get(deltaker.id).getOrThrow()) {
+                status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+                status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT
+                sluttdato shouldBe deltakerliste.sluttDato
+            }
+
+            assertSoftly(deltakerRepository.get(deltaker2.id).getOrThrow()) {
+                status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+                status.aarsak?.type shouldBe null
+                sluttdato shouldBe deltaker2.sluttdato
+            }
         }
     }
 }

@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.navansatt
 
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.DatabaseTestExtension
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetService
@@ -28,7 +28,7 @@ class NavAnsattServiceTest {
         val navAnsatt = TestData.lagNavAnsatt()
         TestRepository.insert(navAnsatt)
 
-        runBlocking {
+        runTest {
             val navAnsattFraDb = navAnsattService.hentEllerOpprettNavAnsatt(navAnsatt.navIdent)
             navAnsattFraDb shouldBe navAnsatt
         }
@@ -41,7 +41,7 @@ class NavAnsattServiceTest {
         MockResponseHandler.addNavAnsattPostResponse(navAnsattResponse)
         MockResponseHandler.addNavEnhetGetResponse(TestData.lagNavEnhet(navAnsattResponse.navEnhetId!!))
 
-        runBlocking {
+        runTest {
             val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(navAnsattResponse.navIdent)
 
             navAnsatt shouldBe navAnsattResponse
@@ -55,7 +55,7 @@ class NavAnsattServiceTest {
         TestRepository.insert(navAnsatt)
         val oppdatertNavAnsatt = navAnsatt.copy(navn = "Nytt Navn")
 
-        runBlocking {
+        runTest {
             navAnsattService.oppdaterNavAnsatt(oppdatertNavAnsatt)
         }
 

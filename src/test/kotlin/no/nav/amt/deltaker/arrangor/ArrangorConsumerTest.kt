@@ -10,6 +10,7 @@ import org.junit.jupiter.api.extension.RegisterExtension
 
 class ArrangorConsumerTest {
     private val arrangorRepository = ArrangorRepository()
+    val arrangorConsumer = ArrangorConsumer(arrangorRepository)
 
     companion object {
         @JvmField
@@ -20,7 +21,6 @@ class ArrangorConsumerTest {
     @Test
     fun `consumeArrangor - ny arrangor - upserter`() {
         val arrangor = TestData.lagArrangor()
-        val arrangorConsumer = ArrangorConsumer(arrangorRepository)
 
         runBlocking {
             arrangorConsumer.consume(arrangor.id, objectMapper.writeValueAsString(arrangor))
@@ -36,8 +36,6 @@ class ArrangorConsumerTest {
 
         val oppdatertArrangor = arrangor.copy(navn = "Oppdatert Arrangor")
 
-        val arrangorConsumer = ArrangorConsumer(arrangorRepository)
-
         runBlocking {
             arrangorConsumer.consume(arrangor.id, objectMapper.writeValueAsString(oppdatertArrangor))
         }
@@ -49,8 +47,6 @@ class ArrangorConsumerTest {
     fun `consumeArrangor - tombstonet arrangor - sletter`() {
         val arrangor = TestData.lagArrangor()
         arrangorRepository.upsert(arrangor)
-
-        val arrangorConsumer = ArrangorConsumer(arrangorRepository)
 
         runBlocking {
             arrangorConsumer.consume(arrangor.id, null)

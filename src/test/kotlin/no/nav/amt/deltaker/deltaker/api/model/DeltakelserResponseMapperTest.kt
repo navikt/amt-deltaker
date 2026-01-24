@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.deltaker.api.model
 
+import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
 import no.nav.amt.deltaker.DatabaseTestExtension
@@ -61,20 +62,22 @@ class DeltakelserResponseMapperTest {
 
         deltakelserResponse.historikk.size shouldBe 0
         deltakelserResponse.aktive.size shouldBe 1
-        val deltakerKort = deltakelserResponse.aktive.first()
-        deltakerKort.deltakerId shouldBe deltaker.id
-        deltakerKort.deltakerlisteId shouldBe deltaker.deltakerliste.id
-        deltakerKort.tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos Arrangør"
-        deltakerKort.tiltakstype shouldBe DeltakelserResponse.Tiltakstype(
-            deltaker.deltakerliste.tiltakstype.navn,
-            deltaker.deltakerliste.tiltakstype.tiltakskode,
-        )
-        deltakerKort.status.type shouldBe DeltakerStatus.Type.KLADD
-        deltakerKort.status.visningstekst shouldBe "Kladden er ikke delt"
-        deltakerKort.status.aarsak shouldBe null
-        deltakerKort.innsoktDato shouldBe null
-        deltakerKort.sistEndretDato shouldBe deltaker.sistEndret.toLocalDate()
-        deltakerKort.periode shouldBe null
+
+        assertSoftly(deltakelserResponse.aktive.first()) {
+            deltakerId shouldBe deltaker.id
+            deltakerlisteId shouldBe deltaker.deltakerliste.id
+            tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos Arrangør"
+            tiltakstype shouldBe DeltakelserResponse.Tiltakstype(
+                deltaker.deltakerliste.tiltakstype.navn,
+                deltaker.deltakerliste.tiltakstype.tiltakskode,
+            )
+            status.type shouldBe DeltakerStatus.Type.KLADD
+            status.visningstekst shouldBe "Kladden er ikke delt"
+            status.aarsak shouldBe null
+            innsoktDato shouldBe null
+            sistEndretDato shouldBe deltaker.sistEndret.toLocalDate()
+            periode shouldBe null
+        }
     }
 
     @Test
@@ -109,20 +112,22 @@ class DeltakelserResponseMapperTest {
 
         deltakelserResponse.historikk.size shouldBe 0
         deltakelserResponse.aktive.size shouldBe 1
-        val deltakerKort = deltakelserResponse.aktive.first()
-        deltakerKort.deltakerId shouldBe deltaker.id
-        deltakerKort.deltakerlisteId shouldBe deltaker.deltakerliste.id
-        deltakerKort.tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos Overordnet Arrangør"
-        deltakerKort.tiltakstype shouldBe DeltakelserResponse.Tiltakstype(
-            deltaker.deltakerliste.tiltakstype.navn,
-            deltaker.deltakerliste.tiltakstype.tiltakskode,
-        )
-        deltakerKort.status.type shouldBe DeltakerStatus.Type.UTKAST_TIL_PAMELDING
-        deltakerKort.status.visningstekst shouldBe "Utkastet er delt og venter på godkjenning"
-        deltakerKort.status.aarsak shouldBe null
-        deltakerKort.innsoktDato shouldBe null
-        deltakerKort.sistEndretDato shouldBe deltaker.sistEndret.toLocalDate()
-        deltakerKort.periode shouldBe null
+
+        assertSoftly(deltakelserResponse.aktive.first()) {
+            deltakerId shouldBe deltaker.id
+            deltakerlisteId shouldBe deltaker.deltakerliste.id
+            tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos Overordnet Arrangør"
+            tiltakstype shouldBe DeltakelserResponse.Tiltakstype(
+                deltaker.deltakerliste.tiltakstype.navn,
+                deltaker.deltakerliste.tiltakstype.tiltakskode,
+            )
+            status.type shouldBe DeltakerStatus.Type.UTKAST_TIL_PAMELDING
+            status.visningstekst shouldBe "Utkastet er delt og venter på godkjenning"
+            status.aarsak shouldBe null
+            innsoktDato shouldBe null
+            sistEndretDato shouldBe deltaker.sistEndret.toLocalDate()
+            periode shouldBe null
+        }
     }
 
     @Test
@@ -156,20 +161,22 @@ class DeltakelserResponseMapperTest {
 
         deltakelserResponse.historikk.size shouldBe 0
         deltakelserResponse.aktive.size shouldBe 1
-        val deltakerKort = deltakelserResponse.aktive.first()
-        deltakerKort.deltakerId shouldBe deltaker.id
-        deltakerKort.deltakerlisteId shouldBe deltaker.deltakerliste.id
-        deltakerKort.tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos Arrangør"
-        deltakerKort.tiltakstype shouldBe DeltakelserResponse.Tiltakstype(
-            deltaker.deltakerliste.tiltakstype.navn,
-            deltaker.deltakerliste.tiltakstype.tiltakskode,
-        )
-        deltakerKort.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
-        deltakerKort.status.visningstekst shouldBe "Venter på oppstart"
-        deltakerKort.status.aarsak shouldBe null
-        deltakerKort.innsoktDato shouldBe LocalDate.now().minusDays(4)
-        deltakerKort.sistEndretDato shouldBe null
-        deltakerKort.periode shouldBe Periode(deltaker.startdato, deltaker.sluttdato)
+
+        assertSoftly(deltakelserResponse.aktive.first()) {
+            deltakerId shouldBe deltaker.id
+            deltakerlisteId shouldBe deltaker.deltakerliste.id
+            tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos Arrangør"
+            tiltakstype shouldBe DeltakelserResponse.Tiltakstype(
+                deltaker.deltakerliste.tiltakstype.navn,
+                deltaker.deltakerliste.tiltakstype.tiltakskode,
+            )
+            status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
+            status.visningstekst shouldBe "Venter på oppstart"
+            status.aarsak shouldBe null
+            innsoktDato shouldBe LocalDate.now().minusDays(4)
+            sistEndretDato shouldBe null
+            periode shouldBe Periode(deltaker.startdato, deltaker.sluttdato)
+        }
     }
 
     @Test
@@ -201,20 +208,22 @@ class DeltakelserResponseMapperTest {
 
         deltakelserResponse.historikk.size shouldBe 0
         deltakelserResponse.aktive.size shouldBe 1
-        val deltakerKort = deltakelserResponse.aktive.first()
-        deltakerKort.deltakerId shouldBe deltaker.id
-        deltakerKort.deltakerlisteId shouldBe deltaker.deltakerliste.id
-        deltakerKort.tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos Arrangør"
-        deltakerKort.tiltakstype shouldBe DeltakelserResponse.Tiltakstype(
-            deltaker.deltakerliste.tiltakstype.navn,
-            deltaker.deltakerliste.tiltakstype.tiltakskode,
-        )
-        deltakerKort.status.type shouldBe DeltakerStatus.Type.DELTAR
-        deltakerKort.status.visningstekst shouldBe "Deltar"
-        deltakerKort.status.aarsak shouldBe null
-        deltakerKort.innsoktDato shouldBe LocalDate.now().minusDays(4)
-        deltakerKort.sistEndretDato shouldBe null
-        deltakerKort.periode shouldBe Periode(deltaker.startdato, deltaker.sluttdato)
+
+        assertSoftly(deltakelserResponse.aktive.first()) {
+            deltakerId shouldBe deltaker.id
+            deltakerlisteId shouldBe deltaker.deltakerliste.id
+            tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos Arrangør"
+            tiltakstype shouldBe DeltakelserResponse.Tiltakstype(
+                deltaker.deltakerliste.tiltakstype.navn,
+                deltaker.deltakerliste.tiltakstype.tiltakskode,
+            )
+            status.type shouldBe DeltakerStatus.Type.DELTAR
+            status.visningstekst shouldBe "Deltar"
+            status.aarsak shouldBe null
+            innsoktDato shouldBe LocalDate.now().minusDays(4)
+            sistEndretDato shouldBe null
+            periode shouldBe Periode(deltaker.startdato, deltaker.sluttdato)
+        }
     }
 
     @Test
@@ -250,20 +259,22 @@ class DeltakelserResponseMapperTest {
 
         deltakelserResponse.aktive.size shouldBe 0
         deltakelserResponse.historikk.size shouldBe 1
-        val deltakerKort = deltakelserResponse.historikk.first()
-        deltakerKort.deltakerId shouldBe deltaker.id
-        deltakerKort.deltakerlisteId shouldBe deltaker.deltakerliste.id
-        deltakerKort.tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos Arrangør"
-        deltakerKort.tiltakstype shouldBe DeltakelserResponse.Tiltakstype(
-            deltaker.deltakerliste.tiltakstype.navn,
-            deltaker.deltakerliste.tiltakstype.tiltakskode,
-        )
-        deltakerKort.status.type shouldBe DeltakerStatus.Type.IKKE_AKTUELL
-        deltakerKort.status.visningstekst shouldBe "Ikke aktuell"
-        deltakerKort.status.aarsak shouldBe "flyttet til Spania"
-        deltakerKort.innsoktDato shouldBe LocalDate.now().minusDays(4)
-        deltakerKort.sistEndretDato shouldBe null
-        deltakerKort.periode shouldBe null
+
+        assertSoftly(deltakelserResponse.historikk.first()) {
+            deltakerId shouldBe deltaker.id
+            deltakerlisteId shouldBe deltaker.deltakerliste.id
+            tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos Arrangør"
+            tiltakstype shouldBe DeltakelserResponse.Tiltakstype(
+                deltaker.deltakerliste.tiltakstype.navn,
+                deltaker.deltakerliste.tiltakstype.tiltakskode,
+            )
+            status.type shouldBe DeltakerStatus.Type.IKKE_AKTUELL
+            status.visningstekst shouldBe "Ikke aktuell"
+            status.aarsak shouldBe "flyttet til Spania"
+            innsoktDato shouldBe LocalDate.now().minusDays(4)
+            sistEndretDato shouldBe null
+            periode shouldBe null
+        }
     }
 
     @Test
@@ -299,20 +310,22 @@ class DeltakelserResponseMapperTest {
 
         deltakelserResponse.aktive.size shouldBe 0
         deltakelserResponse.historikk.size shouldBe 1
-        val deltakerKort = deltakelserResponse.historikk.first()
-        deltakerKort.deltakerId shouldBe deltaker.id
-        deltakerKort.deltakerlisteId shouldBe deltaker.deltakerliste.id
-        deltakerKort.tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos Arrangør"
-        deltakerKort.tiltakstype shouldBe DeltakelserResponse.Tiltakstype(
-            deltaker.deltakerliste.tiltakstype.navn,
-            deltaker.deltakerliste.tiltakstype.tiltakskode,
-        )
-        deltakerKort.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
-        deltakerKort.status.visningstekst shouldBe "Har sluttet"
-        deltakerKort.status.aarsak shouldBe "Trenger annen støtte"
-        deltakerKort.innsoktDato shouldBe LocalDate.now().minusDays(4)
-        deltakerKort.sistEndretDato shouldBe null
-        deltakerKort.periode shouldBe Periode(deltaker.startdato, deltaker.sluttdato)
+
+        assertSoftly(deltakelserResponse.historikk.first()) {
+            deltakerId shouldBe deltaker.id
+            deltakerlisteId shouldBe deltaker.deltakerliste.id
+            tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos Arrangør"
+            tiltakstype shouldBe DeltakelserResponse.Tiltakstype(
+                deltaker.deltakerliste.tiltakstype.navn,
+                deltaker.deltakerliste.tiltakstype.tiltakskode,
+            )
+            status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+            status.visningstekst shouldBe "Har sluttet"
+            status.aarsak shouldBe "Trenger annen støtte"
+            innsoktDato shouldBe LocalDate.now().minusDays(4)
+            sistEndretDato shouldBe null
+            periode shouldBe Periode(deltaker.startdato, deltaker.sluttdato)
+        }
     }
 
     @Test
@@ -348,20 +361,22 @@ class DeltakelserResponseMapperTest {
 
         deltakelserResponse.aktive.size shouldBe 0
         deltakelserResponse.historikk.size shouldBe 1
-        val deltakerKort = deltakelserResponse.historikk.first()
-        deltakerKort.deltakerId shouldBe deltaker.id
-        deltakerKort.deltakerlisteId shouldBe deltaker.deltakerliste.id
-        deltakerKort.tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos Arrangør"
-        deltakerKort.tiltakstype shouldBe DeltakelserResponse.Tiltakstype(
-            deltaker.deltakerliste.tiltakstype.navn,
-            deltaker.deltakerliste.tiltakstype.tiltakskode,
-        )
-        deltakerKort.status.type shouldBe DeltakerStatus.Type.AVBRUTT_UTKAST
-        deltakerKort.status.visningstekst shouldBe "Avbrutt utkast"
-        deltakerKort.status.aarsak shouldBe null
-        deltakerKort.innsoktDato shouldBe null
-        deltakerKort.sistEndretDato shouldBe deltaker.sistEndret.toLocalDate()
-        deltakerKort.periode shouldBe null
+
+        assertSoftly(deltakelserResponse.historikk.first()) {
+            deltakerId shouldBe deltaker.id
+            deltakerlisteId shouldBe deltaker.deltakerliste.id
+            tittel shouldBe "${deltaker.deltakerliste.tiltakstype.navn} hos Arrangør"
+            tiltakstype shouldBe DeltakelserResponse.Tiltakstype(
+                deltaker.deltakerliste.tiltakstype.navn,
+                deltaker.deltakerliste.tiltakstype.tiltakskode,
+            )
+            status.type shouldBe DeltakerStatus.Type.AVBRUTT_UTKAST
+            status.visningstekst shouldBe "Avbrutt utkast"
+            status.aarsak shouldBe null
+            innsoktDato shouldBe null
+            sistEndretDato shouldBe deltaker.sistEndret.toLocalDate()
+            periode shouldBe null
+        }
     }
 
     @Test
@@ -419,10 +434,12 @@ class DeltakelserResponseMapperTest {
 
         val deltakelserResponse = deltakelserResponseMapper.toDeltakelserResponse(listOf(deltakerHarSluttet, deltakerIkkeAktuell))
 
-        deltakelserResponse.aktive.size shouldBe 0
-        deltakelserResponse.historikk.size shouldBe 2
-        deltakelserResponse.historikk[0].deltakerId shouldBe deltakerIkkeAktuell.id
-        deltakelserResponse.historikk[1].deltakerId shouldBe deltakerHarSluttet.id
+        assertSoftly(deltakelserResponse) {
+            aktive.size shouldBe 0
+            historikk.size shouldBe 2
+            historikk[0].deltakerId shouldBe deltakerIkkeAktuell.id
+            historikk[1].deltakerId shouldBe deltakerHarSluttet.id
+        }
     }
 
     @Test
@@ -437,8 +454,9 @@ class DeltakelserResponseMapperTest {
         TestRepository.insert(deltaker)
 
         val deltakelserResponse = deltakelserResponseMapper.toDeltakelserResponse(listOf(deltaker))
-
-        deltakelserResponse.historikk.size shouldBe 0
-        deltakelserResponse.aktive.size shouldBe 0
+        assertSoftly(deltakelserResponse) {
+            historikk.size shouldBe 0
+            aktive.size shouldBe 0
+        }
     }
 }

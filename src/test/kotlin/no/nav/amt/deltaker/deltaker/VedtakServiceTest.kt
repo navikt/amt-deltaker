@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.deltaker
 
+import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -35,9 +36,11 @@ class VedtakServiceTest {
 
         runBlocking {
             val fattetVedtak = vedtakService.innbyggerFattVedtak(deltaker).getVedtakOrThrow()
-            fattetVedtak.id shouldBe vedtak.id
-            fattetVedtak.fattet shouldNotBe null
-            fattetVedtak.fattetAvNav shouldBe false
+            assertSoftly(fattetVedtak) {
+                id shouldBe vedtak.id
+                fattet shouldNotBe null
+                fattetAvNav shouldBe false
+            }
         }
     }
 
@@ -65,12 +68,14 @@ class VedtakServiceTest {
                     endretAvEnhet = endretAvEnhet,
                 ).getVedtakOrThrow()
 
-            vedtak.deltakerVedVedtak shouldBe deltaker.toDeltakerVedVedtak()
-            vedtak.opprettetAv shouldBe endretAvAnsatt.id
-            vedtak.opprettetAvEnhet shouldBe endretAvEnhet.id
-            vedtak.fattet shouldBe null
-            vedtak.fattetAvNav shouldBe false
-            vedtak.deltakerId shouldBe deltaker.id
+            assertSoftly(vedtak) {
+                deltakerVedVedtak shouldBe deltaker.toDeltakerVedVedtak()
+                opprettetAv shouldBe endretAvAnsatt.id
+                opprettetAvEnhet shouldBe endretAvEnhet.id
+                fattet shouldBe null
+                fattetAvNav shouldBe false
+                deltakerId shouldBe deltaker.id
+            }
         }
     }
 
@@ -92,12 +97,14 @@ class VedtakServiceTest {
                     endretAvEnhet = endretAvEnhet,
                 ).getVedtakOrThrow()
 
-            oppdatertVedtak.deltakerVedVedtak shouldBe oppdatertDeltaker.toDeltakerVedVedtak()
-            oppdatertVedtak.sistEndretAv shouldBe endretAvAnsatt.id
-            oppdatertVedtak.sistEndretAvEnhet shouldBe endretAvEnhet.id
-            oppdatertVedtak.fattet shouldBeCloseTo LocalDateTime.now()
-            oppdatertVedtak.fattetAvNav shouldBe true
-            oppdatertVedtak.deltakerId shouldBe vedtak.deltakerId
+            assertSoftly(oppdatertVedtak) {
+                deltakerVedVedtak shouldBe oppdatertDeltaker.toDeltakerVedVedtak()
+                sistEndretAv shouldBe endretAvAnsatt.id
+                sistEndretAvEnhet shouldBe endretAvEnhet.id
+                fattet shouldBeCloseTo LocalDateTime.now()
+                fattetAvNav shouldBe true
+                deltakerId shouldBe vedtak.deltakerId
+            }
         }
     }
 
@@ -119,10 +126,12 @@ class VedtakServiceTest {
                     endretAvEnhet = endretAvEnhet,
                 ).getVedtakOrThrow()
 
-            oppdatertVedtak.deltakerVedVedtak shouldBe oppdatertDeltaker.toDeltakerVedVedtak()
-            oppdatertVedtak.sistEndretAv shouldBe endretAvAnsatt.id
-            oppdatertVedtak.sistEndretAvEnhet shouldBe endretAvEnhet.id
-            oppdatertVedtak.deltakerId shouldBe vedtak.deltakerId
+            assertSoftly(oppdatertVedtak) {
+                deltakerVedVedtak shouldBe oppdatertDeltaker.toDeltakerVedVedtak()
+                sistEndretAv shouldBe endretAvAnsatt.id
+                sistEndretAvEnhet shouldBe endretAvEnhet.id
+                deltakerId shouldBe vedtak.deltakerId
+            }
         }
     }
 
@@ -139,11 +148,13 @@ class VedtakServiceTest {
         runBlocking {
             val avbruttVedtak = vedtakService.avbrytVedtak(deltaker, avbruttAvAnsatt, avbryttAvEnhet).getVedtakOrThrow()
 
-            avbruttVedtak.id shouldBe vedtak.id
-            avbruttVedtak.gyldigTil shouldBeCloseTo LocalDateTime.now()
-            avbruttVedtak.fattet shouldBe null
-            avbruttVedtak.sistEndretAv shouldBe avbruttAvAnsatt.id
-            avbruttVedtak.sistEndretAvEnhet shouldBe avbryttAvEnhet.id
+            assertSoftly(avbruttVedtak) {
+                id shouldBe vedtak.id
+                gyldigTil shouldBeCloseTo LocalDateTime.now()
+                fattet shouldBe null
+                sistEndretAv shouldBe avbruttAvAnsatt.id
+                sistEndretAvEnhet shouldBe avbryttAvEnhet.id
+            }
         }
     }
 

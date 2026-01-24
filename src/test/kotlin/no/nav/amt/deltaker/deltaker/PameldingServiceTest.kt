@@ -251,11 +251,12 @@ class PameldingServiceTest {
                 deltakerFraDb.status.type shouldBe DeltakerStatus.Type.UTKAST_TIL_PAMELDING
                 deltakerFraDb.vedtaksinformasjon shouldNotBe null
 
-                val vedtak = vedtakRepository.getForDeltaker(deltaker.id).first()
-                vedtak.fattet shouldBe null
-                vedtak.fattetAvNav shouldBe false
-                vedtak.sistEndretAv shouldBe sistEndretAv.id
-                vedtak.sistEndretAvEnhet shouldBe sistEndretAvEnhet.id
+                assertSoftly(vedtakRepository.getForDeltaker(deltaker.id).first()) {
+                    fattet shouldBe null
+                    fattetAvNav shouldBe false
+                    it.sistEndretAv shouldBe sistEndretAv.id
+                    it.sistEndretAvEnhet shouldBe sistEndretAvEnhet.id
+                }
 
                 assertProducedHendelse(deltaker.id, HendelseType.OpprettUtkast::class)
             }
@@ -293,11 +294,12 @@ class PameldingServiceTest {
                 deltakerFraDb.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
                 deltakerFraDb.vedtaksinformasjon shouldNotBe null
 
-                val vedtak = vedtakRepository.getForDeltaker(deltaker.id).first()
-                vedtak.fattet shouldNotBe null
-                vedtak.fattetAvNav shouldBe true
-                vedtak.sistEndretAv shouldBe sistEndretAv.id
-                vedtak.sistEndretAvEnhet shouldBe sistEndretAvEnhet.id
+                assertSoftly(vedtakRepository.getForDeltaker(deltaker.id).first()) {
+                    fattet shouldNotBe null
+                    fattetAvNav shouldBe true
+                    it.sistEndretAv shouldBe sistEndretAv.id
+                    it.sistEndretAvEnhet shouldBe sistEndretAvEnhet.id
+                }
 
                 innsokPaaFellesOppstartRepository.getForDeltaker(deltaker.id).isFailure shouldBe true
 
@@ -342,9 +344,11 @@ class PameldingServiceTest {
                 vedtak.fattetAvNav shouldBe false
 
                 val innsok = innsokPaaFellesOppstartRepository.getForDeltaker(deltaker.id).getOrThrow()
-                innsok.utkastGodkjentAvNav shouldBe true
-                innsok.utkastDelt shouldBe null
-                innsok.innsokt shouldBeCloseTo LocalDateTime.now()
+                assertSoftly(innsok) {
+                    utkastGodkjentAvNav shouldBe true
+                    utkastDelt shouldBe null
+                    innsokt shouldBeCloseTo LocalDateTime.now()
+                }
 
                 assertProducedHendelse(deltaker.id, HendelseType.NavGodkjennUtkast::class)
             }
@@ -449,9 +453,11 @@ class PameldingServiceTest {
             oppdatertDeltaker.vedtaksinformasjon!!.fattet shouldBe null
 
             val innsok = innsokPaaFellesOppstartRepository.getForDeltaker(deltaker.id).getOrThrow()
-            innsok.utkastGodkjentAvNav shouldBe false
-            innsok.utkastDelt shouldNotBe null
-            innsok.innsokt shouldBeCloseTo LocalDateTime.now()
+            assertSoftly(innsok) {
+                utkastGodkjentAvNav shouldBe false
+                utkastDelt shouldNotBe null
+                innsokt shouldBeCloseTo LocalDateTime.now()
+            }
         }
 
         @Test

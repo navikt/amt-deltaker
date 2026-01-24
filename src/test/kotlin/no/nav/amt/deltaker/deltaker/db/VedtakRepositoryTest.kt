@@ -82,34 +82,34 @@ class VedtakRepositoryTest {
     }
 }
 
-fun sammenlignVedtak(a: Vedtak, b: Vedtak) {
-    a.id shouldBe b.id
-    a.deltakerId shouldBe b.deltakerId
-    a.fattet shouldBeCloseTo b.fattet
-    a.gyldigTil shouldBeCloseTo b.gyldigTil
-    sammenlignDeltakereVedVedtak(a.deltakerVedVedtak, b.deltakerVedVedtak)
-    a.fattetAvNav shouldBe b.fattetAvNav
-    a.opprettet shouldBeCloseTo b.opprettet
-    a.opprettetAv shouldBe b.opprettetAv
-    a.opprettetAvEnhet shouldBe b.opprettetAvEnhet
-    a.sistEndret shouldBeCloseTo b.sistEndret
-    a.sistEndretAv shouldBe b.sistEndretAv
-    a.sistEndretAvEnhet shouldBe b.sistEndretAvEnhet
+fun sammenlignVedtak(first: Vedtak, second: Vedtak) {
+    first.id shouldBe second.id
+    first.deltakerId shouldBe second.deltakerId
+    first.fattet shouldBeCloseTo second.fattet
+    first.gyldigTil shouldBeCloseTo second.gyldigTil
+    sammenlignDeltakereVedVedtak(first.deltakerVedVedtak, second.deltakerVedVedtak)
+    first.fattetAvNav shouldBe second.fattetAvNav
+    first.opprettet shouldBeCloseTo second.opprettet
+    first.opprettetAv shouldBe second.opprettetAv
+    first.opprettetAvEnhet shouldBe second.opprettetAvEnhet
+    first.sistEndret shouldBeCloseTo second.sistEndret
+    first.sistEndretAv shouldBe second.sistEndretAv
+    first.sistEndretAvEnhet shouldBe second.sistEndretAvEnhet
 }
 
-fun sammenlignDeltakereVedVedtak(a: DeltakerVedVedtak, b: DeltakerVedVedtak) {
-    a.id shouldBe b.id
-    a.startdato shouldBe b.startdato
-    a.sluttdato shouldBe b.sluttdato
-    a.dagerPerUke shouldBe b.dagerPerUke
-    a.deltakelsesprosent shouldBe b.deltakelsesprosent
-    a.bakgrunnsinformasjon shouldBe b.bakgrunnsinformasjon
-    a.deltakelsesinnhold?.ledetekst shouldBe b.deltakelsesinnhold?.ledetekst
-    a.deltakelsesinnhold?.innhold shouldBe b.deltakelsesinnhold?.innhold
-    a.status.id shouldBe b.status.id
-    a.status.type shouldBe b.status.type
-    a.status.aarsak shouldBe b.status.aarsak
-    a.status.gyldigFra shouldBeCloseTo b.status.gyldigFra
-    a.status.gyldigTil shouldBeCloseTo b.status.gyldigTil
-    a.status.opprettet shouldBeCloseTo b.status.opprettet
+fun sammenlignDeltakereVedVedtak(first: DeltakerVedVedtak, second: DeltakerVedVedtak) {
+    first.id shouldBe second.id
+    first.startdato shouldBe second.startdato
+    first.sluttdato shouldBe second.sluttdato
+    first.dagerPerUke shouldBe second.dagerPerUke
+    first.deltakelsesprosent shouldBe second.deltakelsesprosent
+    first.bakgrunnsinformasjon shouldBe second.bakgrunnsinformasjon
+    first.deltakelsesinnhold?.ledetekst shouldBe second.deltakelsesinnhold?.ledetekst
+    first.deltakelsesinnhold?.innhold shouldBe second.deltakelsesinnhold?.innhold
+    first.status.id shouldBe second.status.id
+    first.status.type shouldBe second.status.type
+    first.status.aarsak shouldBe second.status.aarsak
+    first.status.gyldigFra shouldBeCloseTo second.status.gyldigFra
+    first.status.gyldigTil shouldBeCloseTo second.status.gyldigTil
+    first.status.opprettet shouldBeCloseTo second.status.opprettet
 }

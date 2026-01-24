@@ -1,7 +1,6 @@
 package no.nav.amt.deltaker.deltakerliste
 
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import no.nav.amt.deltaker.DatabaseTestExtension
 import no.nav.amt.deltaker.utils.data.TestData.lagArrangor
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
@@ -103,7 +102,6 @@ class DeltakerlisteRepositoryTest {
 
         val deltakerlisteMedArrangor = deltakerlisteRepository.get(deltakerliste.id).getOrThrow()
 
-        deltakerlisteMedArrangor shouldNotBe null
         deltakerlisteMedArrangor.navn shouldBe deltakerliste.navn
         deltakerlisteMedArrangor.arrangor.navn shouldBe arrangor.navn
     }

@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.deltaker
 
+import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
@@ -464,9 +465,11 @@ class DeltakerEndringServiceTest {
         ubehandlete.size shouldBe 0
 
         val deltakelsesmengder = deltakerHistorikkService.getForDeltaker(deltaker.id).toDeltakelsesmengder()
-        deltakelsesmengder.size shouldBe 1
-        deltakelsesmengder.gjeldende shouldBe fremtidigEndring.toDeltakelsesmengde()
-        deltakelsesmengder.nesteGjeldende shouldBe null
+        assertSoftly(deltakelsesmengder) {
+            size shouldBe 1
+            gjeldende shouldBe fremtidigEndring.toDeltakelsesmengde()
+            nesteGjeldende shouldBe null
+        }
     }
 
     private fun upsertEndring(endring: DeltakerEndring): DeltakerEndring {

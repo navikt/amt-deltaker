@@ -63,13 +63,8 @@ class PameldingApiTest : RouteTestBase() {
     fun `post pamelding - har tilgang - returnerer deltaker`() {
         val deltaker = lagDeltaker()
 
-        coEvery {
-            opprettKladdRequestValidator.validateRequest(any())
-        } returns ValidationResult.Valid
-
-        coEvery {
-            pameldingService.opprettDeltaker(any(), any())
-        } returns deltaker
+        coEvery { opprettKladdRequestValidator.validateRequest(any()) } returns ValidationResult.Valid
+        coEvery { pameldingService.opprettDeltaker(any(), any()) } returns deltaker
 
         withTestApplicationContext { client ->
             val response = client.post("/pamelding") {
@@ -83,13 +78,8 @@ class PameldingApiTest : RouteTestBase() {
 
     @Test
     fun `post pamelding - deltakerliste finnes ikke - returnerer 404`() {
-        coEvery {
-            opprettKladdRequestValidator.validateRequest(any())
-        } returns ValidationResult.Valid
-
-        coEvery {
-            pameldingService.opprettDeltaker(any(), any())
-        } throws NoSuchElementException("Fant ikke deltakerliste")
+        coEvery { opprettKladdRequestValidator.validateRequest(any()) } returns ValidationResult.Valid
+        coEvery { pameldingService.opprettDeltaker(any(), any()) } throws NoSuchElementException("Fant ikke deltakerliste")
 
         withTestApplicationContext { client ->
             val response = client.post("/pamelding") {

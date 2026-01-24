@@ -145,13 +145,14 @@ class DeltakerRepositoryTest {
             TestRepository.insert(deltaker)
 
             val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
-
-            deltakerFraDb.startdato shouldBe null
-            deltakerFraDb.sluttdato shouldBe null
-            deltakerFraDb.dagerPerUke shouldBe null
-            deltakerFraDb.deltakelsesprosent shouldBe null
-            deltakerFraDb.bakgrunnsinformasjon shouldBe null
-            deltakerFraDb.deltakelsesinnhold shouldBe null
+            assertSoftly(deltakerFraDb) {
+                startdato shouldBe null
+                sluttdato shouldBe null
+                dagerPerUke shouldBe null
+                deltakelsesprosent shouldBe null
+                bakgrunnsinformasjon shouldBe null
+                deltakelsesinnhold shouldBe null
+            }
         }
     }
 
