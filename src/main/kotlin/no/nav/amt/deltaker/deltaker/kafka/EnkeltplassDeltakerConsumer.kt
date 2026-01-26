@@ -79,13 +79,20 @@ class EnkeltplassDeltakerConsumer(
         log.info("Ingester enkeltplass deltaker med id ${deltakerPayload.id}")
         val deltakerStatus = deltakerRepository.get(deltakerPayload.id).getOrNull()?.status
         val deltaker = deltakerPayload.toDeltaker(
-            deltakerliste,
-            navBrukerService.get(deltakerPayload.personIdent).getOrThrow(),
-            deltakerStatus,
+            deltakerliste = deltakerliste,
+            navBruker = navBrukerService.get(deltakerPayload.personIdent).getOrThrow(),
+            forrigeDeltakerStatus = deltakerStatus,
         )
 
-        upsertImportertDeltaker(deltaker)
-        deltakerProducerService.produce(deltaker)
+        deltakerService
+            .transactionalDeltakerUpsert(
+                deltaker = deltaker,
+                afterDeltakerUpsert = {
+                    importertFraArenaRepository.upsert(deltaker.toImportertData())
+                    deltakerProducerService.produce(deltaker)
+                    deltaker
+                },
+            ).getOrThrow()
 
         log.info("Ingest for arenadeltaker med id ${deltaker.id} er ferdig")
     }
@@ -93,14 +100,6 @@ class EnkeltplassDeltakerConsumer(
     override fun start() = consumer.start()
 
     override suspend fun close() = consumer.close()
-
-    private suspend fun upsertImportertDeltaker(deltaker: Deltaker): Deltaker = deltakerService
-        .transactionalDeltakerUpsert(deltaker = deltaker, afterDeltakerUpsert = {
-            val importertData = deltaker.toImportertData()
-            importertFraArenaRepository.upsert(importertData)
-            deltaker
-        })
-        .getOrThrow()
 
     private fun Deltaker.toImportertData() = ImportertFraArena(
         deltakerId = id,
