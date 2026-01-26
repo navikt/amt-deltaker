@@ -55,9 +55,13 @@ class ArrangorMeldingConsumer(
 
         when (melding) {
             is EndringFraArrangor -> endringFraArrangorService.upsertEndretDeltaker(melding)
-            is Forslag -> forslagService.upsert(melding)
+            is Forslag -> handleForslag(melding)
             is Vurdering -> handleVurdering(melding)
         }
+    }
+
+    private suspend fun handleForslag(forslag: Forslag) = Database.transaction {
+        forslagService.upsertAndProduce(forslag)
     }
 
     private suspend fun handleVurdering(vurdering: Vurdering) {

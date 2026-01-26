@@ -16,8 +16,9 @@ class ForslagService(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun upsert(forslag: Forslag) {
+    fun upsertAndProduce(forslag: Forslag) {
         forslagRepository.upsert(forslag)
+
         when (forslag.status) {
             is Forslag.Status.Godkjent,
             Forslag.Status.VenterPaSvar,
@@ -50,7 +51,7 @@ class ForslagService(
                 godkjent = LocalDateTime.now(),
             ),
         )
-        upsert(godkjentForslag)
+        upsertAndProduce(godkjentForslag)
         arrangorMeldingProducer.produce(godkjentForslag)
 
         log.info("Godkjent forslag for deltaker ${opprinneligForslag.deltakerId}")
