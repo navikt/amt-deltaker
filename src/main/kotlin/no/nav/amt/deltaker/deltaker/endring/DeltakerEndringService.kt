@@ -27,7 +27,7 @@ class DeltakerEndringService(
     private val log = LoggerFactory.getLogger(javaClass)
 
     fun upsertEndring(
-        deltaker: Deltaker,
+        deltakerId: UUID,
         endring: DeltakerEndring.Endring,
         utfall: DeltakerEndringUtfall,
         request: EndringRequest,
@@ -47,7 +47,7 @@ class DeltakerEndringService(
 
         val deltakerEndring = DeltakerEndring(
             id = UUID.randomUUID(),
-            deltakerId = deltaker.id,
+            deltakerId = deltakerId,
             endring = endring,
             endretAv = ansatt.id,
             endretAvEnhet = enhet.id,

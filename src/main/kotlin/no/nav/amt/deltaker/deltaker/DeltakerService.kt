@@ -110,7 +110,12 @@ class DeltakerService(
                     utfall.deltaker,
                     nesteStatus = utfall.nesteStatus,
                     beforeUpsert = { deltaker ->
-                        deltakerEndringService.upsertEndring(deltaker, endring, utfall, request)
+                        deltakerEndringService.upsertEndring(
+                            deltakerId = deltaker.id,
+                            endring = endring,
+                            utfall = utfall,
+                            request = request,
+                        )
                         deltaker
                     },
                 )
@@ -120,7 +125,12 @@ class DeltakerService(
                 upsertAndProduceDeltaker(
                     utfall.deltaker,
                     beforeUpsert = { deltaker ->
-                        deltakerEndringService.upsertEndring(deltaker, endring, utfall, request)
+                        deltakerEndringService.upsertEndring(
+                            deltakerId = deltaker.id,
+                            endring = endring,
+                            utfall = utfall,
+                            request = request,
+                        )
                         deltaker
                     },
                 )

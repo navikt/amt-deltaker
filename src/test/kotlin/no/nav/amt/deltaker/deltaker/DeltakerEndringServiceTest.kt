@@ -127,7 +127,12 @@ class DeltakerEndringServiceTest {
         )
 
         Database.transaction {
-            deltakerEndringService.upsertEndring(deltaker, endringsrequest.toDeltakerEndringEndring(), utfall, request = endringsrequest)
+            deltakerEndringService.upsertEndring(
+                deltakerId = deltaker.id,
+                endring = endringsrequest.toDeltakerEndringEndring(),
+                utfall = utfall,
+                request = endringsrequest,
+            )
         }
 
         val endring = deltakerEndringRepository.getForDeltaker(deltaker.id).first()
@@ -160,7 +165,7 @@ class DeltakerEndringServiceTest {
         Database.transaction {
             resultat = deltakerEndringService
                 .upsertEndring(
-                    deltaker = deltaker,
+                    deltakerId = deltaker.id,
                     endring = endringsrequest.toDeltakerEndringEndring(),
                     utfall = utfall,
                     request = endringsrequest,
@@ -200,7 +205,12 @@ class DeltakerEndringServiceTest {
         val utfall = DeltakerEndringUtfall.VellykketEndring(deltaker)
 
         Database.transaction {
-            deltakerEndringService.upsertEndring(deltaker, endringsrequest.toDeltakerEndringEndring(), utfall, endringsrequest)
+            deltakerEndringService.upsertEndring(
+                deltakerId = deltaker.id,
+                endring = endringsrequest.toDeltakerEndringEndring(),
+                utfall = utfall,
+                request = endringsrequest,
+            )
         }
 
         val endring = deltakerEndringRepository.getForDeltaker(deltaker.id).first()
@@ -247,7 +257,12 @@ class DeltakerEndringServiceTest {
         )
 
         Database.transaction {
-            deltakerEndringService.upsertEndring(deltaker, endringsrequest.toDeltakerEndringEndring(), utfall, endringsrequest)
+            deltakerEndringService.upsertEndring(
+                deltakerId = deltaker.id,
+                endring = endringsrequest.toDeltakerEndringEndring(),
+                utfall = utfall,
+                request = endringsrequest,
+            )
         }
 
         val endring = deltakerEndringRepository.getForDeltaker(deltaker.id).first()
@@ -297,7 +312,12 @@ class DeltakerEndringServiceTest {
         )
 
         Database.transaction {
-            deltakerEndringService.upsertEndring(deltaker, endringsrequest.toDeltakerEndringEndring(), utfall, endringsrequest)
+            deltakerEndringService.upsertEndring(
+                deltakerId = deltaker.id,
+                endring = endringsrequest.toDeltakerEndringEndring(),
+                utfall = utfall,
+                request = endringsrequest,
+            )
         }
 
         val endring = deltakerEndringRepository.getForDeltaker(deltaker.id).first()
