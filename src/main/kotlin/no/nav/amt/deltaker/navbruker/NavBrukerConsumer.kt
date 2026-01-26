@@ -8,6 +8,7 @@ import no.nav.amt.deltaker.utils.buildManagedKafkaConsumer
 import no.nav.amt.lib.kafka.Consumer
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.dto.NavBrukerDto
+import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.objectMapper
 import org.slf4j.LoggerFactory
 import java.util.UUID
@@ -33,13 +34,16 @@ class NavBrukerConsumer(
         val navBrukerDto = objectMapper.readValue<NavBrukerDto>(value)
         if (harEndredePersonopplysninger(lagretNavBruker, navBrukerDto)) {
             navBrukerDto.navEnhet?.let { navEnhetService.hentEllerOpprettNavEnhet(it.enhetId) }
-            repository.upsert(navBrukerDto.toModel())
             val harEndretPersonident = lagretNavBruker?.personident != navBrukerDto.personident
 
-            deltakerService.produserDeltakereForPerson(
-                navBrukerDto.personident,
-                publiserTilDeltakerV1 = harEndretPersonident,
-            )
+            Database.transaction {
+                repository.upsert(navBrukerDto.toModel())
+
+                deltakerService.produserDeltakereForPerson(
+                    navBrukerDto.personident,
+                    publiserTilDeltakerV1 = harEndretPersonident,
+                )
+            }
         }
     }
 

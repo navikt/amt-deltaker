@@ -5,6 +5,7 @@ import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.apiclients.mulighetsrommet.MulighetsrommetApiClient
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerService
+import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.kafka.dto.EnkeltplassDeltakerPayload
 import no.nav.amt.deltaker.deltaker.model.Deltaker
@@ -22,6 +23,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 class EnkeltplassDeltakerConsumer(
+    private val deltakerRepository: DeltakerRepository,
     private val deltakerService: DeltakerService,
     private val deltakerlisteRepository: DeltakerlisteRepository,
     private val navBrukerService: NavBrukerService,
@@ -75,7 +77,7 @@ class EnkeltplassDeltakerConsumer(
         if (deltakerlisteFromDbResult.isFailure) deltakerlisteRepository.upsert(deltakerliste)
 
         log.info("Ingester enkeltplass deltaker med id ${deltakerPayload.id}")
-        val deltakerStatus = deltakerService.get(deltakerPayload.id).getOrNull()?.status
+        val deltakerStatus = deltakerRepository.get(deltakerPayload.id).getOrNull()?.status
         val deltaker = deltakerPayload.toDeltaker(
             deltakerliste,
             navBrukerService.get(deltakerPayload.personIdent).getOrThrow(),
@@ -93,10 +95,12 @@ class EnkeltplassDeltakerConsumer(
     override suspend fun close() = consumer.close()
 
     private suspend fun upsertImportertDeltaker(deltaker: Deltaker): Deltaker = deltakerService
-        .transactionalDeltakerUpsert(deltaker) {
+        .transactionalDeltakerUpsert(deltaker = deltaker, afterDeltakerUpsert = {
             val importertData = deltaker.toImportertData()
             importertFraArenaRepository.upsert(importertData)
-        }.getOrThrow()
+            deltaker
+        })
+        .getOrThrow()
 
     private fun Deltaker.toImportertData() = ImportertFraArena(
         deltakerId = id,

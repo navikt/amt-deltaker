@@ -4,7 +4,9 @@ import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
+import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
+import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
@@ -24,7 +26,9 @@ import java.util.UUID
 
 class HendelseService(
     private val hendelseProducer: HendelseProducer,
+    private val navAnsattRepository: NavAnsattRepository,
     private val navAnsattService: NavAnsattService,
+    private val navEnhetRepository: NavEnhetRepository,
     private val navEnhetService: NavEnhetService,
     private val arrangorService: ArrangorService,
     private val deltakerHistorikkService: DeltakerHistorikkService,
@@ -78,39 +82,44 @@ class HendelseService(
         hendelseProducer.produce(nyHendelseFraNavAnsatt(deltaker, navAnsatt, navEnhet, endring))
     }
 
-    suspend fun hendelseForEndringFraArrangor(endringFraArrangor: EndringFraArrangor, deltaker: Deltaker) {
+    fun hendelseForEndringFraArrangor(endringFraArrangor: EndringFraArrangor, deltaker: Deltaker) {
         val navEnhet = getNavEnhet(deltaker)
-
         val endring = endringFraArrangor.toHendelseEndring()
 
         hendelseProducer.produce(nyHendelseForEndringFraArrangor(deltaker, navEnhet, endring))
     }
 
-    private suspend fun getNavEnhet(deltaker: Deltaker): NavEnhet {
+    private fun getNavEnhet(deltaker: Deltaker): NavEnhet {
         val navEnhetId: UUID? = deltaker.navBruker.navEnhetId
 
-        if (deltaker.vedtaksinformasjon != null) {
-            return navEnhetService.hentEllerOpprettNavEnhet(deltaker.vedtaksinformasjon.sistEndretAvEnhet)
-        } else if (navEnhetId != null) {
-            log.info("Deltaker mangler vedtaksinformasjon, bruker oppfølgingsenhet som avsender")
-            return navEnhetService.hentEllerOpprettNavEnhet(navEnhetId)
-        } else {
-            throw IllegalStateException(
-                "Kan ikke produsere hendelse for endring fra arrangør for deltaker uten vedtak og uten oppfølgingsenhet, id ${deltaker.id}",
-            )
+        return when {
+            deltaker.vedtaksinformasjon != null -> {
+                navEnhetRepository.getOrThrow(deltaker.vedtaksinformasjon.sistEndretAvEnhet)
+            }
+
+            navEnhetId != null -> {
+                log.info("Deltaker mangler vedtaksinformasjon, bruker oppfølgingsenhet som avsender")
+                navEnhetRepository.getOrThrow(navEnhetId)
+            }
+
+            else -> {
+                throw IllegalStateException(
+                    "Kan ikke produsere hendelse for endring fra arrangør for deltaker uten vedtak og uten oppfølgingsenhet, id ${deltaker.id}",
+                )
+            }
         }
     }
 
-    suspend fun hendelseForUtkastGodkjentAvInnbygger(deltaker: Deltaker) {
+    fun hendelseForUtkastGodkjentAvInnbygger(deltaker: Deltaker) {
         val vedtak = deltaker.vedtaksinformasjon ?: throw IllegalStateException(
             "Kan ikke produsere hendelse for utkast godkjent av innbygger for deltaker ${deltaker.id} uten vedtak",
         )
 
-        val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(vedtak.sistEndretAv)
-        val navEnhet = navEnhetService.hentEllerOpprettNavEnhet(vedtak.sistEndretAvEnhet)
+        val navAnsatt = navAnsattRepository.getOrThrow(vedtak.sistEndretAv)
+        val navEnhet = navEnhetRepository.getOrThrow(vedtak.sistEndretAvEnhet)
 
-        produceHendelseForUtkast(deltaker, navAnsatt, navEnhet) {
-            HendelseType.InnbyggerGodkjennUtkast(it)
+        produceHendelseForUtkast(deltaker, navAnsatt, navEnhet) { utkastDto ->
+            HendelseType.InnbyggerGodkjennUtkast(utkastDto)
         }
     }
 
@@ -189,7 +198,10 @@ class HendelseService(
             navn = deltaker.navBruker.fulltNavn,
         )
         val hendelse = nyHendelse(deltaker, ansvarlig, HendelseType.DeltakerSistBesokt(sistBesokt))
-        hendelseProducer.produce(hendelse)
+        hendelseProducer.produce(
+            hendelse = hendelse,
+            suppressOutsideTxWarning = true, // OK at denne kalles utenfor transaksjon
+        )
     }
 
     private fun nyHendelse(

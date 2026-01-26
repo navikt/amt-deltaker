@@ -1,34 +1,24 @@
 package no.nav.amt.deltaker.deltaker.db
 
 import io.kotest.matchers.shouldBe
+import no.nav.amt.deltaker.DatabaseTestExtension
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
-import no.nav.amt.lib.testing.SingletonPostgres16Container
 import no.nav.amt.lib.testing.shouldBeCloseTo
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.RegisterExtension
 import java.time.LocalDate
 
 class DeltakerEndringRepositoryTest {
+    private val deltakerEndringRepository = DeltakerEndringRepository()
+
     companion object {
-        lateinit var repository: DeltakerEndringRepository
-
-        @JvmStatic
-        @BeforeAll
-        fun setup() {
-            @Suppress("UnusedExpression")
-            SingletonPostgres16Container
-            repository = DeltakerEndringRepository()
-        }
-    }
-
-    @BeforeEach
-    fun cleanDatabase() {
-        TestRepository.cleanDatabase()
+        @JvmField
+        @RegisterExtension
+        val dbExtension = DatabaseTestExtension()
     }
 
     @Test
@@ -55,10 +45,10 @@ class DeltakerEndringRepositoryTest {
         )
         TestRepository.insert(deltaker)
 
-        repository.upsert(deltakerEndring)
-        repository.upsert(deltakerEndring2)
+        deltakerEndringRepository.upsert(deltakerEndring)
+        deltakerEndringRepository.upsert(deltakerEndring2)
 
-        val endringFraDb = repository.getForDeltaker(deltaker.id)
+        val endringFraDb = deltakerEndringRepository.getForDeltaker(deltaker.id)
 
         endringFraDb.size shouldBe 2
         sammenlignDeltakerEndring(
@@ -97,10 +87,10 @@ class DeltakerEndringRepositoryTest {
         )
         TestRepository.insert(deltaker)
 
-        repository.upsert(deltakerEndring)
-        repository.upsert(deltakerEndring2)
+        deltakerEndringRepository.upsert(deltakerEndring)
+        deltakerEndringRepository.upsert(deltakerEndring2)
 
-        val endringFraDb = repository.getForDeltaker(deltaker.id)
+        val endringFraDb = deltakerEndringRepository.getForDeltaker(deltaker.id)
 
         endringFraDb.size shouldBe 0
     }
@@ -150,22 +140,22 @@ class DeltakerEndringRepositoryTest {
             ),
         )
 
-        repository.upsert(behandlet)
-        repository.upsert(skalBehandles, null)
-        repository.upsert(skalBehandlesSenere, null)
+        deltakerEndringRepository.upsert(behandlet)
+        deltakerEndringRepository.upsert(skalBehandles, null)
+        deltakerEndringRepository.upsert(skalBehandlesSenere, null)
 
-        val endringer = repository.getUbehandletDeltakelsesmengder()
+        val endringer = deltakerEndringRepository.getUbehandletDeltakelsesmengder()
 
         endringer.size shouldBe 1
         sammenlignDeltakerEndring(endringer.first(), skalBehandles)
     }
 }
 
-fun sammenlignDeltakerEndring(a: DeltakerEndring, b: DeltakerEndring) {
-    a.id shouldBe b.id
-    a.deltakerId shouldBe b.deltakerId
-    a.endring shouldBe b.endring
-    a.endretAv shouldBe b.endretAv
-    a.endretAvEnhet shouldBe b.endretAvEnhet
-    a.endret shouldBeCloseTo b.endret
+fun sammenlignDeltakerEndring(first: DeltakerEndring, second: DeltakerEndring) {
+    first.id shouldBe second.id
+    first.deltakerId shouldBe second.deltakerId
+    first.endring shouldBe second.endring
+    first.endretAv shouldBe second.endretAv
+    first.endretAvEnhet shouldBe second.endretAvEnhet
+    first.endret shouldBeCloseTo second.endret
 }

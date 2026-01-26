@@ -7,6 +7,7 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
+import no.nav.amt.deltaker.DatabaseTestExtension
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerService
@@ -25,31 +26,26 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.kafka.GjennomforingV2KafkaPayload
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
-import no.nav.amt.lib.testing.SingletonPostgres16Container
 import no.nav.amt.lib.utils.objectMapper
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.RegisterExtension
 import java.time.LocalDate
 
 class DeltakerlisteConsumerTest {
-    companion object {
-        private val deltakerlisteRepository = DeltakerlisteRepository()
-        private val tiltakstypeRepository = TiltakstypeRepository()
-        private val deltakerService: DeltakerService = mockk(relaxed = true)
-        private val unleashToggle: UnleashToggle = mockk()
+    private val deltakerlisteRepository = DeltakerlisteRepository()
+    private val tiltakstypeRepository = TiltakstypeRepository()
+    private val deltakerService: DeltakerService = mockk(relaxed = true)
+    private val unleashToggle: UnleashToggle = mockk()
 
-        @JvmStatic
-        @BeforeAll
-        fun setup() {
-            @Suppress("UnusedExpression")
-            SingletonPostgres16Container
-        }
+    companion object {
+        @JvmField
+        @RegisterExtension
+        val dbExtension = DatabaseTestExtension()
     }
 
     @BeforeEach
-    fun cleanDatabase() {
-        TestRepository.cleanDatabase()
+    fun setup() {
         clearAllMocks()
         every { unleashToggle.skipProsesseringAvGjennomforing(any<String>()) } returns false
     }

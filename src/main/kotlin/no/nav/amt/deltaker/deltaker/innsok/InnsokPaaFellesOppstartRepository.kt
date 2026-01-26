@@ -12,7 +12,7 @@ import java.util.UUID
 
 class InnsokPaaFellesOppstartRepository {
     companion object {
-        fun rowmapper(row: Row, alias: String? = null): InnsokPaaFellesOppstart {
+        fun rowMapper(row: Row, alias: String? = null): InnsokPaaFellesOppstart {
             val col = prefixColumn(alias)
             return InnsokPaaFellesOppstart(
                 id = row.uuid(col("id")),
@@ -72,7 +72,7 @@ class InnsokPaaFellesOppstartRepository {
             """.trimIndent()
         val params = mapOf("id" to id)
 
-        it.run(queryOf(sql, params).map(::rowmapper).asSingle)?.let { innsokPaaFellesOppstart ->
+        it.run(queryOf(sql, params).map(::rowMapper).asSingle)?.let { innsokPaaFellesOppstart ->
             Result.success(innsokPaaFellesOppstart)
         } ?: Result.failure(NoSuchElementException("Fant ikke innsok med id $id"))
     }
@@ -84,7 +84,7 @@ class InnsokPaaFellesOppstartRepository {
             """.trimIndent()
         val params = mapOf("deltaker_id" to deltakerId)
 
-        it.run(queryOf(sql, params).map(::rowmapper).asSingle)?.let { innsokPaaFellesOppstart ->
+        it.run(queryOf(sql, params).map(::rowMapper).asSingle)?.let { innsokPaaFellesOppstart ->
             Result.success(innsokPaaFellesOppstart)
         } ?: Result.failure(NoSuchElementException("Fant ikke innsok for deltaker $deltakerId"))
     }

@@ -83,8 +83,11 @@ import no.nav.amt.lib.ktor.auth.AzureAdTokenClient
 import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.ktor.clients.arrangor.AmtArrangorClient
 import no.nav.amt.lib.ktor.routing.isReadyKey
+import no.nav.amt.lib.outbox.OutboxProcessor
+import no.nav.amt.lib.outbox.OutboxService
 import no.nav.amt.lib.utils.applicationConfig
 import no.nav.amt.lib.utils.database.Database
+import no.nav.amt.lib.utils.job.JobManager
 import no.nav.poao_tilgang.client.PoaoTilgangCachedClient
 import no.nav.poao_tilgang.client.PoaoTilgangHttpClient
 import kotlin.time.Duration.Companion.seconds
@@ -163,6 +166,16 @@ fun Application.module() {
         if (Environment.isLocal()) LocalKafkaConfig() else KafkaConfigImpl(),
     )
 
+    // START outbox config
+    val outboxService = OutboxService()
+    val jobManager = JobManager(
+        isLeader = leaderElection::isLeader,
+        applicationIsReady = { attributes.getOrNull(isReadyKey) == true },
+    )
+    val outboxProcessor = OutboxProcessor(outboxService, jobManager, kafkaProducer)
+    outboxProcessor.start()
+    // END outbox config
+
     val arrangorRepository = ArrangorRepository()
     val navAnsattRepository = NavAnsattRepository()
     val navEnhetRepository = NavEnhetRepository()
@@ -210,10 +223,12 @@ fun Application.module() {
         vurderingRepository,
     )
 
-    val hendelseProducer = HendelseProducer(kafkaProducer)
+    val hendelseProducer = HendelseProducer(outboxService)
     val hendelseService = HendelseService(
         hendelseProducer = hendelseProducer,
+        navAnsattRepository = navAnsattRepository,
         navAnsattService = navAnsattService,
+        navEnhetRepository = navEnhetRepository,
         navEnhetService = navEnhetService,
         arrangorService = arrangorService,
         deltakerHistorikkService = deltakerHistorikkService,
@@ -232,28 +247,42 @@ fun Application.module() {
     val unleashToggle = UnleashToggle(unleash)
 
     val deltakerKafkaPayloadBuilder =
-        DeltakerKafkaPayloadBuilder(navAnsattService, navEnhetService, deltakerHistorikkService, vurderingRepository)
-    val deltakerProducer = DeltakerProducer(kafkaProducer)
-    val deltakerV1Producer = DeltakerV1Producer(kafkaProducer)
+        DeltakerKafkaPayloadBuilder(navAnsattRepository, navEnhetRepository, deltakerHistorikkService, vurderingRepository)
+
+    val deltakerProducer = DeltakerProducer(
+        outboxService = outboxService,
+        producer = kafkaProducer,
+    )
+    val deltakerV1Producer = DeltakerV1Producer(
+        outboxService = outboxService,
+        producer = kafkaProducer,
+    )
+
     val deltakerProducerService =
         DeltakerProducerService(deltakerKafkaPayloadBuilder, deltakerProducer, deltakerV1Producer, unleashToggle)
 
     val forslagService =
-        ForslagService(forslagRepository, ArrangorMeldingProducer(kafkaProducer), deltakerRepository, deltakerProducerService)
+        ForslagService(
+            forslagRepository = forslagRepository,
+            arrangorMeldingProducer = ArrangorMeldingProducer(outboxService),
+            deltakerRepository = deltakerRepository,
+            deltakerProducerService = deltakerProducerService,
+        )
 
     val deltakerEndringService =
         DeltakerEndringService(
             deltakerEndringRepository,
-            navAnsattService,
-            navEnhetService,
+            navAnsattRepository,
+            navEnhetRepository,
             hendelseService,
             forslagService,
             deltakerHistorikkService,
         )
+
     val deltakelserResponseMapper = DeltakelserResponseMapper(deltakerHistorikkService, arrangorService)
 
-    val endringFraArrangorService = EndringFraArrangorService(endringFraArrangorRepository, hendelseService, deltakerHistorikkService)
     val vedtakService = VedtakService(vedtakRepository)
+
     val deltakerService = DeltakerService(
         deltakerRepository = deltakerRepository,
         deltakerEndringRepository = deltakerEndringRepository,
@@ -263,13 +292,20 @@ fun Application.module() {
         vedtakService = vedtakService,
         hendelseService = hendelseService,
         endringFraArrangorRepository = endringFraArrangorRepository,
-        endringFraArrangorService = endringFraArrangorService,
         importertFraArenaRepository = importertFraArenaRepository,
         deltakerHistorikkService = deltakerHistorikkService,
         endringFraTiltakskoordinatorRepository = endringFraTiltakskoordinatorRepository,
         navAnsattService = navAnsattService,
         navEnhetService = navEnhetService,
         forslagRepository = forslagRepository,
+    )
+
+    val endringFraArrangorService = EndringFraArrangorService(
+        deltakerRepository,
+        deltakerService,
+        endringFraArrangorRepository,
+        hendelseService,
+        deltakerHistorikkService,
     )
 
     val opprettKladdRequestValidator = OpprettKladdRequestValidator(
@@ -304,6 +340,7 @@ fun Application.module() {
             unleashToggle,
         ),
         EnkeltplassDeltakerConsumer(
+            deltakerRepository,
             deltakerService,
             deltakerlisteRepository,
             navBrukerService,
@@ -314,7 +351,14 @@ fun Application.module() {
             tiltakstypeRepository,
             deltakerProducerService,
         ),
-        ArrangorMeldingConsumer(forslagRepository, forslagService, deltakerService, vurderingRepository, deltakerProducerService),
+        ArrangorMeldingConsumer(
+            endringFraArrangorService,
+            forslagRepository,
+            forslagService,
+            deltakerRepository,
+            vurderingRepository,
+            deltakerProducerService,
+        ),
         NavEnhetConsumer(navEnhetRepository),
     )
     consumers.forEach { it.start() }
@@ -353,6 +397,7 @@ fun Application.module() {
         attributes,
         deltakerEndringRepository,
         deltakerEndringService,
+        deltakerRepository,
         deltakerService,
     )
     deltakelsesmengdeUpdateJob.startJob()

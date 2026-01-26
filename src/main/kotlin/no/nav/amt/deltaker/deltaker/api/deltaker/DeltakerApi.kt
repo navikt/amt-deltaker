@@ -11,6 +11,7 @@ import io.ktor.server.routing.post
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.api.DtoMappers.deltakerEndringResponseFromDeltaker
+import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.AvbrytDeltakelseRequest
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.AvsluttDeltakelseRequest
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.BakgrunnsinformasjonRequest
@@ -28,11 +29,15 @@ import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.StartdatoReq
 import java.time.ZonedDateTime
 import java.util.UUID
 
-fun Routing.registerDeltakerApi(deltakerService: DeltakerService, historikkService: DeltakerHistorikkService) {
+fun Routing.registerDeltakerApi(
+    deltakerRepository: DeltakerRepository,
+    deltakerService: DeltakerService,
+    historikkService: DeltakerHistorikkService,
+) {
     authenticate("SYSTEM") {
         get("/deltaker/{deltakerId}") {
             val deltakerId = UUID.fromString(call.parameters["deltakerId"])
-            val deltaker = deltakerService
+            val deltaker = deltakerRepository
                 .get(deltakerId)
                 .onFailure { call.respond(HttpStatusCode.NotFound) }
                 .getOrThrow()

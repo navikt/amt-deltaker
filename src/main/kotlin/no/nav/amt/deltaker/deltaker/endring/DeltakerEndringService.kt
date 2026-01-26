@@ -6,8 +6,8 @@ import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.hendelse.HendelseService
-import no.nav.amt.deltaker.navansatt.NavAnsattService
-import no.nav.amt.deltaker.navenhet.NavEnhetService
+import no.nav.amt.deltaker.navansatt.NavAnsattRepository
+import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengde
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
@@ -18,24 +18,25 @@ import java.util.UUID
 
 class DeltakerEndringService(
     private val deltakerEndringRepository: DeltakerEndringRepository,
-    private val navAnsattService: NavAnsattService,
-    private val navEnhetService: NavEnhetService,
+    private val navAnsattRepository: NavAnsattRepository,
+    private val navEnhetRepository: NavEnhetRepository,
     private val hendelseService: HendelseService,
     private val forslagService: ForslagService,
     private val deltakerHistorikkService: DeltakerHistorikkService,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    suspend fun upsertEndring(
-        deltaker: Deltaker,
+    fun upsertEndring(
+        deltakerId: UUID,
         endring: DeltakerEndring.Endring,
         utfall: DeltakerEndringUtfall,
         request: EndringRequest,
     ): DeltakerEndring? {
         if (utfall.erUgyldig) return null
 
-        val ansatt = navAnsattService.hentEllerOpprettNavAnsatt(request.endretAv)
-        val enhet = navEnhetService.hentEllerOpprettNavEnhet(request.endretAvEnhet)
+        val ansatt = navAnsattRepository.getOrThrow(request.endretAv)
+        val enhet = navEnhetRepository.getOrThrow(request.endretAvEnhet)
+
         val godkjentForslag = request.getForslagId()?.let { forslagId ->
             forslagService.godkjennForslag(
                 forslagId = forslagId,
@@ -46,7 +47,7 @@ class DeltakerEndringService(
 
         val deltakerEndring = DeltakerEndring(
             id = UUID.randomUUID(),
-            deltakerId = deltaker.id,
+            deltakerId = deltakerId,
             endring = endring,
             endretAv = ansatt.id,
             endretAvEnhet = enhet.id,

@@ -33,7 +33,7 @@ val caffeineVersion = "3.2.3"
 val mockkVersion = "1.14.7"
 val nimbusVersion = "10.7"
 val unleashVersion = "11.2.1"
-val amtLibVersion = "1.2026.01.13_11.48-9c5e5df43976"
+val amtLibVersion = "1.2026.01.24_13.41-1e2b7ee8db55"
 
 // fjernes ved neste release av org.apache.kafka:kafka-clients
 configurations.configureEach {
@@ -75,6 +75,7 @@ dependencies {
     implementation("no.nav.amt.lib:kafka:$amtLibVersion")
     implementation("no.nav.amt.lib:utils:$amtLibVersion")
     implementation("no.nav.amt.lib:ktor:$amtLibVersion")
+    implementation("no.nav.amt.lib:outbox:$amtLibVersion")
 
     implementation("no.nav.poao-tilgang:client:$poaoTilgangVersion")
     implementation("com.zaxxer:HikariCP:$hikariVersion")

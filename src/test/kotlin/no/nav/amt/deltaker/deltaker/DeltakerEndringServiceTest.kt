@@ -1,8 +1,11 @@
 package no.nav.amt.deltaker.deltaker
 
+import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
+import no.nav.amt.deltaker.DatabaseTestExtension
+import no.nav.amt.deltaker.TestOutboxEnvironment
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.api.deltaker.toDeltakerEndringEndring
@@ -33,8 +36,6 @@ import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.utils.mockAmtArrangorClient
 import no.nav.amt.deltaker.utils.mockPersonServiceClient
-import no.nav.amt.lib.kafka.Producer
-import no.nav.amt.lib.kafka.config.LocalKafkaConfig
 import no.nav.amt.lib.models.arrangor.melding.EndringAarsak
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
@@ -49,22 +50,21 @@ import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.ForlengDelta
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.IkkeAktuellRequest
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.InnholdRequest
 import no.nav.amt.lib.models.hendelse.HendelseType
-import no.nav.amt.lib.testing.SingletonKafkaProvider
-import no.nav.amt.lib.testing.SingletonPostgres16Container
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.BeforeEach
+import no.nav.amt.lib.utils.database.Database
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.RegisterExtension
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
 class DeltakerEndringServiceTest {
     private val amtPersonClient = mockPersonServiceClient()
-    private val navEnhetService = NavEnhetService(NavEnhetRepository(), amtPersonClient)
+    private val navEnhetRepository = NavEnhetRepository()
+    private val navEnhetService = NavEnhetService(navEnhetRepository, amtPersonClient)
+    private val navAnsattRepository = NavAnsattRepository()
     private val navAnsattService = NavAnsattService(NavAnsattRepository(), amtPersonClient, navEnhetService)
     private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
     private val forslagRepository = ForslagRepository()
-    private val kafkaProducer = Producer<String, String>(LocalKafkaConfig(SingletonKafkaProvider.getHost()))
     private val deltakerEndringRepository = DeltakerEndringRepository()
     private val vurderingRepository = VurderingRepository()
     private val vurderingService = VurderingService(vurderingRepository)
@@ -79,8 +79,10 @@ class DeltakerEndringServiceTest {
         vurderingRepository,
     )
     private val hendelseService = HendelseService(
-        HendelseProducer(kafkaProducer),
+        HendelseProducer(TestOutboxEnvironment.outboxService),
+        navAnsattRepository,
         navAnsattService,
+        navEnhetRepository,
         navEnhetService,
         arrangorService,
         deltakerHistorikkService,
@@ -88,36 +90,28 @@ class DeltakerEndringServiceTest {
     )
     private val forslagService = ForslagService(
         forslagRepository,
-        ArrangorMeldingProducer(kafkaProducer),
+        ArrangorMeldingProducer(TestOutboxEnvironment.outboxService),
         DeltakerRepository(),
         mockk(),
     )
 
     private val deltakerEndringService = DeltakerEndringService(
         deltakerEndringRepository = deltakerEndringRepository,
-        navAnsattService = navAnsattService,
-        navEnhetService = navEnhetService,
+        navAnsattRepository = navAnsattRepository,
+        navEnhetRepository = navEnhetRepository,
         hendelseService = hendelseService,
         forslagService = forslagService,
         deltakerHistorikkService = deltakerHistorikkService,
     )
 
     companion object {
-        @JvmStatic
-        @BeforeAll
-        fun setup() {
-            @Suppress("UnusedExpression")
-            SingletonPostgres16Container
-        }
-    }
-
-    @BeforeEach
-    fun cleanDatabase() {
-        TestRepository.cleanDatabase()
+        @JvmField
+        @RegisterExtension
+        val dbExtension = DatabaseTestExtension()
     }
 
     @Test
-    fun `upsertEndring - endret bakgrunnsinformasjon - upserter endring og returnerer deltaker`(): Unit = runBlocking {
+    fun `upsertEndring - endret bakgrunnsinformasjon - upserter endring og returnerer deltaker`(): Unit = runTest {
         val deltaker = TestData.lagDeltaker()
         val endretAv = TestData.lagNavAnsatt()
         val endretAvEnhet = TestData.lagNavEnhet()
@@ -132,7 +126,14 @@ class DeltakerEndringServiceTest {
             bakgrunnsinformasjon = "Nye opplysninger",
         )
 
-        deltakerEndringService.upsertEndring(deltaker, endringsrequest.toDeltakerEndringEndring(), utfall, request = endringsrequest)
+        Database.transaction {
+            deltakerEndringService.upsertEndring(
+                deltakerId = deltaker.id,
+                endring = endringsrequest.toDeltakerEndringEndring(),
+                utfall = utfall,
+                request = endringsrequest,
+            )
+        }
 
         val endring = deltakerEndringRepository.getForDeltaker(deltaker.id).first()
         endring.endretAv shouldBe endretAv.id
@@ -145,7 +146,7 @@ class DeltakerEndringServiceTest {
     }
 
     @Test
-    fun `upsertEndring - endret innhold - upserter og returnerer endring`(): Unit = runBlocking {
+    fun `upsertEndring - endret innhold - upserter og returnerer endring`(): Unit = runTest {
         val deltaker = TestData.lagDeltaker()
         val endretAv = TestData.lagNavAnsatt()
         val endretAvEnhet = TestData.lagNavEnhet()
@@ -159,15 +160,20 @@ class DeltakerEndringServiceTest {
             deltakelsesinnhold = Deltakelsesinnhold("tekst", listOf(Innhold("Tekst", "kode", true, null))),
         )
 
-        val resultat = deltakerEndringService
-            .upsertEndring(
-                deltaker,
-                endringsrequest.toDeltakerEndringEndring(),
-                utfall,
-                endringsrequest,
-            )!!
-            .endring
-            as DeltakerEndring.Endring.EndreInnhold
+        lateinit var resultat: DeltakerEndring.Endring.EndreInnhold
+
+        Database.transaction {
+            resultat = deltakerEndringService
+                .upsertEndring(
+                    deltakerId = deltaker.id,
+                    endring = endringsrequest.toDeltakerEndringEndring(),
+                    utfall = utfall,
+                    request = endringsrequest,
+                )!!
+                .endring
+                as DeltakerEndring.Endring.EndreInnhold
+        }
+
         resultat.innhold shouldBe endringsrequest.deltakelsesinnhold.innhold
         resultat.ledetekst shouldBe endringsrequest.deltakelsesinnhold.ledetekst
 
@@ -181,7 +187,7 @@ class DeltakerEndringServiceTest {
     }
 
     @Test
-    fun `upsertEndring - forleng deltakelse - upserter endring og returnerer deltaker`(): Unit = runBlocking {
+    fun `upsertEndring - forleng deltakelse - upserter endring og returnerer deltaker`(): Unit = runTest {
         val deltaker = TestData.lagDeltaker()
         val endretAv = TestData.lagNavAnsatt()
         val endretAvEnhet = TestData.lagNavEnhet()
@@ -198,7 +204,14 @@ class DeltakerEndringServiceTest {
         )
         val utfall = DeltakerEndringUtfall.VellykketEndring(deltaker)
 
-        deltakerEndringService.upsertEndring(deltaker, endringsrequest.toDeltakerEndringEndring(), utfall, endringsrequest)
+        Database.transaction {
+            deltakerEndringService.upsertEndring(
+                deltakerId = deltaker.id,
+                endring = endringsrequest.toDeltakerEndringEndring(),
+                utfall = utfall,
+                request = endringsrequest,
+            )
+        }
 
         val endring = deltakerEndringRepository.getForDeltaker(deltaker.id).first()
         endring.endretAv shouldBe endretAv.id
@@ -227,7 +240,7 @@ class DeltakerEndringServiceTest {
     }
 
     @Test
-    fun `upsertEndring - ikke aktuell - upserter endring og returnerer deltaker`(): Unit = runBlocking {
+    fun `upsertEndring - ikke aktuell - upserter endring og returnerer deltaker`(): Unit = runTest {
         val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.VENTER_PA_OPPSTART))
         val endretAv = TestData.lagNavAnsatt()
         val endretAvEnhet = TestData.lagNavEnhet()
@@ -243,7 +256,14 @@ class DeltakerEndringServiceTest {
             forslagId = forslag.id,
         )
 
-        deltakerEndringService.upsertEndring(deltaker, endringsrequest.toDeltakerEndringEndring(), utfall, endringsrequest)
+        Database.transaction {
+            deltakerEndringService.upsertEndring(
+                deltakerId = deltaker.id,
+                endring = endringsrequest.toDeltakerEndringEndring(),
+                utfall = utfall,
+                request = endringsrequest,
+            )
+        }
 
         val endring = deltakerEndringRepository.getForDeltaker(deltaker.id).first()
         endring.endretAv shouldBe endretAv.id
@@ -272,7 +292,7 @@ class DeltakerEndringServiceTest {
     }
 
     @Test
-    fun `upsertEndring - fjern oppstartsdato - upserter endring og returnerer deltaker`(): Unit = runBlocking {
+    fun `upsertEndring - fjern oppstartsdato - upserter endring og returnerer deltaker`(): Unit = runTest {
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
             startdato = LocalDate.now().plusDays(3),
@@ -291,7 +311,14 @@ class DeltakerEndringServiceTest {
             begrunnelse = "begrunnelse",
         )
 
-        deltakerEndringService.upsertEndring(deltaker, endringsrequest.toDeltakerEndringEndring(), utfall, endringsrequest)
+        Database.transaction {
+            deltakerEndringService.upsertEndring(
+                deltakerId = deltaker.id,
+                endring = endringsrequest.toDeltakerEndringEndring(),
+                utfall = utfall,
+                request = endringsrequest,
+            )
+        }
 
         val endring = deltakerEndringRepository.getForDeltaker(deltaker.id).first()
         endring.endretAv shouldBe endretAv.id
@@ -343,7 +370,7 @@ class DeltakerEndringServiceTest {
     }
 
     @Test
-    fun `behandleLagretEndring - ubehandlet ugyldig endring - oppdaterer ikke deltaker og upserter endring med behandlet`() {
+    fun `behandleLagretEndring - ubehandlet ugyldig endring - oppdaterer ikke deltaker og upserter endring med behandlet`() = runTest {
         val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR))
         val endretAv = TestData.lagNavAnsatt()
         val endretAvEnhet = TestData.lagNavEnhet()
@@ -386,7 +413,10 @@ class DeltakerEndringServiceTest {
             ),
         )
 
-        val resultat = deltakerEndringService.behandleLagretDeltakelsesmengde(ugyldigEndring, deltaker)
+        lateinit var resultat: DeltakerEndringUtfall
+        Database.transaction {
+            resultat = deltakerEndringService.behandleLagretDeltakelsesmengde(ugyldigEndring, deltaker)
+        }
 
         resultat.erUgyldig shouldBe true
 
@@ -455,9 +485,11 @@ class DeltakerEndringServiceTest {
         ubehandlete.size shouldBe 0
 
         val deltakelsesmengder = deltakerHistorikkService.getForDeltaker(deltaker.id).toDeltakelsesmengder()
-        deltakelsesmengder.size shouldBe 1
-        deltakelsesmengder.gjeldende shouldBe fremtidigEndring.toDeltakelsesmengde()
-        deltakelsesmengder.nesteGjeldende shouldBe null
+        assertSoftly(deltakelsesmengder) {
+            size shouldBe 1
+            gjeldende shouldBe fremtidigEndring.toDeltakelsesmengde()
+            nesteGjeldende shouldBe null
+        }
     }
 
     private fun upsertEndring(endring: DeltakerEndring): DeltakerEndring {

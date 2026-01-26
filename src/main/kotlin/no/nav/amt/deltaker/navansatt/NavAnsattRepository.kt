@@ -8,15 +8,6 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 class NavAnsattRepository {
-    private fun rowMapper(row: Row) = NavAnsatt(
-        id = row.uuid("id"),
-        navIdent = row.string("nav_ident"),
-        navn = row.string("navn"),
-        epost = row.stringOrNull("epost"),
-        telefon = row.stringOrNull("telefonnummer"),
-        navEnhetId = row.uuidOrNull("nav_enhet_id"),
-    )
-
     fun upsert(navAnsatt: NavAnsatt): NavAnsatt {
         val sql =
             """
@@ -29,61 +20,83 @@ class NavAnsattRepository {
                 epost = :epost,
                 modified_at = :modified_at,
                 nav_enhet_id = :nav_enhet_id
-            returning *
+            RETURNING *
             """.trimIndent()
 
-        return Database.query {
-            val query = queryOf(
-                sql,
-                mapOf(
-                    "id" to navAnsatt.id,
-                    "nav_ident" to navAnsatt.navIdent,
-                    "navn" to navAnsatt.navn,
-                    "telefonnummer" to navAnsatt.telefon,
-                    "epost" to navAnsatt.epost,
-                    "modified_at" to LocalDateTime.now(),
-                    "nav_enhet_id" to navAnsatt.navEnhetId,
-                ),
-            ).map(::rowMapper).asSingle
+        val query = queryOf(
+            sql,
+            mapOf(
+                "id" to navAnsatt.id,
+                "nav_ident" to navAnsatt.navIdent,
+                "navn" to navAnsatt.navn,
+                "telefonnummer" to navAnsatt.telefon,
+                "epost" to navAnsatt.epost,
+                "modified_at" to LocalDateTime.now(),
+                "nav_enhet_id" to navAnsatt.navEnhetId,
+            ),
+        ).map(::rowMapper).asSingle
 
-            it.run(query)
+        return Database.query { session ->
+            session.run(query)
         } ?: throw RuntimeException("Noe gikk galt ved lagring av nav-ansatt")
     }
 
-    fun get(id: UUID): NavAnsatt? = Database.query {
+    fun getOrThrow(id: UUID): NavAnsatt = get(id) ?: throw NoSuchElementException("Fant ikke Nav-ansatt med id $id")
+
+    fun get(id: UUID): NavAnsatt? {
         val query = queryOf(
-            """select * from nav_ansatt where id = :id""",
+            """SELECT * FROM nav_ansatt WHERE id = :id""",
             mapOf("id" to id),
         ).map(::rowMapper).asSingle
 
-        it.run(query)
+        return Database.query { session -> session.run(query) }
     }
 
-    fun get(navIdent: String): NavAnsatt? = Database.query {
+    fun getOrThrow(navIdent: String): NavAnsatt =
+        get(navIdent) ?: throw NoSuchElementException("Fant ikke Nav-ansatt med navIdent $navIdent")
+
+    fun get(navIdent: String): NavAnsatt? {
         val query = queryOf(
             """select * from nav_ansatt where nav_ident = :nav_ident""",
             mapOf("nav_ident" to navIdent),
         ).map(::rowMapper).asSingle
 
-        it.run(query)
+        return Database.query { session -> session.run(query) }
     }
 
-    fun delete(id: UUID) = Database.query {
+    fun delete(id: UUID) {
         val query = queryOf(
             """delete from nav_ansatt where id = :id""",
             mapOf("id" to id),
         )
-        it.update(query)
+
+        Database.query { session -> session.update(query) }
     }
 
-    fun getMany(veilederIdenter: List<String>) = Database.query {
-        val statement = "select * from nav_ansatt where nav_ident in (${veilederIdenter.joinToString { "?" }})"
+    fun getMany(veilederIdenter: List<String>): List<NavAnsatt> {
+        val sql =
+            """
+            SELECT * 
+            FROM nav_ansatt 
+            WHERE nav_ident IN (${veilederIdenter.joinToString { "?" }})
+            """.trimIndent()
 
         val query = queryOf(
-            statement,
+            sql,
             *veilederIdenter.toTypedArray(),
-        )
+        ).map(::rowMapper).asList
 
-        it.run(query.map(::rowMapper).asList)
+        return Database.query { session -> session.run(query) }
+    }
+
+    companion object {
+        private fun rowMapper(row: Row) = NavAnsatt(
+            id = row.uuid("id"),
+            navIdent = row.string("nav_ident"),
+            navn = row.string("navn"),
+            epost = row.stringOrNull("epost"),
+            telefon = row.stringOrNull("telefonnummer"),
+            navEnhetId = row.uuidOrNull("nav_enhet_id"),
+        )
     }
 }

@@ -3,15 +3,6 @@ package no.nav.amt.deltaker.deltaker.extensions
 import no.nav.amt.deltaker.deltaker.model.HAR_IKKE_STARTET_STATUSER
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 
-fun DeltakerStatus.Aarsak.Type.toDeltakerstatusArsak(): DeltakerStatus.Aarsak.Type {
-    // AVLYST_KONTRAKT er erstattet av SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT
-    return if (this == DeltakerStatus.Aarsak.Type.AVLYST_KONTRAKT) {
-        DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT
-    } else {
-        this
-    }
-}
-
 fun DeltakerStatus.harIkkeStartet(): Boolean = type in HAR_IKKE_STARTET_STATUSER
 
 fun DeltakerStatus.Aarsak.getVisningsnavn(): String {

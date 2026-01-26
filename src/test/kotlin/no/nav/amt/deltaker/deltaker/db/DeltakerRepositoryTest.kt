@@ -4,6 +4,7 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import no.nav.amt.deltaker.DatabaseTestExtension
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
@@ -11,19 +12,14 @@ import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
-import no.nav.amt.lib.testing.SingletonPostgres16Container
 import no.nav.amt.lib.testing.shouldBeCloseTo
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.RegisterExtension
 import java.time.LocalDate
 
 class DeltakerRepositoryTest {
-    @BeforeEach
-    fun cleanDatabase() {
-        TestRepository.cleanDatabase()
-    }
+    private val deltakerRepository = DeltakerRepository()
 
     @Nested
     inner class Upsert {
@@ -32,10 +28,10 @@ class DeltakerRepositoryTest {
             val expectedDeltaker = lagDeltaker()
             TestRepository.insertAll(expectedDeltaker.deltakerliste, expectedDeltaker.navBruker)
 
-            repository.upsert(expectedDeltaker)
+            deltakerRepository.upsert(expectedDeltaker)
             DeltakerStatusRepository.lagreStatus(expectedDeltaker.id, expectedDeltaker.status)
 
-            val deltakerFromDb = repository.get(expectedDeltaker.id).getOrThrow()
+            val deltakerFromDb = deltakerRepository.get(expectedDeltaker.id).getOrThrow()
             assertDeltakereAreEqual(deltakerFromDb, expectedDeltaker)
         }
 
@@ -51,9 +47,9 @@ class DeltakerRepositoryTest {
                 deltakelsesprosent = 20F,
             )
 
-            repository.upsert(oppdatertDeltaker)
+            deltakerRepository.upsert(oppdatertDeltaker)
 
-            assertDeltakereAreEqual(repository.get(deltaker.id).getOrThrow(), oppdatertDeltaker)
+            assertDeltakereAreEqual(deltakerRepository.get(deltaker.id).getOrThrow(), oppdatertDeltaker)
         }
     }
 
@@ -73,9 +69,9 @@ class DeltakerRepositoryTest {
                 startdato = LocalDate.now().minusDays(10),
                 sluttdato = LocalDate.now().minusDays(1),
             )
-            repository.upsert(oppdatertDeltaker)
+            deltakerRepository.upsert(oppdatertDeltaker)
 
-            val deltakereSomSkalHaAvsluttendeStatus = repository.skalHaAvsluttendeStatus()
+            val deltakereSomSkalHaAvsluttendeStatus = deltakerRepository.skalHaAvsluttendeStatus()
 
             deltakereSomSkalHaAvsluttendeStatus.size shouldBe 1
             deltakereSomSkalHaAvsluttendeStatus.first().id shouldBe deltaker.id
@@ -90,7 +86,7 @@ class DeltakerRepositoryTest {
             )
             TestRepository.insert(deltaker)
 
-            val deltakereSomSkalHaAvsluttendeStatus = repository.skalHaAvsluttendeStatus()
+            val deltakereSomSkalHaAvsluttendeStatus = deltakerRepository.skalHaAvsluttendeStatus()
 
             deltakereSomSkalHaAvsluttendeStatus.size shouldBe 0
         }
@@ -108,7 +104,7 @@ class DeltakerRepositoryTest {
             )
             TestRepository.insert(deltaker)
 
-            val deltakerePaAvsluttetDeltakerliste = repository.deltarPaAvsluttetDeltakerliste()
+            val deltakerePaAvsluttetDeltakerliste = deltakerRepository.deltarPaAvsluttetDeltakerliste()
 
             deltakerePaAvsluttetDeltakerliste.size shouldBe 1
             deltakerePaAvsluttetDeltakerliste.first().id shouldBe deltaker.id
@@ -124,7 +120,7 @@ class DeltakerRepositoryTest {
             )
             TestRepository.insert(deltaker)
 
-            val deltakerePaAvsluttetDeltakerliste = repository.deltarPaAvsluttetDeltakerliste()
+            val deltakerePaAvsluttetDeltakerliste = deltakerRepository.deltarPaAvsluttetDeltakerliste()
 
             deltakerePaAvsluttetDeltakerliste.size shouldBe 0
         }
@@ -137,7 +133,7 @@ class DeltakerRepositoryTest {
             val deltaker = lagDeltaker()
             TestRepository.insert(deltaker)
 
-            val deltakerFraDb = repository.get(deltaker.id).getOrThrow()
+            val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
 
             deltakerFraDb.shouldNotBeNull()
             deltakerFraDb.id shouldBe deltaker.id
@@ -148,14 +144,15 @@ class DeltakerRepositoryTest {
             val deltaker = lagDeltaker(status = lagDeltakerStatus(type = DeltakerStatus.Type.FEILREGISTRERT))
             TestRepository.insert(deltaker)
 
-            val deltakerFraDb = repository.get(deltaker.id).getOrThrow()
-
-            deltakerFraDb.startdato shouldBe null
-            deltakerFraDb.sluttdato shouldBe null
-            deltakerFraDb.dagerPerUke shouldBe null
-            deltakerFraDb.deltakelsesprosent shouldBe null
-            deltakerFraDb.bakgrunnsinformasjon shouldBe null
-            deltakerFraDb.deltakelsesinnhold shouldBe null
+            val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
+            assertSoftly(deltakerFraDb) {
+                startdato shouldBe null
+                sluttdato shouldBe null
+                dagerPerUke shouldBe null
+                deltakelsesprosent shouldBe null
+                bakgrunnsinformasjon shouldBe null
+                deltakelsesinnhold shouldBe null
+            }
         }
     }
 
@@ -166,22 +163,16 @@ class DeltakerRepositoryTest {
 
         TestRepository.insertAll(deltaker1, deltaker2)
 
-        val deltakere = repository.getMany(listOf(deltaker1.id, deltaker2.id))
+        val deltakere = deltakerRepository.getMany(listOf(deltaker1.id, deltaker2.id))
         deltakere shouldHaveSize 2
         deltakere.contains(deltaker1)
         deltakere.contains(deltaker2)
     }
 
     companion object {
-        private lateinit var repository: DeltakerRepository
-
-        @JvmStatic
-        @BeforeAll
-        fun setup() {
-            @Suppress("UnusedExpression")
-            SingletonPostgres16Container
-            repository = DeltakerRepository()
-        }
+        @JvmField
+        @RegisterExtension
+        val dbExtension = DatabaseTestExtension()
 
         fun assertDeltakereAreEqual(first: Deltaker, second: Deltaker) {
             assertSoftly(first) {

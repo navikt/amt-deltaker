@@ -1,8 +1,11 @@
 package no.nav.amt.deltaker.deltaker.kafka
 
+import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
+import no.nav.amt.deltaker.DatabaseTestExtension
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
+import no.nav.amt.deltaker.deltaker.DeltakerTestUtils.sammenlignHistorikk
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
@@ -10,16 +13,12 @@ import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerKafkaPayloadBuilder
-import no.nav.amt.deltaker.deltaker.sammenlignHistorikk
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
-import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
-import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
-import no.nav.amt.deltaker.utils.mockPersonServiceClient
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
@@ -28,45 +27,29 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatusDto
 import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltaker.Personalia
 import no.nav.amt.lib.models.person.NavBruker
-import no.nav.amt.lib.testing.SingletonPostgres16Container
 import no.nav.amt.lib.testing.shouldBeCloseTo
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.RegisterExtension
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
 class DeltakerResponseMapperServiceTest {
-    companion object {
-        private val navEnhetService = NavEnhetService(NavEnhetRepository(), mockPersonServiceClient())
-        private val navAnsattService = NavAnsattService(NavAnsattRepository(), mockPersonServiceClient(), navEnhetService)
-        private val vurderingRepository = VurderingRepository()
-        private val deltakerHistorikkService = DeltakerHistorikkService(
-            DeltakerEndringRepository(),
-            VedtakRepository(),
-            ForslagRepository(),
-            EndringFraArrangorRepository(),
-            ImportertFraArenaRepository(),
-            InnsokPaaFellesOppstartRepository(),
-            EndringFraTiltakskoordinatorRepository(),
-            vurderingRepository,
-        )
-        private val deltakerKafkaPayloadBuilder =
-            DeltakerKafkaPayloadBuilder(navAnsattService, navEnhetService, deltakerHistorikkService, vurderingRepository)
-
-        @BeforeAll
-        @JvmStatic
-        fun setup() {
-            @Suppress("UnusedExpression")
-            SingletonPostgres16Container
-        }
-    }
-
-    @BeforeEach
-    fun cleanDatabase() {
-        TestRepository.cleanDatabase()
-    }
+    private val navEnhetRepository = NavEnhetRepository()
+    private val navAnsattRepository = NavAnsattRepository()
+    private val vurderingRepository = VurderingRepository()
+    private val deltakerHistorikkService = DeltakerHistorikkService(
+        DeltakerEndringRepository(),
+        VedtakRepository(),
+        ForslagRepository(),
+        EndringFraArrangorRepository(),
+        ImportertFraArenaRepository(),
+        InnsokPaaFellesOppstartRepository(),
+        EndringFraTiltakskoordinatorRepository(),
+        vurderingRepository,
+    )
+    private val deltakerKafkaPayloadBuilder =
+        DeltakerKafkaPayloadBuilder(navAnsattRepository, navEnhetRepository, deltakerHistorikkService, vurderingRepository)
 
     @Test
     fun `tilDeltakerV2Dto - utkast til pamelding - returnerer riktig DeltakerV2Dto`(): Unit = runBlocking {
@@ -96,29 +79,32 @@ class DeltakerResponseMapperServiceTest {
 
         val deltakerV2Dto = deltakerKafkaPayloadBuilder.buildDeltakerV2Record(deltaker)
 
-        deltakerV2Dto.id shouldBe deltaker.id
-        deltakerV2Dto.deltakerliste.id shouldBe deltaker.deltakerliste.id
-        deltakerV2Dto.deltakerliste.tiltak.tiltakskode shouldBe deltaker.deltakerliste.tiltakstype.tiltakskode
         // Her kan vi legge inn flere assertions på deltakerliste
         sammenlignPersonalia(deltakerV2Dto.personalia, navBruker)
         sammenlignStatus(deltakerV2Dto.status, deltaker.status)
-        deltakerV2Dto.dagerPerUke shouldBe deltaker.dagerPerUke
-        deltakerV2Dto.prosentStilling shouldBe deltaker.deltakelsesprosent?.toDouble()
-        deltakerV2Dto.oppstartsdato shouldBe deltaker.startdato
-        deltakerV2Dto.sluttdato shouldBe deltaker.sluttdato
-        deltakerV2Dto.innsoktDato shouldBe vedtak.opprettet.toLocalDate()
-        deltakerV2Dto.forsteVedtakFattet shouldBe null
-        deltakerV2Dto.bestillingTekst shouldBe deltaker.bakgrunnsinformasjon
-        deltakerV2Dto.navKontor shouldBe brukersEnhet.navn
-        deltakerV2Dto.navVeileder shouldBe veileder
-        deltakerV2Dto.deltarPaKurs shouldBe deltaker.deltarPaKurs()
-        deltakerV2Dto.kilde shouldBe Kilde.KOMET
-        deltakerV2Dto.innhold shouldBe Deltakelsesinnhold(deltaker.deltakelsesinnhold!!.ledetekst, deltaker.deltakelsesinnhold.innhold)
-        deltakerV2Dto.historikk?.size shouldBe 1
         sammenlignHistorikk(deltakerV2Dto.historikk?.first()!!, DeltakerHistorikk.Vedtak(vedtak))
-        deltakerV2Dto.sistEndret shouldBeCloseTo deltaker.sistEndret
-        deltakerV2Dto.sistEndretAv shouldBe sistEndretAv.id
-        deltakerV2Dto.sistEndretAvEnhet shouldBe sistEndretAvEnhet.id
+
+        assertSoftly(deltakerV2Dto) {
+            id shouldBe deltaker.id
+            deltakerliste.id shouldBe deltaker.deltakerliste.id
+            deltakerliste.tiltak.tiltakskode shouldBe deltaker.deltakerliste.tiltakstype.tiltakskode
+            dagerPerUke shouldBe deltaker.dagerPerUke
+            prosentStilling shouldBe deltaker.deltakelsesprosent?.toDouble()
+            oppstartsdato shouldBe deltaker.startdato
+            sluttdato shouldBe deltaker.sluttdato
+            innsoktDato shouldBe vedtak.opprettet.toLocalDate()
+            forsteVedtakFattet shouldBe null
+            bestillingTekst shouldBe deltaker.bakgrunnsinformasjon
+            navKontor shouldBe brukersEnhet.navn
+            navVeileder shouldBe veileder
+            deltarPaKurs shouldBe deltaker.deltarPaKurs()
+            kilde shouldBe Kilde.KOMET
+            innhold shouldBe Deltakelsesinnhold(deltaker.deltakelsesinnhold!!.ledetekst, deltaker.deltakelsesinnhold.innhold)
+            historikk?.size shouldBe 1
+            sistEndret shouldBeCloseTo deltaker.sistEndret
+            it.sistEndretAv shouldBe sistEndretAv.id
+            it.sistEndretAvEnhet shouldBe sistEndretAvEnhet.id
+        }
     }
 
     @Test
@@ -181,27 +167,29 @@ class DeltakerResponseMapperServiceTest {
 
         sammenlignPersonalia(deltakerV2Dto.personalia, navBruker)
         sammenlignStatus(deltakerV2Dto.status, deltaker.status)
-
-        deltakerV2Dto.dagerPerUke shouldBe deltaker.dagerPerUke
-        deltakerV2Dto.prosentStilling shouldBe deltaker.deltakelsesprosent?.toDouble()
-        deltakerV2Dto.oppstartsdato shouldBe deltaker.startdato
-        deltakerV2Dto.sluttdato shouldBe deltaker.sluttdato
-        deltakerV2Dto.innsoktDato shouldBe vedtak.opprettet.toLocalDate()
-        deltakerV2Dto.forsteVedtakFattet shouldBe LocalDateTime.now().minusWeeks(1).toLocalDate()
-        deltakerV2Dto.bestillingTekst shouldBe deltaker.bakgrunnsinformasjon
-        deltakerV2Dto.navKontor shouldBe brukersEnhet.navn
-        deltakerV2Dto.navVeileder shouldBe veileder
-        deltakerV2Dto.deltarPaKurs shouldBe deltaker.deltarPaKurs()
-        deltakerV2Dto.kilde shouldBe Kilde.KOMET
-        deltakerV2Dto.innhold shouldBe Deltakelsesinnhold(deltaker.deltakelsesinnhold!!.ledetekst, deltaker.deltakelsesinnhold.innhold)
-        deltakerV2Dto.historikk?.size shouldBe 4
         sammenlignHistorikk(deltakerV2Dto.historikk?.get(0)!!, DeltakerHistorikk.EndringFraArrangor(endringFraArrangor))
         sammenlignHistorikk(deltakerV2Dto.historikk!![1], DeltakerHistorikk.Forslag(forslag))
         sammenlignHistorikk(deltakerV2Dto.historikk!![2], DeltakerHistorikk.Endring(endring))
         sammenlignHistorikk(deltakerV2Dto.historikk!![3], DeltakerHistorikk.Vedtak(vedtak))
-        deltakerV2Dto.sistEndret shouldBeCloseTo deltaker.sistEndret
-        deltakerV2Dto.sistEndretAv shouldBe veileder.id
-        deltakerV2Dto.sistEndretAvEnhet shouldBe brukersEnhet.id
+
+        assertSoftly(deltakerV2Dto) {
+            dagerPerUke shouldBe deltaker.dagerPerUke
+            prosentStilling shouldBe deltaker.deltakelsesprosent?.toDouble()
+            oppstartsdato shouldBe deltaker.startdato
+            sluttdato shouldBe deltaker.sluttdato
+            innsoktDato shouldBe vedtak.opprettet.toLocalDate()
+            forsteVedtakFattet shouldBe LocalDateTime.now().minusWeeks(1).toLocalDate()
+            bestillingTekst shouldBe deltaker.bakgrunnsinformasjon
+            navKontor shouldBe brukersEnhet.navn
+            navVeileder shouldBe veileder
+            deltarPaKurs shouldBe deltaker.deltarPaKurs()
+            kilde shouldBe Kilde.KOMET
+            innhold shouldBe Deltakelsesinnhold(deltaker.deltakelsesinnhold!!.ledetekst, deltaker.deltakelsesinnhold.innhold)
+            historikk?.size shouldBe 4
+            sistEndret shouldBeCloseTo deltaker.sistEndret
+            it.sistEndretAv shouldBe veileder.id
+            it.sistEndretAvEnhet shouldBe brukersEnhet.id
+        }
     }
 
     @Test
@@ -233,28 +221,30 @@ class DeltakerResponseMapperServiceTest {
         TestRepository.insert(importertFraArena)
 
         val deltakerV2Dto = deltakerKafkaPayloadBuilder.buildDeltakerV2Record(deltaker)
-
-        deltakerV2Dto.id shouldBe deltaker.id
-        deltakerV2Dto.deltakerliste.id shouldBe deltaker.deltakerliste.id
+        sammenlignHistorikk(deltakerV2Dto.historikk?.get(0)!!, DeltakerHistorikk.ImportertFraArena(importertFraArena))
         sammenlignPersonalia(deltakerV2Dto.personalia, navBruker)
         sammenlignStatus(deltakerV2Dto.status, deltaker.status)
-        deltakerV2Dto.dagerPerUke shouldBe deltaker.dagerPerUke
-        deltakerV2Dto.prosentStilling shouldBe deltaker.deltakelsesprosent?.toDouble()
-        deltakerV2Dto.oppstartsdato shouldBe deltaker.startdato
-        deltakerV2Dto.sluttdato shouldBe deltaker.sluttdato
-        deltakerV2Dto.innsoktDato shouldBe innsoktDato
-        deltakerV2Dto.forsteVedtakFattet shouldBe innsoktDato
-        deltakerV2Dto.bestillingTekst shouldBe deltaker.bakgrunnsinformasjon
-        deltakerV2Dto.navKontor shouldBe brukersEnhet.navn
-        deltakerV2Dto.navVeileder shouldBe veileder
-        deltakerV2Dto.deltarPaKurs shouldBe deltaker.deltarPaKurs()
-        deltakerV2Dto.kilde shouldBe Kilde.ARENA
-        deltakerV2Dto.innhold shouldBe deltaker.deltakelsesinnhold
-        deltakerV2Dto.historikk?.size shouldBe 1
-        sammenlignHistorikk(deltakerV2Dto.historikk?.get(0)!!, DeltakerHistorikk.ImportertFraArena(importertFraArena))
-        deltakerV2Dto.sistEndret shouldBeCloseTo deltaker.sistEndret
-        deltakerV2Dto.sistEndretAv shouldBe null
-        deltakerV2Dto.sistEndretAvEnhet shouldBe null
+
+        assertSoftly(deltakerV2Dto) {
+            id shouldBe deltaker.id
+            deltakerliste.id shouldBe deltaker.deltakerliste.id
+            dagerPerUke shouldBe deltaker.dagerPerUke
+            prosentStilling shouldBe deltaker.deltakelsesprosent?.toDouble()
+            oppstartsdato shouldBe deltaker.startdato
+            sluttdato shouldBe deltaker.sluttdato
+            it.innsoktDato shouldBe innsoktDato
+            forsteVedtakFattet shouldBe innsoktDato
+            bestillingTekst shouldBe deltaker.bakgrunnsinformasjon
+            navKontor shouldBe brukersEnhet.navn
+            navVeileder shouldBe veileder
+            deltarPaKurs shouldBe deltaker.deltarPaKurs()
+            kilde shouldBe Kilde.ARENA
+            innhold shouldBe deltaker.deltakelsesinnhold
+            historikk?.size shouldBe 1
+            sistEndret shouldBeCloseTo deltaker.sistEndret
+            sistEndretAv shouldBe null
+            sistEndretAvEnhet shouldBe null
+        }
     }
 
     @Test
@@ -295,48 +285,57 @@ class DeltakerResponseMapperServiceTest {
 
         val deltakerV2Dto = deltakerKafkaPayloadBuilder.buildDeltakerV2Record(deltaker)
 
-        deltakerV2Dto.id shouldBe deltaker.id
-        deltakerV2Dto.deltakerliste.id shouldBe deltaker.deltakerliste.id
         sammenlignPersonalia(deltakerV2Dto.personalia, navBruker)
         sammenlignStatus(deltakerV2Dto.status, deltaker.status)
-        deltakerV2Dto.dagerPerUke shouldBe deltaker.dagerPerUke
-        deltakerV2Dto.prosentStilling shouldBe deltaker.deltakelsesprosent?.toDouble()
-        deltakerV2Dto.oppstartsdato shouldBe deltaker.startdato
-        deltakerV2Dto.sluttdato shouldBe deltaker.sluttdato
-        deltakerV2Dto.innsoktDato shouldBe innsoktDato
-        deltakerV2Dto.forsteVedtakFattet shouldBe innsoktDato
-        deltakerV2Dto.bestillingTekst shouldBe deltaker.bakgrunnsinformasjon
-        deltakerV2Dto.navKontor shouldBe brukersEnhet.navn
-        deltakerV2Dto.navVeileder shouldBe veileder
-        deltakerV2Dto.deltarPaKurs shouldBe deltaker.deltarPaKurs()
-        deltakerV2Dto.kilde shouldBe Kilde.ARENA
-        deltakerV2Dto.innhold shouldBe deltaker.deltakelsesinnhold
-        deltakerV2Dto.historikk?.size shouldBe 2
         sammenlignHistorikk(deltakerV2Dto.historikk?.get(0)!!, DeltakerHistorikk.Endring(endring))
-        deltakerV2Dto.sistEndret shouldBeCloseTo deltaker.sistEndret
-        deltakerV2Dto.sistEndretAv shouldBe veileder.id
-        deltakerV2Dto.sistEndretAvEnhet shouldBe brukersEnhet.id
+
+        assertSoftly(deltakerV2Dto) {
+            id shouldBe deltaker.id
+            deltakerliste.id shouldBe deltaker.deltakerliste.id
+            dagerPerUke shouldBe deltaker.dagerPerUke
+            prosentStilling shouldBe deltaker.deltakelsesprosent?.toDouble()
+            oppstartsdato shouldBe deltaker.startdato
+            sluttdato shouldBe deltaker.sluttdato
+            it.innsoktDato shouldBe innsoktDato
+            forsteVedtakFattet shouldBe innsoktDato
+            bestillingTekst shouldBe deltaker.bakgrunnsinformasjon
+            navKontor shouldBe brukersEnhet.navn
+            navVeileder shouldBe veileder
+            deltarPaKurs shouldBe deltaker.deltarPaKurs()
+            kilde shouldBe Kilde.ARENA
+            innhold shouldBe deltaker.deltakelsesinnhold
+            historikk?.size shouldBe 2
+            sistEndret shouldBeCloseTo deltaker.sistEndret
+            sistEndretAv shouldBe veileder.id
+            sistEndretAvEnhet shouldBe brukersEnhet.id
+        }
     }
-}
 
-fun sammenlignPersonalia(personaliaDto: Personalia, navBruker: NavBruker) {
-    personaliaDto.personId shouldBe navBruker.personId
-    personaliaDto.personident shouldBe navBruker.personident
-    personaliaDto.navn.fornavn shouldBe navBruker.fornavn
-    personaliaDto.navn.mellomnavn shouldBe navBruker.mellomnavn
-    personaliaDto.navn.etternavn shouldBe navBruker.etternavn
-    personaliaDto.kontaktinformasjon.telefonnummer shouldBe navBruker.telefon
-    personaliaDto.kontaktinformasjon.epost shouldBe navBruker.epost
-    personaliaDto.skjermet shouldBe navBruker.erSkjermet
-    personaliaDto.adresse shouldBe navBruker.adresse
-    personaliaDto.adressebeskyttelse shouldBe navBruker.adressebeskyttelse
-}
+    companion object {
+        @JvmField
+        @RegisterExtension
+        val dbExtension = DatabaseTestExtension()
 
-fun sammenlignStatus(deltakerStatusDto: DeltakerStatusDto, deltakerStatus: DeltakerStatus) {
-    deltakerStatusDto.id shouldBe deltakerStatus.id
-    deltakerStatusDto.type shouldBe deltakerStatus.type
-    deltakerStatusDto.aarsak shouldBe deltakerStatus.aarsak?.type
-    deltakerStatusDto.aarsaksbeskrivelse shouldBe deltakerStatus.aarsak?.beskrivelse
-    deltakerStatusDto.gyldigFra shouldBeCloseTo deltakerStatus.gyldigFra
-    deltakerStatusDto.opprettetDato shouldBeCloseTo deltakerStatus.opprettet
+        private fun sammenlignPersonalia(personaliaDto: Personalia, navBruker: NavBruker) {
+            personaliaDto.personId shouldBe navBruker.personId
+            personaliaDto.personident shouldBe navBruker.personident
+            personaliaDto.navn.fornavn shouldBe navBruker.fornavn
+            personaliaDto.navn.mellomnavn shouldBe navBruker.mellomnavn
+            personaliaDto.navn.etternavn shouldBe navBruker.etternavn
+            personaliaDto.kontaktinformasjon.telefonnummer shouldBe navBruker.telefon
+            personaliaDto.kontaktinformasjon.epost shouldBe navBruker.epost
+            personaliaDto.skjermet shouldBe navBruker.erSkjermet
+            personaliaDto.adresse shouldBe navBruker.adresse
+            personaliaDto.adressebeskyttelse shouldBe navBruker.adressebeskyttelse
+        }
+
+        private fun sammenlignStatus(deltakerStatusDto: DeltakerStatusDto, deltakerStatus: DeltakerStatus) {
+            deltakerStatusDto.id shouldBe deltakerStatus.id
+            deltakerStatusDto.type shouldBe deltakerStatus.type
+            deltakerStatusDto.aarsak shouldBe deltakerStatus.aarsak?.type
+            deltakerStatusDto.aarsaksbeskrivelse shouldBe deltakerStatus.aarsak?.beskrivelse
+            deltakerStatusDto.gyldigFra shouldBeCloseTo deltakerStatus.gyldigFra
+            deltakerStatusDto.opprettetDato shouldBeCloseTo deltakerStatus.opprettet
+        }
+    }
 }

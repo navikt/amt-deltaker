@@ -1,57 +1,46 @@
 package no.nav.amt.deltaker.arrangor
 
 import io.kotest.matchers.shouldBe
+import no.nav.amt.deltaker.DatabaseTestExtension
 import no.nav.amt.deltaker.utils.data.TestData
-import no.nav.amt.deltaker.utils.data.TestRepository
-import no.nav.amt.lib.testing.SingletonPostgres16Container
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.RegisterExtension
 
 class ArrangorRepositoryTest {
+    private val arrangorRepository = ArrangorRepository()
+
     companion object {
-        lateinit var repository: ArrangorRepository
-
-        @JvmStatic
-        @BeforeAll
-        fun setup() {
-            @Suppress("UnusedExpression")
-            SingletonPostgres16Container
-            repository = ArrangorRepository()
-        }
-    }
-
-    @BeforeEach
-    fun cleanDatabase() {
-        TestRepository.cleanDatabase()
+        @JvmField
+        @RegisterExtension
+        val dbExtension = DatabaseTestExtension()
     }
 
     @Test
     fun `upsert - ny arrangor - inserter`() {
         val arrangor = TestData.lagArrangor()
-        repository.upsert(arrangor)
+        arrangorRepository.upsert(arrangor)
 
-        repository.get(arrangor.id) shouldBe arrangor
+        arrangorRepository.get(arrangor.id) shouldBe arrangor
     }
 
     @Test
     fun `upsert - eksisterende arrangor - oppdaterer`() {
         val arrangor = TestData.lagArrangor()
-        repository.upsert(arrangor)
+        arrangorRepository.upsert(arrangor)
 
         val oppdatertArrangor = arrangor.copy(navn = "Oppdatert Arrangor")
-        repository.upsert(oppdatertArrangor)
+        arrangorRepository.upsert(oppdatertArrangor)
 
-        repository.get(arrangor.id) shouldBe oppdatertArrangor
+        arrangorRepository.get(arrangor.id) shouldBe oppdatertArrangor
     }
 
     @Test
     fun `delete - eksisterende arrangor - sletter`() {
         val arrangor = TestData.lagArrangor()
-        repository.upsert(arrangor)
+        arrangorRepository.upsert(arrangor)
 
-        repository.delete(arrangor.id)
+        arrangorRepository.delete(arrangor.id)
 
-        repository.get(arrangor.id) shouldBe null
+        arrangorRepository.get(arrangor.id) shouldBe null
     }
 }
