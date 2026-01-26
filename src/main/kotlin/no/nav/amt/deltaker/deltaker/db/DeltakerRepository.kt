@@ -106,6 +106,24 @@ class DeltakerRepository {
         return Database.query { session -> session.run(query) }
     }
 
+    fun getFlereForPerson(personIdent: String): List<Deltaker> {
+        val sql = buildDeltakerSql(
+            """
+            WHERE 
+               nb.personident = :personident
+               AND ds.gyldig_til is null
+               AND ds.gyldig_fra < CURRENT_TIMESTAMP
+            """.trimIndent(),
+        )
+
+        val query = queryOf(
+            sql,
+            mapOf("personident" to personIdent),
+        ).map(::deltakerRowMapper).asList
+
+        return Database.query { session -> session.run(query) }
+    }
+
     fun getFlereForPerson(personIdent: String, deltakerlisteId: UUID): List<Deltaker> {
         val sql = buildDeltakerSql(
             """
@@ -163,24 +181,6 @@ class DeltakerRepository {
             sql,
             mapOf("tiltakskode" to tiltakskode.name),
         ).map { it.uuid("d.id") }.asList
-
-        return Database.query { session -> session.run(query) }
-    }
-
-    fun getFlereForPerson(personIdent: String): List<Deltaker> {
-        val sql = buildDeltakerSql(
-            """
-            WHERE 
-               nb.personident = :personident
-               AND ds.gyldig_til is null
-               AND ds.gyldig_fra < CURRENT_TIMESTAMP
-            """.trimIndent(),
-        )
-
-        val query = queryOf(
-            sql,
-            mapOf("personident" to personIdent),
-        ).map(::deltakerRowMapper).asList
 
         return Database.query { session -> session.run(query) }
     }
