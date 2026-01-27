@@ -10,7 +10,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 class VedtakService(
-    private val repository: VedtakRepository,
+    private val vedtakRepository: VedtakRepository,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -34,9 +34,8 @@ class VedtakService(
             sistEndretAvEnhet = avbruttAvNavEnhet.id,
         )
 
-        repository.upsert(avbruttVedtak)
-
-        return Vedtaksutfall.OK(avbruttVedtak)
+        val upsertedVedtak = vedtakRepository.upsert(avbruttVedtak)
+        return Vedtaksutfall.OK(upsertedVedtak)
     }
 
     fun avbrytVedtakVedAvsluttetDeltakerliste(deltaker: Deltaker): Vedtaksutfall {
@@ -52,9 +51,8 @@ class VedtakService(
             gyldigTil = LocalDateTime.now(),
         )
 
-        repository.upsert(avbruttVedtak)
-
-        return Vedtaksutfall.OK(avbruttVedtak)
+        val upsertedVedtak = vedtakRepository.upsert(avbruttVedtak)
+        return Vedtaksutfall.OK(upsertedVedtak)
     }
 
     fun oppdaterEllerOpprettVedtak(
@@ -145,13 +143,12 @@ class VedtakService(
 
         val fattetVedtak = ikkeFattetVedtak.copy(fattet = LocalDateTime.now())
 
-        repository.upsert(fattetVedtak)
-
-        return Vedtaksutfall.OK(fattetVedtak)
+        val upsertedVedtak = vedtakRepository.upsert(fattetVedtak)
+        return Vedtaksutfall.OK(upsertedVedtak)
     }
 
     fun hentIkkeFattetVedtak(deltakerId: UUID): Vedtaksutfall {
-        val vedtak = repository.getForDeltaker(deltakerId)
+        val vedtak = vedtakRepository.getForDeltaker(deltakerId)
 
         if (!vedtak.any { it.gyldigTil == null }) {
             return Vedtaksutfall.ManglerVedtakSomKanEndres
@@ -178,8 +175,7 @@ class VedtakService(
             fattet = if (fattet) LocalDateTime.now() else null,
         )
 
-        repository.upsert(oppdatertVedtak)
-        return oppdatertVedtak
+        return vedtakRepository.upsert(oppdatertVedtak)
     }
 
     private fun opprettEllerOppdaterVedtak(
