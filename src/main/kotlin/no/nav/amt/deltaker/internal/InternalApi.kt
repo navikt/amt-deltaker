@@ -18,7 +18,6 @@ import no.nav.amt.deltaker.deltaker.PameldingService
 import no.nav.amt.deltaker.deltaker.VedtakService
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
-import no.nav.amt.deltaker.deltaker.extensions.getVedtakOrThrow
 import no.nav.amt.deltaker.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
@@ -265,17 +264,27 @@ fun Routing.registerInternalApi(
         }
 
         val deltakerId = call.parameters.getOrFail("deltakerId").let { UUID.fromString(it) }
-        val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
 
-        val vedtak = vedtakService.avbrytVedtakVedAvsluttetDeltakerliste(deltaker).getVedtakOrThrow()
         val status = nyDeltakerStatus(
             DeltakerStatus.Type.AVBRUTT_UTKAST,
-            DeltakerStatus.Aarsak(type = DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT, beskrivelse = null),
+            DeltakerStatus.Aarsak(
+                type = DeltakerStatus.Aarsak.Type.SAMARBEIDET_MED_ARRANGOREN_ER_AVBRUTT,
+                beskrivelse = null,
+            ),
         )
 
-        val oppdatertDeltaker = deltaker.copy(status = status, vedtaksinformasjon = vedtak.tilVedtaksInformasjon())
+        deltakerService.upsertAndProduceDeltaker(
+            deltaker = deltakerRepository.get(deltakerId).getOrThrow(),
+            beforeUpsert = { deltaker ->
+                val vedtak = vedtakService.avbrytVedtakVedAvsluttetDeltakerliste(deltaker)
+                    ?: throw NoSuchElementException("Fant ikke vedtak som kunne avbrytes for deltaker med id $deltakerId")
 
-        deltakerService.upsertAndProduceDeltaker(oppdatertDeltaker)
+                deltaker.copy(
+                    status = status,
+                    vedtaksinformasjon = vedtak.tilVedtaksInformasjon(),
+                )
+            },
+        )
     }
 
     post("/internal/relast/hendelse-fra-tiltakskoordinator") {

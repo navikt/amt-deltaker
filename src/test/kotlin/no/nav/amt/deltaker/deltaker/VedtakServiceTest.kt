@@ -2,13 +2,13 @@ package no.nav.amt.deltaker.deltaker
 
 import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.DatabaseTestExtension
 import no.nav.amt.deltaker.deltaker.DeltakerTestUtils.sammenlignVedtak
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
-import no.nav.amt.deltaker.deltaker.extensions.getVedtakOrThrow
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.models.deltaker.Vedtak
@@ -35,8 +35,9 @@ class VedtakServiceTest {
         insert(vedtak)
 
         runBlocking {
-            val fattetVedtak = vedtakService.innbyggerFattVedtak(deltaker).getVedtakOrThrow()
-            assertSoftly(fattetVedtak) {
+            val fattetVedtak = vedtakService.innbyggerFattVedtak(deltaker)
+
+            assertSoftly(fattetVedtak.shouldNotBeNull()) {
                 id shouldBe vedtak.id
                 fattet shouldNotBe null
                 fattetAvNav shouldBe false
@@ -50,7 +51,7 @@ class VedtakServiceTest {
         val vedtak = TestData.lagVedtak(fattet = LocalDateTime.now(), deltakerVedVedtak = deltaker)
         insert(vedtak)
 
-        vedtakService.innbyggerFattVedtak(deltaker) shouldBe Vedtaksutfall.VedtakAlleredeFattet
+        vedtakService.innbyggerFattVedtak(deltaker) shouldBe null
     }
 
     @Test
@@ -61,14 +62,14 @@ class VedtakServiceTest {
         TestRepository.insertAll(deltaker, endretAvAnsatt, endretAvEnhet)
 
         runBlocking {
-            val vedtak = vedtakService
-                .oppdaterEllerOpprettVedtak(
-                    deltaker = deltaker,
-                    endretAv = endretAvAnsatt,
-                    endretAvEnhet = endretAvEnhet,
-                ).getVedtakOrThrow()
+            val vedtak = vedtakService.oppdaterEllerOpprettVedtak(
+                deltaker = deltaker,
+                endretAv = endretAvAnsatt,
+                endretAvEnhet = endretAvEnhet,
+                skalFattesAvNav = false,
+            )
 
-            assertSoftly(vedtak) {
+            assertSoftly(vedtak.shouldNotBeNull()) {
                 deltakerVedVedtak shouldBe deltaker.toDeltakerVedVedtak()
                 opprettetAv shouldBe endretAvAnsatt.id
                 opprettetAvEnhet shouldBe endretAvEnhet.id
@@ -80,7 +81,7 @@ class VedtakServiceTest {
     }
 
     @Test
-    fun `navFattVedtak - vedtak finnes, fattes av nav - oppdateres`() {
+    fun `navFattVedtak - vedtak finnes, fattes av Nav - oppdateres`() {
         val vedtak = TestData.lagVedtak()
         insert(vedtak)
 
@@ -90,14 +91,13 @@ class VedtakServiceTest {
         TestRepository.insertAll(endretAvAnsatt, endretAvEnhet)
 
         runBlocking {
-            val oppdatertVedtak = vedtakService
-                .navFattVedtak(
-                    deltaker = oppdatertDeltaker,
-                    endretAv = endretAvAnsatt,
-                    endretAvEnhet = endretAvEnhet,
-                ).getVedtakOrThrow()
+            val oppdatertVedtak = vedtakService.navFattVedtak(
+                deltaker = oppdatertDeltaker,
+                endretAv = endretAvAnsatt,
+                endretAvEnhet = endretAvEnhet,
+            )
 
-            assertSoftly(oppdatertVedtak) {
+            assertSoftly(oppdatertVedtak.shouldNotBeNull()) {
                 deltakerVedVedtak shouldBe oppdatertDeltaker.toDeltakerVedVedtak()
                 sistEndretAv shouldBe endretAvAnsatt.id
                 sistEndretAvEnhet shouldBe endretAvEnhet.id
@@ -119,12 +119,12 @@ class VedtakServiceTest {
         TestRepository.insertAll(endretAvAnsatt, endretAvEnhet)
 
         runBlocking {
-            val oppdatertVedtak = vedtakService
-                .oppdaterEllerOpprettVedtak(
-                    deltaker = oppdatertDeltaker,
-                    endretAv = endretAvAnsatt,
-                    endretAvEnhet = endretAvEnhet,
-                ).getVedtakOrThrow()
+            val oppdatertVedtak = vedtakService.oppdaterEllerOpprettVedtak(
+                deltaker = oppdatertDeltaker,
+                endretAv = endretAvAnsatt,
+                endretAvEnhet = endretAvEnhet,
+                skalFattesAvNav = false,
+            )
 
             assertSoftly(oppdatertVedtak) {
                 deltakerVedVedtak shouldBe oppdatertDeltaker.toDeltakerVedVedtak()
@@ -146,9 +146,13 @@ class VedtakServiceTest {
         TestRepository.insertAll(avbruttAvAnsatt, avbryttAvEnhet)
 
         runBlocking {
-            val avbruttVedtak = vedtakService.avbrytVedtak(deltaker, avbruttAvAnsatt, avbryttAvEnhet).getVedtakOrThrow()
+            val avbruttVedtak = vedtakService.avbrytVedtak(
+                deltaker = deltaker,
+                avbruttAv = avbruttAvAnsatt,
+                avbruttAvNavEnhet = avbryttAvEnhet,
+            )
 
-            assertSoftly(avbruttVedtak) {
+            assertSoftly(avbruttVedtak.shouldNotBeNull()) {
                 id shouldBe vedtak.id
                 gyldigTil shouldBeCloseTo LocalDateTime.now()
                 fattet shouldBe null
@@ -167,7 +171,11 @@ class VedtakServiceTest {
         val avbruttAvAnsatt = TestData.lagNavAnsatt()
         val avbryttAvEnhet = TestData.lagNavEnhet()
 
-        vedtakService.avbrytVedtak(deltaker, avbruttAvAnsatt, avbryttAvEnhet) shouldBe Vedtaksutfall.VedtakAlleredeFattet
+        vedtakService.avbrytVedtak(
+            deltaker = deltaker,
+            avbruttAv = avbruttAvAnsatt,
+            avbruttAvNavEnhet = avbryttAvEnhet,
+        ) shouldBe null
     }
 
     @Test
@@ -175,21 +183,33 @@ class VedtakServiceTest {
         with(DeltakerContext()) {
             medVedtak(fattet = false)
             withTiltakstype(Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING)
-            vedtakService.navFattVedtak(deltaker, veileder, navEnhet)::class shouldBe Vedtaksutfall.OK::class
+
+            val fattetVedtak = vedtakService.navFattVedtak(
+                deltaker = deltaker,
+                endretAv = veileder,
+                endretAvEnhet = navEnhet,
+            )
+
+            fattetVedtak.shouldNotBeNull()
 
             val deltakersVedtak = vedtakRepository.getForDeltaker(deltaker.id)
             deltakersVedtak.size shouldBe 1
 
-            deltakersVedtak.first().fattet shouldNotBe null
+            deltakersVedtak.first() shouldBe fattetVedtak
         }
     }
 
+    // TODO: Fix me
     @Test
     fun `navFattVedtak - mangler vedtak - feiler`() {
         with(DeltakerContext()) {
             withTiltakstype(Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING)
             shouldThrow<IllegalStateException> {
-                vedtakService.navFattVedtak(deltaker, veileder, navEnhet)
+                vedtakService.navFattVedtak(
+                    deltaker = deltaker,
+                    endretAv = veileder,
+                    endretAvEnhet = navEnhet,
+                )
             }
         }
     }
@@ -200,7 +220,11 @@ class VedtakServiceTest {
             medVedtak(fattet = true)
             withTiltakstype(Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING)
 
-            vedtakService.navFattVedtak(deltaker, veileder, navEnhet) shouldBe Vedtaksutfall.VedtakAlleredeFattet
+            vedtakService.navFattVedtak(
+                deltaker = deltaker,
+                endretAv = veileder,
+                endretAvEnhet = navEnhet,
+            ) shouldBe null
 
             val deltakersVedtak = vedtakRepository.getForDeltaker(deltaker.id)
             deltakersVedtak.size shouldBe 1

@@ -2,24 +2,27 @@ package no.nav.amt.deltaker.deltaker
 
 import no.nav.amt.deltaker.deltaker.DeltakerUtils.nyDeltakerStatus
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
-import no.nav.amt.deltaker.deltaker.extensions.getVedtakOrThrow
 import no.nav.amt.deltaker.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartService
 import no.nav.amt.deltaker.deltaker.model.Deltaker
+import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navbruker.NavBrukerService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
+import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.AvbrytUtkastRequest
 import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.UtkastRequest
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.hendelse.HendelseType
+import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.utils.database.Database
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 class PameldingService(
     private val deltakerRepository: DeltakerRepository,
@@ -82,9 +85,6 @@ class PameldingService(
         val endretAv = navAnsattService.hentEllerOpprettNavAnsatt(utkast.endretAv)
         val endretAvNavEnhet = navEnhetService.hentEllerOpprettNavEnhet(utkast.endretAvEnhet)
 
-        val skalNavFatteVedtak = utkast.godkjentAvNav &&
-            oppdatertDeltaker.deltakerliste.pameldingstype == GjennomforingPameldingType.DIREKTE_VEDTAK
-
         val oppdatertDeltaker = opprinneligDeltaker.copy(
             deltakelsesinnhold = utkast.deltakelsesinnhold,
             bakgrunnsinformasjon = utkast.bakgrunnsinformasjon,
@@ -93,6 +93,9 @@ class PameldingService(
             status = status,
             sistEndret = LocalDateTime.now(),
         )
+
+        val skalNavFatteVedtak = utkast.godkjentAvNav &&
+            oppdatertDeltaker.deltakerliste.pameldingstype == GjennomforingPameldingType.DIREKTE_VEDTAK
 
         // upsert endret deltaker (deltaker har vedtak) X
         // upsert vedtak(med siste deltaker)
@@ -161,7 +164,9 @@ class PameldingService(
             sistEndret = LocalDateTime.now(),
         )
 
-        vedtakService.innbyggerFattVedtak(oppdatertDeltaker).getVedtakOrThrow()
+        vedtakService.innbyggerFattVedtak(oppdatertDeltaker)
+            ?: throw NoSuchElementException("Fant ingen vedtak som kan fattes for deltaker ${deltaker.id}")
+
         return oppdatertDeltaker
     }
 
@@ -222,6 +227,24 @@ class PameldingService(
         private fun kanUpserteUtkast(opprinneligDeltakerStatus: DeltakerStatus) = opprinneligDeltakerStatus.type in listOf(
             DeltakerStatus.Type.KLADD,
             DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
+        )
+
+        private fun lagDeltaker(navBruker: NavBruker, deltakerListe: Deltakerliste) = Deltaker(
+            id = UUID.randomUUID(),
+            navBruker = navBruker,
+            deltakerliste = deltakerListe,
+            startdato = null,
+            sluttdato = null,
+            dagerPerUke = null,
+            deltakelsesprosent = null,
+            bakgrunnsinformasjon = null,
+            deltakelsesinnhold = Deltakelsesinnhold(deltakerListe.tiltakstype.innhold?.ledetekst, emptyList()),
+            status = nyDeltakerStatus(DeltakerStatus.Type.KLADD),
+            vedtaksinformasjon = null,
+            sistEndret = LocalDateTime.now(),
+            kilde = Kilde.KOMET,
+            erManueltDeltMedArrangor = false,
+            opprettet = LocalDateTime.now(),
         )
 
         internal fun getOppdatertStatus(opprinneligDeltaker: Deltaker, godkjentAvNav: Boolean): DeltakerStatus = if (godkjentAvNav) {

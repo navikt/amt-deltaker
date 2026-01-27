@@ -547,29 +547,11 @@ class PameldingServiceTest {
 
     @Nested
     inner class GetOppdatertStatusTests {
-/*
-        @Test
-        fun someTest_old() {
-            val deltakerliste = lagDeltakerliste(
-                oppstart = Oppstartstype.FELLES,
-            )
-            val deltakerStatusKladd = lagDeltakerStatus(type = DeltakerStatus.Type.KLADD)
-            val deltaker = lagDeltaker(
-                deltakerliste = deltakerliste,
-                status = deltakerStatusKladd,
-            )
+        //         Case 1:
+//            GITT at en gjennomføring har påmeldingstype: trenger godkjenning,
+//            OG en deltakelse går videre fra “Kladd”
+//            SÅ skal neste status blir “Søkt inn”
 
-            val deltakerStatus = getOppdatertStatus(deltaker, true)
-
-            deltakerStatus.type shouldBe DeltakerStatus.Type.SOKT_INN
-        }
-*/
-
-        /* Case 1:
-            GITT at en gjennomføring har påmeldingstype: trenger godkjenning,
-            OG en deltakelse går videre fra “Kladd”
-            SÅ skal neste status blir “Søkt inn”
-         */
         @Test
         fun someTest() {
             val deltakerliste = lagDeltakerliste(
@@ -586,11 +568,11 @@ class PameldingServiceTest {
             deltakerStatus.type shouldBe DeltakerStatus.Type.SOKT_INN
         }
 
-        /* Case 2:
-            GITT en gjennomføring har påmeldingstype: direkte vedtak,
-            OG en deltakelse går videre fra “Kladd”
-            SÅ skal neste status blir “Venter på oppstart”
-         */
+//         Case 2:
+//            GITT en gjennomføring har påmeldingstype: direkte vedtak,
+//            OG en deltakelse går videre fra “Kladd”
+//            SÅ skal neste status blir “Venter på oppstart”
+
         @Test
         fun someTest2() {
             val deltakerliste = lagDeltakerliste(
