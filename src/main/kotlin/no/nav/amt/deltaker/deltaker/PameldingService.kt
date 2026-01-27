@@ -6,26 +6,20 @@ import no.nav.amt.deltaker.deltaker.extensions.getVedtakOrThrow
 import no.nav.amt.deltaker.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartService
 import no.nav.amt.deltaker.deltaker.model.Deltaker
-import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navbruker.NavBrukerService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
-import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
-import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.AvbrytUtkastRequest
 import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.UtkastRequest
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
-import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.hendelse.HendelseType
-import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.utils.database.Database
 import org.slf4j.LoggerFactory
-import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.UUID
+import java.util.*
 
 class PameldingService(
     private val deltakerRepository: DeltakerRepository,
@@ -85,6 +79,12 @@ class PameldingService(
 
         val status = getOppdatertStatus(opprinneligDeltaker, utkast.godkjentAvNav)
 
+        val endretAv = navAnsattService.hentEllerOpprettNavAnsatt(utkast.endretAv)
+        val endretAvNavEnhet = navEnhetService.hentEllerOpprettNavEnhet(utkast.endretAvEnhet)
+
+        val skalNavFatteVedtak = utkast.godkjentAvNav &&
+            oppdatertDeltaker.deltakerliste.pameldingstype == GjennomforingPameldingType.DIREKTE_VEDTAK
+
         val oppdatertDeltaker = opprinneligDeltaker.copy(
             deltakelsesinnhold = utkast.deltakelsesinnhold,
             bakgrunnsinformasjon = utkast.bakgrunnsinformasjon,
@@ -94,31 +94,32 @@ class PameldingService(
             sistEndret = LocalDateTime.now(),
         )
 
-        val endretAv = navAnsattService.hentEllerOpprettNavAnsatt(utkast.endretAv)
-        val endretAvNavEnhet = navEnhetService.hentEllerOpprettNavEnhet(utkast.endretAvEnhet)
-
-        // TODO: benytte påmeldingstype til å avgjøre fattet istedet for erFellesOppstart?
-        val fattet = utkast.godkjentAvNav && !oppdatertDeltaker.deltakerliste.erFellesOppstart
-
-        val vedtak = if (fattet) {
-            vedtakService.navFattEksisterendeEllerOpprettVedtak(oppdatertDeltaker, endretAv, endretAvNavEnhet)
-        } else {
-            vedtakService.oppdaterEllerOpprettVedtak(
-                deltaker = oppdatertDeltaker,
-                endretAv = endretAv,
-                endretAvEnhet = endretAvNavEnhet,
-            )
-        }.getVedtakOrThrow(deltakerId.toString())
-
-        val deltakerMedNyttVedtak = oppdatertDeltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksInformasjon())
-
-        if (utkast.godkjentAvNav && oppdatertDeltaker.deltakerliste.erFellesOppstart) {
-            innsokPaaFellesOppstartService.nyttInnsokUtkastGodkjentAvNav(deltakerMedNyttVedtak, opprinneligDeltaker.status)
-        }
+        // upsert endret deltaker (deltaker har vedtak) X
+        // upsert vedtak(med siste deltaker)
+        // upsert nyttinnsøk
 
         val deltaker = deltakerService.upsertAndProduceDeltaker(
-            deltaker = deltakerMedNyttVedtak,
+            deltaker = oppdatertDeltaker,
+            beforeUpsert = { deltaker ->
+                val vedtak = vedtakService
+                    .upsertOppdatertVedtak(
+                        fattetAvNav = skalNavFatteVedtak,
+                        endretAv = endretAv,
+                        endretAvEnhet = endretAvNavEnhet,
+                        deltaker = deltaker,
+                        fattetDato = if (skalNavFatteVedtak) LocalDateTime.now() else null,
+                    )
+
+                val deltakerMedNyttVedtak = oppdatertDeltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksInformasjon())
+                if (utkast.godkjentAvNav &&
+                    oppdatertDeltaker.deltakerliste.pameldingstype == GjennomforingPameldingType.TRENGER_GODKJENNING
+                ) {
+                    innsokPaaFellesOppstartService.nyttInnsokUtkastGodkjentAvNav(deltakerMedNyttVedtak, opprinneligDeltaker.status)
+                }
+                deltakerMedNyttVedtak
+            },
             afterUpsert = { deltaker ->
+
                 hendelseService.produceHendelseForUtkast(deltaker, endretAv, endretAvNavEnhet) { utkastDto ->
                     when {
                         utkast.godkjentAvNav -> HendelseType.NavGodkjennUtkast(utkastDto)
@@ -203,7 +204,7 @@ class PameldingService(
             beforeUpsert = { deltaker ->
                 val vedtak = vedtakService
                     .avbrytVedtak(deltaker, endretAv, endretAvNavEnhet)
-                    .getVedtakOrThrow("Kunne ikke avbryte vedtak for deltaker $deltakerId")
+                    ?: throw NoSuchElementException("Kunne ikke avbryte vedtak for deltaker $deltakerId fordi det finnes ikke vedtak")
 
                 deltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksInformasjon())
             },
@@ -217,72 +218,30 @@ class PameldingService(
         log.info("Avbrutt utkast for deltaker med id $deltakerId")
     }
 
-    private fun getOppdatertStatus(opprinneligDeltaker: Deltaker, godkjentAvNav: Boolean): DeltakerStatus = if (godkjentAvNav) {
-        when {
-            opprinneligDeltaker.deltakerliste.erFellesOppstart -> {
-                nyDeltakerStatus(DeltakerStatus.Type.SOKT_INN)
-            }
-
-            opprinneligDeltaker.startdato != null && opprinneligDeltaker.startdato.isBefore(LocalDate.now()) -> {
-                log.info(
-                    "getOppdatertStatus, deltaker-id: ${opprinneligDeltaker.id},  opprinneligDeltaker.startdato != null && opprinneligDeltaker.startdato.isBefore",
-                )
-                nyDeltakerStatus(DeltakerStatus.Type.DELTAR)
-            }
-
-            opprinneligDeltaker.deltakerliste.pameldingstype == GjennomforingPameldingType.DIREKTE_VEDTAK -> {
-                    nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART)
-                }
-
-                opprinneligDeltaker.deltakerliste.pameldingstype == GjennomforingPameldingType.TRENGER_GODKJENNING -> {
-                    nyDeltakerStatus(DeltakerStatus.Type.SOKT_INN)
-                }
-
-                // TODO: er det riktig at vi bruker Oppstartstype.FELLES
-                opprinneligDeltaker.deltakerliste.oppstart == Oppstartstype.FELLES -> {
-                    nyDeltakerStatus(DeltakerStatus.Type.SOKT_INN)
-                }
-
-                else -> {
-                    nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART)
-                }
-            }
-        } else {
-            when (opprinneligDeltaker.status.type) {
-                DeltakerStatus.Type.KLADD -> nyDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING)
-
-            DeltakerStatus.Type.UTKAST_TIL_PAMELDING -> opprinneligDeltaker.status
-
-            else -> throw IllegalArgumentException(
-                "Kan ikke upserte utkast for deltaker " +
-                    "med status ${opprinneligDeltaker.status.type}," +
-                    "status må være ${DeltakerStatus.Type.KLADD} eller ${DeltakerStatus.Type.UTKAST_TIL_PAMELDING}.",
-            )
-        }
-    }
-
     companion object {
         private fun kanUpserteUtkast(opprinneligDeltakerStatus: DeltakerStatus) = opprinneligDeltakerStatus.type in listOf(
             DeltakerStatus.Type.KLADD,
             DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
         )
 
-        private fun lagDeltaker(navBruker: NavBruker, deltakerListe: Deltakerliste) = Deltaker(
-            id = UUID.randomUUID(),
-            navBruker = navBruker,
-            deltakerliste = deltakerListe,
-            startdato = null,
-            sluttdato = null,
-            dagerPerUke = null,
-            deltakelsesprosent = null,
-            bakgrunnsinformasjon = null,
-            deltakelsesinnhold = Deltakelsesinnhold(deltakerListe.tiltakstype.innhold?.ledetekst, emptyList()),
-            status = nyDeltakerStatus(DeltakerStatus.Type.KLADD),
-            vedtaksinformasjon = null,
-            sistEndret = LocalDateTime.now(),
-            kilde = Kilde.KOMET,
-            erManueltDeltMedArrangor = false,
-            opprettet = LocalDateTime.now(),
-        )
+        internal fun getOppdatertStatus(opprinneligDeltaker: Deltaker, godkjentAvNav: Boolean): DeltakerStatus = if (godkjentAvNav) {
+            if (opprinneligDeltaker.deltakerliste.pameldingstype == GjennomforingPameldingType.TRENGER_GODKJENNING) {
+                nyDeltakerStatus(DeltakerStatus.Type.SOKT_INN)
+            } else {
+                nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART)
+            }
+        } else {
+            when (opprinneligDeltaker.status.type) {
+                DeltakerStatus.Type.KLADD -> nyDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING)
+
+                DeltakerStatus.Type.UTKAST_TIL_PAMELDING -> opprinneligDeltaker.status
+
+                else -> throw IllegalArgumentException(
+                    "Kan ikke upserte utkast for deltaker " +
+                        "med status ${opprinneligDeltaker.status.type}," +
+                        "status må være ${DeltakerStatus.Type.KLADD} eller ${DeltakerStatus.Type.UTKAST_TIL_PAMELDING}.",
+                )
+            }
+        }
     }
 }
