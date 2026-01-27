@@ -13,6 +13,7 @@ import no.nav.amt.deltaker.apiclients.oppfolgingstilfelle.OppfolgingstilfelleDTO
 import no.nav.amt.deltaker.apiclients.oppfolgingstilfelle.OppfolgingstilfellePersonResponse
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
+import no.nav.amt.deltaker.deltaker.PameldingService.Companion.getOppdatertStatus
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
@@ -63,6 +64,7 @@ import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.AvbrytUtkastRequest
 import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.UtkastRequest
+import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.models.person.NavAnsatt
@@ -540,6 +542,69 @@ class PameldingServiceTest {
             val ikkeOppdatertDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
 
             ikkeOppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.UTKAST_TIL_PAMELDING
+        }
+    }
+
+    @Nested
+    inner class GetOppdatertStatusTests {
+/*
+        @Test
+        fun someTest_old() {
+            val deltakerliste = lagDeltakerliste(
+                oppstart = Oppstartstype.FELLES,
+            )
+            val deltakerStatusKladd = lagDeltakerStatus(type = DeltakerStatus.Type.KLADD)
+            val deltaker = lagDeltaker(
+                deltakerliste = deltakerliste,
+                status = deltakerStatusKladd,
+            )
+
+            val deltakerStatus = getOppdatertStatus(deltaker, true)
+
+            deltakerStatus.type shouldBe DeltakerStatus.Type.SOKT_INN
+        }
+*/
+
+        /* Case 1:
+            GITT at en gjennomføring har påmeldingstype: trenger godkjenning,
+            OG en deltakelse går videre fra “Kladd”
+            SÅ skal neste status blir “Søkt inn”
+         */
+        @Test
+        fun someTest() {
+            val deltakerliste = lagDeltakerliste(
+                pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
+            )
+            val deltakerStatusKladd = lagDeltakerStatus(type = DeltakerStatus.Type.KLADD)
+            val deltaker = lagDeltaker(
+                deltakerliste = deltakerliste,
+                status = deltakerStatusKladd,
+            )
+
+            val deltakerStatus = getOppdatertStatus(deltaker, true)
+
+            deltakerStatus.type shouldBe DeltakerStatus.Type.SOKT_INN
+        }
+
+        /* Case 2:
+            GITT en gjennomføring har påmeldingstype: direkte vedtak,
+            OG en deltakelse går videre fra “Kladd”
+            SÅ skal neste status blir “Venter på oppstart”
+         */
+        @Test
+        fun someTest2() {
+            val deltakerliste = lagDeltakerliste(
+                pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
+            )
+            val deltakerStatusKladd = lagDeltakerStatus(type = DeltakerStatus.Type.KLADD)
+            val deltaker = lagDeltaker(
+                deltakerliste = deltakerliste,
+                status = deltakerStatusKladd,
+            )
+
+            val deltakerStatus = getOppdatertStatus(deltaker, true)
+
+            deltakerStatus.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
         }
     }
 

@@ -17,6 +17,8 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.AvbrytUtkastRequest
 import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.UtkastRequest
+import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
+import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.utils.database.Database
@@ -227,13 +229,26 @@ class PameldingService(
                 nyDeltakerStatus(DeltakerStatus.Type.DELTAR)
             }
 
-            else -> {
-                nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART)
+            opprinneligDeltaker.deltakerliste.pameldingstype == GjennomforingPameldingType.DIREKTE_VEDTAK -> {
+                    nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART)
+                }
+
+                opprinneligDeltaker.deltakerliste.pameldingstype == GjennomforingPameldingType.TRENGER_GODKJENNING -> {
+                    nyDeltakerStatus(DeltakerStatus.Type.SOKT_INN)
+                }
+
+                // TODO: er det riktig at vi bruker Oppstartstype.FELLES
+                opprinneligDeltaker.deltakerliste.oppstart == Oppstartstype.FELLES -> {
+                    nyDeltakerStatus(DeltakerStatus.Type.SOKT_INN)
+                }
+
+                else -> {
+                    nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART)
+                }
             }
-        }
-    } else {
-        when (opprinneligDeltaker.status.type) {
-            DeltakerStatus.Type.KLADD -> nyDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING)
+        } else {
+            when (opprinneligDeltaker.status.type) {
+                DeltakerStatus.Type.KLADD -> nyDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING)
 
             DeltakerStatus.Type.UTKAST_TIL_PAMELDING -> opprinneligDeltaker.status
 
