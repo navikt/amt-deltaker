@@ -97,6 +97,7 @@ class PameldingService(
         val endretAv = navAnsattService.hentEllerOpprettNavAnsatt(utkast.endretAv)
         val endretAvNavEnhet = navEnhetService.hentEllerOpprettNavEnhet(utkast.endretAvEnhet)
 
+        // TODO: benytte påmeldingstype til å avgjøre fattet istedet for erFellesOppstart?
         val fattet = utkast.godkjentAvNav && !oppdatertDeltaker.deltakerliste.erFellesOppstart
 
         val vedtak = if (fattet) {
