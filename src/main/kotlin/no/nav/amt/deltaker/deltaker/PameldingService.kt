@@ -221,6 +221,9 @@ class PameldingService(
             }
 
             opprinneligDeltaker.startdato != null && opprinneligDeltaker.startdato.isBefore(LocalDate.now()) -> {
+                log.info(
+                    "getOppdatertStatus, deltaker-id: ${opprinneligDeltaker.id},  opprinneligDeltaker.startdato != null && opprinneligDeltaker.startdato.isBefore",
+                )
                 nyDeltakerStatus(DeltakerStatus.Type.DELTAR)
             }
 
@@ -229,8 +232,6 @@ class PameldingService(
             }
         }
     } else {
-        log.info("getOppdatertStatus, godkjentAvNav: false, status: ${opprinneligDeltaker.status.type.name}")
-
         when (opprinneligDeltaker.status.type) {
             DeltakerStatus.Type.KLADD -> nyDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING)
 
