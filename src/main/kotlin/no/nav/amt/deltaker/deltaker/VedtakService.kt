@@ -18,8 +18,8 @@ class VedtakService(
         deltaker: Deltaker,
         avbruttAv: NavAnsatt,
         avbruttAvNavEnhet: NavEnhet,
-    ): Vedtak? {
-        val vedtak = hentIkkeFattetVedtak(deltaker.id) ?: return null
+    ): Vedtak {
+        val vedtak = hentIkkeFattetVedtak(deltaker.id)
 
         return vedtakRepository.upsert(
             vedtak.copy(
@@ -31,8 +31,8 @@ class VedtakService(
         )
     }
 
-    fun avbrytVedtakVedAvsluttetDeltakerliste(deltaker: Deltaker): Vedtak? {
-        val vedtak = hentIkkeFattetVedtak(deltaker.id) ?: return null
+    fun avbrytVedtakVedAvsluttetDeltakerliste(deltaker: Deltaker): Vedtak {
+        val vedtak = hentIkkeFattetVedtak(deltaker.id)
         val avbruttVedtak = vedtak.copy(
             gyldigTil = LocalDateTime.now(),
         )
@@ -57,8 +57,8 @@ class VedtakService(
         deltaker: Deltaker,
         endretAv: NavAnsatt,
         endretAvEnhet: NavEnhet,
-    ): Vedtak? {
-        hentIkkeFattetVedtak(deltaker.id) ?: return null
+    ): Vedtak {
+        hentIkkeFattetVedtak(deltaker.id)
 
         log.info("Fatter hovedvedtak for deltaker ${deltaker.id}")
         return upsertOppdatertVedtak(
@@ -74,15 +74,23 @@ class VedtakService(
      Kan bare brukes når deltaker selv godkjenner utkast.
      Hvis Nav fatter vedtaket må `oppdaterEllerOpprettVedtak` brukes.
      */
-    fun innbyggerFattVedtak(deltaker: Deltaker): Vedtak? {
-        val ikkeFattetVedtak = hentIkkeFattetVedtak(deltaker.id) ?: return null
+    fun innbyggerFattVedtak(deltaker: Deltaker): Vedtak {
+        val ikkeFattetVedtak = hentIkkeFattetVedtak(deltaker.id)
         val fattetVedtak = ikkeFattetVedtak.copy(fattet = LocalDateTime.now())
 
         return vedtakRepository.upsert(fattetVedtak)
     }
 
-    private fun hentIkkeFattetVedtak(deltakerId: UUID): Vedtak? =
-        vedtakRepository.getForDeltaker(deltakerId).firstOrNull { it.fattet == null }
+    private fun hentIkkeFattetVedtak(deltakerId: UUID): Vedtak {
+        val vedtaksliste = vedtakRepository.getForDeltaker(deltakerId)
+
+        if (vedtaksliste.none { it.gyldigTil == null }) {
+            throw IllegalArgumentException("Deltaker-id $deltakerId har ikke vedtak som kan endres")
+        }
+
+        return vedtakRepository.getForDeltaker(deltakerId).firstOrNull { it.fattet == null }
+            ?: throw IllegalArgumentException("Deltaker-id $deltakerId har allerede et fattet vedtak")
+    }
 
     // TODO Sjekk at vi ikke genererer ny vedtak fattet dato når noe endrer seg på utkast
     fun upsertOppdatertVedtak(
