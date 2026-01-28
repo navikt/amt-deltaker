@@ -90,7 +90,7 @@ class VedtakService(
     ): Vedtak {
         val eksisterendeVedtak = hentVedtak(deltaker.id)
 
-        val oppdatertVedtak = lagEllerOppdaterVedtak(
+        val oppdatertVedtak = lagOppdatertVedtak(
             original = eksisterendeVedtak,
             godkjentAvNav = fattetAvNav,
             endretAv = endretAv,
@@ -102,7 +102,7 @@ class VedtakService(
         return vedtakRepository.upsert(oppdatertVedtak)
     }
 
-    private fun lagEllerOppdaterVedtak(
+    private fun lagOppdatertVedtak(
         original: Vedtak?,
         godkjentAvNav: Boolean,
         endretAv: NavAnsatt,
