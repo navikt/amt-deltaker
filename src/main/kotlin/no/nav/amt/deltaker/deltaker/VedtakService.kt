@@ -58,7 +58,7 @@ class VedtakService(
         endretAv: NavAnsatt,
         endretAvEnhet: NavEnhet,
     ): Vedtak {
-        hentIkkeFattetVedtak(deltaker.id)
+        hentIkkeFattetVedtak(deltaker.id) ?: throw IllegalStateException("Deltaker ${deltaker.id} mangler et vedtak som kan fattes")
 
         log.info("Fatter hovedvedtak for deltaker ${deltaker.id}")
         return upsertOppdatertVedtak(

@@ -475,7 +475,7 @@ class PameldingServiceTest {
             val enhet = lagNavEnhet(id = vedtak.opprettetAvEnhet)
             TestRepository.insertAll(deltaker, ansatt, enhet, vedtak)
 
-            shouldThrow<IllegalArgumentException> {
+            shouldThrow<NoSuchElementException> {
                 runTest {
                     pameldingService.innbyggerGodkjennUtkast(deltaker.id)
                 }
@@ -537,7 +537,7 @@ class PameldingServiceTest {
             val enhet = lagNavEnhet(id = vedtak.opprettetAvEnhet)
             TestRepository.insertAll(deltaker, ansatt, enhet, vedtak)
 
-            shouldThrow<IllegalArgumentException> {
+            shouldThrow<NoSuchElementException> {
                 pameldingService.innbyggerFattVedtak(deltaker)
             }
 
