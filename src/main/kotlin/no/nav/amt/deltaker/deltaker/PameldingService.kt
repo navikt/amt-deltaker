@@ -214,39 +214,42 @@ class PameldingService(
         log.info("Avbrutt utkast for deltaker med id $deltakerId")
     }
 
+    private fun getOppdatertStatus(opprinneligDeltaker: Deltaker, godkjentAvNav: Boolean): DeltakerStatus = if (godkjentAvNav) {
+        when {
+            opprinneligDeltaker.deltakerliste.erFellesOppstart -> {
+                nyDeltakerStatus(DeltakerStatus.Type.SOKT_INN)
+            }
+
+            opprinneligDeltaker.startdato != null && opprinneligDeltaker.startdato.isBefore(LocalDate.now()) -> {
+                log.info(
+                    "getOppdatertStatus, deltaker-id: ${opprinneligDeltaker.id},  opprinneligDeltaker.startdato != null && opprinneligDeltaker.startdato.isBefore",
+                )
+                nyDeltakerStatus(DeltakerStatus.Type.DELTAR)
+            }
+
+            else -> {
+                nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART)
+            }
+        }
+    } else {
+        when (opprinneligDeltaker.status.type) {
+            DeltakerStatus.Type.KLADD -> nyDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING)
+
+            DeltakerStatus.Type.UTKAST_TIL_PAMELDING -> opprinneligDeltaker.status
+
+            else -> throw IllegalArgumentException(
+                "Kan ikke upserte utkast for deltaker " +
+                    "med status ${opprinneligDeltaker.status.type}," +
+                    "status må være ${DeltakerStatus.Type.KLADD} eller ${DeltakerStatus.Type.UTKAST_TIL_PAMELDING}.",
+            )
+        }
+    }
+
     companion object {
         private fun kanUpserteUtkast(opprinneligDeltakerStatus: DeltakerStatus) = opprinneligDeltakerStatus.type in listOf(
             DeltakerStatus.Type.KLADD,
             DeltakerStatus.Type.UTKAST_TIL_PAMELDING,
         )
-
-        private fun getOppdatertStatus(opprinneligDeltaker: Deltaker, godkjentAvNav: Boolean): DeltakerStatus = if (godkjentAvNav) {
-            when {
-                opprinneligDeltaker.deltakerliste.erFellesOppstart -> {
-                    nyDeltakerStatus(DeltakerStatus.Type.SOKT_INN)
-                }
-
-                opprinneligDeltaker.startdato != null && opprinneligDeltaker.startdato.isBefore(LocalDate.now()) -> {
-                    nyDeltakerStatus(DeltakerStatus.Type.DELTAR)
-                }
-
-                else -> {
-                    nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART)
-                }
-            }
-        } else {
-            when (opprinneligDeltaker.status.type) {
-                DeltakerStatus.Type.KLADD -> nyDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING)
-
-                DeltakerStatus.Type.UTKAST_TIL_PAMELDING -> opprinneligDeltaker.status
-
-                else -> throw IllegalArgumentException(
-                    "Kan ikke upserte utkast for deltaker " +
-                        "med status ${opprinneligDeltaker.status.type}," +
-                        "status må være ${DeltakerStatus.Type.KLADD} eller ${DeltakerStatus.Type.UTKAST_TIL_PAMELDING}.",
-                )
-            }
-        }
 
         private fun lagDeltaker(navBruker: NavBruker, deltakerListe: Deltakerliste) = Deltaker(
             id = UUID.randomUUID(),
