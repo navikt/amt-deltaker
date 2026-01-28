@@ -1,7 +1,6 @@
 package no.nav.amt.deltaker.deltaker
 
 import io.kotest.assertions.assertSoftly
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -201,16 +200,14 @@ class VedtakServiceTest {
 
     // TODO: Fix me
     @Test
-    fun `navFattVedtak - mangler vedtak - feiler`() {
+    fun `navFattVedtak - mangler vedtak - vedtak er null`() {
         with(DeltakerContext()) {
             withTiltakstype(Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING)
-            shouldThrow<IllegalStateException> {
-                vedtakService.navFattVedtak(
-                    deltaker = deltaker,
-                    endretAv = veileder,
-                    endretAvEnhet = navEnhet,
-                )
-            }
+            vedtakService.navFattVedtak(
+                deltaker = deltaker,
+                endretAv = veileder,
+                endretAvEnhet = navEnhet,
+            ) shouldBe null
         }
     }
 

@@ -264,10 +264,58 @@ class PameldingServiceTest {
             }
         }
 
+        // TODO: erstattes med ny test
         @Test
         fun `upsertUtkast - deltaker med lopende oppstart, godkjent av NAV - oppdaterer deltaker og oppretter fattet vedtak`() {
             val deltaker = lagDeltaker(
                 deltakerliste = TestData.lagDeltakerlisteMedLopendeOppstart(),
+                status = lagDeltakerStatus(type = DeltakerStatus.Type.KLADD),
+                vedtaksinformasjon = null,
+                startdato = null,
+                sluttdato = null,
+            )
+            TestRepository.insert(deltaker)
+            val sistEndretAv = lagNavAnsatt()
+            val sistEndretAvEnhet = lagNavEnhet()
+            TestRepository.insert(sistEndretAv)
+            TestRepository.insert(sistEndretAvEnhet)
+
+            val utkastRequest = UtkastRequest(
+                deltakelsesinnhold = Deltakelsesinnhold("test", listOf(Innhold("Tekst", "kode", true, null))),
+                bakgrunnsinformasjon = "Bakgrunn",
+                deltakelsesprosent = 100F,
+                dagerPerUke = null,
+                endretAv = sistEndretAv.navIdent,
+                endretAvEnhet = sistEndretAvEnhet.enhetsnummer,
+                godkjentAvNav = true,
+            )
+
+            runTest {
+                pameldingService.upsertUtkast(deltaker.id, utkastRequest)
+
+                val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
+                deltakerFraDb.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
+                deltakerFraDb.vedtaksinformasjon shouldNotBe null
+
+                assertSoftly(vedtakRepository.getForDeltaker(deltaker.id).first()) {
+                    fattet shouldNotBe null
+                    fattetAvNav shouldBe true
+                    it.sistEndretAv shouldBe sistEndretAv.id
+                    it.sistEndretAvEnhet shouldBe sistEndretAvEnhet.id
+                }
+
+                innsokPaaFellesOppstartRepository.getForDeltaker(deltaker.id).isFailure shouldBe true
+
+                assertProducedHendelse(deltaker.id, HendelseType.NavGodkjennUtkast::class)
+            }
+        }
+
+        @Test
+        fun `upsertUtkast - deltaker med direkte vedtak, godkjent av NAV - oppdaterer deltaker og oppretter fattet vedtak`() {
+            val deltaker = lagDeltaker(
+                deltakerliste = lagDeltakerliste(
+                    pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
+                ),
                 status = lagDeltakerStatus(type = DeltakerStatus.Type.KLADD),
                 vedtaksinformasjon = null,
                 startdato = null,

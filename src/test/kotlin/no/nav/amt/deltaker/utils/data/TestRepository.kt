@@ -220,8 +220,8 @@ object TestRepository {
 
         val sql =
             """
-            INSERT INTO deltakerliste( id, navn, gjennomforingstype, status, arrangor_id, tiltakstype_id, start_dato, slutt_dato, oppstart, apent_for_pamelding, oppmote_sted)
-            VALUES (:id, :navn, :gjennomforingstype, :status, :arrangor_id, :tiltakstype_id, :start_dato, :slutt_dato, :oppstart, :apent_for_pamelding, :oppmote_sted) 
+            INSERT INTO deltakerliste( id, navn, gjennomforingstype, status, arrangor_id, tiltakstype_id, start_dato, slutt_dato, oppstart, apent_for_pamelding, oppmote_sted, pameldingstype)
+            VALUES (:id, :navn, :gjennomforingstype, :status, :arrangor_id, :tiltakstype_id, :start_dato, :slutt_dato, :oppstart, :apent_for_pamelding, :oppmote_sted, :pameldingstype) 
             """.trimIndent()
 
         Database.query { session ->
@@ -240,6 +240,7 @@ object TestRepository {
                         "oppstart" to deltakerliste.oppstart?.name,
                         "apent_for_pamelding" to deltakerliste.apentForPamelding,
                         "oppmote_sted" to deltakerliste.oppmoteSted,
+                        "pameldingstype" to deltakerliste.pameldingstype,
                     ),
                 ),
             )
