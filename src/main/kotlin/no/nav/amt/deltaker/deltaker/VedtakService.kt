@@ -32,7 +32,9 @@ class VedtakService(
     }
 
     fun avbrytVedtakVedAvsluttetDeltakerliste(deltaker: Deltaker): Vedtak {
-        val vedtak = hentVedtak(deltaker.id) ?: throw IllegalStateException("Deltaker ${deltaker.id} har ikke vedtak som kan avbrytes")
+        val vedtak = vedtakRepository.getForDeltaker(deltaker.id)
+            ?: throw IllegalStateException("Deltaker ${deltaker.id} har ikke vedtak som kan avbrytes")
+
         val avbruttVedtak = vedtak.copy(
             gyldigTil = LocalDateTime.now(),
         )
@@ -68,17 +70,16 @@ class VedtakService(
         return vedtakRepository.upsert(fattetVedtak)
     }
 
-    fun hentVedtak(deltakerId: UUID): Vedtak? = vedtakRepository.getForDeltaker(deltakerId).firstOrNull()
-
     private fun hentIkkeFattetVedtak(deltakerId: UUID): Vedtak {
-        val vedtaksliste = vedtakRepository.getForDeltaker(deltakerId)
+        val vedtak = vedtakRepository.getForDeltaker(deltakerId)
 
-        if (vedtaksliste.none { it.gyldigTil == null }) {
-            throw IllegalStateException("Deltaker-id $deltakerId har ikke vedtak som kan endres")
+        when {
+            vedtak == null -> throw IllegalStateException("Deltaker-id $deltakerId har ingen vedtak")
+            vedtak.gyldigTil != null -> throw IllegalStateException("Deltaker-id $deltakerId har et vedtak som er avbrutt")
+            vedtak.fattet != null -> throw IllegalArgumentException("Deltaker-id $deltakerId har allerede et fattet vedtak")
         }
 
-        return vedtakRepository.getForDeltaker(deltakerId).firstOrNull { it.fattet == null }
-            ?: throw IllegalArgumentException("Deltaker-id $deltakerId har allerede et fattet vedtak")
+        return vedtak
     }
 
     fun opprettEllerOppdaterVedtak(
@@ -88,7 +89,7 @@ class VedtakService(
         deltaker: Deltaker,
         fattetDato: LocalDateTime?,
     ): Vedtak {
-        val eksisterendeVedtak = hentVedtak(deltaker.id)
+        val eksisterendeVedtak = vedtakRepository.getForDeltaker(deltaker.id)
 
         val oppdatertVedtak = lagOppdatertVedtak(
             original = eksisterendeVedtak,

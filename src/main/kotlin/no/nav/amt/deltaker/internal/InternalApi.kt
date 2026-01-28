@@ -333,12 +333,20 @@ fun Routing.registerInternalApi(
             scope.launch {
                 request.deltakere.forEach { deltakerId ->
                     val deltaker = deltakerRepository.get(deltakerId).getOrThrow()
-                    val vedtak = vedtakRepository.getForDeltaker(deltakerId).first()
+                    val vedtak = vedtakRepository.getForDeltaker(deltakerId)
 
-                    if (vedtak.fattet == null) {
-                        log.info("ProduserUtkast: Vedtak er ikke fattet for $deltakerId. Avbryter")
-                        return@forEach
+                    when {
+                        vedtak == null -> {
+                            log.info("ProduserUtkast: Vedtak er ikke opprettet for $deltakerId. Avbryter")
+                            return@forEach
+                        }
+
+                        vedtak.fattet == null -> {
+                            log.info("ProduserUtkast: Vedtak er ikke fattet for $deltakerId. Avbryter")
+                            return@forEach
+                        }
                     }
+
                     if (vedtak.fattetAvNav) {
                         val navAnsatt = navAnsattService.hentEllerOpprettNavAnsatt(vedtak.sistEndretAv)
                         val navEnhet = navEnhetService.hentEllerOpprettNavEnhet(vedtak.sistEndretAvEnhet)

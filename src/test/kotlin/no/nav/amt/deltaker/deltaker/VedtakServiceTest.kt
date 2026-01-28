@@ -198,10 +198,8 @@ class VedtakServiceTest {
 
             fattetVedtak.shouldNotBeNull()
 
-            val deltakersVedtak = vedtakRepository.getForDeltaker(deltaker.id)
-            deltakersVedtak.size shouldBe 1
-
-            deltakersVedtak.first() shouldBe fattetVedtak
+            val deltakersVedtak = vedtakRepository.getForDeltaker(deltaker.id).shouldNotBeNull()
+            deltakersVedtak shouldBe fattetVedtak
         }
     }
 
@@ -233,10 +231,8 @@ class VedtakServiceTest {
                 )
             }
 
-            val deltakersVedtak = vedtakRepository.getForDeltaker(deltaker.id)
-            deltakersVedtak.size shouldBe 1
-
-            sammenlignVedtak(deltakersVedtak.first(), vedtak)
+            val deltakersVedtak = vedtakRepository.getForDeltaker(deltaker.id).shouldNotBeNull()
+            sammenlignVedtak(deltakersVedtak, vedtak)
         }
     }
 

@@ -100,14 +100,13 @@ class DeltakerHistorikkServiceTest {
 
         val historikk = deltakerHistorikkService.getForDeltaker(deltaker.id)
 
-        historikk.size shouldBe 7
-        sammenlignHistorikk(historikk[0], DeltakerHistorikk.Vedtak(ikkeFattetVedtak))
-        sammenlignHistorikk(historikk[1], DeltakerHistorikk.VurderingFraArrangor(nyVurdering.toVurderingFraArrangorData()))
-        sammenlignHistorikk(historikk[2], DeltakerHistorikk.Endring(nyEndring))
-        sammenlignHistorikk(historikk[3], DeltakerHistorikk.Forslag(forslag))
-        sammenlignHistorikk(historikk[4], DeltakerHistorikk.EndringFraArrangor(endringFraArrangor))
-        sammenlignHistorikk(historikk[5], DeltakerHistorikk.Endring(gammelEndring))
-        sammenlignHistorikk(historikk[6], DeltakerHistorikk.Vedtak(vedtak))
+        historikk.size shouldBe 6
+        sammenlignHistorikk(historikk[0], DeltakerHistorikk.VurderingFraArrangor(nyVurdering.toVurderingFraArrangorData()))
+        sammenlignHistorikk(historikk[1], DeltakerHistorikk.Endring(nyEndring))
+        sammenlignHistorikk(historikk[2], DeltakerHistorikk.Forslag(forslag))
+        sammenlignHistorikk(historikk[3], DeltakerHistorikk.EndringFraArrangor(endringFraArrangor))
+        sammenlignHistorikk(historikk[4], DeltakerHistorikk.Endring(gammelEndring))
+        sammenlignHistorikk(historikk[5], DeltakerHistorikk.Vedtak(vedtak))
     }
 
     @Test
