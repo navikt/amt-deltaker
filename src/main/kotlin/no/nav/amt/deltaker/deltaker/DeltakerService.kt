@@ -315,7 +315,6 @@ class DeltakerService(
         if (deltaker.status.type == DeltakerStatus.Type.AVBRUTT_UTKAST) {
             Database.transaction {
                 val vedtak = vedtakService.avbrytVedtakVedAvsluttetDeltakerliste(deltaker)
-                    ?: throw NoSuchElementException("Fant ikke vedtak for avbrutt deltaker ${deltaker.id}")
 
                 hendelseService.hendelseFraSystem(deltaker) { HendelseType.AvbrytUtkast(it) }
                 deltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksInformasjon())

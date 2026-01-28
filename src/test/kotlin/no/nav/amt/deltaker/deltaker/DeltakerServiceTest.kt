@@ -1055,7 +1055,7 @@ class DeltakerServiceTest {
 
             ikkeEndretDeltakerResult.isSuccess shouldBe false
             ikkeEndretDeltakerResult.exceptionOrNull shouldBe
-                IllegalStateException("Deltaker ${deltaker2.id} mangler et vedtak som kan fattes")
+                IllegalStateException("Deltaker-id ${deltaker2.id} har ikke vedtak som kan endres")
 
             val historikk1 = deltakerHistorikkService.getForDeltaker(deltaker.id)
             historikk1.filterIsInstance<DeltakerHistorikk.EndringFraTiltakskoordinator>().size shouldBe 1

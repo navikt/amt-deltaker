@@ -277,7 +277,6 @@ fun Routing.registerInternalApi(
             deltaker = deltakerRepository.get(deltakerId).getOrThrow(),
             beforeUpsert = { deltaker ->
                 val vedtak = vedtakService.avbrytVedtakVedAvsluttetDeltakerliste(deltaker)
-                    ?: throw NoSuchElementException("Fant ikke vedtak som kunne avbrytes for deltaker med id $deltakerId")
 
                 deltaker.copy(
                     status = status,

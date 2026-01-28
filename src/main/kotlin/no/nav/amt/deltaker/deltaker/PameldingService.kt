@@ -104,8 +104,8 @@ class PameldingService(
         val deltaker = deltakerService.upsertAndProduceDeltaker(
             deltaker = oppdatertDeltaker,
             beforeUpsert = { deltaker ->
-                val vedtak = vedtakService
-                    .upsertOppdatertVedtak(
+                val oppdatertVedtak = vedtakService
+                    .opprettEllerOppdaterVedtak(
                         fattetAvNav = skalNavFatteVedtak,
                         endretAv = endretAv,
                         endretAvEnhet = endretAvNavEnhet,
@@ -113,7 +113,7 @@ class PameldingService(
                         fattetDato = if (skalNavFatteVedtak) LocalDateTime.now() else null,
                     )
 
-                val deltakerMedNyttVedtak = oppdatertDeltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksInformasjon())
+                val deltakerMedNyttVedtak = oppdatertDeltaker.copy(vedtaksinformasjon = oppdatertVedtak.tilVedtaksInformasjon())
                 if (utkast.godkjentAvNav &&
                     oppdatertDeltaker.deltakerliste.pameldingstype == GjennomforingPameldingType.TRENGER_GODKJENNING
                 ) {
@@ -165,7 +165,6 @@ class PameldingService(
         )
 
         vedtakService.innbyggerFattVedtak(oppdatertDeltaker)
-            ?: throw NoSuchElementException("Fant ingen vedtak som kan fattes for deltaker ${deltaker.id}")
 
         return oppdatertDeltaker
     }

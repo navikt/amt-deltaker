@@ -51,7 +51,9 @@ class VedtakServiceTest {
         val vedtak = TestData.lagVedtak(fattet = LocalDateTime.now(), deltakerVedVedtak = deltaker)
         insert(vedtak)
 
-        vedtakService.innbyggerFattVedtak(deltaker) shouldBe null
+        shouldThrow<IllegalArgumentException> {
+            vedtakService.innbyggerFattVedtak(deltaker)
+        }
     }
 
     @Test
@@ -62,11 +64,12 @@ class VedtakServiceTest {
         TestRepository.insertAll(deltaker, endretAvAnsatt, endretAvEnhet)
 
         runBlocking {
-            val vedtak = vedtakService.oppdaterEllerOpprettVedtak(
+            val vedtak = vedtakService.opprettEllerOppdaterVedtak(
                 deltaker = deltaker,
                 endretAv = endretAvAnsatt,
                 endretAvEnhet = endretAvEnhet,
-                skalFattesAvNav = false,
+                fattetAvNav = false,
+                fattetDato = null,
             )
 
             assertSoftly(vedtak.shouldNotBeNull()) {
@@ -119,11 +122,12 @@ class VedtakServiceTest {
         TestRepository.insertAll(endretAvAnsatt, endretAvEnhet)
 
         runBlocking {
-            val oppdatertVedtak = vedtakService.oppdaterEllerOpprettVedtak(
+            val oppdatertVedtak = vedtakService.opprettEllerOppdaterVedtak(
                 deltaker = oppdatertDeltaker,
                 endretAv = endretAvAnsatt,
                 endretAvEnhet = endretAvEnhet,
-                skalFattesAvNav = false,
+                fattetAvNav = false,
+                fattetDato = null,
             )
 
             assertSoftly(oppdatertVedtak) {
@@ -163,7 +167,7 @@ class VedtakServiceTest {
     }
 
     @Test
-    fun `avbrytVedtak - vedtak er fattet og kan ikk avbrytes - feiler`() {
+    fun `avbrytVedtak - vedtak er fattet og kan ikke avbrytes - feiler`() {
         val deltaker = TestData.lagDeltaker()
         val vedtak = TestData.lagVedtak(fattet = LocalDateTime.now(), deltakerVedVedtak = deltaker)
         insert(vedtak)
@@ -171,11 +175,13 @@ class VedtakServiceTest {
         val avbruttAvAnsatt = TestData.lagNavAnsatt()
         val avbryttAvEnhet = TestData.lagNavEnhet()
 
-        vedtakService.avbrytVedtak(
-            deltaker = deltaker,
-            avbruttAv = avbruttAvAnsatt,
-            avbruttAvNavEnhet = avbryttAvEnhet,
-        ) shouldBe null
+        shouldThrow<IllegalArgumentException> {
+            vedtakService.avbrytVedtak(
+                deltaker = deltaker,
+                avbruttAv = avbruttAvAnsatt,
+                avbruttAvNavEnhet = avbryttAvEnhet,
+            )
+        }
     }
 
     @Test
@@ -219,7 +225,7 @@ class VedtakServiceTest {
             medVedtak(fattet = true)
             withTiltakstype(Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING)
 
-            shouldThrow<IllegalStateException> {
+            shouldThrow<IllegalArgumentException> {
                 vedtakService.navFattVedtak(
                     deltaker = deltaker,
                     endretAv = veileder,

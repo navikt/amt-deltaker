@@ -32,7 +32,7 @@ class VedtakService(
     }
 
     fun avbrytVedtakVedAvsluttetDeltakerliste(deltaker: Deltaker): Vedtak {
-        val vedtak = hentIkkeFattetVedtak(deltaker.id)
+        val vedtak = hentVedtak(deltaker.id) ?: throw IllegalStateException("Deltaker ${deltaker.id} har ikke vedtak som kan avbrytes")
         val avbruttVedtak = vedtak.copy(
             gyldigTil = LocalDateTime.now(),
         )
@@ -40,28 +40,15 @@ class VedtakService(
         return vedtakRepository.upsert(avbruttVedtak)
     }
 
-    fun oppdaterEllerOpprettVedtak(
-        deltaker: Deltaker,
-        endretAv: NavAnsatt,
-        endretAvEnhet: NavEnhet,
-        skalFattesAvNav: Boolean,
-    ): Vedtak = upsertOppdatertVedtak(
-        fattetAvNav = skalFattesAvNav,
-        endretAv = endretAv,
-        endretAvEnhet = endretAvEnhet,
-        deltaker = deltaker,
-        fattetDato = if (skalFattesAvNav) LocalDateTime.now() else null,
-    )
-
     fun navFattVedtak(
         deltaker: Deltaker,
         endretAv: NavAnsatt,
         endretAvEnhet: NavEnhet,
     ): Vedtak {
-        hentIkkeFattetVedtak(deltaker.id) ?: throw IllegalStateException("Deltaker ${deltaker.id} mangler et vedtak som kan fattes")
+        hentIkkeFattetVedtak(deltaker.id)
 
         log.info("Fatter hovedvedtak for deltaker ${deltaker.id}")
-        return upsertOppdatertVedtak(
+        return opprettEllerOppdaterVedtak(
             fattetAvNav = true,
             endretAv = endretAv,
             endretAvEnhet = endretAvEnhet,
@@ -81,27 +68,29 @@ class VedtakService(
         return vedtakRepository.upsert(fattetVedtak)
     }
 
+    fun hentVedtak(deltakerId: UUID): Vedtak? = vedtakRepository.getForDeltaker(deltakerId).firstOrNull()
+
     private fun hentIkkeFattetVedtak(deltakerId: UUID): Vedtak {
         val vedtaksliste = vedtakRepository.getForDeltaker(deltakerId)
 
         if (vedtaksliste.none { it.gyldigTil == null }) {
-            throw IllegalArgumentException("Deltaker-id $deltakerId har ikke vedtak som kan endres")
+            throw IllegalStateException("Deltaker-id $deltakerId har ikke vedtak som kan endres")
         }
 
         return vedtakRepository.getForDeltaker(deltakerId).firstOrNull { it.fattet == null }
             ?: throw IllegalArgumentException("Deltaker-id $deltakerId har allerede et fattet vedtak")
     }
 
-    // TODO Sjekk at vi ikke genererer ny vedtak fattet dato når noe endrer seg på utkast
-    fun upsertOppdatertVedtak(
+    fun opprettEllerOppdaterVedtak(
         fattetAvNav: Boolean,
         endretAv: NavAnsatt,
         endretAvEnhet: NavEnhet,
         deltaker: Deltaker,
         fattetDato: LocalDateTime?,
     ): Vedtak {
-        val eksisterendeVedtak = hentIkkeFattetVedtak(deltaker.id)
-        val oppdatertVedtak = opprettEllerOppdaterVedtak(
+        val eksisterendeVedtak = hentVedtak(deltaker.id)
+
+        val oppdatertVedtak = lagEllerOppdaterVedtak(
             original = eksisterendeVedtak,
             godkjentAvNav = fattetAvNav,
             endretAv = endretAv,
@@ -113,7 +102,7 @@ class VedtakService(
         return vedtakRepository.upsert(oppdatertVedtak)
     }
 
-    private fun opprettEllerOppdaterVedtak(
+    private fun lagEllerOppdaterVedtak(
         original: Vedtak?,
         godkjentAvNav: Boolean,
         endretAv: NavAnsatt,
