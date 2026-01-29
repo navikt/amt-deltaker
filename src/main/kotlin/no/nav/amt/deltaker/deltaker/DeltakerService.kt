@@ -286,10 +286,10 @@ class DeltakerService(
     }
 
     suspend fun oppdaterDeltakerStatuser() {
-        val deltakereSomSkalAvsluttes = deltakereSomSkalHaAvsluttendeStatus()
+        val deltakereSomSkalAvsluttes = getDeltakereSomSkalHaAvsluttendeStatus()
         avsluttDeltakere(deltakereSomSkalAvsluttes)
 
-        val deltakereSomSkalDelta = deltakereSomSkalHaStatusDeltar()
+        val deltakereSomSkalDelta = getDeltakereSomSkalHaStatusDeltar()
         DeltakerProgresjonHandler
             .tilDeltar(deltakereSomSkalDelta)
             .forEach { upsertAndProduceDeltaker(it) }
@@ -323,12 +323,12 @@ class DeltakerService(
             deltaker
         }
 
-    private fun deltakereSomSkalHaAvsluttendeStatus() = deltakerRepository
-        .skalHaAvsluttendeStatus()
-        .plus(deltakerRepository.deltarPaAvsluttetDeltakerliste())
+    private fun getDeltakereSomSkalHaAvsluttendeStatus() = deltakerRepository
+        .getDeltakereHvorSluttdatoHarPassert()
+        .plus(deltakerRepository.getDeltakereSomDeltarPaAvsluttetDeltakerliste())
         .distinct()
 
-    private fun deltakereSomSkalHaStatusDeltar() = deltakerRepository
+    private fun getDeltakereSomSkalHaStatusDeltar() = deltakerRepository
         .skalHaStatusDeltar()
         .distinct()
 
