@@ -550,13 +550,8 @@ class PameldingServiceTest {
 
     @Nested
     inner class GetOppdatertStatusTests {
-        //         Case 1:
-//            GITT at en gjennomføring har påmeldingstype: trenger godkjenning,
-//            OG en deltakelse går videre fra “Kladd”
-//            SÅ skal neste status blir “Søkt inn”
-
         @Test
-        fun someTest() {
+        fun `getOppdatertStatus() - pameldingstype TRENGER_GODKJENNING - status SOKT_INN`() {
             val deltakerliste = lagDeltakerliste(
                 pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
             )
@@ -571,13 +566,8 @@ class PameldingServiceTest {
             deltakerStatus.type shouldBe DeltakerStatus.Type.SOKT_INN
         }
 
-//         Case 2:
-//            GITT en gjennomføring har påmeldingstype: direkte vedtak,
-//            OG en deltakelse går videre fra “Kladd”
-//            SÅ skal neste status blir “Venter på oppstart”
-
         @Test
-        fun someTest2() {
+        fun `getOppdatertStatus() - pameldingstype DIREKTE_VEDTAK - status VENTER_PA_OPPSTART`() {
             val deltakerliste = lagDeltakerliste(
                 pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
             )

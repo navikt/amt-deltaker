@@ -97,10 +97,6 @@ class PameldingService(
         val skalNavFatteVedtak = utkast.godkjentAvNav &&
             oppdatertDeltaker.deltakerliste.pameldingstype == GjennomforingPameldingType.DIREKTE_VEDTAK
 
-        // upsert endret deltaker (deltaker har vedtak) X
-        // upsert vedtak(med siste deltaker)
-        // upsert nyttinnsøk
-
         val deltaker = deltakerService.upsertAndProduceDeltaker(
             deltaker = oppdatertDeltaker,
             beforeUpsert = { deltaker ->
@@ -208,7 +204,6 @@ class PameldingService(
             beforeUpsert = { deltaker ->
                 val vedtak = vedtakService
                     .avbrytVedtak(deltaker, endretAv, endretAvNavEnhet)
-                    ?: throw NoSuchElementException("Kunne ikke avbryte vedtak for deltaker $deltakerId fordi det finnes ikke vedtak")
 
                 deltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksInformasjon())
             },

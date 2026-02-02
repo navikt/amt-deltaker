@@ -29,11 +29,6 @@ fun Routing.registerPameldingApi(pameldingService: PameldingService, historikkSe
             call.respond(opprettKladdResponseFromDeltaker(deltaker))
         }
 
-        /*
-            nav oppretter utkast
-            nav endrer utkast
-            nav godkjenner utkast
-         */
         post("/pamelding/{deltakerId}") {
             val request = call.receive<UtkastRequest>()
             val deltakerId = UUID.fromString(call.parameters["deltakerId"])
