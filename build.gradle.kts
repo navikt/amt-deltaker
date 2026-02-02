@@ -3,8 +3,9 @@ version = "1.0-SNAPSHOT"
 
 plugins {
     val kotlinVersion = "2.2.21"
+
     kotlin("jvm") version kotlinVersion
-    id("io.ktor.plugin") version "3.3.3"
+    id("io.ktor.plugin") version "3.4.0"
     id("org.jetbrains.kotlin.plugin.serialization") version kotlinVersion
     id("org.jlleitschuh.gradle.ktlint") version "14.0.1"
     application
@@ -16,24 +17,25 @@ repositories {
     maven { setUrl("https://github-package-registry-mirror.gc.nav.no/cached/maven-release") }
 }
 
-val ktorVersion = "3.3.3"
-val logbackVersion = "1.5.25"
+val ktorVersion = "3.4.0"
+val logbackVersion = "1.5.26"
 val prometeusVersion = "1.16.2"
 val ktlintVersion = "1.6.0"
 val jacksonVersion = "2.21.0"
 val logstashEncoderVersion = "9.0"
 val commonVersion = "3.2025.10.10_08.21-bb7c7830d93c"
 val poaoTilgangVersion = "2025.11.03_14.33-9c5783f38a9a"
-val kotestVersion = "6.1.0"
-val flywayVersion = "11.20.2"
+val kotestVersion = "6.1.1"
+val flywayVersion = "11.20.3"
 val hikariVersion = "7.0.2"
 val kotliqueryVersion = "1.9.1"
 val postgresVersion = "42.7.9"
 val caffeineVersion = "3.2.3"
-val mockkVersion = "1.14.7"
+val mockkVersion = "1.14.9"
 val nimbusVersion = "10.7"
 val unleashVersion = "12.1.0"
 val amtLibVersion = "1.2026.02.01_09.45-d68624f62ecf"
+val junitJupiterVersion = "6.0.2"
 
 // fjernes ved neste release av org.apache.kafka:kafka-clients
 configurations.configureEach {
@@ -93,6 +95,7 @@ dependencies {
     testImplementation("io.mockk:mockk-jvm:$mockkVersion")
     testImplementation("com.nimbusds:nimbus-jose-jwt:$nimbusVersion")
     testImplementation("no.nav.amt.lib:testing:$amtLibVersion")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
 }
 
 kotlin {
