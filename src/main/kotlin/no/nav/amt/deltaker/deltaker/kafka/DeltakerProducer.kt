@@ -13,7 +13,7 @@ class DeltakerProducer(
     fun produce(deltakerV2Dto: DeltakerKafkaPayload) {
         outboxService.insertRecord(
             topic = Environment.DELTAKER_V2_TOPIC,
-            key = deltakerV2Dto.id.toString(),
+            key = deltakerV2Dto.id,
             value = deltakerV2Dto,
         )
     }
