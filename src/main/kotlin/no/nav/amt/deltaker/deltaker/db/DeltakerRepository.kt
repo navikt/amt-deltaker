@@ -26,14 +26,32 @@ class DeltakerRepository {
     fun upsert(deltaker: Deltaker) {
         val sql =
             """
-            INSERT INTO deltaker(
-                id, person_id, deltakerliste_id, startdato, sluttdato, dager_per_uke, 
-                deltakelsesprosent, bakgrunnsinformasjon, innhold, kilde, modified_at,
+            INSERT INTO deltaker (
+                id, 
+                person_id, 
+                deltakerliste_id, 
+                startdato, 
+                sluttdato, 
+                dager_per_uke, 
+                deltakelsesprosent, 
+                bakgrunnsinformasjon, 
+                innhold, 
+                kilde, 
+                modified_at,
                 er_manuelt_delt_med_arrangor
             )
             VALUES (
-                :id, :person_id, :deltakerlisteId, :startdato, :sluttdato, :dagerPerUke, 
-                :deltakelsesprosent, :bakgrunnsinformasjon, :innhold, :kilde, :modified_at,
+                :id, 
+                :person_id, 
+                :deltakerlisteId, 
+                :startdato, 
+                :sluttdato, 
+                :dagerPerUke, 
+                :deltakelsesprosent, 
+                :bakgrunnsinformasjon, 
+                :innhold, 
+                :kilde, 
+                :modified_at,
                 :er_manuelt_delt_med_arrangor
             )
             ON CONFLICT (id) DO UPDATE SET 
@@ -111,7 +129,7 @@ class DeltakerRepository {
             """
             WHERE 
                nb.personident = :personident
-               AND ds.gyldig_til is null
+               AND ds.gyldig_til IS NULL
                AND ds.gyldig_fra < CURRENT_TIMESTAMP
             """.trimIndent(),
         )
@@ -158,9 +176,7 @@ class DeltakerRepository {
 
         val query = queryOf(
             sql,
-            mapOf(
-                "deltakerliste_id" to deltakerlisteId,
-            ),
+            mapOf("deltakerliste_id" to deltakerlisteId),
         ).map(::deltakerRowMapper).asList
 
         return Database.query { session -> session.run(query) }
@@ -426,7 +442,7 @@ class DeltakerRepository {
             JOIN deltakerliste dl ON d.deltakerliste_id = dl.id
             JOIN arrangor a ON a.id = dl.arrangor_id
             JOIN tiltakstype t ON t.id = dl.tiltakstype_id
-            LEFT JOIN vedtak v ON d.id = v.deltaker_id and v.gyldig_til is null
+            LEFT JOIN vedtak v ON d.id = v.deltaker_id and v.gyldig_til IS NULL
             $whereClause
       """
     }
