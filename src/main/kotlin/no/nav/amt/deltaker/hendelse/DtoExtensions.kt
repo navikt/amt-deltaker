@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.hendelse
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.deltaker.Innhold
+import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.hendelse.HendelseDeltaker
 import no.nav.amt.lib.models.hendelse.InnholdDto
 import no.nav.amt.lib.models.hendelse.UtkastDto
@@ -35,6 +36,8 @@ fun Deltaker.toHendelseDeltaker(overordnetArrangor: Arrangor?, forsteVedtakFatte
             tiltakskode = deltakerliste.tiltakstype.tiltakskode,
         ),
         oppmoteSted = deltakerliste.oppmoteSted,
+        pameldingstype = deltakerliste.pameldingstype?.let { GjennomforingPameldingType.valueOf(it.name) }
+            ?: throw IllegalStateException("Pameldingstype kan ikke være null i hendelse"),
     ),
     forsteVedtakFattet = forsteVedtakFattet,
     opprettetDato = opprettet.toLocalDate(),
