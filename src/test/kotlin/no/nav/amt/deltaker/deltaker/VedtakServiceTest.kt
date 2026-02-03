@@ -23,7 +23,6 @@ class VedtakServiceTest {
     private val vedtakService = VedtakService(vedtakRepository)
 
     companion object {
-        @JvmField
         @RegisterExtension
         val dbExtension = DatabaseTestExtension()
     }

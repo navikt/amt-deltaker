@@ -15,7 +15,6 @@ class TiltakstypeConsumerTest {
     private val tiltakstypeRepository = TiltakstypeRepository()
 
     companion object {
-        @JvmField
         @RegisterExtension
         val dbExtension = DatabaseTestExtension()
     }

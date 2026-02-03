@@ -37,6 +37,11 @@ class DeltakerHistorikkServiceTest {
         VurderingRepository(),
     )
 
+    companion object {
+        @RegisterExtension
+        val dbExtension = DatabaseTestExtension()
+    }
+
     @Test
     fun `getForDeltaker - ett vedtak flere endringer og forslag - returner liste riktig sortert`() {
         val navAnsatt = TestData.lagNavAnsatt()
@@ -171,11 +176,5 @@ class DeltakerHistorikkServiceTest {
         )
 
         deltakerhistorikk.getInnsoktDato() shouldBe innsoktDato
-    }
-
-    companion object {
-        @JvmField
-        @RegisterExtension
-        val dbExtension = DatabaseTestExtension()
     }
 }

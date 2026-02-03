@@ -13,7 +13,6 @@ class VedtakRepositoryTest {
     private val vedtakRepository = VedtakRepository()
 
     companion object {
-        @JvmField
         @RegisterExtension
         val dbExtension = DatabaseTestExtension()
     }

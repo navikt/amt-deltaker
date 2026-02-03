@@ -87,7 +87,6 @@ import java.util.UUID
 
 class DeltakerServiceTest {
     companion object {
-        @JvmField
         @RegisterExtension
         val dbExtension = DatabaseTestExtension()
     }
