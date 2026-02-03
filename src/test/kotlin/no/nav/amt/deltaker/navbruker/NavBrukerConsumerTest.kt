@@ -24,7 +24,6 @@ class NavBrukerConsumerTest {
     private val deltakerService = mockk<DeltakerService>(relaxed = true)
 
     companion object {
-        @JvmField
         @RegisterExtension
         val dbExtension = DatabaseTestExtension()
     }

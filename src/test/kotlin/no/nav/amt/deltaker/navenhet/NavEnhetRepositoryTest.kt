@@ -12,7 +12,6 @@ class NavEnhetRepositoryTest {
     private val navEnhetRepository = NavEnhetRepository()
 
     companion object {
-        @JvmField
         @RegisterExtension
         val dbExtension = DatabaseTestExtension()
     }

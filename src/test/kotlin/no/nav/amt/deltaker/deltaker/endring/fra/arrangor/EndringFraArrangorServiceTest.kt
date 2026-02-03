@@ -149,7 +149,6 @@ class EndringFraArrangorServiceTest {
     )
 
     companion object {
-        @JvmField
         @RegisterExtension
         val dbExtension = DatabaseTestExtension()
     }

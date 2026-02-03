@@ -13,7 +13,6 @@ class ArrangorConsumerTest {
     val arrangorConsumer = ArrangorConsumer(arrangorRepository)
 
     companion object {
-        @JvmField
         @RegisterExtension
         val dbExtension = DatabaseTestExtension()
     }

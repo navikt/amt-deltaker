@@ -637,7 +637,6 @@ class PameldingServiceTest {
     )
 
     companion object {
-        @JvmField
         @RegisterExtension
         val dbExtension = DatabaseTestExtension()
 
