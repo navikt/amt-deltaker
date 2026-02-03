@@ -1,0 +1,1 @@
+ALTER TABLE vedtak ADD CONSTRAINT vedtak_deltaker_id_unique UNIQUE (deltaker_id);

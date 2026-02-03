@@ -80,17 +80,8 @@ class DeltakerHistorikkServiceTest {
             gyldigFra = LocalDateTime.now().minusDays(10),
         )
 
-        val ikkeFattetVedtak = TestData.lagVedtak(
-            deltakerId = deltaker.id,
-            fattet = null,
-            opprettetAv = navAnsatt,
-            opprettetAvEnhet = navEnhet,
-            sistEndret = LocalDateTime.now().minusDays(4),
-        )
-
         TestRepository.insert(deltaker)
         TestRepository.insert(vedtak)
-        TestRepository.insert(ikkeFattetVedtak)
         TestRepository.insert(gammelEndring)
         TestRepository.insert(endringFraArrangor)
         TestRepository.insert(nyEndring)
