@@ -21,6 +21,7 @@ import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.ReaktiverDel
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.SluttarsakRequest
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.SluttdatoRequest
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.StartdatoRequest
+import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -500,6 +501,7 @@ class DeltakerEndringHandlerTest {
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.AVBRUTT),
             sluttdato = LocalDate.now().minusDays(3),
             deltakerliste = TestData.lagDeltakerliste(
+                pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
                 oppstart = Oppstartstype.FELLES,
             ),
         )
@@ -535,6 +537,7 @@ class DeltakerEndringHandlerTest {
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.FULLFORT),
             sluttdato = LocalDate.now().minusDays(3),
             deltakerliste = TestData.lagDeltakerliste(
+                pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
                 oppstart = Oppstartstype.FELLES,
             ),
         )
