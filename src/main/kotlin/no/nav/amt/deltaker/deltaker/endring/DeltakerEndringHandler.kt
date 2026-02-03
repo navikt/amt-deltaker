@@ -234,7 +234,6 @@ class DeltakerEndringHandler(
             LocalDateTime.now()
         }
         return nyDeltakerStatus(
-            // type = if (erFellesInntak) DeltakerStatus.Type.FULLFORT else DeltakerStatus.Type.HAR_SLUTTET,
             type = if (erOpplaeringsTiltak || erFellesInntak) DeltakerStatus.Type.FULLFORT else DeltakerStatus.Type.HAR_SLUTTET,
             aarsak = aarsak?.toDeltakerStatusAarsak(),
             gyldigFra = gyldigFra,
@@ -258,12 +257,14 @@ class DeltakerEndringHandler(
         val erFellesOppstart = deltaker.deltakerliste.erFellesOppstart
         val erOpplaeringsTiltak = deltaker.deltakerliste.tiltakstype.tiltakskode
             .erOpplaeringstiltak()
-        val status = if (!erFellesOppstart || !erOpplaeringsTiltak) {
-            DeltakerStatus.Type.HAR_SLUTTET
-        } else if (harFullfort == true) {
-            DeltakerStatus.Type.FULLFORT
-        } else {
-            DeltakerStatus.Type.AVBRUTT
+        val nyDeltakerStatusType = when {
+            erFellesOppstart || erOpplaeringsTiltak -> {
+                if (harFullfort == true) DeltakerStatus.Type.FULLFORT else DeltakerStatus.Type.AVBRUTT
+            }
+
+            else -> {
+                DeltakerStatus.Type.HAR_SLUTTET
+            }
         }
 
         val gyldigFra = if (sluttdato != null && skalFortsattDelta() == true) {
@@ -273,7 +274,7 @@ class DeltakerEndringHandler(
         }
 
         return nyDeltakerStatus(
-            type = status,
+            type = nyDeltakerStatusType,
             aarsak = aarsak?.toDeltakerStatusAarsak(),
             gyldigFra = gyldigFra,
         )
