@@ -13,7 +13,7 @@ class DeltakerV1Producer(
     fun produce(deltakerV1Dto: DeltakerV1Dto) {
         outboxService.insertRecord(
             topic = Environment.DELTAKER_V1_TOPIC,
-            key = deltakerV1Dto.id.toString(),
+            key = deltakerV1Dto.id,
             value = deltakerV1Dto,
         )
     }

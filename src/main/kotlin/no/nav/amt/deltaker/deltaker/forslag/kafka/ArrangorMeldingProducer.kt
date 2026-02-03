@@ -10,7 +10,7 @@ class ArrangorMeldingProducer(
     fun produce(forslag: Forslag) {
         outboxService.insertRecord(
             topic = Environment.ARRANGOR_MELDING_TOPIC,
-            key = forslag.id.toString(),
+            key = forslag.id,
             value = forslag,
         )
     }

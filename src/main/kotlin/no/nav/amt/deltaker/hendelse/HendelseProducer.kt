@@ -10,7 +10,7 @@ class HendelseProducer(
     fun produce(hendelse: Hendelse, suppressOutsideTxWarning: Boolean = false) {
         outboxService.insertRecord(
             topic = Environment.DELTAKER_HENDELSE_TOPIC,
-            key = hendelse.deltaker.id.toString(),
+            key = hendelse.deltaker.id,
             value = hendelse,
             suppressOutsideTxWarning = suppressOutsideTxWarning,
         )
