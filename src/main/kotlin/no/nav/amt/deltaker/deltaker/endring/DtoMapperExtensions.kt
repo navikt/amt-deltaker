@@ -6,41 +6,32 @@ import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import java.time.LocalDate
 
-fun Deltaker.getStatusEndretStartOgSluttdato(startdato: LocalDate?, sluttdato: LocalDate?): DeltakerStatus {
-    val today = LocalDate.now()
-
-    val startdatoPassert = startdato?.let { it <= today } ?: false
-    val startdatoFremtid = startdato?.let { it > today } ?: true
-
-    val sluttdatoPassert = sluttdato?.let { it < today } ?: false
-    val sluttdatoFremtid = sluttdato?.let { it >= today } ?: true
-
-    return when (status.type) {
-        DeltakerStatus.Type.VENTER_PA_OPPSTART -> when {
-            sluttdatoPassert && startdato == null -> nyDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL)
-            sluttdatoPassert -> nyDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET)
-            startdatoPassert -> nyDeltakerStatus(DeltakerStatus.Type.DELTAR)
-            else -> status
+fun Deltaker.getStatusEndretStartOgSluttdato(startdato: LocalDate?, sluttdato: LocalDate?): DeltakerStatus =
+    if (status.type == DeltakerStatus.Type.VENTER_PA_OPPSTART && (sluttdato != null && sluttdato.isBefore(LocalDate.now()))) {
+        if (startdato == null) {
+            nyDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL)
+        } else {
+            nyDeltakerStatus(getAvsluttendeStatus(harFullfort = true))
         }
-
-        DeltakerStatus.Type.DELTAR -> when {
-            sluttdatoPassert -> nyDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET)
-            startdatoFremtid -> nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART)
-            else -> status
-        }
-
-        DeltakerStatus.Type.HAR_SLUTTET,
-        DeltakerStatus.Type.AVBRUTT,
-        DeltakerStatus.Type.FULLFORT,
-        -> when {
-            sluttdatoFremtid && startdatoPassert -> nyDeltakerStatus(DeltakerStatus.Type.DELTAR)
-            sluttdatoFremtid -> nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART)
-            else -> status
-        }
-
-        else -> status
+    } else if (status.type == DeltakerStatus.Type.VENTER_PA_OPPSTART && (startdato != null && !startdato.isAfter(LocalDate.now()))) {
+        nyDeltakerStatus(DeltakerStatus.Type.DELTAR)
+    } else if (status.type == DeltakerStatus.Type.DELTAR && (sluttdato != null && sluttdato.isBefore(LocalDate.now()))) {
+        nyDeltakerStatus(getAvsluttendeStatus(harFullfort = true))
+    } else if (status.type == DeltakerStatus.Type.DELTAR && (startdato == null || startdato.isAfter(LocalDate.now()))) {
+        nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART)
+    } else if (status.type == DeltakerStatus.Type.HAR_SLUTTET &&
+        (sluttdato == null || !sluttdato.isBefore(LocalDate.now())) &&
+        (startdato != null && !startdato.isAfter(LocalDate.now()))
+    ) {
+        nyDeltakerStatus(DeltakerStatus.Type.DELTAR)
+    } else if (status.type == DeltakerStatus.Type.HAR_SLUTTET &&
+        (sluttdato == null || !sluttdato.isBefore(LocalDate.now())) &&
+        (startdato == null || startdato.isAfter(LocalDate.now()))
+    ) {
+        nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART)
+    } else {
+        status
     }
-}
 
 fun DeltakerEndring.Aarsak.toDeltakerStatusAarsak() = DeltakerStatus.Aarsak(
     DeltakerStatus.Aarsak.Type.valueOf(type.name),
