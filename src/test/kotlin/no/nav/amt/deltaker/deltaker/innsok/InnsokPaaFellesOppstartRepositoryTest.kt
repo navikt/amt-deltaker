@@ -16,7 +16,6 @@ class InnsokPaaFellesOppstartRepositoryTest {
     private val innsokPaaFellesOppstartRepository = InnsokPaaFellesOppstartRepository()
 
     companion object {
-        @JvmField
         @RegisterExtension
         val dbExtension = DatabaseTestExtension()
     }

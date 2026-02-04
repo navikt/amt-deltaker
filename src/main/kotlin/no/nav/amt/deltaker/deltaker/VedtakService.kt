@@ -18,167 +18,92 @@ class VedtakService(
         deltaker: Deltaker,
         avbruttAv: NavAnsatt,
         avbruttAvNavEnhet: NavEnhet,
-    ): Vedtaksutfall {
-        val ikkeFattetVedtak = when (val utfall = hentIkkeFattetVedtak(deltaker.id)) {
-            is Vedtaksutfall.OK -> utfall.vedtak
+    ): Vedtak {
+        val vedtak = hentIkkeFattetVedtak(deltaker.id)
 
-            Vedtaksutfall.ManglerVedtakSomKanEndres,
-            Vedtaksutfall.VedtakAlleredeFattet,
-            -> return utfall
-        }
-
-        val avbruttVedtak = ikkeFattetVedtak.copy(
-            gyldigTil = LocalDateTime.now(),
-            sistEndret = LocalDateTime.now(),
-            sistEndretAv = avbruttAv.id,
-            sistEndretAvEnhet = avbruttAvNavEnhet.id,
-        )
-
-        val upsertedVedtak = vedtakRepository.upsert(avbruttVedtak)
-        return Vedtaksutfall.OK(upsertedVedtak)
-    }
-
-    fun avbrytVedtakVedAvsluttetDeltakerliste(deltaker: Deltaker): Vedtaksutfall {
-        val ikkeFattetVedtak = when (val utfall = hentIkkeFattetVedtak(deltaker.id)) {
-            is Vedtaksutfall.OK -> utfall.vedtak
-
-            Vedtaksutfall.ManglerVedtakSomKanEndres,
-            Vedtaksutfall.VedtakAlleredeFattet,
-            -> return utfall
-        }
-
-        val avbruttVedtak = ikkeFattetVedtak.copy(
-            gyldigTil = LocalDateTime.now(),
-        )
-
-        val upsertedVedtak = vedtakRepository.upsert(avbruttVedtak)
-        return Vedtaksutfall.OK(upsertedVedtak)
-    }
-
-    fun oppdaterEllerOpprettVedtak(
-        deltaker: Deltaker,
-        endretAv: NavAnsatt,
-        endretAvEnhet: NavEnhet,
-    ): Vedtaksutfall {
-        val eksisterendeVedtak = when (val utfall = hentIkkeFattetVedtak(deltaker.id)) {
-            Vedtaksutfall.ManglerVedtakSomKanEndres -> null
-            is Vedtaksutfall.OK -> utfall.vedtak
-            Vedtaksutfall.VedtakAlleredeFattet -> return utfall
-        }
-
-        return Vedtaksutfall.OK(
-            upsertOppdatertVedtak(
-                eksisterendeVedtak = eksisterendeVedtak,
-                endretAv = endretAv,
-                endretAvEnhet = endretAvEnhet,
-                deltaker = deltaker,
-                fattet = false,
-                fattetAvNav = false,
+        return vedtakRepository.upsert(
+            vedtak.copy(
+                gyldigTil = LocalDateTime.now(),
+                sistEndret = LocalDateTime.now(),
+                sistEndretAv = avbruttAv.id,
+                sistEndretAvEnhet = avbruttAvNavEnhet.id,
             ),
         )
+    }
+
+    fun avbrytVedtakVedAvsluttetDeltakerliste(deltaker: Deltaker): Vedtak {
+        val vedtak = vedtakRepository.getForDeltaker(deltaker.id)
+            ?: throw IllegalStateException("Deltaker ${deltaker.id} har ikke vedtak som kan avbrytes")
+
+        val avbruttVedtak = vedtak.copy(
+            gyldigTil = LocalDateTime.now(),
+        )
+
+        return vedtakRepository.upsert(avbruttVedtak)
     }
 
     fun navFattVedtak(
         deltaker: Deltaker,
         endretAv: NavAnsatt,
         endretAvEnhet: NavEnhet,
-    ): Vedtaksutfall {
-        when (val utfall = hentIkkeFattetVedtak(deltaker.id)) {
-            is Vedtaksutfall.ManglerVedtakSomKanEndres -> {
-                throw IllegalStateException("Deltaker ${deltaker.id} mangler et vedtak som kan fattes")
-            }
+    ): Vedtak {
+        hentIkkeFattetVedtak(deltaker.id)
 
-            is Vedtaksutfall.VedtakAlleredeFattet -> {
-                log.info("Vedtak allerede fattet for deltaker ${deltaker.id}, fatter ikke nytt vedtak")
-                return utfall
-            }
-
-            is Vedtaksutfall.OK -> {
-                log.info("Fatter hovedvedtak for deltaker ${deltaker.id}")
-                val oppdatertVedtak = upsertOppdatertVedtak(
-                    eksisterendeVedtak = utfall.vedtak,
-                    fattetAvNav = true,
-                    endretAv = endretAv,
-                    endretAvEnhet = endretAvEnhet,
-                    deltaker = deltaker,
-                    fattet = true,
-                )
-                return Vedtaksutfall.OK(oppdatertVedtak)
-            }
-        }
-    }
-
-    fun navFattEksisterendeEllerOpprettVedtak(
-        deltaker: Deltaker,
-        endretAv: NavAnsatt,
-        endretAvEnhet: NavEnhet,
-    ): Vedtaksutfall {
-        val ikkeFattetVedtak = when (val utfall = hentIkkeFattetVedtak(deltaker.id)) {
-            is Vedtaksutfall.OK -> utfall.vedtak
-            Vedtaksutfall.ManglerVedtakSomKanEndres -> null
-            Vedtaksutfall.VedtakAlleredeFattet -> return utfall
-        }
-
-        val oppdatertVedtak = upsertOppdatertVedtak(
-            eksisterendeVedtak = ikkeFattetVedtak,
+        log.info("Fatter hovedvedtak for deltaker ${deltaker.id}")
+        return opprettEllerOppdaterVedtak(
             fattetAvNav = true,
             endretAv = endretAv,
             endretAvEnhet = endretAvEnhet,
             deltaker = deltaker,
-            fattet = true,
+            fattetDato = LocalDateTime.now(),
         )
-
-        return Vedtaksutfall.OK(oppdatertVedtak)
     }
 
     /**
      Kan bare brukes når deltaker selv godkjenner utkast.
      Hvis Nav fatter vedtaket må `oppdaterEllerOpprettVedtak` brukes.
      */
-    fun innbyggerFattVedtak(deltaker: Deltaker): Vedtaksutfall {
-        val ikkeFattetVedtak = when (val utfall = hentIkkeFattetVedtak(deltaker.id)) {
-            is Vedtaksutfall.OK -> utfall.vedtak
-            else -> return utfall
-        }
-
+    fun innbyggerFattVedtak(deltaker: Deltaker): Vedtak {
+        val ikkeFattetVedtak = hentIkkeFattetVedtak(deltaker.id)
         val fattetVedtak = ikkeFattetVedtak.copy(fattet = LocalDateTime.now())
 
-        val upsertedVedtak = vedtakRepository.upsert(fattetVedtak)
-        return Vedtaksutfall.OK(upsertedVedtak)
+        return vedtakRepository.upsert(fattetVedtak)
     }
 
-    fun hentIkkeFattetVedtak(deltakerId: UUID): Vedtaksutfall {
+    private fun hentIkkeFattetVedtak(deltakerId: UUID): Vedtak {
         val vedtak = vedtakRepository.getForDeltaker(deltakerId)
 
-        if (!vedtak.any { it.gyldigTil == null }) {
-            return Vedtaksutfall.ManglerVedtakSomKanEndres
+        when {
+            vedtak == null -> throw IllegalStateException("Deltaker-id $deltakerId har ingen vedtak")
+            vedtak.gyldigTil != null -> throw IllegalStateException("Deltaker-id $deltakerId har et vedtak som er avbrutt")
+            vedtak.fattet != null -> throw IllegalArgumentException("Deltaker-id $deltakerId har allerede et fattet vedtak")
         }
 
-        return vedtak.firstOrNull { it.fattet == null }?.let { Vedtaksutfall.OK(it) }
-            ?: Vedtaksutfall.VedtakAlleredeFattet
+        return vedtak
     }
 
-    fun upsertOppdatertVedtak(
-        eksisterendeVedtak: Vedtak?,
+    fun opprettEllerOppdaterVedtak(
         fattetAvNav: Boolean,
         endretAv: NavAnsatt,
         endretAvEnhet: NavEnhet,
         deltaker: Deltaker,
-        fattet: Boolean,
+        fattetDato: LocalDateTime?,
     ): Vedtak {
-        val oppdatertVedtak = opprettEllerOppdaterVedtak(
+        val eksisterendeVedtak = vedtakRepository.getForDeltaker(deltaker.id)
+
+        val oppdatertVedtak = lagOppdatertVedtak(
             original = eksisterendeVedtak,
             godkjentAvNav = fattetAvNav,
             endretAv = endretAv,
             endretAvNavEnhet = endretAvEnhet,
             deltaker = deltaker,
-            fattet = if (fattet) LocalDateTime.now() else null,
+            fattet = fattetDato,
         )
 
         return vedtakRepository.upsert(oppdatertVedtak)
     }
 
-    private fun opprettEllerOppdaterVedtak(
+    private fun lagOppdatertVedtak(
         original: Vedtak?,
         godkjentAvNav: Boolean,
         endretAv: NavAnsatt,

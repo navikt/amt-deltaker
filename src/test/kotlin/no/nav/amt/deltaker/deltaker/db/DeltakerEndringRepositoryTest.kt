@@ -16,7 +16,6 @@ class DeltakerEndringRepositoryTest {
     private val deltakerEndringRepository = DeltakerEndringRepository()
 
     companion object {
-        @JvmField
         @RegisterExtension
         val dbExtension = DatabaseTestExtension()
     }

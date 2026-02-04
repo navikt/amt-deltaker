@@ -312,7 +312,6 @@ class DeltakerResponseMapperServiceTest {
     }
 
     companion object {
-        @JvmField
         @RegisterExtension
         val dbExtension = DatabaseTestExtension()
 

@@ -22,7 +22,6 @@ class EndringFraTiltakskoordinatorRepositoryTest {
     private val endringFraTiltakskoordinatorRepository = EndringFraTiltakskoordinatorRepository()
 
     companion object {
-        @JvmField
         @RegisterExtension
         val dbExtension = DatabaseTestExtension()
     }

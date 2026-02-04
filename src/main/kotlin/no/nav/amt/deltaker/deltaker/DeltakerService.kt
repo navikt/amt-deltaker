@@ -11,7 +11,6 @@ import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringHandler
 import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringService
 import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringUtfall
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
-import no.nav.amt.deltaker.deltaker.extensions.getVedtakOrThrow
 import no.nav.amt.deltaker.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
@@ -315,7 +314,8 @@ class DeltakerService(
     private suspend fun oppdaterVedtakForAvbruttUtkast(deltaker: Deltaker) =
         if (deltaker.status.type == DeltakerStatus.Type.AVBRUTT_UTKAST) {
             Database.transaction {
-                val vedtak = vedtakService.avbrytVedtakVedAvsluttetDeltakerliste(deltaker).getVedtakOrThrow()
+                val vedtak = vedtakService.avbrytVedtakVedAvsluttetDeltakerliste(deltaker)
+
                 hendelseService.hendelseFraSystem(deltaker) { HendelseType.AvbrytUtkast(it) }
                 deltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksInformasjon())
             }

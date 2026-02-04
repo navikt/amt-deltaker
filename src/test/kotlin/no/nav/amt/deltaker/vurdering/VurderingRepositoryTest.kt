@@ -12,7 +12,6 @@ class VurderingRepositoryTest {
     private val vurderingRepository = VurderingRepository()
 
     companion object {
-        @JvmField
         @RegisterExtension
         val dbExtension = DatabaseTestExtension()
     }

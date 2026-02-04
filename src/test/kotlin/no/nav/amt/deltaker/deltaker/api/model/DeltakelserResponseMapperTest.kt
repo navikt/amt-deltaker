@@ -42,7 +42,6 @@ class DeltakelserResponseMapperTest {
     private val deltakelserResponseMapper = DeltakelserResponseMapper(deltakerHistorikkService, arrangorService)
 
     companion object {
-        @JvmField
         @RegisterExtension
         val dbExtension = DatabaseTestExtension()
     }

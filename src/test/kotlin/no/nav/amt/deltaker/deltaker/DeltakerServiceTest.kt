@@ -87,7 +87,6 @@ import java.util.UUID
 
 class DeltakerServiceTest {
     companion object {
-        @JvmField
         @RegisterExtension
         val dbExtension = DatabaseTestExtension()
     }
@@ -1055,7 +1054,7 @@ class DeltakerServiceTest {
 
             ikkeEndretDeltakerResult.isSuccess shouldBe false
             ikkeEndretDeltakerResult.exceptionOrNull shouldBe
-                IllegalStateException("Deltaker ${deltaker2.id} mangler et vedtak som kan fattes")
+                IllegalStateException("Deltaker-id ${deltaker2.id} har ingen vedtak")
 
             val historikk1 = deltakerHistorikkService.getForDeltaker(deltaker.id)
             historikk1.filterIsInstance<DeltakerHistorikk.EndringFraTiltakskoordinator>().size shouldBe 1
@@ -1593,6 +1592,7 @@ class DeltakerServiceTest {
     private val importertFraArenaRepository = ImportertFraArenaRepository()
     private val vurderingRepository = VurderingRepository()
     private val vurderingService = VurderingService(vurderingRepository)
+
     private val deltakerHistorikkService =
         DeltakerHistorikkService(
             deltakerEndringRepository,
@@ -1604,6 +1604,9 @@ class DeltakerServiceTest {
             EndringFraTiltakskoordinatorRepository(),
             vurderingRepository,
         )
+
+    private val unleashToggle = mockk<UnleashToggle>()
+
     private val hendelseService = HendelseService(
         HendelseProducer(TestOutboxEnvironment.outboxService),
         navAnsattRepository,
@@ -1613,8 +1616,9 @@ class DeltakerServiceTest {
         arrangorService,
         deltakerHistorikkService,
         vurderingService,
+        unleashToggle = unleashToggle,
     )
-    private val unleashToggle = mockk<UnleashToggle>()
+
     private val deltakerKafkaPayloadBuilder = DeltakerKafkaPayloadBuilder(
         navAnsattRepository = navAnsattRepository,
         navEnhetRepository = navEnhetRepository,

@@ -21,7 +21,7 @@ data class Deltakerliste(
     val apentForPamelding: Boolean,
     val oppmoteSted: String?,
     val arrangor: Arrangor,
-    val pameldingstype: GjennomforingPameldingType?, // skal gjøres  non-nullable etter relast
+    val pameldingstype: GjennomforingPameldingType?,
 ) {
     fun erAvlystEllerAvbrutt(): Boolean = status == GjennomforingStatusType.AVLYST ||
         status == GjennomforingStatusType.AVBRUTT

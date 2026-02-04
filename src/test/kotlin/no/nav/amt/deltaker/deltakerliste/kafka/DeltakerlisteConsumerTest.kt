@@ -39,7 +39,6 @@ class DeltakerlisteConsumerTest {
     private val unleashToggle: UnleashToggle = mockk()
 
     companion object {
-        @JvmField
         @RegisterExtension
         val dbExtension = DatabaseTestExtension()
     }
