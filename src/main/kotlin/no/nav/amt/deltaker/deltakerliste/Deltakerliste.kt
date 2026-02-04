@@ -28,5 +28,9 @@ data class Deltakerliste(
 
     fun erAvsluttet(): Boolean = erAvlystEllerAvbrutt() || status == GjennomforingStatusType.AVSLUTTET
 
+    // TODO sjekk bruken
     val erFellesOppstart get() = oppstart == Oppstartstype.FELLES
+
+    val kanMeldePaDirekte get() = pameldingstype == GjennomforingPameldingType.DIREKTE_VEDTAK
+    val trengerGodkjenning get() = pameldingstype == null || pameldingstype == GjennomforingPameldingType.TRENGER_GODKJENNING
 }
