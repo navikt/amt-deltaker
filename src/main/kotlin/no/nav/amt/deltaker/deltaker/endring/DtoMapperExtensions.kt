@@ -11,12 +11,12 @@ fun Deltaker.getStatusEndretStartOgSluttdato(startdato: LocalDate?, sluttdato: L
         if (startdato == null) {
             nyDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL)
         } else {
-            nyDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET)
+            nyDeltakerStatus(getAvsluttendeStatus(harFullfort = true))
         }
     } else if (status.type == DeltakerStatus.Type.VENTER_PA_OPPSTART && (startdato != null && !startdato.isAfter(LocalDate.now()))) {
         nyDeltakerStatus(DeltakerStatus.Type.DELTAR)
     } else if (status.type == DeltakerStatus.Type.DELTAR && (sluttdato != null && sluttdato.isBefore(LocalDate.now()))) {
-        nyDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET)
+        nyDeltakerStatus(getAvsluttendeStatus(harFullfort = true))
     } else if (status.type == DeltakerStatus.Type.DELTAR && (startdato == null || startdato.isAfter(LocalDate.now()))) {
         nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART)
     } else if (status.type == DeltakerStatus.Type.HAR_SLUTTET &&
