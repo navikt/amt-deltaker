@@ -76,12 +76,12 @@ class VedtakRepository {
         return Database.query { session -> session.run(query.map(::rowMapper).asSingle) }
     }
 
-    fun getForDeltaker(deltakerId: UUID): List<Vedtak> {
+    fun getForDeltaker(deltakerId: UUID): Vedtak? {
         val query = queryOf(
-            "SELECT * FROM vedtak WHERE deltaker_id = :deltaker_id ORDER BY created_at",
+            "SELECT * FROM vedtak WHERE deltaker_id = :deltaker_id",
             mapOf("deltaker_id" to deltakerId),
         )
-        return Database.query { session -> session.run(query.map(::rowMapper).asList) }
+        return Database.query { session -> session.run(query.map(::rowMapper).asSingle) }
     }
 
     fun deleteForDeltaker(deltakerId: UUID) {

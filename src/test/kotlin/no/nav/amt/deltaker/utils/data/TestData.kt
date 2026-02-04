@@ -156,7 +156,7 @@ object TestData {
         oppstart: Oppstartstype = finnOppstartstype(tiltakstype.tiltakskode),
         oppmoteSted: String? = "~oppmoteSted~",
         apentForPamelding: Boolean = true,
-        pameldingType: GjennomforingPameldingType? = null,
+        pameldingType: GjennomforingPameldingType? = GjennomforingPameldingType.TRENGER_GODKJENNING,
     ) = Deltakerliste(
         id = id,
         tiltakstype = tiltakstype,

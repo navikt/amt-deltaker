@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.deltaker
 
 import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.every
@@ -12,6 +13,7 @@ import no.nav.amt.deltaker.apiclients.oppfolgingstilfelle.OppfolgingstilfelleDTO
 import no.nav.amt.deltaker.apiclients.oppfolgingstilfelle.OppfolgingstilfellePersonResponse
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
+import no.nav.amt.deltaker.deltaker.PameldingService.Companion.getOppdatertStatus
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
@@ -62,6 +64,7 @@ import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.AvbrytUtkastRequest
 import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.UtkastRequest
+import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.models.person.NavAnsatt
@@ -251,7 +254,7 @@ class PameldingServiceTest {
                 deltakerFraDb.status.type shouldBe DeltakerStatus.Type.UTKAST_TIL_PAMELDING
                 deltakerFraDb.vedtaksinformasjon shouldNotBe null
 
-                assertSoftly(vedtakRepository.getForDeltaker(deltaker.id).first()) {
+                assertSoftly(vedtakRepository.getForDeltaker(deltaker.id).shouldNotBeNull()) {
                     fattet shouldBe null
                     fattetAvNav shouldBe false
                     it.sistEndretAv shouldBe sistEndretAv.id
@@ -263,9 +266,11 @@ class PameldingServiceTest {
         }
 
         @Test
-        fun `upsertUtkast - deltaker med lopende oppstart, godkjent av NAV - oppdaterer deltaker og oppretter fattet vedtak`() {
+        fun `upsertUtkast - deltaker med direkte vedtak, godkjent av NAV - oppdaterer deltaker og oppretter fattet vedtak`() {
             val deltaker = lagDeltaker(
-                deltakerliste = TestData.lagDeltakerlisteMedLopendeOppstart(),
+                deltakerliste = lagDeltakerliste(
+                    pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
+                ),
                 status = lagDeltakerStatus(type = DeltakerStatus.Type.KLADD),
                 vedtaksinformasjon = null,
                 startdato = null,
@@ -294,7 +299,7 @@ class PameldingServiceTest {
                 deltakerFraDb.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
                 deltakerFraDb.vedtaksinformasjon shouldNotBe null
 
-                assertSoftly(vedtakRepository.getForDeltaker(deltaker.id).first()) {
+                assertSoftly(vedtakRepository.getForDeltaker(deltaker.id).shouldNotBeNull()) {
                     fattet shouldNotBe null
                     fattetAvNav shouldBe true
                     it.sistEndretAv shouldBe sistEndretAv.id
@@ -308,9 +313,9 @@ class PameldingServiceTest {
         }
 
         @Test
-        fun `upsertUtkast - deltaker med felles oppstart, godkjent av NAV - oppdaterer deltaker`() {
+        fun `upsertUtkast - deltaker med trenger godkjenning, godkjent av NAV - oppdaterer deltaker`() {
             val deltaker = lagDeltaker(
-                deltakerliste = TestData.lagDeltakerlisteMedFellesOppstart(),
+                deltakerliste = lagDeltakerliste(pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING),
                 status = lagDeltakerStatus(type = DeltakerStatus.Type.KLADD),
                 vedtaksinformasjon = null,
                 startdato = null,
@@ -339,7 +344,7 @@ class PameldingServiceTest {
                 deltakerFraDb.status.type shouldBe DeltakerStatus.Type.SOKT_INN
                 deltakerFraDb.vedtaksinformasjon shouldNotBe null
 
-                val vedtak = vedtakRepository.getForDeltaker(deltaker.id).first()
+                val vedtak = vedtakRepository.getForDeltaker(deltaker.id).shouldNotBeNull()
                 vedtak.fattet shouldBe null
                 vedtak.fattetAvNav shouldBe false
 
@@ -391,7 +396,7 @@ class PameldingServiceTest {
                 vedtaksinformasjon shouldBe null
             }
 
-            assertSoftly(vedtakRepository.getForDeltaker(deltaker.id).first()) {
+            assertSoftly(vedtakRepository.getForDeltaker(deltaker.id).shouldNotBeNull()) {
                 fattet shouldBe null
                 fattetAvNav shouldBe false
                 gyldigTil shouldNotBe null
@@ -500,7 +505,7 @@ class PameldingServiceTest {
             val oppdatertDeltaker = pameldingService.innbyggerFattVedtak(deltakerMedVedtak)
 
             oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
-            val vedtakFraDb = vedtakRepository.getForDeltaker(deltaker.id).first()
+            val vedtakFraDb = vedtakRepository.getForDeltaker(deltaker.id).shouldNotBeNull()
             vedtakFraDb.fattet shouldBeCloseTo LocalDateTime.now()
         }
 
@@ -519,7 +524,7 @@ class PameldingServiceTest {
             val oppdatertDeltaker = pameldingService.innbyggerFattVedtak(deltakerMedVedtak)
 
             oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.DELTAR
-            val vedtakFraDb = vedtakRepository.getForDeltaker(deltaker.id).first()
+            val vedtakFraDb = vedtakRepository.getForDeltaker(deltaker.id).shouldNotBeNull()
             vedtakFraDb.fattet shouldBeCloseTo LocalDateTime.now()
         }
 
@@ -540,6 +545,41 @@ class PameldingServiceTest {
             val ikkeOppdatertDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
 
             ikkeOppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.UTKAST_TIL_PAMELDING
+        }
+    }
+
+    @Nested
+    inner class GetOppdatertStatusTests {
+        @Test
+        fun `getOppdatertStatus() - pameldingstype TRENGER_GODKJENNING - status SOKT_INN`() {
+            val deltakerliste = lagDeltakerliste(
+                pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
+            )
+            val deltakerStatusKladd = lagDeltakerStatus(type = DeltakerStatus.Type.KLADD)
+            val deltaker = lagDeltaker(
+                deltakerliste = deltakerliste,
+                status = deltakerStatusKladd,
+            )
+
+            val deltakerStatus = getOppdatertStatus(deltaker, true)
+
+            deltakerStatus.type shouldBe DeltakerStatus.Type.SOKT_INN
+        }
+
+        @Test
+        fun `getOppdatertStatus() - pameldingstype DIREKTE_VEDTAK - status VENTER_PA_OPPSTART`() {
+            val deltakerliste = lagDeltakerliste(
+                pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
+            )
+            val deltakerStatusKladd = lagDeltakerStatus(type = DeltakerStatus.Type.KLADD)
+            val deltaker = lagDeltaker(
+                deltakerliste = deltakerliste,
+                status = deltakerStatusKladd,
+            )
+
+            val deltakerStatus = getOppdatertStatus(deltaker, true)
+
+            deltakerStatus.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
         }
     }
 
