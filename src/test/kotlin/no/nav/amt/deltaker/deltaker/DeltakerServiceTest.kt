@@ -1592,6 +1592,7 @@ class DeltakerServiceTest {
     private val importertFraArenaRepository = ImportertFraArenaRepository()
     private val vurderingRepository = VurderingRepository()
     private val vurderingService = VurderingService(vurderingRepository)
+
     private val deltakerHistorikkService =
         DeltakerHistorikkService(
             deltakerEndringRepository,
@@ -1603,6 +1604,9 @@ class DeltakerServiceTest {
             EndringFraTiltakskoordinatorRepository(),
             vurderingRepository,
         )
+
+    private val unleashToggle = mockk<UnleashToggle>()
+
     private val hendelseService = HendelseService(
         HendelseProducer(TestOutboxEnvironment.outboxService),
         navAnsattRepository,
@@ -1612,8 +1616,9 @@ class DeltakerServiceTest {
         arrangorService,
         deltakerHistorikkService,
         vurderingService,
+        unleashToggle = unleashToggle,
     )
-    private val unleashToggle = mockk<UnleashToggle>()
+
     private val deltakerKafkaPayloadBuilder = DeltakerKafkaPayloadBuilder(
         navAnsattRepository = navAnsattRepository,
         navEnhetRepository = navEnhetRepository,

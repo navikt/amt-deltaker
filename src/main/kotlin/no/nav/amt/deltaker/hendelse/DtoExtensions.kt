@@ -36,7 +36,8 @@ fun Deltaker.toHendelseDeltaker(overordnetArrangor: Arrangor?, forsteVedtakFatte
             tiltakskode = deltakerliste.tiltakstype.tiltakskode,
         ),
         oppmoteSted = deltakerliste.oppmoteSted,
-        pameldingstype = deltakerliste.pameldingstype?.let { GjennomforingPameldingType.valueOf(it.name) }
+        pameldingstype = deltakerliste.pameldingstype
+            ?.let { GjennomforingPameldingType.valueOf(it.name) }
             ?: throw IllegalStateException("Pameldingstype kan ikke være null i hendelse"),
     ),
     forsteVedtakFattet = forsteVedtakFattet,

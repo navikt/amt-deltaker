@@ -612,6 +612,9 @@ class PameldingServiceTest {
             endringFraTiltaksKoordinatorRepository,
             vurderingRepository,
         )
+
+    private val unleashToggle = mockk<UnleashToggle>(relaxed = true)
+
     private val hendelseService = HendelseService(
         HendelseProducer(TestOutboxEnvironment.outboxService),
         navAnsattRepository,
@@ -621,11 +624,11 @@ class PameldingServiceTest {
         arrangorService,
         deltakerHistorikkService,
         VurderingService(VurderingRepository()),
+        unleashToggle,
     )
 
     private val vedtakService = VedtakService(vedtakRepository)
     private val forslagService = ForslagService(forslagRepository, mockk(), deltakerRepository, mockk())
-    private val unleashToggle = mockk<UnleashToggle>(relaxed = true)
     private val deltakerKafkaPayloadBuilder =
         DeltakerKafkaPayloadBuilder(navAnsattRepository, navEnhetRepository, deltakerHistorikkService, VurderingRepository())
 

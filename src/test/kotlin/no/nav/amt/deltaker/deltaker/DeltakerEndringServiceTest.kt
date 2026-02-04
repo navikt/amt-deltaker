@@ -31,6 +31,7 @@ import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
+import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.utils.mockAmtArrangorClient
@@ -68,6 +69,8 @@ class DeltakerEndringServiceTest {
     private val deltakerEndringRepository = DeltakerEndringRepository()
     private val vurderingRepository = VurderingRepository()
     private val vurderingService = VurderingService(vurderingRepository)
+    private val unleashToggle = mockk<UnleashToggle>(relaxed = true)
+
     private val deltakerHistorikkService = DeltakerHistorikkService(
         deltakerEndringRepository,
         VedtakRepository(),
@@ -87,6 +90,7 @@ class DeltakerEndringServiceTest {
         arrangorService,
         deltakerHistorikkService,
         vurderingService,
+        unleashToggle,
     )
     private val forslagService = ForslagService(
         forslagRepository,

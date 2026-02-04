@@ -76,6 +76,9 @@ class EndringFraArrangorServiceTest {
             EndringFraTiltakskoordinatorRepository(),
             vurderingRepository,
         )
+
+    private val unleashToggle = mockk<UnleashToggle>(relaxed = true)
+
     private val hendelseService = HendelseService(
         HendelseProducer(TestOutboxEnvironment.outboxService),
         navAnsattRepository,
@@ -85,8 +88,8 @@ class EndringFraArrangorServiceTest {
         arrangorService,
         deltakerHistorikkService,
         vurderingService,
+        unleashToggle,
     )
-    private val unleashToggle = mockk<UnleashToggle>(relaxed = true)
 
     private val deltakerKafkaPayloadBuilder = DeltakerKafkaPayloadBuilder(
         navAnsattRepository = navAnsattRepository,

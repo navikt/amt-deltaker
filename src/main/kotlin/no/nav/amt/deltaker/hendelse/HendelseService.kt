@@ -8,6 +8,7 @@ import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetService
+import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.hendelse.Hendelse
@@ -33,6 +34,7 @@ class HendelseService(
     private val arrangorService: ArrangorService,
     private val deltakerHistorikkService: DeltakerHistorikkService,
     private val vurderingService: VurderingService,
+    private val unleashToggle: UnleashToggle,
 ) {
     val log: Logger = LoggerFactory.getLogger(javaClass)
 
@@ -193,10 +195,14 @@ class HendelseService(
     }
 
     fun hendelseForSistBesokt(deltaker: Deltaker, sistBesokt: ZonedDateTime) {
+        // hvis ikke Komet er master for tiltakskode
+        if (!unleashToggle.erKometMasterForTiltakstype(deltaker.deltakerliste.tiltakstype.tiltakskode)) return
+
         val ansvarlig = HendelseAnsvarlig.Deltaker(
             id = deltaker.id,
             navn = deltaker.navBruker.fulltNavn,
         )
+
         val hendelse = nyHendelse(deltaker, ansvarlig, HendelseType.DeltakerSistBesokt(sistBesokt))
         hendelseProducer.produce(
             hendelse = hendelse,

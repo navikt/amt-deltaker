@@ -77,6 +77,7 @@ class DeltakerStatusOppdateringTest {
             EndringFraTiltakskoordinatorRepository(),
             VurderingRepository(),
         )
+
     private val vurderingRepository = VurderingRepository()
     private val unleashToggle = mockk<UnleashToggle>()
     private val deltakerKafkaPayloadMapperService =
@@ -97,6 +98,7 @@ class DeltakerStatusOppdateringTest {
         arrangorService,
         deltakerHistorikkService,
         vurderingService,
+        unleashToggle,
     )
     private val forslagService = ForslagService(forslagRepository, mockk(), deltakerRepository, deltakerProducerService)
 

@@ -223,18 +223,6 @@ fun Application.module() {
         vurderingRepository,
     )
 
-    val hendelseProducer = HendelseProducer(outboxService)
-    val hendelseService = HendelseService(
-        hendelseProducer = hendelseProducer,
-        navAnsattRepository = navAnsattRepository,
-        navAnsattService = navAnsattService,
-        navEnhetRepository = navEnhetRepository,
-        navEnhetService = navEnhetService,
-        arrangorService = arrangorService,
-        deltakerHistorikkService = deltakerHistorikkService,
-        vurderingService = vurderingService,
-    )
-
     val unleash = DefaultUnleash(
         UnleashConfig
             .builder()
@@ -245,6 +233,19 @@ fun Application.module() {
             .build(),
     )
     val unleashToggle = UnleashToggle(unleash)
+
+    val hendelseProducer = HendelseProducer(outboxService)
+    val hendelseService = HendelseService(
+        hendelseProducer = hendelseProducer,
+        navAnsattRepository = navAnsattRepository,
+        navAnsattService = navAnsattService,
+        navEnhetRepository = navEnhetRepository,
+        navEnhetService = navEnhetService,
+        arrangorService = arrangorService,
+        deltakerHistorikkService = deltakerHistorikkService,
+        vurderingService = vurderingService,
+        unleashToggle = unleashToggle,
+    )
 
     val deltakerKafkaPayloadBuilder =
         DeltakerKafkaPayloadBuilder(navAnsattRepository, navEnhetRepository, deltakerHistorikkService, vurderingRepository)
