@@ -221,7 +221,7 @@ class DeltakerRepository {
         return Database.query { session -> session.run(query) }
     }
 
-    fun skalHaAvsluttendeStatus(): List<Deltaker> {
+    fun getDeltakereHvorSluttdatoHarPassert(): List<Deltaker> {
         val deltakerstatuser = listOf(
             DeltakerStatus.Type.VENTER_PA_OPPSTART.name,
             DeltakerStatus.Type.DELTAR.name,
@@ -245,7 +245,7 @@ class DeltakerRepository {
         return Database.query { session -> session.run(query) }
     }
 
-    fun deltarPaAvsluttetDeltakerliste(): List<Deltaker> {
+    fun getDeltakereSomDeltarPaAvsluttetDeltakerliste(): List<Deltaker> {
         val avsluttendeDeltakerStatuser = AVSLUTTENDE_STATUSER.map { it.name }
         val avsluttendeDeltakerlisteStatuser = listOf(
             GjennomforingStatusType.AVSLUTTET,
