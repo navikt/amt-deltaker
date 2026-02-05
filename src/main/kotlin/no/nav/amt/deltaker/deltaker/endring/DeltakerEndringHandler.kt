@@ -294,9 +294,9 @@ fun endreDeltakersOppstart(
     deltakelsesmengder: Deltakelsesmengder,
 ): Deltaker {
     val faktiskSluttdato = sluttdato ?: deltaker.sluttdato
-    val oppdatertStatus = deltaker.getStatusEndretStartOgSluttdato(
-        startdato = startdato,
-        sluttdato = faktiskSluttdato,
+    val oppdatertStatus = deltaker.utledNyStatusForEndretStartOgSluttdato(
+        nyStartdato = startdato,
+        nySluttdato = faktiskSluttdato,
     )
     val oppdatertDeltakelsmengde = deltakelsesmengder.avgrensPeriodeTilStartdato(startdato)
 
@@ -314,14 +314,14 @@ private fun DeltakerEndring.Aarsak.toDeltakerStatusAarsak() = DeltakerStatus.Aar
     beskrivelse,
 )
 
-private fun Deltaker.getStatusEndretStartOgSluttdato(startdato: LocalDate?, sluttdato: LocalDate?): DeltakerStatus {
+private fun Deltaker.utledNyStatusForEndretStartOgSluttdato(nyStartdato: LocalDate?, nySluttdato: LocalDate?): DeltakerStatus {
     val now = LocalDate.now()
 
     return when {
-        skalBliIkkeAktuell(startdato, sluttdato, now) -> nyDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL)
-        !startdato.erPassert(now) && !sluttdato.erPassert(now) -> nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART)
-        startdato.erPassert(now) && !sluttdato.erPassert(now) -> nyDeltakerStatus(DeltakerStatus.Type.DELTAR)
-        sluttdato.erPassert(now) -> nyDeltakerStatus(getAvsluttendeStatus(harFullfort = true))
+        skalBliIkkeAktuell(nyStartdato, nySluttdato, now) -> nyDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL)
+        !nyStartdato.erPassert(now) && !nySluttdato.erPassert(now) -> nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART)
+        nyStartdato.erPassert(now) && !nySluttdato.erPassert(now) -> nyDeltakerStatus(DeltakerStatus.Type.DELTAR)
+        nySluttdato.erPassert(now) -> nyDeltakerStatus(getAvsluttendeStatus(harFullfort = true))
         else -> status
     }
 }
