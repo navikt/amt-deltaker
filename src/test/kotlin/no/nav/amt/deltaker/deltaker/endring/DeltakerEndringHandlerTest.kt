@@ -226,6 +226,37 @@ class DeltakerEndringHandlerTest {
     }
 
     @Test
+    fun `sjekkUtfall - endret start- og sluttdato i fremtid, fullfort - deltaker blir venter pa oppstart`(): Unit = runBlocking {
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.FULLFORT),
+            startdato = LocalDate.now().minusWeeks(10),
+            sluttdato = LocalDate.now().minusDays(4),
+        )
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+        val endringsrequest = StartdatoRequest(
+            endretAv = endretAv.navIdent,
+            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            startdato = LocalDate.now().plusDays(10),
+            sluttdato = LocalDate.now().plusWeeks(4),
+            begrunnelse = null,
+            forslagId = null,
+        )
+
+        val deltakerEndringHandler =
+            DeltakerEndringHandler(deltaker, endringsrequest.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
+        val resultat = deltakerEndringHandler.sjekkUtfall()
+
+        resultat.erVellykket shouldBe true
+
+        assertSoftly(resultat.getOrThrow()) {
+            status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
+            startdato shouldBe endringsrequest.startdato
+            sluttdato shouldBe endringsrequest.sluttdato
+        }
+    }
+
+    @Test
     fun `sjekkUtfall - endret start- og sluttdato i fremtid, deltar - deltaker blir venter pa oppstart`(): Unit = runBlocking {
         val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR))
         val endretAv = TestData.lagNavAnsatt()

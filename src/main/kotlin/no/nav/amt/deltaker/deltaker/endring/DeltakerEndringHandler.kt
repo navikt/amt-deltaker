@@ -309,7 +309,34 @@ fun endreDeltakersOppstart(
     )
 }
 
-fun Deltaker.getAvsluttendeStatus(harFullfort: Boolean? = false): DeltakerStatus.Type {
+private fun DeltakerEndring.Aarsak.toDeltakerStatusAarsak() = DeltakerStatus.Aarsak(
+    DeltakerStatus.Aarsak.Type.valueOf(type.name),
+    beskrivelse,
+)
+
+private fun Deltaker.getStatusEndretStartOgSluttdato(startdato: LocalDate?, sluttdato: LocalDate?): DeltakerStatus {
+    val now = LocalDate.now()
+
+    return when {
+        skalBliIkkeAktuell(startdato, sluttdato, now) -> nyDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL)
+        !startdato.erPassert(now) && !sluttdato.erPassert(now) -> nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART)
+        startdato.erPassert(now) && !sluttdato.erPassert(now) -> nyDeltakerStatus(DeltakerStatus.Type.DELTAR)
+        sluttdato.erPassert(now) -> nyDeltakerStatus(getAvsluttendeStatus(harFullfort = true))
+        else -> status
+    }
+}
+
+private fun Deltaker.skalBliIkkeAktuell(
+    startdato: LocalDate?,
+    sluttdato: LocalDate?,
+    now: LocalDate,
+): Boolean = status.type == DeltakerStatus.Type.VENTER_PA_OPPSTART &&
+    startdato == null &&
+    sluttdato.erPassert(now)
+
+private fun LocalDate?.erPassert(now: LocalDate): Boolean = this != null && this < now
+
+private fun Deltaker.getAvsluttendeStatus(harFullfort: Boolean? = false): DeltakerStatus.Type {
     val erFellesOppstart = deltakerliste.erFellesOppstart
     val erOpplaeringsTiltak = deltakerliste.tiltakstype.tiltakskode
         .erOpplaeringstiltak()
