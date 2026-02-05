@@ -326,6 +326,7 @@ private fun Deltaker.utledNyStatusForEndretStartOgSluttdato(nyStartdato: LocalDa
     }
 }
 
+// Dette caset er kun for deltakere fra Arena
 private fun Deltaker.skalBliIkkeAktuell(
     startdato: LocalDate?,
     sluttdato: LocalDate?,
