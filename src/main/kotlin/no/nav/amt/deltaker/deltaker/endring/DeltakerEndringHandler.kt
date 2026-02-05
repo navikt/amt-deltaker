@@ -254,7 +254,7 @@ class DeltakerEndringHandler(
     }
 
     private fun DeltakerEndring.Endring.EndreAvslutning.getEndreAvslutningStatus(): DeltakerStatus {
-        val nyDeltakerStatusType = deltaker.getAvsluttendeStatus(harFullfort)
+        val nyDeltakerStatusType = deltaker.getAvsluttendeStatus(harFullfort == true)
 
         val gyldigFra = if (sluttdato != null && skalFortsattDelta() == true) {
             sluttdato!!.atStartOfDay().plusDays(1)
@@ -336,13 +336,13 @@ private fun Deltaker.skalBliIkkeAktuell(
 
 private fun LocalDate?.erPassert(now: LocalDate): Boolean = this != null && this < now
 
-private fun Deltaker.getAvsluttendeStatus(harFullfort: Boolean? = false): DeltakerStatus.Type {
+private fun Deltaker.getAvsluttendeStatus(harFullfort: Boolean): DeltakerStatus.Type {
     val erFellesOppstart = deltakerliste.erFellesOppstart
     val erOpplaeringsTiltak = deltakerliste.tiltakstype.tiltakskode
         .erOpplaeringstiltak()
     return when {
         erFellesOppstart || erOpplaeringsTiltak -> {
-            if (harFullfort == true) DeltakerStatus.Type.FULLFORT else DeltakerStatus.Type.AVBRUTT
+            if (harFullfort) DeltakerStatus.Type.FULLFORT else DeltakerStatus.Type.AVBRUTT
         }
 
         else -> {
