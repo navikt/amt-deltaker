@@ -862,7 +862,8 @@ class DeltakerServiceTest {
 
         @Test
         fun `upsertEndretDeltaker - endret datoer - upserter endring`() = runTest {
-            val deltaker = lagDeltaker(status = lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR))
+            val deltaker =
+                lagDeltaker(status = lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR), sluttdato = LocalDate.now().plusDays(1))
             val endretAv = lagNavAnsatt()
             val endretAvEnhet = lagNavEnhet()
             val vedtak = lagVedtak(deltakerId = deltaker.id, opprettetAv = endretAv, opprettetAvEnhet = endretAvEnhet)
@@ -920,7 +921,7 @@ class DeltakerServiceTest {
                 endretAv = endretAv.navIdent,
                 endretAvEnhet = endretAvEnhet.enhetsnummer,
                 startdato = LocalDate.now().minusWeeks(2),
-                sluttdato = null,
+                sluttdato = deltakersSluttdato,
                 begrunnelse = null,
                 forslagId = null,
             )
