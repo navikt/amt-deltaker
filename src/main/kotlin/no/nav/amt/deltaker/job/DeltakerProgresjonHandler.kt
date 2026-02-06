@@ -16,6 +16,7 @@ object DeltakerProgresjonHandler {
         if (deltakere.isEmpty()) {
             return emptyList()
         }
+
         val fremtidigAvsluttendeStatus = DeltakerStatusRepository.getAvsluttendeDeltakerStatuserForOppdatering(
             deltakere.map { it.id },
         )
@@ -57,7 +58,7 @@ object DeltakerProgresjonHandler {
     private fun getDeltakereSomSkalFullfores(deltakere: List<Deltaker>): List<Deltaker> {
         val skalBliFullfort = deltakere
             .filter { it.status.type == DeltakerStatus.Type.DELTAR }
-            .filter { it.deltarPaKurs() }
+            .filter { it.deltarPaKurs() } // TODO: pameldingstype.TRENGER_GODKJENNING
             .filter { !it.deltakerliste.erAvlystEllerAvbrutt() }
             .map {
                 it
@@ -72,7 +73,7 @@ object DeltakerProgresjonHandler {
     private fun getDeltakereSomSkalAvbrytesForAvbruttDeltakerliste(deltakere: List<Deltaker>): List<Deltaker> {
         val skalBliAvbrutt = deltakere
             .filter { it.status.type == DeltakerStatus.Type.DELTAR }
-            .filter { it.deltarPaKurs() }
+            .filter { it.deltarPaKurs() } // TODO: pameldingstype.TRENGER_GODKJENNING
             .filter { it.deltakerliste.erAvlystEllerAvbrutt() }
             .map { it.medNyStatus(DeltakerStatus.Type.AVBRUTT, getSluttarsak(it)).medNySluttdato(getOppdatertSluttdato(it)) }
         log.info("Endret status til AVBRUTT for ${skalBliAvbrutt.size}")
@@ -83,7 +84,7 @@ object DeltakerProgresjonHandler {
     private fun getDeltakereSomHarSluttet(deltakere: List<Deltaker>): List<Deltaker> {
         val skalBliHarSluttet = deltakere
             .filter { it.status.type == DeltakerStatus.Type.DELTAR }
-            .filter { !it.deltarPaKurs() }
+            .filter { !it.deltarPaKurs() } // TODO: pameldingstype.TRENGER_GODKJENNING
             .map {
                 it
                     .medNyStatus(DeltakerStatus.Type.HAR_SLUTTET, getSluttarsak(it))
