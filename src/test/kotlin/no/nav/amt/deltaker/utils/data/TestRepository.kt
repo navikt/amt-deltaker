@@ -29,34 +29,6 @@ import java.util.UUID
 object TestRepository {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun cleanDatabase() = Database.query { session ->
-        listOf(
-            "endring_fra_tiltakskoordinator",
-            "deltaker_endring",
-            "forslag",
-            "endring_fra_arrangor",
-            "innsok_paa_felles_oppstart",
-            "vedtak",
-            "importert_fra_arena",
-            "deltaker_status",
-            "vurdering",
-            "deltaker",
-            "nav_bruker",
-            "nav_ansatt",
-            "nav_enhet",
-            "deltakerliste",
-            "arrangor",
-            "tiltakstype",
-        ).forEach { tableName ->
-            session.update(
-                queryOf(
-                    "DELETE FROM $tableName",
-                    emptyMap(),
-                ),
-            )
-        }
-    }
-
     fun insert(arrangor: Arrangor) {
         val sql =
             """

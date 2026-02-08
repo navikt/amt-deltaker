@@ -7,7 +7,6 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
-import no.nav.amt.deltaker.DatabaseTestExtension
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerService
@@ -26,6 +25,7 @@ import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.models.deltakerliste.GjennomforingType
 import no.nav.amt.lib.models.deltakerliste.kafka.GjennomforingV2KafkaPayload
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
+import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

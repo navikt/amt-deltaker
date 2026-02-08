@@ -1,12 +1,12 @@
 package no.nav.amt.deltaker.deltaker.innsok
 
 import io.kotest.matchers.shouldBe
-import no.nav.amt.deltaker.DatabaseTestExtension
 import no.nav.amt.deltaker.deltaker.DeltakerContext
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.InnsokPaaFellesOppstart
+import no.nav.amt.lib.testing.DatabaseTestExtension
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 import java.time.LocalDateTime

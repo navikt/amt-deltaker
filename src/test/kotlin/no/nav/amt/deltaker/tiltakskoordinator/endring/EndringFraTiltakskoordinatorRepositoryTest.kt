@@ -1,7 +1,6 @@
 package no.nav.amt.deltaker.tiltakskoordinator.endring
 
 import io.kotest.matchers.shouldBe
-import no.nav.amt.deltaker.DatabaseTestExtension
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.utils.data.TestData
@@ -13,6 +12,7 @@ import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
+import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.shouldBeCloseTo
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension

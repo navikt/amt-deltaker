@@ -4,13 +4,13 @@ import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
-import no.nav.amt.deltaker.DatabaseTestExtension
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
 import no.nav.amt.lib.models.person.NavAnsatt
+import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension

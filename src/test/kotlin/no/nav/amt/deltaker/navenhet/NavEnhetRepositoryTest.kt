@@ -2,8 +2,8 @@ package no.nav.amt.deltaker.navenhet
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import no.nav.amt.deltaker.DatabaseTestExtension
 import no.nav.amt.deltaker.utils.data.TestData
+import no.nav.amt.lib.testing.DatabaseTestExtension
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 import java.util.UUID

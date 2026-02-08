@@ -4,7 +4,6 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import no.nav.amt.deltaker.DatabaseTestExtension
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
@@ -41,6 +40,7 @@ import no.nav.amt.deltaker.utils.mockPersonServiceClient
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.hendelse.HendelseType
+import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.TestOutboxEnvironment
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension

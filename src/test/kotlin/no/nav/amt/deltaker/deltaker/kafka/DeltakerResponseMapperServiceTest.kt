@@ -3,7 +3,6 @@ package no.nav.amt.deltaker.deltaker.kafka
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
-import no.nav.amt.deltaker.DatabaseTestExtension
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerTestUtils.sammenlignHistorikk
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
@@ -27,6 +26,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatusDto
 import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltaker.Personalia
 import no.nav.amt.lib.models.person.NavBruker
+import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.shouldBeCloseTo
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension

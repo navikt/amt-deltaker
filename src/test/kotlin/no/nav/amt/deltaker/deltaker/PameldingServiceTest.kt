@@ -8,7 +8,6 @@ import io.kotest.matchers.shouldNotBe
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import no.nav.amt.deltaker.DatabaseTestExtension
 import no.nav.amt.deltaker.apiclients.oppfolgingstilfelle.OppfolgingstilfelleDTO
 import no.nav.amt.deltaker.apiclients.oppfolgingstilfelle.OppfolgingstilfellePersonResponse
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
@@ -70,6 +69,7 @@ import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.NavEnhet
+import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.TestOutboxEnvironment
 import no.nav.amt.lib.testing.shouldBeCloseTo
 import org.junit.jupiter.api.BeforeEach

@@ -9,7 +9,6 @@ import io.kotest.matchers.shouldNotBe
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import no.nav.amt.deltaker.DatabaseTestExtension
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerUtils.nyDeltakerStatus
@@ -73,6 +72,7 @@ import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.StartdatoReq
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
+import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.TestOutboxEnvironment
 import no.nav.amt.lib.testing.shouldBeCloseTo
 import no.nav.amt.lib.utils.database.Database

@@ -3,11 +3,11 @@ package no.nav.amt.deltaker.navenhet
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import no.nav.amt.deltaker.DatabaseTestExtension
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.mockAzureAdClient
 import no.nav.amt.deltaker.utils.mockHttpClient
 import no.nav.amt.lib.ktor.clients.AmtPersonServiceClient
+import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension

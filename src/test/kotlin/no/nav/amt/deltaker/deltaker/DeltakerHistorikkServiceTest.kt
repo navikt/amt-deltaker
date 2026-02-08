@@ -1,7 +1,6 @@
 package no.nav.amt.deltaker.deltaker
 
 import io.kotest.matchers.shouldBe
-import no.nav.amt.deltaker.DatabaseTestExtension
 import no.nav.amt.deltaker.deltaker.DeltakerTestUtils.sammenlignHistorikk
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
@@ -19,6 +18,7 @@ import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltaker.InnsokPaaFellesOppstart
+import no.nav.amt.lib.testing.DatabaseTestExtension
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 import java.time.LocalDate

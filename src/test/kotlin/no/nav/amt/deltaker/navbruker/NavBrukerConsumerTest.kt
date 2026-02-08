@@ -5,7 +5,6 @@ import io.mockk.clearMocks
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import no.nav.amt.deltaker.DatabaseTestExtension
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetService
@@ -13,6 +12,7 @@ import no.nav.amt.deltaker.utils.MockResponseHandler
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.utils.mockPersonServiceClient
+import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

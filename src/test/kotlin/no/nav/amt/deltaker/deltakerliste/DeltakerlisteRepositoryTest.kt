@@ -1,11 +1,11 @@
 package no.nav.amt.deltaker.deltakerliste
 
 import io.kotest.matchers.shouldBe
-import no.nav.amt.deltaker.DatabaseTestExtension
 import no.nav.amt.deltaker.utils.data.TestData.lagArrangor
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype
 import no.nav.amt.deltaker.utils.data.TestRepository
+import no.nav.amt.lib.testing.DatabaseTestExtension
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
