@@ -16,7 +16,6 @@ class NavAnsattRepository {
                 navn, 
                 telefonnummer, 
                 epost, 
-                modified_at, 
                 nav_enhet_id
             )
             VALUES (
@@ -25,7 +24,6 @@ class NavAnsattRepository {
                 :navn, 
                 :telefonnummer, 
                 :epost, 
-                :modified_at, 
                 :nav_enhet_id
             ) 
             ON CONFLICT (id) DO UPDATE SET

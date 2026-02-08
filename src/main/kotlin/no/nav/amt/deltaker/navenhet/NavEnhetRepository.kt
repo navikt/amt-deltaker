@@ -13,14 +13,12 @@ class NavEnhetRepository {
             INSERT INTO nav_enhet (
                 id, 
                 nav_enhet_nummer, 
-                navn, 
-                modified_at
+                navn 
             )
             VALUES (
                 :id, 
                 :nav_enhet_nummer, 
-                :navn, 
-                :modified_at
+                :navn 
             ) 
             ON CONFLICT (id) DO UPDATE SET
                 nav_enhet_nummer = :nav_enhet_nummer,
