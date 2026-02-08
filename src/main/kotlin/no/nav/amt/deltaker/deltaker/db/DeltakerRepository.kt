@@ -82,9 +82,7 @@ class DeltakerRepository {
             "er_manuelt_delt_med_arrangor" to deltaker.erManueltDeltMedArrangor,
         )
 
-        Database.query { session ->
-            session.update(queryOf(sql, parameters))
-        }
+        Database.query { session -> session.update(queryOf(sql, parameters)) }
         log.info("Opprettet/oppdaterte deltaker med id ${deltaker.id}")
     }
 
@@ -102,7 +100,7 @@ class DeltakerRepository {
         ).map(::deltakerRowMapper).asSingle
 
         Database.query { session ->
-            session.run(query) ?: error("Ingen deltaker med id $id")
+            session.run(query) ?: throw NoSuchElementException("Ingen deltaker med id $id")
         }
     }
 
@@ -116,12 +114,14 @@ class DeltakerRepository {
             """.trimIndent(),
         )
 
-        val query = queryOf(
-            sql,
-            mapOf("ider" to deltakerIder.toTypedArray()),
-        ).map(::deltakerRowMapper).asList
-
-        return Database.query { session -> session.run(query) }
+        return Database.query { session ->
+            session.run(
+                queryOf(
+                    sql,
+                    mapOf("ider" to deltakerIder.toTypedArray()),
+                ).map(::deltakerRowMapper).asList,
+            )
+        }
     }
 
     fun getFlereForPerson(personIdent: String): List<Deltaker> {
@@ -134,12 +134,14 @@ class DeltakerRepository {
             """.trimIndent(),
         )
 
-        val query = queryOf(
-            sql,
-            mapOf("personident" to personIdent),
-        ).map(::deltakerRowMapper).asList
-
-        return Database.query { session -> session.run(query) }
+        return Database.query { session ->
+            session.run(
+                queryOf(
+                    sql,
+                    mapOf("personident" to personIdent),
+                ).map(::deltakerRowMapper).asList,
+            )
+        }
     }
 
     fun getFlereForPerson(personIdent: String, deltakerlisteId: UUID): List<Deltaker> {
@@ -153,15 +155,17 @@ class DeltakerRepository {
             """.trimIndent(),
         )
 
-        val query = queryOf(
-            sql,
-            mapOf(
-                "personident" to personIdent,
-                "deltakerliste_id" to deltakerlisteId,
-            ),
-        ).map(::deltakerRowMapper).asList
-
-        return Database.query { session -> session.run(query) }
+        return Database.query { session ->
+            session.run(
+                queryOf(
+                    sql,
+                    mapOf(
+                        "personident" to personIdent,
+                        "deltakerliste_id" to deltakerlisteId,
+                    ),
+                ).map(::deltakerRowMapper).asList,
+            )
+        }
     }
 
     fun getDeltakereForDeltakerliste(deltakerlisteId: UUID): List<Deltaker> {
@@ -174,12 +178,14 @@ class DeltakerRepository {
             """.trimIndent(),
         )
 
-        val query = queryOf(
-            sql,
-            mapOf("deltakerliste_id" to deltakerlisteId),
-        ).map(::deltakerRowMapper).asList
-
-        return Database.query { session -> session.run(query) }
+        return Database.query { session ->
+            session.run(
+                queryOf(
+                    sql,
+                    mapOf("deltakerliste_id" to deltakerlisteId),
+                ).map(::deltakerRowMapper).asList,
+            )
+        }
     }
 
     fun getDeltakerIderForTiltakskode(tiltakskode: Tiltakskode): List<UUID> {
@@ -190,15 +196,17 @@ class DeltakerRepository {
                 deltaker d
                 JOIN deltakerliste dl ON d.deltakerliste_id = dl.id
                 JOIN tiltakstype t ON t.id = dl.tiltakstype_id
-            WHERE t.tiltakskode = :tiltakskode;
+            WHERE t.tiltakskode = :tiltakskode
             """.trimIndent()
 
-        val query = queryOf(
-            sql,
-            mapOf("tiltakskode" to tiltakskode.name),
-        ).map { it.uuid("d.id") }.asList
-
-        return Database.query { session -> session.run(query) }
+        return Database.query { session ->
+            session.run(
+                queryOf(
+                    sql,
+                    mapOf("tiltakskode" to tiltakskode.name),
+                ).map { it.uuid("d.id") }.asList,
+            )
+        }
     }
 
     fun skalHaStatusDeltar(): List<Deltaker> {
@@ -213,12 +221,14 @@ class DeltakerRepository {
             """.trimIndent(),
         )
 
-        val query = queryOf(
-            sql,
-            mapOf("status" to DeltakerStatus.Type.VENTER_PA_OPPSTART.name),
-        ).map(::deltakerRowMapper).asList
-
-        return Database.query { session -> session.run(query) }
+        return Database.query { session ->
+            session.run(
+                queryOf(
+                    sql,
+                    mapOf("status" to DeltakerStatus.Type.VENTER_PA_OPPSTART.name),
+                ).map(::deltakerRowMapper).asList,
+            )
+        }
     }
 
     fun skalHaAvsluttendeStatus(): List<Deltaker> {
@@ -237,12 +247,14 @@ class DeltakerRepository {
             """.trimIndent(),
         )
 
-        val query = queryOf(
-            sql,
-            *deltakerstatuser.toTypedArray(),
-        ).map(::deltakerRowMapper).asList
-
-        return Database.query { session -> session.run(query) }
+        return Database.query { session ->
+            session.run(
+                queryOf(
+                    sql,
+                    *deltakerstatuser.toTypedArray(),
+                ).map(::deltakerRowMapper).asList,
+            )
+        }
     }
 
     fun deltarPaAvsluttetDeltakerliste(): List<Deltaker> {
@@ -263,13 +275,15 @@ class DeltakerRepository {
             """.trimIndent(),
         )
 
-        val query = queryOf(
-            sql,
-            *avsluttendeDeltakerStatuser.toTypedArray(),
-            *avsluttendeDeltakerlisteStatuser.toTypedArray(),
-        ).map(::deltakerRowMapper).asList
-
-        return Database.query { session -> session.run(query) }
+        return Database.query { session ->
+            session.run(
+                queryOf(
+                    sql,
+                    *avsluttendeDeltakerStatuser.toTypedArray(),
+                    *avsluttendeDeltakerlisteStatuser.toTypedArray(),
+                ).map(::deltakerRowMapper).asList,
+            )
+        }
     }
 
     fun getDeltakereMedStatus(statusType: DeltakerStatus.Type): List<UUID> {
@@ -285,19 +299,21 @@ class DeltakerRepository {
                 AND ds.gyldig_fra < CURRENT_TIMESTAMP
             """.trimIndent()
 
-        val query = queryOf(
-            sql,
-            mapOf("status_type" to statusType.name),
-        ).map { it.uuid("d.id") }.asList
-
-        return Database.query { session -> session.run(query) }
+        return Database.query { session ->
+            session.run(
+                queryOf(
+                    sql,
+                    mapOf("status_type" to statusType.name),
+                ).map { it.uuid("d.id") }.asList,
+            )
+        }
     }
 
     fun slettDeltaker(deltakerId: UUID) {
         Database.query { session ->
             session.update(
                 queryOf(
-                    "DELETE FROM deltaker WHERE id = :deltaker_id;",
+                    "DELETE FROM deltaker WHERE id = :deltaker_id",
                     mapOf("deltaker_id" to deltakerId),
                 ),
             )

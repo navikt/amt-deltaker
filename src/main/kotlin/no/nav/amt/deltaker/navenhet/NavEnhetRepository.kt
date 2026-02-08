@@ -4,19 +4,28 @@ import kotliquery.Row
 import kotliquery.queryOf
 import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.utils.database.Database
-import java.time.LocalDateTime
 import java.util.UUID
 
 class NavEnhetRepository {
     fun upsert(navEnhet: NavEnhet): NavEnhet {
         val sql =
             """
-            INSERT INTO nav_enhet(id, nav_enhet_nummer, navn, modified_at)
-            VALUES (:id, :nav_enhet_nummer, :navn, :modified_at) 
+            INSERT INTO nav_enhet (
+                id, 
+                nav_enhet_nummer, 
+                navn, 
+                modified_at
+            )
+            VALUES (
+                :id, 
+                :nav_enhet_nummer, 
+                :navn, 
+                :modified_at
+            ) 
             ON CONFLICT (id) DO UPDATE SET
                 nav_enhet_nummer = :nav_enhet_nummer,
                 navn = :navn,
-                modified_at = :modified_at
+                modified_at = CURRENT_TIMESTAMP
             RETURNING *
             """.trimIndent()
 
@@ -26,45 +35,45 @@ class NavEnhetRepository {
                 "id" to navEnhet.id,
                 "nav_enhet_nummer" to navEnhet.enhetsnummer,
                 "navn" to navEnhet.navn,
-                "modified_at" to LocalDateTime.now(),
             ),
         ).map(::rowMapper).asSingle
 
         return Database.query { session ->
             session.run(query)
-        } ?: throw RuntimeException("Noe gikk galt ved lagring av nav-enhet")
+                ?: throw RuntimeException("Noe gikk galt ved lagring av nav-enhet")
+        }
     }
 
     fun getOrThrow(enhetsnummer: String): NavEnhet =
         get(enhetsnummer) ?: throw NoSuchElementException("Fant ikke Nav-enhet med enhetsnummer $enhetsnummer")
 
-    fun get(enhetsnummer: String): NavEnhet? {
-        val query = queryOf(
-            "SELECT * FROM nav_enhet WHERE nav_enhet_nummer = :nav_enhet_nummer",
-            mapOf("nav_enhet_nummer" to enhetsnummer),
-        ).map(::rowMapper).asSingle
-
-        return Database.query { session -> session.run(query) }
+    fun get(enhetsnummer: String): NavEnhet? = Database.query { session ->
+        session.run(
+            queryOf(
+                "SELECT * FROM nav_enhet WHERE nav_enhet_nummer = :nav_enhet_nummer",
+                mapOf("nav_enhet_nummer" to enhetsnummer),
+            ).map(::rowMapper).asSingle,
+        )
     }
 
     fun getOrThrow(id: UUID): NavEnhet = get(id) ?: throw NoSuchElementException("Fant ikke Nav-enhet med id $id")
 
-    fun get(id: UUID): NavEnhet? {
-        val query = queryOf(
-            "SELECT * FROM nav_enhet WHERE id = :id",
-            mapOf("id" to id),
-        ).map(::rowMapper).asSingle
-
-        return Database.query { session -> session.run(query) }
+    fun get(id: UUID): NavEnhet? = Database.query { session ->
+        session.run(
+            queryOf(
+                "SELECT * FROM nav_enhet WHERE id = :id",
+                mapOf("id" to id),
+            ).map(::rowMapper).asSingle,
+        )
     }
 
-    fun getMany(ider: Set<UUID>): List<NavEnhet> {
-        val query = queryOf(
-            """select * from nav_enhet where id = any(:ider)""",
-            mapOf("ider" to ider.toTypedArray()),
-        ).map(::rowMapper).asList
-
-        return Database.query { session -> session.run(query) }
+    fun getMany(ider: Set<UUID>): List<NavEnhet> = Database.query { session ->
+        session.run(
+            queryOf(
+                "SELECT * FROM nav_enhet WHERE id = ANY(:ider)",
+                mapOf("ider" to ider.toTypedArray()),
+            ).map(::rowMapper).asList,
+        )
     }
 
     companion object {

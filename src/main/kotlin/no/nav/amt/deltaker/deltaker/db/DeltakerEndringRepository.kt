@@ -63,55 +63,56 @@ class DeltakerEndringRepository {
     }
 
     fun get(id: UUID): Result<DeltakerEndring> = runCatching {
-        val query = queryOf(
-            selectDeltakerEndring("de.id = :id"),
-            mapOf("id" to id),
-        )
-
         Database.query { session ->
-            session
-                .run(query.map(::rowMapper).asSingle)
-                ?: throw NoSuchElementException()
+            session.run(
+                queryOf(
+                    selectDeltakerEndring("de.id = :id"),
+                    mapOf("id" to id),
+                ).map(::rowMapper).asSingle,
+            ) ?: throw NoSuchElementException()
         }
     }
 
-    fun getForDeltaker(deltakerId: UUID): List<DeltakerEndring> {
-        val query = queryOf(
-            selectDeltakerEndring("de.deltaker_id = :deltaker_id"),
-            mapOf("deltaker_id" to deltakerId),
+    fun getForDeltaker(deltakerId: UUID): List<DeltakerEndring> = Database.query { session ->
+        session.run(
+            queryOf(
+                selectDeltakerEndring("de.deltaker_id = :deltaker_id"),
+                mapOf("deltaker_id" to deltakerId),
+            ).map(::rowMapper).asList,
         )
-        return Database.query { session -> session.run(query.map(::rowMapper).asList) }
     }
 
     fun getUbehandletDeltakelsesmengder(offset: Int = 0, limit: Int = 500): List<DeltakerEndring> {
-        val query = queryOf(
-            selectDeltakerEndring(
-                """
-                de.behandlet IS NULL 
-                AND ds.type in ('${DeltakerStatus.Type.VENTER_PA_OPPSTART.name}', '${DeltakerStatus.Type.DELTAR.name}')
-                AND de.endring->>'type' = :type
-                AND de.endring->>'gyldigFra' <= :now
-                """.trimIndent(),
-                offset,
-                limit,
-            ),
-            mapOf(
-                "type" to DeltakerEndring.Endring.EndreDeltakelsesmengde::class.simpleName,
-                "now" to LocalDate.now(),
-            ),
+        val sql = selectDeltakerEndring(
+            """
+            de.behandlet IS NULL 
+            AND ds.type in ('${DeltakerStatus.Type.VENTER_PA_OPPSTART.name}', '${DeltakerStatus.Type.DELTAR.name}')
+            AND de.endring->>'type' = :type
+            AND de.endring->>'gyldigFra' <= :now
+            """.trimIndent(),
+            offset,
+            limit,
         )
-        return Database.query { session -> session.run(query.map(::rowMapper).asList) }
+
+        val params = mapOf(
+            "type" to DeltakerEndring.Endring.EndreDeltakelsesmengde::class.simpleName,
+            "now" to LocalDate.now(),
+        )
+
+        return Database.query { session ->
+            session.run(queryOf(sql, params).map(::rowMapper).asList)
+        }
     }
 
     fun deleteForDeltaker(deltakerId: UUID) {
-        val query = queryOf(
-            """
-            DELETE FROM deltaker_endring
-            WHERE deltaker_id = :deltaker_id;
-            """.trimIndent(),
-            mapOf("deltaker_id" to deltakerId),
-        )
-        Database.query { session -> session.update(query) }
+        Database.query { session ->
+            session.update(
+                queryOf(
+                    "DELETE FROM deltaker_endring WHERE deltaker_id = :deltaker_id",
+                    mapOf("deltaker_id" to deltakerId),
+                ),
+            )
+        }
     }
 
     companion object {
