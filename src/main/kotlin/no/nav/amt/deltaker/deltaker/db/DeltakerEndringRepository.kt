@@ -127,7 +127,7 @@ class DeltakerEndringRepository {
         )
 
         private fun selectDeltakerEndring(
-            where: String? = null,
+            whereClause: String,
             offset: Int? = null,
             limit: Int? = null,
         ) = """
@@ -148,13 +148,13 @@ class DeltakerEndringRepository {
                 f.status            AS "f.status"
             FROM 
                 deltaker_endring de
-                JOIN deltaker_status ds ON ds.deltaker_id = de.deltaker_id
+                JOIN deltaker_status ds ON 
+                    ds.deltaker_id = de.deltaker_id
+                    AND ds.gyldig_til IS NULL
+                    AND ds.gyldig_fra <= CURRENT_TIMESTAMP
+                    AND ds.type != 'FEILREGISTRERT'
                 LEFT JOIN forslag f ON f.id = de.forslag_id
-            WHERE 
-                ds.gyldig_til IS NULL
-                AND ds.gyldig_fra <= CURRENT_TIMESTAMP
-                AND ds.type != 'FEILREGISTRERT'
-                ${where?.let { "AND $it" } ?: ""}
+            WHERE $whereClause
             ORDER BY de.created_at
             ${offset?.let { "OFFSET $it" } ?: ""}
             ${limit?.let { "LIMIT $it" } ?: ""}

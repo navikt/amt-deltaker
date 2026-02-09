@@ -41,7 +41,7 @@ class VedtakRepository {
                 gyldig_til            = :gyldig_til,
                 deltaker_ved_vedtak   = :deltaker_ved_vedtak,
                 fattet_av_nav         = :fattet_av_nav,
-                modified_at           = current_timestamp,
+                modified_at           = CURRENT_TIMESTAMP,
                 sist_endret_av        = :sist_endret_av,
                 sist_endret_av_enhet  = :sist_endret_av_enhet
             RETURNING *

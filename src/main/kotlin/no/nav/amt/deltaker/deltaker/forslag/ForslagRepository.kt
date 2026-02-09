@@ -15,13 +15,13 @@ class ForslagRepository {
         val sql =
             """
             SELECT 
-                f.id as "f.id",
-                f.deltaker_id as "f.deltaker_id",
-                f.arrangoransatt_id as "f.arrangoransatt_id",
-                f.opprettet as "f.opprettet",
-                f.begrunnelse as "f.begrunnelse",
-                f.endring as "f.endring",
-                f.status as "f.status"
+                f.id AS "f.id",
+                f.deltaker_id AS "f.deltaker_id",
+                f.arrangoransatt_id AS "f.arrangoransatt_id",
+                f.opprettet AS "f.opprettet",
+                f.begrunnelse AS "f.begrunnelse",
+                f.endring AS "f.endring",
+                f.status AS "f.status"
             FROM forslag f 
             WHERE f.deltaker_id = :deltaker_id
             """.trimIndent()
@@ -40,13 +40,13 @@ class ForslagRepository {
         val sql =
             """
             SELECT 
-                f.id as "f.id",
-                f.deltaker_id as "f.deltaker_id",
-                f.arrangoransatt_id as "f.arrangoransatt_id",
-                f.opprettet as "f.opprettet",
-                f.begrunnelse as "f.begrunnelse",
-                f.endring as "f.endring",
-                f.status as "f.status"
+                f.id AS "f.id",
+                f.deltaker_id AS "f.deltaker_id",
+                f.arrangoransatt_id AS "f.arrangoransatt_id",
+                f.opprettet AS "f.opprettet",
+                f.begrunnelse AS "f.begrunnelse",
+                f.endring AS "f.endring",
+                f.status AS "f.status"
             FROM forslag f 
             WHERE f.id = :id
             """.trimIndent()
@@ -56,7 +56,7 @@ class ForslagRepository {
                 queryOf(
                     sql,
                     mapOf("id" to id),
-                ).map(Companion::rowMapper).asSingle,
+                ).map(::rowMapper).asSingle,
             ) ?: throw NoSuchElementException("Ingen forslag med id $id")
         }
     }
@@ -132,7 +132,7 @@ class ForslagRepository {
     }
 
     companion object {
-        val col = prefixColumn("f")
+        private val col = prefixColumn("f")
 
         fun rowMapper(row: Row): Forslag = Forslag(
             id = row.uuid(col("id")),

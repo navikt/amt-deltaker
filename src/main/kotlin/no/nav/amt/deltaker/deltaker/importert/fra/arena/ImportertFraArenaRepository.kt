@@ -54,7 +54,7 @@ class ImportertFraArenaRepository {
             queryOf(
                 sql,
                 mapOf("deltaker_id" to deltakerId),
-            ).map(Companion::rowMapper).asSingle,
+            ).map(::rowMapper).asSingle,
         )
     }
 
