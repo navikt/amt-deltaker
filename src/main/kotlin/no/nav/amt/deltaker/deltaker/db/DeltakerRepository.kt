@@ -87,13 +87,13 @@ class DeltakerRepository {
     }
 
     fun get(id: UUID): Result<Deltaker> = runCatching {
-        val query = queryOf(
-            buildDeltakerSql("d.id = :id"),
-            mapOf("id" to id),
-        ).map(::deltakerRowMapper).asSingle
-
         Database.query { session ->
-            session.run(query) ?: throw NoSuchElementException("Ingen deltaker med id $id")
+            session.run(
+                queryOf(
+                    buildDeltakerSql("d.id = :id"),
+                    mapOf("id" to id),
+                ).map(::deltakerRowMapper).asSingle,
+            ) ?: throw NoSuchElementException("Ingen deltaker med id $id")
         }
     }
 
@@ -177,14 +177,9 @@ class DeltakerRepository {
     }
 
     fun getDeltakereHvorSluttdatoHarPassert(): List<Deltaker> {
-        val deltakerstatuser = listOf(
-            DeltakerStatus.Type.VENTER_PA_OPPSTART.name,
-            DeltakerStatus.Type.DELTAR.name,
-        )
-
         val sql = buildDeltakerSql(
             """
-            ds.type IN (${deltakerstatuser.joinToString { "?" }})
+            ds.type IN (${sluttdatoStatuser.joinToString { "?" }})
             AND d.sluttdato < CURRENT_DATE
             """.trimIndent(),
         )
@@ -193,20 +188,13 @@ class DeltakerRepository {
             session.run(
                 queryOf(
                     sql,
-                    *deltakerstatuser.toTypedArray(),
+                    *sluttdatoStatuser.toTypedArray(),
                 ).map(::deltakerRowMapper).asList,
             )
         }
     }
 
     fun getDeltakereSomDeltarPaAvsluttetDeltakerliste(): List<Deltaker> {
-        val avsluttendeDeltakerStatuser = AVSLUTTENDE_STATUSER.map { it.name }
-        val avsluttendeDeltakerlisteStatuser = listOf(
-            GjennomforingStatusType.AVSLUTTET,
-            GjennomforingStatusType.AVBRUTT,
-            GjennomforingStatusType.AVLYST,
-        ).map { it.name }
-
         val sql = buildDeltakerSql(
             """
             ds.type NOT IN (${avsluttendeDeltakerStatuser.joinToString { "?" }})
@@ -260,6 +248,19 @@ class DeltakerRepository {
     }
 
     companion object {
+        private val sluttdatoStatuser = listOf(
+            DeltakerStatus.Type.VENTER_PA_OPPSTART.name,
+            DeltakerStatus.Type.DELTAR.name,
+        )
+
+        private val avsluttendeDeltakerStatuser = AVSLUTTENDE_STATUSER.map { it.name }
+
+        private val avsluttendeDeltakerlisteStatuser = listOf(
+            GjennomforingStatusType.AVSLUTTET,
+            GjennomforingStatusType.AVBRUTT,
+            GjennomforingStatusType.AVLYST,
+        ).map { it.name }
+
         private fun deltakerRowMapper(row: Row): Deltaker {
             val status = DeltakerStatus.Type.valueOf(row.string("ds.type"))
 
