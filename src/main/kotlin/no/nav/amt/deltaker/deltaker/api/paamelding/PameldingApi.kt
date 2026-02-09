@@ -18,6 +18,7 @@ import java.util.UUID
 
 fun Routing.registerPameldingApi(pameldingService: PameldingService, historikkService: DeltakerHistorikkService) {
     authenticate("SYSTEM") {
+        // pamelding/kladd
         post("/pamelding") {
             val opprettKladdRequest = call.receive<OpprettKladdRequest>()
 
@@ -29,6 +30,11 @@ fun Routing.registerPameldingApi(pameldingService: PameldingService, historikkSe
             call.respond(opprettKladdResponseFromDeltaker(deltaker))
         }
 
+        /*
+            Kalles av av frontend via amt-deltaker-bff med:
+            /pamelding/{deltakerId} godkjentAvNav=false
+            /pamelding/{deltakerId}/utenGodkjenning godkjentAvNav=true
+         */
         post("/pamelding/{deltakerId}") {
             val request = call.receive<UtkastRequest>()
             val deltakerId = UUID.fromString(call.parameters["deltakerId"])
