@@ -225,16 +225,17 @@ class DeltakerEndringHandler(
     }
 
     private fun DeltakerEndring.Endring.AvsluttDeltakelse.getAvsluttendeStatus(): DeltakerStatus {
-        val erFellesOppstart = deltaker.deltakerliste.erFellesOppstart
-        val erOpplaeringsTiltak = deltaker.deltakerliste.tiltakstype.tiltakskode
-            .erOpplaeringstiltak()
         val gyldigFra = if (skalFortsattDelta()) {
             sluttdato.atStartOfDay().plusDays(1)
         } else {
             LocalDateTime.now()
         }
         return nyDeltakerStatus(
-            type = if (erOpplaeringsTiltak || erFellesOppstart) DeltakerStatus.Type.FULLFORT else DeltakerStatus.Type.HAR_SLUTTET,
+            type = if (deltaker.erFellesOppstart || deltaker.erOpplaeringstiltak) {
+                DeltakerStatus.Type.FULLFORT
+            } else {
+                DeltakerStatus.Type.HAR_SLUTTET
+            },
             aarsak = aarsak?.toDeltakerStatusAarsak(),
             gyldigFra = gyldigFra,
         )
