@@ -8,8 +8,11 @@ import io.mockk.unmockkObject
 import no.nav.amt.deltaker.deltaker.db.DeltakerStatusMedDeltakerId
 import no.nav.amt.deltaker.deltaker.db.DeltakerStatusRepository
 import no.nav.amt.deltaker.utils.data.TestData
+import no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
+import no.nav.amt.lib.models.deltakerliste.Oppstartstype
+import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -23,6 +26,71 @@ class DeltakerProgresjonTest {
 
     @AfterEach
     fun teardown() = unmockkObject(DeltakerStatusRepository)
+
+    @Test
+    fun `getAvsluttendeStatusUtfall - ingen deltakere - returnerer tom liste`() {
+        val oppdatertDeltakere = DeltakerProgresjonHandler.getAvsluttendeStatusUtfall(emptyList())
+        oppdatertDeltakere shouldBe emptyList()
+    }
+
+    @Test
+    fun `getAvsluttendeStatusUtfall - deltaker deltatt paa opplaering - status fullfort`() {
+        val yesterday = LocalDate.now().minusDays(1)
+        val deltakerliste = TestData.lagDeltakerliste(
+            tiltakstype = lagTiltakstype(
+                tiltakskode = Tiltakskode.HOYERE_UTDANNING,
+            ),
+        )
+        val deltaker = TestData.lagDeltaker(
+            deltakerliste = deltakerliste,
+            startdato = deltakerliste.startDato,
+            sluttdato = yesterday,
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+        )
+
+        every { DeltakerStatusRepository.getAvsluttendeDeltakerStatuserForOppdatering(any()) } returns emptyList()
+
+        val oppdatertDeltaker = DeltakerProgresjonHandler
+            .getAvsluttendeStatusUtfall(listOf(deltaker))
+            .first()
+
+        assertSoftly(oppdatertDeltaker) {
+            startdato shouldBe deltaker.startdato
+            sluttdato shouldBe deltaker.sluttdato
+            status.type shouldBe DeltakerStatus.Type.FULLFORT
+            status.aarsak shouldBe null
+        }
+    }
+
+    @Test
+    fun `getAvsluttendeStatusUtfall - deltaker deltatt paa lopende oppstart - status har sluttet`() {
+        val yesterday = LocalDate.now().minusDays(1)
+        val deltakerliste = TestData.lagDeltakerliste(
+            tiltakstype = lagTiltakstype(
+                tiltakskode = Tiltakskode.HOYERE_UTDANNING,
+            ),
+            oppstart = Oppstartstype.LOPENDE,
+        )
+        val deltaker = TestData.lagDeltaker(
+            deltakerliste = deltakerliste,
+            startdato = deltakerliste.startDato,
+            sluttdato = yesterday,
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+        )
+
+        every { DeltakerStatusRepository.getAvsluttendeDeltakerStatuserForOppdatering(any()) } returns emptyList()
+
+        val oppdatertDeltaker = DeltakerProgresjonHandler
+            .getAvsluttendeStatusUtfall(listOf(deltaker))
+            .first()
+
+        assertSoftly(oppdatertDeltaker) {
+            startdato shouldBe deltaker.startdato
+            sluttdato shouldBe deltaker.sluttdato
+            status.type shouldBe DeltakerStatus.Type.FULLFORT
+            status.aarsak shouldBe null
+        }
+    }
 
     @Test
     fun `getAvsluttendeStatusUtfall - deltar avbrutt deltakerliste - far riktig status og arsak`() {

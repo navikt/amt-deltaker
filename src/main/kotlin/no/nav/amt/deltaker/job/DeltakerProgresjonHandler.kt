@@ -58,8 +58,9 @@ object DeltakerProgresjonHandler {
     private fun getDeltakereSomSkalFullfores(deltakere: List<Deltaker>): List<Deltaker> {
         val skalBliFullfort = deltakere
             .filter { it.status.type == DeltakerStatus.Type.DELTAR }
-            .filter { it.deltarPaKurs() } // TODO: pameldingstype.TRENGER_GODKJENNING
-            .filter { !it.deltakerliste.erAvlystEllerAvbrutt() }
+            .filter {
+                it.erFellesOppstart || it.erOpplaeringstiltak
+            }.filter { !it.deltakerliste.erAvlystEllerAvbrutt() }
             .map {
                 it
                     .medNyStatus(DeltakerStatus.Type.FULLFORT, getSluttarsak(it))
@@ -73,9 +74,13 @@ object DeltakerProgresjonHandler {
     private fun getDeltakereSomSkalAvbrytesForAvbruttDeltakerliste(deltakere: List<Deltaker>): List<Deltaker> {
         val skalBliAvbrutt = deltakere
             .filter { it.status.type == DeltakerStatus.Type.DELTAR }
-            .filter { it.deltarPaKurs() } // TODO: pameldingstype.TRENGER_GODKJENNING
+            .filter { it.erFellesOppstart || it.erOpplaeringstiltak }
             .filter { it.deltakerliste.erAvlystEllerAvbrutt() }
-            .map { it.medNyStatus(DeltakerStatus.Type.AVBRUTT, getSluttarsak(it)).medNySluttdato(getOppdatertSluttdato(it)) }
+            .map {
+                it
+                    .medNyStatus(DeltakerStatus.Type.AVBRUTT, getSluttarsak(it))
+                    .medNySluttdato(getOppdatertSluttdato(it))
+            }
         log.info("Endret status til AVBRUTT for ${skalBliAvbrutt.size}")
 
         return skalBliAvbrutt
@@ -84,7 +89,7 @@ object DeltakerProgresjonHandler {
     private fun getDeltakereSomHarSluttet(deltakere: List<Deltaker>): List<Deltaker> {
         val skalBliHarSluttet = deltakere
             .filter { it.status.type == DeltakerStatus.Type.DELTAR }
-            .filter { !it.deltarPaKurs() } // TODO: pameldingstype.TRENGER_GODKJENNING
+            .filter { !it.erFellesOppstart && !it.erOpplaeringstiltak }
             .map {
                 it
                     .medNyStatus(DeltakerStatus.Type.HAR_SLUTTET, getSluttarsak(it))

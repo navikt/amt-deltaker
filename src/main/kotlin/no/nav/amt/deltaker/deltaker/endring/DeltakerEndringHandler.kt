@@ -294,7 +294,7 @@ fun endreDeltakersOppstart(
     deltakelsesmengder: Deltakelsesmengder,
 ): Deltaker {
     val faktiskSluttdato = sluttdato ?: deltaker.sluttdato
-    val oppdatertStatus = deltaker.utledNyStatusForEndretStartOgSluttdato(
+    val oppdatertStatus = deltaker.oppdaterDeltakerStatus(
         nyStartdato = startdato,
         nySluttdato = faktiskSluttdato,
     )
@@ -314,7 +314,7 @@ private fun DeltakerEndring.Aarsak.toDeltakerStatusAarsak() = DeltakerStatus.Aar
     beskrivelse,
 )
 
-private fun Deltaker.utledNyStatusForEndretStartOgSluttdato(nyStartdato: LocalDate?, nySluttdato: LocalDate?): DeltakerStatus {
+fun Deltaker.oppdaterDeltakerStatus(nyStartdato: LocalDate?, nySluttdato: LocalDate?): DeltakerStatus {
     val now = LocalDate.now()
 
     return when {
@@ -326,7 +326,7 @@ private fun Deltaker.utledNyStatusForEndretStartOgSluttdato(nyStartdato: LocalDa
     }
 }
 
-// Dette caset er kun for deltakere fra Arena
+// SkalBliIkkeAktuell er kun for Arena deltakere
 private fun Deltaker.skalBliIkkeAktuell(
     startdato: LocalDate?,
     sluttdato: LocalDate?,
@@ -337,17 +337,12 @@ private fun Deltaker.skalBliIkkeAktuell(
 
 private fun LocalDate?.erPassert(now: LocalDate): Boolean = this != null && this < now
 
-private fun Deltaker.getAvsluttendeStatus(harFullfort: Boolean): DeltakerStatus.Type {
-    val erFellesOppstart = deltakerliste.erFellesOppstart
-    val erOpplaeringsTiltak = deltakerliste.tiltakstype.tiltakskode
-        .erOpplaeringstiltak()
-    return when {
-        erFellesOppstart || erOpplaeringsTiltak -> {
-            if (harFullfort) DeltakerStatus.Type.FULLFORT else DeltakerStatus.Type.AVBRUTT
-        }
+fun Deltaker.getAvsluttendeStatus(harFullfort: Boolean): DeltakerStatus.Type = when {
+    erFellesOppstart || erOpplaeringstiltak -> {
+        if (harFullfort) DeltakerStatus.Type.FULLFORT else DeltakerStatus.Type.AVBRUTT
+    }
 
-        else -> {
-            DeltakerStatus.Type.HAR_SLUTTET
-        }
+    else -> {
+        DeltakerStatus.Type.HAR_SLUTTET
     }
 }
