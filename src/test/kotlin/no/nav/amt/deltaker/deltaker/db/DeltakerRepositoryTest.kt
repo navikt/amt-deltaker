@@ -71,7 +71,7 @@ class DeltakerRepositoryTest {
             )
             deltakerRepository.upsert(oppdatertDeltaker)
 
-            val deltakereSomSkalHaAvsluttendeStatus = deltakerRepository.skalHaAvsluttendeStatus()
+            val deltakereSomSkalHaAvsluttendeStatus = deltakerRepository.getDeltakereHvorSluttdatoHarPassert()
 
             deltakereSomSkalHaAvsluttendeStatus.size shouldBe 1
             deltakereSomSkalHaAvsluttendeStatus.first().id shouldBe deltaker.id
@@ -86,7 +86,7 @@ class DeltakerRepositoryTest {
             )
             TestRepository.insert(deltaker)
 
-            val deltakereSomSkalHaAvsluttendeStatus = deltakerRepository.skalHaAvsluttendeStatus()
+            val deltakereSomSkalHaAvsluttendeStatus = deltakerRepository.getDeltakereHvorSluttdatoHarPassert()
 
             deltakereSomSkalHaAvsluttendeStatus.size shouldBe 0
         }
@@ -104,7 +104,7 @@ class DeltakerRepositoryTest {
             )
             TestRepository.insert(deltaker)
 
-            val deltakerePaAvsluttetDeltakerliste = deltakerRepository.deltarPaAvsluttetDeltakerliste()
+            val deltakerePaAvsluttetDeltakerliste = deltakerRepository.getDeltakereSomDeltarPaAvsluttetDeltakerliste()
 
             deltakerePaAvsluttetDeltakerliste.size shouldBe 1
             deltakerePaAvsluttetDeltakerliste.first().id shouldBe deltaker.id
@@ -120,7 +120,7 @@ class DeltakerRepositoryTest {
             )
             TestRepository.insert(deltaker)
 
-            val deltakerePaAvsluttetDeltakerliste = deltakerRepository.deltarPaAvsluttetDeltakerliste()
+            val deltakerePaAvsluttetDeltakerliste = deltakerRepository.getDeltakereSomDeltarPaAvsluttetDeltakerliste()
 
             deltakerePaAvsluttetDeltakerliste.size shouldBe 0
         }
