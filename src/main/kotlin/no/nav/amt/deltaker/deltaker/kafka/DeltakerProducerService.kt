@@ -10,18 +10,24 @@ class DeltakerProducerService(
     private val deltakerKafkaPayloadBuilder: DeltakerKafkaPayloadBuilder,
     private val deltakerProducer: DeltakerProducer,
     private val deltakerV1Producer: DeltakerV1Producer,
+    private val deltakerEksternV1Producer: DeltakerEksternV1Producer,
     private val unleashToggle: UnleashToggle,
 ) {
     fun produce(
         deltaker: Deltaker,
         forcedUpdate: Boolean? = false,
         publiserTilDeltakerV1: Boolean = true,
+        publiserTilDeltakerEKsternV1: Boolean = true,
         publiserTilDeltakerV2: Boolean = true,
     ) {
         if (deltaker.status.type == DeltakerStatus.Type.KLADD) return
 
         if (publiserTilDeltakerV1) {
             produceDeltakerV1Topic(deltaker)
+        }
+
+        if (publiserTilDeltakerEKsternV1) {
+            produceDeltakerEksternV1Topic(deltaker)
         }
         if (publiserTilDeltakerV2) {
             produceDeltakerV2Topic(deltaker, forcedUpdate)
@@ -33,6 +39,11 @@ class DeltakerProducerService(
         if (unleashToggle.skalDelesMedEksterne(deltaker.deltakerliste.tiltakstype.tiltakskode)) {
             deltakerV1Producer.produce(deltakerV1Record)
         }
+    }
+
+    private fun produceDeltakerEksternV1Topic(deltaker: Deltaker) {
+        val deltakerEksternV1Record = deltakerKafkaPayloadBuilder.buildDeltakerEksternV1Record(deltaker)
+        deltakerEksternV1Producer.produce(deltakerEksternV1Record)
     }
 
     private fun produceDeltakerV2Topic(deltaker: Deltaker, forcedUpdate: Boolean? = false) {
@@ -47,5 +58,6 @@ class DeltakerProducerService(
     fun tombstone(deltakerId: UUID) {
         deltakerProducer.produceTombstone(deltakerId)
         deltakerV1Producer.produceTombstone(deltakerId)
+        deltakerEksternV1Producer.produceTombstone(deltakerId)
     }
 }

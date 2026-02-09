@@ -381,6 +381,7 @@ fun Routing.registerInternalApi(
     }
 }
 
+// TODO
 data class RelastDeltakereRequest(
     val deltakere: List<UUID>,
     val forcedUpdate: Boolean,

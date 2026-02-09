@@ -22,6 +22,7 @@ import no.nav.amt.lib.models.deltaker.Kontaktinformasjon
 import no.nav.amt.lib.models.deltaker.Navn
 import no.nav.amt.lib.models.deltaker.Personalia
 import no.nav.amt.lib.models.deltaker.SisteEndring
+import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltak
 import java.time.LocalDate
@@ -61,7 +62,39 @@ class DeltakerKafkaPayloadBuilder(
             endretDato = maxOf(deltaker.status.opprettet, deltaker.sistEndret),
             kilde = deltaker.kilde,
             innhold = deltaker.deltakelsesinnhold?.toDeltakelsesinnholdDto(),
-            deltakelsesmengder = deltakelsesmengderDto(deltaker, deltakerhistorikk),
+            deltakelsesmengder = getDeltakelsesmengder(deltaker, deltakerhistorikk).toDeltakerV1Dto(),
+        )
+    }
+
+    fun buildDeltakerEksternV1Record(deltaker: Deltaker): DeltakerEksternV1Dto {
+        val deltakerhistorikk = deltakerHistorikkService.getForDeltaker(deltaker.id)
+        val innsoktDato = deltakerhistorikk.getInnsoktDato()
+            ?: throw IllegalStateException("Skal ikke produsere deltaker som mangler vedtak til topic")
+
+        return DeltakerEksternV1Dto(
+            id = deltaker.id,
+            gjennomforingId = deltaker.deltakerliste.id,
+            personIdent = deltaker.navBruker.personident,
+            startDato = deltaker.startdato,
+            sluttDato = deltaker.sluttdato,
+            status = DeltakerEksternV1Dto.DeltakerStatusDto(
+                type = deltaker.status.type,
+                statusTekst = deltaker.status.type.getStatustekst(),
+                aarsak = deltaker.status.aarsak?.type,
+                aarsakTekst = deltaker.status.aarsak?.let {
+                    DeltakerStatus
+                        .Aarsak(type = it.type, beskrivelse = deltaker.status.aarsak?.beskrivelse)
+                        .getVisningsnavn()
+                },
+                opprettetDato = deltaker.status.opprettet,
+            ),
+            registrertDato = innsoktDato.atStartOfDay(),
+            dagerPerUke = deltaker.dagerPerUke,
+            prosentStilling = deltaker.deltakelsesprosent,
+            endretDato = maxOf(deltaker.status.opprettet, deltaker.sistEndret),
+            kilde = deltaker.kilde,
+            innhold = deltaker.deltakelsesinnhold?.toDeltakelseEksternV1InnholdDto(),
+            deltakelsesmengder = getDeltakelsesmengder(deltaker, deltakerhistorikk).toDeltakerEksternV1Dto(),
         )
     }
 
@@ -174,6 +207,16 @@ class DeltakerKafkaPayloadBuilder(
         },
     )
 
+    private fun Deltakelsesinnhold.toDeltakelseEksternV1InnholdDto() = DeltakerEksternV1Dto.DeltakelsesinnholdDto(
+        ledetekst = ledetekst,
+        innhold = innhold.filter { it.valgt }.map {
+            DeltakerEksternV1Dto.InnholdDto(
+                tekst = it.tekst,
+                innholdskode = it.innholdskode,
+            )
+        },
+    )
+
     private fun DeltakerHistorikk.getSistEndretAv(): UUID = when (this) {
         is DeltakerHistorikk.Vedtak -> vedtak.sistEndretAv
 
@@ -219,7 +262,7 @@ class DeltakerKafkaPayloadBuilder(
         it is DeltakerHistorikk.Vedtak || it is DeltakerHistorikk.Endring
     }
 
-    private fun deltakelsesmengderDto(deltaker: Deltaker, historikk: List<DeltakerHistorikk>): List<DeltakerV1Dto.DeltakelsesmengdeDto> {
+    private fun getDeltakelsesmengder(deltaker: Deltaker, historikk: List<DeltakerHistorikk>): List<Deltakelsesmengde> {
         val deltakelsesmengder = if (deltaker.deltakerliste.tiltakstype.harDeltakelsesmengde) {
             val mengder = historikk.toDeltakelsesmengder()
             deltaker.startdato
@@ -229,13 +272,24 @@ class DeltakerKafkaPayloadBuilder(
             emptyList()
         }
 
-        return deltakelsesmengder.map {
-            DeltakerV1Dto.DeltakelsesmengdeDto(
-                it.deltakelsesprosent,
-                it.dagerPerUke,
-                it.gyldigFra,
-                it.opprettet,
-            )
-        }
+        return deltakelsesmengder
+    }
+
+    private fun List<Deltakelsesmengde>.toDeltakerV1Dto(): List<DeltakerV1Dto.DeltakelsesmengdeDto> = this.map {
+        DeltakerV1Dto.DeltakelsesmengdeDto(
+            deltakelsesprosent = it.deltakelsesprosent,
+            dagerPerUke = it.dagerPerUke,
+            gyldigFra = it.gyldigFra,
+            opprettet = it.opprettet,
+        )
+    }
+
+    private fun List<Deltakelsesmengde>.toDeltakerEksternV1Dto(): List<DeltakerEksternV1Dto.DeltakelsesmengdeDto> = this.map {
+        DeltakerEksternV1Dto.DeltakelsesmengdeDto(
+            deltakelsesprosent = it.deltakelsesprosent,
+            dagerPerUke = it.dagerPerUke,
+            gyldigFra = it.gyldigFra,
+            opprettet = it.opprettet,
+        )
     }
 }
