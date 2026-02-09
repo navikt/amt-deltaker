@@ -22,7 +22,28 @@ class DeltakerRepositoryTest {
     private val deltakerRepository = DeltakerRepository()
 
     @Nested
-    inner class Upsert {
+    inner class GetAntallDeltakereForDeltakerlisteTests {
+        val deltakerlisteInTest = lagDeltakerliste()
+
+        @Test
+        fun `skal returnere 0 hvis ingen deltakere`() {
+            val antallDeltakere = deltakerRepository.getAntallDeltakereForDeltakerliste(deltakerlisteInTest.id)
+
+            antallDeltakere shouldBe 0
+        }
+
+        @Test
+        fun `skal returnere antall deltaker hvis deltakerliste inneholder deltakere`() {
+            TestRepository.insert(lagDeltaker(deltakerliste = deltakerlisteInTest))
+
+            val antallDeltakere = deltakerRepository.getAntallDeltakereForDeltakerliste(deltakerlisteInTest.id)
+
+            antallDeltakere shouldBe 1
+        }
+    }
+
+    @Nested
+    inner class UpsertTests {
         @Test
         fun `ny deltaker - insertes`() {
             val expectedDeltaker = lagDeltaker()
@@ -54,7 +75,7 @@ class DeltakerRepositoryTest {
     }
 
     @Nested
-    inner class SkalHaAvsluttendeStatus {
+    inner class SkalHaAvsluttendeStatusTests {
         @Test
         fun `deltar, sluttdato passert - returnerer deltaker`() {
             val deltaker = lagDeltaker(
@@ -93,7 +114,7 @@ class DeltakerRepositoryTest {
     }
 
     @Nested
-    inner class DeltarPaAvsluttetDeltakerliste {
+    inner class DeltarPaAvsluttetDeltakerlisteTests {
         @Test
         fun `deltar, dl-sluttdato passert - returnerer deltaker`() {
             val deltaker = lagDeltaker(

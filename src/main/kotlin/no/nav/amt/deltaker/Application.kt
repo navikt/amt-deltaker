@@ -334,11 +334,12 @@ fun Application.module() {
         NavBrukerConsumer(navBrukerRepository, navEnhetService, deltakerService),
         TiltakstypeConsumer(tiltakstypeRepository),
         DeltakerlisteConsumer(
-            deltakerlisteRepository,
-            tiltakstypeRepository,
-            arrangorService,
-            deltakerService,
-            unleashToggle,
+            deltakerlisteRepository = deltakerlisteRepository,
+            deltakerRepository = deltakerRepository,
+            tiltakstypeRepository = tiltakstypeRepository,
+            arrangorService = arrangorService,
+            deltakerService = deltakerService,
+            unleashToggle = unleashToggle,
         ),
         EnkeltplassDeltakerConsumer(
             deltakerRepository,

@@ -23,6 +23,15 @@ import java.util.UUID
 class DeltakerRepository {
     private val log = LoggerFactory.getLogger(javaClass)
 
+    fun getAntallDeltakereForDeltakerliste(deltakerlisteId: UUID): Int = Database.query { session ->
+        session.run(
+            queryOf(
+                "SELECT COUNT(*) FROM deltaker WHERE deltakerliste_id = :deltakerliste_id",
+                mapOf("deltakerliste_id" to deltakerlisteId),
+            ).map { it.int(1) }.asSingle,
+        ) ?: 0
+    }
+
     fun upsert(deltaker: Deltaker) {
         val sql =
             """

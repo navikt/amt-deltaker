@@ -31,8 +31,10 @@ class DeltakerlisteRepository {
                 oppstart,
                 apent_for_pamelding,
                 oppmote_sted,
-                pameldingstype)
-            VALUES (:id,
+                pameldingstype
+            )
+            VALUES (
+                :id,
                 :navn,
                 :gjennomforingstype,
                 :status,
@@ -43,7 +45,8 @@ class DeltakerlisteRepository {
                 :oppstart,
                 :apent_for_pamelding,
                 :oppmote_sted,
-                :pameldingstype)
+                :pameldingstype
+            )
             ON CONFLICT (id) DO UPDATE SET
                 navn     				= :navn,
                 gjennomforingstype      = :gjennomforingstype,
