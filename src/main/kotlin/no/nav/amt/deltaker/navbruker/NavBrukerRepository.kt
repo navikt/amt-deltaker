@@ -12,35 +12,42 @@ import no.nav.amt.lib.utils.objectMapper
 import java.util.UUID
 
 class NavBrukerRepository {
-    private fun rowMapper(row: Row) = NavBruker(
-        personId = row.uuid("person_id"),
-        personident = row.string("personident"),
-        fornavn = row.string("fornavn"),
-        mellomnavn = row.stringOrNull("mellomnavn"),
-        etternavn = row.string("etternavn"),
-        navVeilederId = row.uuidOrNull("nav_veileder_id"),
-        navEnhetId = row.uuidOrNull("nav_enhet_id"),
-        telefon = row.stringOrNull("telefonnummer"),
-        epost = row.stringOrNull("epost"),
-        erSkjermet = row.boolean("er_skjermet"),
-        adresse = row.stringOrNull("adresse")?.let { objectMapper.readValue(it) },
-        adressebeskyttelse = row.stringOrNull("adressebeskyttelse")?.let { Adressebeskyttelse.valueOf(it) },
-        oppfolgingsperioder = row.stringOrNull("oppfolgingsperioder")?.let { objectMapper.readValue(it) } ?: emptyList(),
-        innsatsgruppe = row.stringOrNull("innsatsgruppe")?.let { Innsatsgruppe.valueOf(it) },
-    )
-
-    fun upsert(bruker: NavBruker) = Database.query {
+    fun upsert(bruker: NavBruker) = runCatching {
         val sql =
             """
-            insert into nav_bruker(
-                person_id, personident, fornavn, mellomnavn, etternavn, nav_veileder_id, nav_enhet_id, telefonnummer, epost, er_skjermet, 
-                adresse, adressebeskyttelse, oppfolgingsperioder, innsatsgruppe
+            INSERT INTO nav_bruker (
+                person_id, 
+                personident, 
+                fornavn, 
+                mellomnavn, 
+                etternavn, 
+                nav_veileder_id, 
+                nav_enhet_id, 
+                telefonnummer, 
+                epost, 
+                er_skjermet, 
+                adresse, 
+                adressebeskyttelse, 
+                oppfolgingsperioder, 
+                innsatsgruppe
             ) 
-            values (
-                :person_id, :personident, :fornavn, :mellomnavn, :etternavn, :nav_veileder_id, :nav_enhet_id, :telefonnummer, :epost, :er_skjermet, 
-                :adresse, :adressebeskyttelse, :oppfolgingsperioder, :innsatsgruppe
+            VALUES (
+                :person_id, 
+                :personident, 
+                :fornavn, 
+                :mellomnavn, 
+                :etternavn, 
+                :nav_veileder_id, 
+                :nav_enhet_id, 
+                :telefonnummer, 
+                :epost, 
+                :er_skjermet, 
+                :adresse, 
+                :adressebeskyttelse, 
+                :oppfolgingsperioder, 
+                :innsatsgruppe
             )
-            on conflict (person_id) do update set
+            ON CONFLICT (person_id) DO UPDATE SET
                 personident = :personident,
                 fornavn = :fornavn,
                 mellomnavn = :mellomnavn,
@@ -54,8 +61,8 @@ class NavBrukerRepository {
                 adressebeskyttelse = :adressebeskyttelse,
                 oppfolgingsperioder = :oppfolgingsperioder,
                 innsatsgruppe = :innsatsgruppe,
-                modified_at = current_timestamp
-            returning *
+                modified_at = CURRENT_TIMESTAMP
+            RETURNING *
             """.trimIndent()
 
         val params = mapOf(
@@ -75,33 +82,50 @@ class NavBrukerRepository {
             "innsatsgruppe" to bruker.innsatsgruppe?.name,
         )
 
-        it
-            .run(queryOf(sql, params).map(::rowMapper).asSingle)
-            ?.let { b -> Result.success(b) }
-            ?: Result.failure(NoSuchElementException("Noe gikk galt med upsert av bruker ${bruker.personId}"))
+        Database.query { session ->
+            session.run(queryOf(sql, params).map(::rowMapper).asSingle)
+                ?: throw NoSuchElementException("Noe gikk galt med upsert av bruker ${bruker.personId}")
+        }
     }
 
-    fun get(personId: UUID) = Database.query {
-        val query = queryOf(
-            statement = "select * from nav_bruker where person_id = :person_id",
-            paramMap = mapOf("person_id" to personId),
-        )
-
-        it
-            .run(query.map(::rowMapper).asSingle)
-            ?.let { b -> Result.success(b) }
-            ?: Result.failure(NoSuchElementException("Fant ikke bruker $personId"))
+    fun get(personId: UUID): Result<NavBruker> = runCatching {
+        Database.query { session ->
+            session.run(
+                queryOf(
+                    statement = "SELECT * FROM nav_bruker WHERE person_id = :person_id",
+                    paramMap = mapOf("person_id" to personId),
+                ).map(::rowMapper).asSingle,
+            ) ?: throw NoSuchElementException("Fant ikke bruker $personId")
+        }
     }
 
-    fun get(personident: String) = Database.query {
-        val query = queryOf(
-            statement = "select * from nav_bruker where personident = :personident",
-            paramMap = mapOf("personident" to personident),
-        )
+    fun get(personident: String): Result<NavBruker> = runCatching {
+        Database.query { session ->
+            session.run(
+                queryOf(
+                    statement = "SELECT * FROM nav_bruker WHERE personident = :personident",
+                    paramMap = mapOf("personident" to personident),
+                ).map(::rowMapper).asSingle,
+            ) ?: throw NoSuchElementException("Fant ikke bruker med personident")
+        }
+    }
 
-        it
-            .run(query.map(::rowMapper).asSingle)
-            ?.let { b -> Result.success(b) }
-            ?: Result.failure(NoSuchElementException("Fant ikke bruker med personident"))
+    companion object {
+        private fun rowMapper(row: Row) = NavBruker(
+            personId = row.uuid("person_id"),
+            personident = row.string("personident"),
+            fornavn = row.string("fornavn"),
+            mellomnavn = row.stringOrNull("mellomnavn"),
+            etternavn = row.string("etternavn"),
+            navVeilederId = row.uuidOrNull("nav_veileder_id"),
+            navEnhetId = row.uuidOrNull("nav_enhet_id"),
+            telefon = row.stringOrNull("telefonnummer"),
+            epost = row.stringOrNull("epost"),
+            erSkjermet = row.boolean("er_skjermet"),
+            adresse = row.stringOrNull("adresse")?.let { objectMapper.readValue(it) },
+            adressebeskyttelse = row.stringOrNull("adressebeskyttelse")?.let { Adressebeskyttelse.valueOf(it) },
+            oppfolgingsperioder = row.stringOrNull("oppfolgingsperioder")?.let { objectMapper.readValue(it) } ?: emptyList(),
+            innsatsgruppe = row.stringOrNull("innsatsgruppe")?.let { Innsatsgruppe.valueOf(it) },
+        )
     }
 }

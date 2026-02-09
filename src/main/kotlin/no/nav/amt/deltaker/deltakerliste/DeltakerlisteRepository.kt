@@ -16,33 +16,7 @@ import java.util.UUID
 class DeltakerlisteRepository {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    companion object {
-        fun rowMapper(row: Row, alias: String? = "dl"): Deltakerliste {
-            val col = prefixColumn(alias)
-
-            return Deltakerliste(
-                id = row.uuid(col("id")),
-                tiltakstype = TiltakstypeRepository.rowMapper(row, "t"),
-                navn = row.string(col("navn")),
-                gjennomforingstype = GjennomforingType.valueOf(row.string(col("gjennomforingstype"))),
-                status = row.stringOrNull(col("status"))?.let { GjennomforingStatusType.valueOf(it) },
-                startDato = row.localDateOrNull(col("start_dato")),
-                sluttDato = row.localDateOrNull(col("slutt_dato")),
-                oppstart = row.stringOrNull(col("oppstart"))?.let { Oppstartstype.valueOf(it) },
-                apentForPamelding = row.boolean(col("apent_for_pamelding")),
-                oppmoteSted = row.stringOrNull(col("oppmote_sted")),
-                pameldingstype = row.stringOrNull(col("pameldingstype"))?.let { GjennomforingPameldingType.valueOf(it) },
-                arrangor = Arrangor(
-                    id = row.uuid("a.id"),
-                    navn = row.string("a.navn"),
-                    organisasjonsnummer = row.string("a.organisasjonsnummer"),
-                    overordnetArrangorId = row.uuidOrNull("a.overordnet_arrangor_id"),
-                ),
-            )
-        }
-    }
-
-    fun upsert(deltakerliste: Deltakerliste) = Database.query {
+    fun upsert(deltakerliste: Deltakerliste) {
         val sql =
             """
             INSERT INTO deltakerliste(
@@ -82,75 +56,99 @@ class DeltakerlisteRepository {
                 apent_for_pamelding     = :apent_for_pamelding,
                 oppmote_sted            = :oppmote_sted,
                 pameldingstype          = :pameldingstype,
-                modified_at             = current_timestamp
+                modified_at             = CURRENT_TIMESTAMP
             """.trimIndent()
 
-        it.update(
-            queryOf(
-                sql,
-                mapOf(
-                    "id" to deltakerliste.id,
-                    "navn" to deltakerliste.navn,
-                    "gjennomforingstype" to deltakerliste.gjennomforingstype.name,
-                    "status" to deltakerliste.status?.name,
-                    "arrangor_id" to deltakerliste.arrangor.id,
-                    "tiltakstype_id" to deltakerliste.tiltakstype.id,
-                    "start_dato" to deltakerliste.startDato,
-                    "slutt_dato" to deltakerliste.sluttDato,
-                    "oppstart" to deltakerliste.oppstart?.name,
-                    "apent_for_pamelding" to deltakerliste.apentForPamelding,
-                    "oppmote_sted" to deltakerliste.oppmoteSted,
-                    "pameldingstype" to deltakerliste.pameldingstype?.name,
-                ),
-            ),
+        val params = mapOf(
+            "id" to deltakerliste.id,
+            "navn" to deltakerliste.navn,
+            "gjennomforingstype" to deltakerliste.gjennomforingstype.name,
+            "status" to deltakerliste.status?.name,
+            "arrangor_id" to deltakerliste.arrangor.id,
+            "tiltakstype_id" to deltakerliste.tiltakstype.id,
+            "start_dato" to deltakerliste.startDato,
+            "slutt_dato" to deltakerliste.sluttDato,
+            "oppstart" to deltakerliste.oppstart?.name,
+            "apent_for_pamelding" to deltakerliste.apentForPamelding,
+            "oppmote_sted" to deltakerliste.oppmoteSted,
+            "pameldingstype" to deltakerliste.pameldingstype?.name,
         )
 
+        Database.query { session -> session.update(queryOf(sql, params)) }
         log.info("Upsertet deltakerliste med id ${deltakerliste.id}")
     }
 
     fun delete(id: UUID) = Database.query {
         it.update(
             queryOf(
-                statement = "delete from deltakerliste where id = :id",
+                statement = "DELETE FROM deltakerliste WHERE id = :id",
                 paramMap = mapOf("id" to id),
             ),
         )
         log.info("Slettet deltakerliste med id $id")
     }
 
-    fun get(id: UUID): Result<Deltakerliste> = Database.query {
-        val query = queryOf(
+    fun get(id: UUID): Result<Deltakerliste> = runCatching {
+        val sql =
             """
             SELECT 
-               dl.id as "dl.id",
-               dl.navn as "dl.navn",
-               dl.gjennomforingstype as "dl.gjennomforingstype",
-               dl.status as "dl.status",
-               dl.start_dato as "dl.start_dato",
-               dl.slutt_dato as "dl.slutt_dato",
-               dl.oppstart as "dl.oppstart",
-               dl.apent_for_pamelding as "dl.apent_for_pamelding",
-               dl.oppmote_sted as "dl.oppmote_sted",
-               dl.pameldingstype as "dl.pameldingstype",
-               a.id as "a.id",
-               a.navn as "a.navn",
-               a.organisasjonsnummer as "a.organisasjonsnummer",
-               a.overordnet_arrangor_id as "a.overordnet_arrangor_id",
-               t.id as "t.id",
-               t.navn as "t.navn",
-               t.tiltakskode as "t.tiltakskode",
-               t.innsatsgrupper as "t.innsatsgrupper",
-               t.innhold as "t.innhold"
+               dl.id AS "dl.id",
+               dl.navn AS "dl.navn",
+               dl.gjennomforingstype AS "dl.gjennomforingstype",
+               dl.status AS "dl.status",
+               dl.start_dato AS "dl.start_dato",
+               dl.slutt_dato AS "dl.slutt_dato",
+               dl.oppstart AS "dl.oppstart",
+               dl.apent_for_pamelding AS "dl.apent_for_pamelding",
+               dl.oppmote_sted AS "dl.oppmote_sted",
+               dl.pameldingstype AS "dl.pameldingstype",
+               a.id AS "a.id",
+               a.navn AS "a.navn",
+               a.organisasjonsnummer AS "a.organisasjonsnummer",
+               a.overordnet_arrangor_id AS "a.overordnet_arrangor_id",
+               t.id AS "t.id",
+               t.navn AS "t.navn",
+               t.tiltakskode AS "t.tiltakskode",
+               t.innsatsgrupper AS "t.innsatsgrupper",
+               t.innhold AS "t.innhold"
             FROM 
                 deltakerliste dl
                 JOIN arrangor a ON a.id = dl.arrangor_id
                 JOIN tiltakstype t ON t.id = dl.tiltakstype_id
             WHERE dl.id = :id
-            """.trimIndent(),
-            mapOf("id" to id),
-        ).map(::rowMapper).asSingle
+            """.trimIndent()
 
-        it.run(query)?.let { dl -> Result.success(dl) }
-            ?: Result.failure(NoSuchElementException("Fant ikke deltakerliste med id $id"))
+        Database.query { session ->
+            session.run(
+                queryOf(
+                    sql,
+                    mapOf("id" to id),
+                ).map(::rowMapper).asSingle,
+            ) ?: throw NoSuchElementException("Fant ikke deltakerliste med id $id")
+        }
+    }
+
+    companion object {
+        private val col = prefixColumn("dl")
+
+        fun rowMapper(row: Row): Deltakerliste = Deltakerliste(
+            id = row.uuid(col("id")),
+            tiltakstype = TiltakstypeRepository.rowMapper(row, "t"),
+            navn = row.string(col("navn")),
+            gjennomforingstype = GjennomforingType.valueOf(row.string(col("gjennomforingstype"))),
+            status = row.stringOrNull(col("status"))?.let { GjennomforingStatusType.valueOf(it) },
+            startDato = row.localDateOrNull(col("start_dato")),
+            sluttDato = row.localDateOrNull(col("slutt_dato")),
+            oppstart = row.stringOrNull(col("oppstart"))?.let { Oppstartstype.valueOf(it) },
+            apentForPamelding = row.boolean(col("apent_for_pamelding")),
+            oppmoteSted = row.stringOrNull(col("oppmote_sted")),
+            pameldingstype = row.stringOrNull(col("pameldingstype"))?.let { GjennomforingPameldingType.valueOf(it) },
+            arrangor = Arrangor(
+                id = row.uuid("a.id"),
+                navn = row.string("a.navn"),
+                organisasjonsnummer = row.string("a.organisasjonsnummer"),
+                overordnetArrangorId = row.uuidOrNull("a.overordnet_arrangor_id"),
+            ),
+        )
     }
 }

@@ -7,37 +7,33 @@ import no.nav.amt.lib.utils.database.Database
 import java.util.UUID
 
 open class VurderingRepository {
-    companion object {
-        fun rowMapper(row: Row): Vurdering = Vurdering(
-            id = row.uuid("id"),
-            deltakerId = row.uuid("deltaker_id"),
-            vurderingstype = Vurderingstype.valueOf(row.string("vurderingstype")),
-            begrunnelse = row.stringOrNull("begrunnelse"),
-            opprettetAvArrangorAnsattId = row.uuid("opprettet_av_arrangor_ansatt_id"),
-            gyldigFra = row.localDateTime("gyldig_fra"),
+    fun getForDeltaker(deltakerId: UUID): List<Vurdering> = Database.query { session ->
+        session.run(
+            queryOf(
+                "SELECT * FROM vurdering WHERE deltaker_id = :deltakerId",
+                mapOf("deltakerId" to deltakerId),
+            ).map(::rowMapper).asList,
         )
     }
 
-    fun getForDeltaker(deltakerId: UUID): List<Vurdering> = Database.query {
+    fun upsert(vurdering: Vurdering) {
         val sql =
             """
-            SELECT *
-            FROM vurdering
-            WHERE deltaker_id = :deltakerId;
-            """.trimIndent()
-
-        val parameters = mapOf("deltakerId" to deltakerId)
-        val query = queryOf(sql, parameters)
-
-        it.run(query.map(::rowMapper).asList)
-    }
-
-    fun upsert(vurdering: Vurdering) = Database.query {
-        val sql =
-            """
-            INSERT INTO vurdering (id, deltaker_id, opprettet_av_arrangor_ansatt_id, vurderingstype, begrunnelse, gyldig_fra)
+            INSERT INTO vurdering (
+                id, 
+                deltaker_id, 
+                opprettet_av_arrangor_ansatt_id, 
+                vurderingstype, 
+                begrunnelse, 
+                gyldig_fra
+            )
             VALUES (
-                :id, :deltaker_id, :opprettet_av_arrangor_ansatt_id, :vurderingstype, :begrunnelse, :gyldig_fra
+                :id, 
+                :deltaker_id, 
+                :opprettet_av_arrangor_ansatt_id, 
+                :vurderingstype, 
+                :begrunnelse, 
+                :gyldig_fra
             )
             ON CONFLICT (id) DO UPDATE SET
                 opprettet_av_arrangor_ansatt_id = :opprettet_av_arrangor_ansatt_id, 
@@ -45,6 +41,7 @@ open class VurderingRepository {
                 begrunnelse = :begrunnelse, 
                 gyldig_fra = :gyldig_fra
             """.trimIndent()
+
         val params = mapOf(
             "id" to vurdering.id,
             "deltaker_id" to vurdering.deltakerId,
@@ -53,18 +50,27 @@ open class VurderingRepository {
             "begrunnelse" to vurdering.begrunnelse,
             "gyldig_fra" to vurdering.gyldigFra,
         )
-        val query = queryOf(sql, params)
-        it.update(query)
+
+        Database.query { session -> session.update(queryOf(sql, params)) }
     }
 
-    fun deleteForDeltaker(deltakerId: UUID) = Database.query {
-        val query = queryOf(
-            """
-            DELETE FROM vurdering 
-            WHERE deltaker_id = :deltaker_id;
-            """.trimIndent(),
-            mapOf("deltaker_id" to deltakerId),
+    fun deleteForDeltaker(deltakerId: UUID) = Database.query { session ->
+        session.update(
+            queryOf(
+                "DELETE FROM vurdering WHERE deltaker_id = :deltaker_id",
+                mapOf("deltaker_id" to deltakerId),
+            ),
         )
-        it.update(query)
+    }
+
+    companion object {
+        private fun rowMapper(row: Row): Vurdering = Vurdering(
+            id = row.uuid("id"),
+            deltakerId = row.uuid("deltaker_id"),
+            vurderingstype = Vurderingstype.valueOf(row.string("vurderingstype")),
+            begrunnelse = row.stringOrNull("begrunnelse"),
+            opprettetAvArrangorAnsattId = row.uuid("opprettet_av_arrangor_ansatt_id"),
+            gyldigFra = row.localDateTime("gyldig_fra"),
+        )
     }
 }

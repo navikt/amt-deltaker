@@ -41,7 +41,7 @@ class VedtakRepository {
                 gyldig_til            = :gyldig_til,
                 deltaker_ved_vedtak   = :deltaker_ved_vedtak,
                 fattet_av_nav         = :fattet_av_nav,
-                modified_at           = current_timestamp,
+                modified_at           = CURRENT_TIMESTAMP,
                 sist_endret_av        = :sist_endret_av,
                 sist_endret_av_enhet  = :sist_endret_av_enhet
             RETURNING *
@@ -67,33 +67,37 @@ class VedtakRepository {
         }
     }
 
-    fun get(id: UUID): Vedtak? {
-        val query = queryOf(
-            "SELECT * FROM vedtak WHERE id = :id",
-            mapOf("id" to id),
+    fun get(id: UUID): Vedtak? = Database.query { session ->
+        session.run(
+            queryOf(
+                "SELECT * FROM vedtak WHERE id = :id",
+                mapOf("id" to id),
+            ).map(::rowMapper).asSingle,
         )
-
-        return Database.query { session -> session.run(query.map(::rowMapper).asSingle) }
     }
 
-    fun getForDeltaker(deltakerId: UUID): Vedtak? {
-        val query = queryOf(
-            "SELECT * FROM vedtak WHERE deltaker_id = :deltaker_id",
-            mapOf("deltaker_id" to deltakerId),
+    fun getForDeltaker(deltakerId: UUID): Vedtak? = Database.query { session ->
+        session.run(
+            queryOf(
+                "SELECT * FROM vedtak WHERE deltaker_id = :deltaker_id",
+                mapOf("deltaker_id" to deltakerId),
+            ).map(::rowMapper).asSingle,
         )
-        return Database.query { session -> session.run(query.map(::rowMapper).asSingle) }
     }
 
     fun deleteForDeltaker(deltakerId: UUID) {
-        val query = queryOf(
-            "DELETE FROM vedtak WHERE deltaker_id = :deltaker_id",
-            mapOf("deltaker_id" to deltakerId),
-        )
-        Database.query { session -> session.update(query) }
+        Database.query { session ->
+            session.update(
+                queryOf(
+                    "DELETE FROM vedtak WHERE deltaker_id = :deltaker_id",
+                    mapOf("deltaker_id" to deltakerId),
+                ),
+            )
+        }
     }
 
     companion object {
-        fun rowMapper(row: Row) = Vedtak(
+        private fun rowMapper(row: Row) = Vedtak(
             id = row.uuid("id"),
             deltakerId = row.uuid("deltaker_id"),
             fattet = row.localDateTimeOrNull("fattet"),

@@ -30,15 +30,23 @@ object DeltakerStatusRepository {
     fun lagreStatus(deltakerId: UUID, deltakerStatus: DeltakerStatus) {
         val sql =
             """
-            INSERT INTO deltaker_status(id, deltaker_id, type, aarsak, gyldig_fra, created_at)
+            INSERT INTO deltaker_status (
+                id, 
+                deltaker_id, 
+                type, 
+                aarsak, 
+                gyldig_fra, 
+                created_at
+            )
             VALUES (
                 :id, 
                 :deltaker_id, 
                 :type, 
                 :aarsak, 
                 COALESCE(:gyldig_fra, CURRENT_TIMESTAMP), 
-                COALESCE(:created_at, CURRENT_TIMESTAMP))
-            ON CONFLICT (id) DO NOTHING;
+                COALESCE(:created_at, CURRENT_TIMESTAMP)
+            )
+            ON CONFLICT (id) DO NOTHING
             """.trimIndent()
 
         val params = mapOf(
@@ -50,9 +58,7 @@ object DeltakerStatusRepository {
             "created_at" to nullWhenNearNow(deltakerStatus.opprettet),
         )
 
-        Database.query { session ->
-            session.update(queryOf(sql, params))
-        }
+        Database.query { session -> session.update(queryOf(sql, params)) }
     }
 
     fun deaktiverTidligereStatuser(deltakerId: UUID, deltakerStatus: DeltakerStatus) {
@@ -60,12 +66,12 @@ object DeltakerStatusRepository {
             """
             UPDATE deltaker_status
             SET 
-                gyldig_til = current_timestamp,
-                modified_at = current_timestamp
+                gyldig_til = CURRENT_TIMESTAMP,
+                modified_at = CURRENT_TIMESTAMP
             WHERE 
                 deltaker_id = :deltaker_id 
                 AND id != :id 
-                AND gyldig_til IS NULL;
+                AND gyldig_til IS NULL
             """.trimIndent()
 
         return Database.query { session ->
@@ -86,7 +92,7 @@ object DeltakerStatusRepository {
                 deltaker_id = :deltaker_id 
                 AND id != :id 
                 AND gyldig_til IS NULL
-                AND gyldig_fra > CURRENT_TIMESTAMP;
+                AND gyldig_fra > CURRENT_TIMESTAMP
             """.trimIndent()
 
         return Database.query { session ->
@@ -99,32 +105,20 @@ object DeltakerStatusRepository {
         }
     }
 
-    fun getDeltakerStatuser(deltakerId: UUID): List<DeltakerStatus> {
-        val sql =
-            """
-            SELECT * 
-            FROM deltaker_status 
-            WHERE deltaker_id = :deltaker_id
-            """.trimIndent()
-
-        val query = queryOf(sql, mapOf("deltaker_id" to deltakerId))
-            .map(::deltakerStatusRowMapper)
-            .asList
-
-        return Database.query { session -> session.run(query) }
+    fun getDeltakerStatuser(deltakerId: UUID): List<DeltakerStatus> = Database.query { session ->
+        session.run(
+            queryOf(
+                "SELECT * FROM deltaker_status WHERE deltaker_id = :deltaker_id",
+                mapOf("deltaker_id" to deltakerId),
+            ).map(::deltakerStatusRowMapper).asList,
+        )
     }
 
     fun slettStatus(deltakerId: UUID) {
-        val sql =
-            """
-            DELETE FROM deltaker_status
-            WHERE deltaker_id = :deltaker_id;
-            """.trimIndent()
-
         Database.query { session ->
             session.update(
                 queryOf(
-                    sql,
+                    "DELETE FROM deltaker_status WHERE deltaker_id = :deltaker_id",
                     mapOf("deltaker_id" to deltakerId),
                 ),
             )
@@ -177,9 +171,7 @@ object DeltakerStatusRepository {
             )
         }.asList
 
-        return Database.query { session ->
-            session.run(query)
-        }
+        return Database.query { session -> session.run(query) }
     }
 
     fun deltakerStatusRowMapper(row: Row) = DeltakerStatus(

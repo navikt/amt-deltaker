@@ -3,7 +3,6 @@ package no.nav.amt.deltaker.tiltakskoordinator.endring
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import kotliquery.queryOf
-import no.nav.amt.deltaker.utils.prefixColumn
 import no.nav.amt.deltaker.utils.toPGObject
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.utils.database.Database
@@ -11,27 +10,27 @@ import no.nav.amt.lib.utils.objectMapper
 import java.util.UUID
 
 class EndringFraTiltakskoordinatorRepository {
-    companion object {
-        fun rowMapper(row: Row, alias: String? = "et"): EndringFraTiltakskoordinator {
-            val col = prefixColumn(alias)
-
-            return EndringFraTiltakskoordinator(
-                id = row.uuid(col("id")),
-                deltakerId = row.uuid(col("deltaker_id")),
-                endretAv = row.uuid(col("nav_ansatt_id")),
-                endretAvEnhet = row.uuid(col("nav_enhet_id")),
-                endret = row.localDateTime(col("endret")),
-                endring = objectMapper.readValue(row.string(col("endring"))),
-            )
-        }
-    }
-
     fun insert(endringer: List<EndringFraTiltakskoordinator>) {
         val sql =
             """
-            insert into endring_fra_tiltakskoordinator (id, deltaker_id, nav_ansatt_id, nav_enhet_id, endret, endring) 
-            values (:id, :deltaker_id, :nav_ansatt_id, :nav_enhet_id, :endret, :endring)
+            INSERT INTO endring_fra_tiltakskoordinator (
+                id, 
+                deltaker_id, 
+                nav_ansatt_id, 
+                nav_enhet_id, 
+                endret, 
+                endring
+            ) 
+            VALUES (
+                :id, 
+                :deltaker_id, 
+                :nav_ansatt_id, 
+                :nav_enhet_id, 
+                :endret, 
+                :endring
+            )
             """.trimIndent()
+
         val params = endringer.map { endring ->
             mapOf(
                 "id" to endring.id,
@@ -43,55 +42,71 @@ class EndringFraTiltakskoordinatorRepository {
             )
         }
 
-        Database.query { session ->
-            session.batchPreparedNamedStatement(sql, params)
+        Database.query { session -> session.batchPreparedNamedStatement(sql, params) }
+    }
+
+    fun getForDeltaker(deltakerId: UUID): List<EndringFraTiltakskoordinator> {
+        val sql =
+            """
+            SELECT 
+                id,
+                deltaker_id,
+                nav_ansatt_id,
+                nav_enhet_id,
+                endret,
+                endring
+            FROM endring_fra_tiltakskoordinator 
+            WHERE deltaker_id = :deltaker_id            
+            """.trimIndent()
+
+        return Database.query { session ->
+            session.run(
+                queryOf(
+                    sql,
+                    mapOf("deltaker_id" to deltakerId),
+                ).map(::rowMapper).asList,
+            )
         }
     }
 
-    fun getForDeltaker(deltakerId: UUID) = Database.query {
-        val query = queryOf(
+    fun get(id: UUID): EndringFraTiltakskoordinator? {
+        val sql =
             """
             SELECT 
-                et.id as "et.id",
-                et.deltaker_id as "et.deltaker_id",
-                et.nav_ansatt_id as "et.nav_ansatt_id",
-                et.nav_enhet_id as "et.nav_enhet_id",
-                et.endret as "et.endret",
-                et.endring as "et.endring"
-            FROM endring_fra_tiltakskoordinator et 
-            WHERE et.deltaker_id = :deltaker_id;
-            """.trimIndent(),
-            mapOf("deltaker_id" to deltakerId),
-        )
-        it.run(query.map(::rowMapper).asList)
+                id,
+                deltaker_id,
+                nav_ansatt_id,
+                nav_enhet_id,
+                endret,
+                endring
+            FROM endring_fra_tiltakskoordinator 
+            WHERE id = :id
+            """.trimIndent()
+
+        return Database.query { session ->
+            session.run(
+                queryOf(sql, mapOf("id" to id)).map(::rowMapper).asSingle,
+            )
+        }
     }
 
-    fun get(id: UUID) = Database.query {
-        val query = queryOf(
-            """
-            SELECT 
-                et.id as "et.id",
-                et.deltaker_id as "et.deltaker_id",
-                et.nav_ansatt_id as "et.nav_ansatt_id",
-                et.nav_enhet_id as "et.nav_enhet_id",
-                et.endret as "et.endret",
-                et.endring as "et.endring"
-            FROM endring_fra_tiltakskoordinator et 
-            WHERE et.id = :id;
-            """.trimIndent(),
-            mapOf("id" to id),
+    fun deleteForDeltaker(deltakerId: UUID) = Database.query { session ->
+        session.update(
+            queryOf(
+                "DELETE FROM endring_fra_tiltakskoordinator WHERE deltaker_id = :deltaker_id",
+                mapOf("deltaker_id" to deltakerId),
+            ),
         )
-        it.run(query.map(::rowMapper).asSingle)
     }
 
-    fun deleteForDeltaker(deltakerId: UUID) = Database.query {
-        val query = queryOf(
-            """
-            DELETE FROM endring_fra_tiltakskoordinator 
-            WHERE deltaker_id = :deltaker_id;
-            """.trimIndent(),
-            mapOf("deltaker_id" to deltakerId),
+    companion object {
+        private fun rowMapper(row: Row): EndringFraTiltakskoordinator = EndringFraTiltakskoordinator(
+            id = row.uuid("id"),
+            deltakerId = row.uuid("deltaker_id"),
+            endretAv = row.uuid("nav_ansatt_id"),
+            endretAvEnhet = row.uuid("nav_enhet_id"),
+            endret = row.localDateTime("endret"),
+            endring = objectMapper.readValue(row.string("endring")),
         )
-        it.update(query)
     }
 }
