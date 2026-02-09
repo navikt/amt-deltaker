@@ -4,6 +4,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.amt.deltaker.Environment
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerService
+import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
@@ -19,6 +20,7 @@ import java.util.UUID
 
 class DeltakerlisteConsumer(
     private val deltakerlisteRepository: DeltakerlisteRepository,
+    private val deltakerRepository: DeltakerRepository,
     private val tiltakstypeRepository: TiltakstypeRepository,
     private val arrangorService: ArrangorService,
     private val deltakerService: DeltakerService,
@@ -46,23 +48,34 @@ class DeltakerlisteConsumer(
         }
 
         deltakerlistePayload.assertPameldingstypeIsValid()
+
         val arrangor = arrangorService.hentArrangor(deltakerlistePayload.arrangor.organisasjonsnummer)
         val tiltakstype = tiltakstypeRepository.get(deltakerlistePayload.tiltakskode).getOrThrow()
 
-        val deltakerlisteFromPayload = deltakerlistePayload.toModel(
+        val deltakerliste = deltakerlistePayload.toModel(
             { gruppe -> gruppe.toModel(arrangor, tiltakstype) },
             { enkeltplass -> enkeltplass.toModel(arrangor, tiltakstype) },
         )
 
         val eksisterendeDeltakerliste = deltakerlisteRepository.get(deltakerlistePayload.id).getOrNull()
-        if (eksisterendeDeltakerliste == deltakerlisteFromPayload) {
-            log.info("Deltakerliste med id ${deltakerlisteFromPayload.id} er uendret.")
-            return
+
+        if (eksisterendeDeltakerliste != null) {
+            if (eksisterendeDeltakerliste == deltakerliste) {
+                log.info("Deltakerliste med id ${deltakerliste.id} er uendret.")
+                return
+            }
+
+            // deltakerliste med deltakere kan ikke endre pameldingstype eller oppstartstype
+            deltakerlistePayload.assertValidChanges(
+                antallDeltakere = deltakerRepository.getAntallDeltakereForDeltakerliste(eksisterendeDeltakerliste.id),
+                eksisterendePameldingstype = eksisterendeDeltakerliste.pameldingstype,
+                eksisterendeOppstartstype = eksisterendeDeltakerliste.oppstart,
+            )
+
+            handterDeltakere(deltakerliste, eksisterendeDeltakerliste)
         }
 
-        if (eksisterendeDeltakerliste != null) handterDeltakere(deltakerlisteFromPayload, eksisterendeDeltakerliste)
-
-        deltakerlisteRepository.upsert(deltakerlisteFromPayload)
+        deltakerlisteRepository.upsert(deltakerliste)
     }
 
     suspend fun handterDeltakere(deltakerlisteFromPayload: Deltakerliste, eksisterendeDeltakerliste: Deltakerliste) {
