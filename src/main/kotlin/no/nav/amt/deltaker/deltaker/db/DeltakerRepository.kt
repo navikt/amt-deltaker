@@ -188,7 +188,7 @@ class DeltakerRepository {
 
     fun getDeltakereHvorSluttdatoHarPassert(): List<Deltaker> {
         val sql = buildDeltakerSql(
-            "getDeltakereHvorSluttdatoHarPassert",
+            "getSluttdatoHarPassert",
             """
             ds.type IN (${sluttdatoStatuser.joinToString { "?" }})
             AND d.sluttdato < CURRENT_DATE
@@ -207,7 +207,7 @@ class DeltakerRepository {
 
     fun getDeltakereSomDeltarPaAvsluttetDeltakerliste(): List<Deltaker> {
         val sql = buildDeltakerSql(
-            "getDeltakereSomDeltarPaAvsluttetDeltakerliste",
+            "getDeltakereSomDeltar",
             """
             ds.type NOT IN (${avsluttendeDeltakerStatuser.joinToString { "?" }})
             AND dl.status IN (${avsluttendeDeltakerlisteStatuser.joinToString { "?" }})
@@ -343,7 +343,7 @@ class DeltakerRepository {
 
         private fun buildDeltakerSql(methodName: String, whereClause: String) = """
         SELECT 
-            '$methodName' AS $methodName,
+            1 AS "$methodName",
             d.id AS "d.id",
             d.person_id AS "d.person_id",
             d.deltakerliste_id AS "d.deltakerliste_id",
