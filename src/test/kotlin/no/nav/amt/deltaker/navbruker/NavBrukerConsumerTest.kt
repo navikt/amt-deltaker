@@ -110,7 +110,7 @@ class NavBrukerConsumerTest {
         }
 
         navBrukerRepository.get(navBruker.personId).getOrNull() shouldBe oppdatertNavBruker
-        coVerify { deltakerService.produserDeltakereForPerson(oppdatertNavBruker.personident, false) }
+        coVerify { deltakerService.produserDeltakereForPerson(oppdatertNavBruker.personident, false, false) }
     }
 
     @Test
