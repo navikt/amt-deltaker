@@ -17,7 +17,7 @@ class DeltakerProducerService(
         deltaker: Deltaker,
         forcedUpdate: Boolean? = false,
         publiserTilDeltakerV1: Boolean = true,
-        publiserTilDeltakerEKsternV1: Boolean = true,
+        publiserTilDeltakerEksternV1: Boolean = true,
         publiserTilDeltakerV2: Boolean = true,
     ) {
         if (deltaker.status.type == DeltakerStatus.Type.KLADD) return
@@ -26,7 +26,7 @@ class DeltakerProducerService(
             produceDeltakerV1Topic(deltaker)
         }
 
-        if (publiserTilDeltakerEKsternV1) {
+        if (publiserTilDeltakerEksternV1) {
             produceDeltakerEksternV1Topic(deltaker)
         }
 

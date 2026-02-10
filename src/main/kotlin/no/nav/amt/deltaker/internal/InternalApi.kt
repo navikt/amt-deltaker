@@ -69,6 +69,7 @@ fun Routing.registerInternalApi(
                     deltakerRepository.get(deltakerId).getOrThrow(),
                     forcedUpdate = request.forcedUpdate,
                     publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
+                    publiserTilDeltakerEksternV1 = request.publiserTilDeltakerEksternV1,
                     publiserTilDeltakerV2 = request.publiserTilDeltakerV2,
                 )
             }
@@ -129,6 +130,7 @@ fun Routing.registerInternalApi(
                 deltaker.getOrThrow(),
                 forcedUpdate = request.forcedUpdate,
                 publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
+                publiserTilDeltakerEksternV1 = request.publiserTilDeltakerEksternV1,
             )
             log.info("Relastet deltaker $deltakerId på deltaker-v2")
             call.respond(HttpStatusCode.OK)
@@ -150,6 +152,7 @@ fun Routing.registerInternalApi(
                     deltakerRepository.get(deltakerId).getOrThrow().copy(sistEndret = LocalDateTime.now()),
                     forcedUpdate = request.forcedUpdate,
                     publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
+                    publiserTilDeltakerEksternV1 = request.publiserTilDeltakerEksternV1,
                     publiserTilDeltakerV2 = false,
                 )
             }
@@ -178,6 +181,7 @@ fun Routing.registerInternalApi(
                         deltakerRepository.get(it).getOrThrow(),
                         forcedUpdate = request.forcedUpdate,
                         publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
+                        publiserTilDeltakerEksternV1 = request.publiserTilDeltakerEksternV1,
                     )
                 }
                 log.info("Relastet deltakere for tiltakskode ${tiltakskode.name} på deltaker-v2")
@@ -203,6 +207,7 @@ fun Routing.registerInternalApi(
                             deltakerRepository.get(deltakerId).getOrThrow(),
                             forcedUpdate = request.forcedUpdate,
                             publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
+                            publiserTilDeltakerEksternV1 = request.publiserTilDeltakerEksternV1,
                         )
                     }
 
@@ -304,6 +309,7 @@ fun Routing.registerInternalApi(
                         deltaker,
                         forcedUpdate = request.forcedUpdate,
                         publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
+                        publiserTilDeltakerEksternV1 = request.publiserTilDeltakerEksternV1,
                     )
                     log.info("Ferdig relastet deltaker ${deltaker.id}")
                 }
@@ -381,11 +387,11 @@ fun Routing.registerInternalApi(
     }
 }
 
-// TODO
 data class RelastDeltakereRequest(
     val deltakere: List<UUID>,
     val forcedUpdate: Boolean,
     val publiserTilDeltakerV1: Boolean,
+    val publiserTilDeltakerEksternV1: Boolean,
     val publiserTilDeltakerV2: Boolean = true,
 )
 
@@ -399,6 +405,7 @@ data class RelastHendelseRequest(
     val relastDeltaker: Boolean,
     val forcedUpdate: Boolean,
     val publiserTilDeltakerV1: Boolean,
+    val publiserTilDeltakerEksternV1: Boolean,
 )
 
 data class DeleteDeltakereRequest(
@@ -408,6 +415,7 @@ data class DeleteDeltakereRequest(
 data class RepubliserRequest(
     val forcedUpdate: Boolean,
     val publiserTilDeltakerV1: Boolean,
+    val publiserTilDeltakerEksternV1: Boolean,
 )
 
 fun isInternal(remoteAdress: String): Boolean = remoteAdress == "127.0.0.1"
