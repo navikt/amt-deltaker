@@ -343,7 +343,7 @@ class DeltakerRepository {
 
         private fun buildDeltakerSql(methodName: String, whereClause: String) = """
         SELECT 
-            '$methodName' AS method_name,
+            '$methodName' AS $methodName,
             d.id AS "d.id",
             d.person_id AS "d.person_id",
             d.deltakerliste_id AS "d.deltakerliste_id",
