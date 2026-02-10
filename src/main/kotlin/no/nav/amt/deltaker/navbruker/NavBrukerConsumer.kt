@@ -41,7 +41,8 @@ class NavBrukerConsumer(
 
                 deltakerService.produserDeltakereForPerson(
                     navBrukerDto.personident,
-                    publiserTilDeltakerV1 = harEndretPersonident, // TODO
+                    publiserTilDeltakerV1 = harEndretPersonident,
+                    publiserTilDeltakerEksternV1 = harEndretPersonident,
                 )
             }
         }
