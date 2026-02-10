@@ -59,7 +59,7 @@ object DeltakerProgresjonHandler {
         val skalBliFullfort = deltakere
             .filter { it.status.type == DeltakerStatus.Type.DELTAR }
             .filter {
-                it.erFellesOppstart || it.erOpplaeringstiltak
+                it.deltakerliste.erFellesOppstart || it.deltarPaOpplaeringstiltak
             }.filter { !it.deltakerliste.erAvlystEllerAvbrutt() }
             .map {
                 it
@@ -74,7 +74,7 @@ object DeltakerProgresjonHandler {
     private fun getDeltakereSomSkalAvbrytesForAvbruttDeltakerliste(deltakere: List<Deltaker>): List<Deltaker> {
         val skalBliAvbrutt = deltakere
             .filter { it.status.type == DeltakerStatus.Type.DELTAR }
-            .filter { it.erFellesOppstart || it.erOpplaeringstiltak }
+            .filter { it.deltakerliste.erFellesOppstart || it.deltarPaOpplaeringstiltak }
             .filter { it.deltakerliste.erAvlystEllerAvbrutt() }
             .map {
                 it
@@ -89,7 +89,7 @@ object DeltakerProgresjonHandler {
     private fun getDeltakereSomHarSluttet(deltakere: List<Deltaker>): List<Deltaker> {
         val skalBliHarSluttet = deltakere
             .filter { it.status.type == DeltakerStatus.Type.DELTAR }
-            .filter { !it.erFellesOppstart && !it.erOpplaeringstiltak }
+            .filter { !it.deltakerliste.erFellesOppstart && !it.deltarPaOpplaeringstiltak }
             .map {
                 it
                     .medNyStatus(DeltakerStatus.Type.HAR_SLUTTET, getSluttarsak(it))

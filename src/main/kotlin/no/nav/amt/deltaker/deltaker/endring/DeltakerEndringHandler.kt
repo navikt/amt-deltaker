@@ -231,7 +231,7 @@ class DeltakerEndringHandler(
             LocalDateTime.now()
         }
         return nyDeltakerStatus(
-            type = if (deltaker.erFellesOppstart || deltaker.erOpplaeringstiltak) {
+            type = if (deltaker.deltakerliste.erFellesOppstart || deltaker.deltarPaOpplaeringstiltak) {
                 DeltakerStatus.Type.FULLFORT
             } else {
                 DeltakerStatus.Type.HAR_SLUTTET
@@ -295,7 +295,7 @@ fun endreDeltakersOppstart(
     deltakelsesmengder: Deltakelsesmengder,
 ): Deltaker {
     val faktiskSluttdato = sluttdato ?: deltaker.sluttdato
-    val oppdatertStatus = deltaker.oppdaterDeltakerStatus(
+    val oppdatertStatus = deltaker.oppdaterDeltakerStatusEndreOppstart(
         nyStartdato = startdato,
         nySluttdato = faktiskSluttdato,
     )
@@ -315,7 +315,7 @@ private fun DeltakerEndring.Aarsak.toDeltakerStatusAarsak() = DeltakerStatus.Aar
     beskrivelse,
 )
 
-fun Deltaker.oppdaterDeltakerStatus(nyStartdato: LocalDate?, nySluttdato: LocalDate?): DeltakerStatus {
+private fun Deltaker.oppdaterDeltakerStatusEndreOppstart(nyStartdato: LocalDate?, nySluttdato: LocalDate?): DeltakerStatus {
     val now = LocalDate.now()
 
     return when {
@@ -338,8 +338,8 @@ private fun Deltaker.skalBliIkkeAktuell(
 
 private fun LocalDate?.erPassert(now: LocalDate): Boolean = this != null && this < now
 
-fun Deltaker.getAvsluttendeStatus(harFullfort: Boolean): DeltakerStatus.Type = when {
-    erFellesOppstart || erOpplaeringstiltak -> {
+private fun Deltaker.getAvsluttendeStatus(harFullfort: Boolean): DeltakerStatus.Type = when {
+    deltakerliste.erFellesOppstart || deltarPaOpplaeringstiltak -> {
         if (harFullfort) DeltakerStatus.Type.FULLFORT else DeltakerStatus.Type.AVBRUTT
     }
 
