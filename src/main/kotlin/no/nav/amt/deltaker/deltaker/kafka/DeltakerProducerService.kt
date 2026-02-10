@@ -29,6 +29,7 @@ class DeltakerProducerService(
         if (publiserTilDeltakerEKsternV1) {
             produceDeltakerEksternV1Topic(deltaker)
         }
+
         if (publiserTilDeltakerV2) {
             produceDeltakerV2Topic(deltaker, forcedUpdate)
         }

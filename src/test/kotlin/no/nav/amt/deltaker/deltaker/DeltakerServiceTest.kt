@@ -26,6 +26,7 @@ import no.nav.amt.deltaker.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.deltaker.forslag.kafka.ArrangorMeldingProducer
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
+import no.nav.amt.deltaker.deltaker.kafka.DeltakerEksternV1Producer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerV1Producer
@@ -1629,10 +1630,13 @@ class DeltakerServiceTest {
 
     private val deltakerProducer = DeltakerProducer(TestOutboxEnvironment.outboxService, TestOutboxEnvironment.kafkaProducer)
     private val deltakerV1Producer = DeltakerV1Producer(TestOutboxEnvironment.outboxService, TestOutboxEnvironment.kafkaProducer)
+    private val deltakerEksternV1Producer =
+        DeltakerEksternV1Producer(TestOutboxEnvironment.outboxService, TestOutboxEnvironment.kafkaProducer)
     private val deltakerProducerService = DeltakerProducerService(
         deltakerKafkaPayloadBuilder,
         deltakerProducer,
         deltakerV1Producer,
+        deltakerEksternV1Producer,
         unleashToggle,
     )
 
