@@ -99,7 +99,7 @@ class DeltakerRepository {
         Database.query { session ->
             session.run(
                 queryOf(
-                    buildDeltakerSql("d.id = :id"),
+                    buildDeltakerSql("get", "d.id = :id"),
                     mapOf("id" to id),
                 ).map(::deltakerRowMapper).asSingle,
             ) ?: throw NoSuchElementException("Ingen deltaker med id $id")
@@ -109,7 +109,7 @@ class DeltakerRepository {
     fun getMany(deltakerIder: List<UUID>): List<Deltaker> = Database.query { session ->
         session.run(
             queryOf(
-                buildDeltakerSql("d.id = ANY(:ider)"),
+                buildDeltakerSql("getMany", "d.id = ANY(:ider)"),
                 mapOf("ider" to deltakerIder.toTypedArray()),
             ).map(::deltakerRowMapper).asList,
         )
@@ -118,7 +118,7 @@ class DeltakerRepository {
     fun getFlereForPerson(personIdent: String): List<Deltaker> = Database.query { session ->
         session.run(
             queryOf(
-                buildDeltakerSql("nb.personident = :personident"),
+                buildDeltakerSql("getFlereForPerson", "nb.personident = :personident"),
                 mapOf("personident" to personIdent),
             ).map(::deltakerRowMapper).asList,
         )
@@ -127,7 +127,7 @@ class DeltakerRepository {
     fun getFlereForPerson(personIdent: String, deltakerlisteId: UUID): List<Deltaker> = Database.query { session ->
         session.run(
             queryOf(
-                buildDeltakerSql("nb.personident = :personident AND d.deltakerliste_id = :deltakerliste_id"),
+                buildDeltakerSql("getFlereForPerson", "nb.personident = :personident AND d.deltakerliste_id = :deltakerliste_id"),
                 mapOf(
                     "personident" to personIdent,
                     "deltakerliste_id" to deltakerlisteId,
@@ -139,7 +139,7 @@ class DeltakerRepository {
     fun getDeltakereForDeltakerliste(deltakerlisteId: UUID): List<Deltaker> = Database.query { session ->
         session.run(
             queryOf(
-                buildDeltakerSql("d.deltakerliste_id = :deltakerliste_id"),
+                buildDeltakerSql("getDeltakereForDeltakerliste", "d.deltakerliste_id = :deltakerliste_id"),
                 mapOf("deltakerliste_id" to deltakerlisteId),
             ).map(::deltakerRowMapper).asList,
         )
@@ -168,6 +168,7 @@ class DeltakerRepository {
 
     fun skalHaStatusDeltar(): List<Deltaker> {
         val sql = buildDeltakerSql(
+            "skalHaStatusDeltar",
             """
             ds.type = :status
             AND d.startdato <= CURRENT_DATE
@@ -187,6 +188,7 @@ class DeltakerRepository {
 
     fun getDeltakereHvorSluttdatoHarPassert(): List<Deltaker> {
         val sql = buildDeltakerSql(
+            "getDeltakereHvorSluttdatoHarPassert",
             """
             ds.type IN (${sluttdatoStatuser.joinToString { "?" }})
             AND d.sluttdato < CURRENT_DATE
@@ -205,6 +207,7 @@ class DeltakerRepository {
 
     fun getDeltakereSomDeltarPaAvsluttetDeltakerliste(): List<Deltaker> {
         val sql = buildDeltakerSql(
+            "getDeltakereSomDeltarPaAvsluttetDeltakerliste",
             """
             ds.type NOT IN (${avsluttendeDeltakerStatuser.joinToString { "?" }})
             AND dl.status IN (${avsluttendeDeltakerlisteStatuser.joinToString { "?" }})
@@ -338,8 +341,9 @@ class DeltakerRepository {
             }
         }
 
-        private fun buildDeltakerSql(whereClause: String) = """
+        private fun buildDeltakerSql(methodName: String, whereClause: String) = """
         SELECT 
+            '$methodName' AS method_name,
             d.id AS "d.id",
             d.person_id AS "d.person_id",
             d.deltakerliste_id AS "d.deltakerliste_id",
