@@ -680,4 +680,36 @@ class DeltakerEndringHandlerTest {
             sluttdato shouldBe null
         }
     }
+
+    @Test
+    fun `sjekkUtfall - endre oppstart når avbrutt endrer ikke status til fullført`(): Unit = runBlocking {
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.AVBRUTT),
+            startdato = LocalDate.now().minusMonths(1),
+            sluttdato = LocalDate.now().minusDays(1),
+            deltakerliste = TestData.lagDeltakerliste(
+                pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
+                oppstart = Oppstartstype.FELLES,
+            ),
+        )
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+        val endringsrequest = StartdatoRequest(
+            endretAv = endretAv.navIdent,
+            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            startdato = LocalDate.now().minusMonths(2),
+            sluttdato = null,
+            begrunnelse = null,
+            forslagId = null,
+        )
+
+        val deltakerEndringHandler =
+            DeltakerEndringHandler(deltaker, endringsrequest.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
+        val resultat = deltakerEndringHandler.sjekkUtfall()
+
+        resultat.erVellykket shouldBe true
+        val oppdatertDeltaker = resultat.getOrThrow()
+        oppdatertDeltaker.startdato shouldBe endringsrequest.startdato
+        oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.AVBRUTT
+    }
 }

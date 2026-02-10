@@ -322,7 +322,7 @@ private fun Deltaker.oppdaterDeltakerStatusEndreOppstart(nyStartdato: LocalDate?
         skalBliIkkeAktuell(nyStartdato, nySluttdato, now) -> nyDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL)
         !nyStartdato.erPassert(now) && !nySluttdato.erPassert(now) -> nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART)
         nyStartdato.erPassert(now) && !nySluttdato.erPassert(now) -> nyDeltakerStatus(DeltakerStatus.Type.DELTAR)
-        nySluttdato.erPassert(now) -> nyDeltakerStatus(getAvsluttendeStatus(harFullfort = true))
+        nySluttdato.erPassert(now) -> nyDeltakerStatus(getAvsluttendeStatus(harFullfort = status.type != DeltakerStatus.Type.AVBRUTT))
         else -> status
     }
 }
