@@ -2,7 +2,7 @@ group = "no.nav.amt-deltaker"
 version = "1.0-SNAPSHOT"
 
 plugins {
-    val kotlinVersion = "2.2.21"
+    val kotlinVersion = "2.3.0"
 
     kotlin("jvm") version kotlinVersion
     id("io.ktor.plugin") version "3.4.0"
@@ -18,14 +18,14 @@ repositories {
 }
 
 val ktorVersion = "3.4.0"
-val logbackVersion = "1.5.26"
+val logbackVersion = "1.5.27"
 val prometeusVersion = "1.16.2"
 val ktlintVersion = "1.6.0"
 val jacksonVersion = "2.21.0"
 val logstashEncoderVersion = "9.0"
 val commonVersion = "3.2025.10.10_08.21-bb7c7830d93c"
 val poaoTilgangVersion = "2025.11.03_14.33-9c5783f38a9a"
-val kotestVersion = "6.1.1"
+val kotestVersion = "6.1.2"
 val flywayVersion = "11.20.3"
 val hikariVersion = "7.0.2"
 val kotliqueryVersion = "1.9.1"
@@ -33,7 +33,7 @@ val postgresVersion = "42.7.9"
 val caffeineVersion = "3.2.3"
 val mockkVersion = "1.14.9"
 val nimbusVersion = "10.7"
-val unleashVersion = "12.1.0"
+val unleashVersion = "12.1.1"
 val amtLibVersion = "1.2026.02.09_15.13-57f7b4f77686"
 
 // fjernes ved neste release av org.apache.kafka:kafka-clients
