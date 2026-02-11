@@ -16,6 +16,7 @@ object DeltakerProgresjonHandler {
         if (deltakere.isEmpty()) {
             return emptyList()
         }
+
         val fremtidigAvsluttendeStatus = DeltakerStatusRepository.getAvsluttendeDeltakerStatuserForOppdatering(
             deltakere.map { it.id },
         )
@@ -57,8 +58,9 @@ object DeltakerProgresjonHandler {
     private fun getDeltakereSomSkalFullfores(deltakere: List<Deltaker>): List<Deltaker> {
         val skalBliFullfort = deltakere
             .filter { it.status.type == DeltakerStatus.Type.DELTAR }
-            .filter { it.deltarPaKurs() }
-            .filter { !it.deltakerliste.erAvlystEllerAvbrutt() }
+            .filter {
+                it.deltakerliste.erFellesOppstart || it.deltarPaOpplaeringstiltak
+            }.filter { !it.deltakerliste.erAvlystEllerAvbrutt() }
             .map {
                 it
                     .medNyStatus(DeltakerStatus.Type.FULLFORT, getSluttarsak(it))
@@ -72,9 +74,13 @@ object DeltakerProgresjonHandler {
     private fun getDeltakereSomSkalAvbrytesForAvbruttDeltakerliste(deltakere: List<Deltaker>): List<Deltaker> {
         val skalBliAvbrutt = deltakere
             .filter { it.status.type == DeltakerStatus.Type.DELTAR }
-            .filter { it.deltarPaKurs() }
+            .filter { it.deltakerliste.erFellesOppstart || it.deltarPaOpplaeringstiltak }
             .filter { it.deltakerliste.erAvlystEllerAvbrutt() }
-            .map { it.medNyStatus(DeltakerStatus.Type.AVBRUTT, getSluttarsak(it)).medNySluttdato(getOppdatertSluttdato(it)) }
+            .map {
+                it
+                    .medNyStatus(DeltakerStatus.Type.AVBRUTT, getSluttarsak(it))
+                    .medNySluttdato(getOppdatertSluttdato(it))
+            }
         log.info("Endret status til AVBRUTT for ${skalBliAvbrutt.size}")
 
         return skalBliAvbrutt
@@ -83,7 +89,7 @@ object DeltakerProgresjonHandler {
     private fun getDeltakereSomHarSluttet(deltakere: List<Deltaker>): List<Deltaker> {
         val skalBliHarSluttet = deltakere
             .filter { it.status.type == DeltakerStatus.Type.DELTAR }
-            .filter { !it.deltarPaKurs() }
+            .filter { !it.deltakerliste.erFellesOppstart && !it.deltarPaOpplaeringstiltak }
             .map {
                 it
                     .medNyStatus(DeltakerStatus.Type.HAR_SLUTTET, getSluttarsak(it))

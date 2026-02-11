@@ -21,6 +21,7 @@ import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.ReaktiverDel
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.SluttarsakRequest
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.SluttdatoRequest
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.StartdatoRequest
+import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -219,6 +220,37 @@ class DeltakerEndringHandlerTest {
 
         assertSoftly(resultat.getOrThrow()) {
             status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+            startdato shouldBe endringsrequest.startdato
+            sluttdato shouldBe endringsrequest.sluttdato
+        }
+    }
+
+    @Test
+    fun `sjekkUtfall - endret start- og sluttdato i fremtid, fullfort - deltaker blir venter pa oppstart`(): Unit = runBlocking {
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.FULLFORT),
+            startdato = LocalDate.now().minusWeeks(10),
+            sluttdato = LocalDate.now().minusDays(4),
+        )
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+        val endringsrequest = StartdatoRequest(
+            endretAv = endretAv.navIdent,
+            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            startdato = LocalDate.now().plusDays(10),
+            sluttdato = LocalDate.now().plusWeeks(4),
+            begrunnelse = null,
+            forslagId = null,
+        )
+
+        val deltakerEndringHandler =
+            DeltakerEndringHandler(deltaker, endringsrequest.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
+        val resultat = deltakerEndringHandler.sjekkUtfall()
+
+        resultat.erVellykket shouldBe true
+
+        assertSoftly(resultat.getOrThrow()) {
+            status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
             startdato shouldBe endringsrequest.startdato
             sluttdato shouldBe endringsrequest.sluttdato
         }
@@ -500,6 +532,7 @@ class DeltakerEndringHandlerTest {
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.AVBRUTT),
             sluttdato = LocalDate.now().minusDays(3),
             deltakerliste = TestData.lagDeltakerliste(
+                pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
                 oppstart = Oppstartstype.FELLES,
             ),
         )
@@ -535,6 +568,7 @@ class DeltakerEndringHandlerTest {
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.FULLFORT),
             sluttdato = LocalDate.now().minusDays(3),
             deltakerliste = TestData.lagDeltakerliste(
+                pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
                 oppstart = Oppstartstype.FELLES,
             ),
         )
@@ -645,5 +679,37 @@ class DeltakerEndringHandlerTest {
             startdato shouldBe null
             sluttdato shouldBe null
         }
+    }
+
+    @Test
+    fun `sjekkUtfall - endre oppstart når avbrutt endrer ikke status til fullført`(): Unit = runBlocking {
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.AVBRUTT),
+            startdato = LocalDate.now().minusMonths(1),
+            sluttdato = LocalDate.now().minusDays(1),
+            deltakerliste = TestData.lagDeltakerliste(
+                pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
+                oppstart = Oppstartstype.FELLES,
+            ),
+        )
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+        val endringsrequest = StartdatoRequest(
+            endretAv = endretAv.navIdent,
+            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            startdato = LocalDate.now().minusMonths(2),
+            sluttdato = null,
+            begrunnelse = null,
+            forslagId = null,
+        )
+
+        val deltakerEndringHandler =
+            DeltakerEndringHandler(deltaker, endringsrequest.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
+        val resultat = deltakerEndringHandler.sjekkUtfall()
+
+        resultat.erVellykket shouldBe true
+        val oppdatertDeltaker = resultat.getOrThrow()
+        oppdatertDeltaker.startdato shouldBe endringsrequest.startdato
+        oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.AVBRUTT
     }
 }

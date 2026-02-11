@@ -34,6 +34,8 @@ data class Deltaker(
 
     fun deltarPaKurs(): Boolean = deltakerliste.erFellesOppstart
 
+    val deltarPaOpplaeringstiltak get(): Boolean = deltakerliste.tiltakstype.tiltakskode.erOpplaeringstiltak()
+
     fun toDeltakerVedVedtak(): DeltakerVedVedtak = DeltakerVedVedtak(
         id = id,
         startdato = startdato,
