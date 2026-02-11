@@ -12,7 +12,7 @@ class DeltakerEksternV1Producer(
 ) {
     fun produce(deltakerEksternV1Dto: DeltakerEksternV1Dto) {
         outboxService.insertRecord(
-            topic = Environment.DELTAKER_V1_TOPIC,
+            topic = Environment.DELTAKER_EKSTERN_V1_TOPIC,
             key = deltakerEksternV1Dto.id,
             value = deltakerEksternV1Dto,
         )
