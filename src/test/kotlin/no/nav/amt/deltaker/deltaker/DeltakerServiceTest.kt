@@ -1005,7 +1005,6 @@ class DeltakerServiceTest {
         }
 
         @Test
-        @Disabled
         fun `upsertEndretDeltakere - tildel plass feiler på upsert - ruller tilbake endringer på samme deltaker`() = runTest {
             val endretAv = lagNavAnsatt()
             val endretAvEnhet = lagNavEnhet(enhetsnummer = "0326")
@@ -1057,7 +1056,7 @@ class DeltakerServiceTest {
 
             ikkeEndretDeltakerResult.isSuccess shouldBe false
             ikkeEndretDeltakerResult.exceptionOrNull shouldBe
-                IllegalStateException("Deltaker-id ${deltaker2.id} har ingen vedtak")
+                IllegalStateException("Deltaker ${deltaker2.id} mangler et vedtak som kan fattes")
 
             val historikk1 = deltakerHistorikkService.getForDeltaker(deltaker.id)
             historikk1.filterIsInstance<DeltakerHistorikk.EndringFraTiltakskoordinator>().size shouldBe 1
