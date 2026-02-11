@@ -48,6 +48,13 @@ class VedtakService(
         endretAvEnhet: NavEnhet,
     ): Vedtak {
         hentIkkeFattetVedtak(deltaker.id)
+        val vedtak = vedtakRepository.getForDeltaker(deltaker.id)
+            ?: throw IllegalStateException("Deltaker ${deltaker.id} mangler et vedtak som kan fattes")
+
+        if (vedtak.fattet != null) {
+            log.info("Vedtak allerede fattet for deltaker ${deltaker.id}, fatter ikke nytt vedtak")
+            return vedtak
+        }
 
         log.info("Fatter hovedvedtak for deltaker ${deltaker.id}")
         return opprettEllerOppdaterVedtak(
