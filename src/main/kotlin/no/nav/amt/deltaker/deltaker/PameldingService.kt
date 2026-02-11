@@ -105,7 +105,7 @@ class PameldingService(
                         fattetAvNav = skalNavFatteVedtak,
                         endretAv = endretAv,
                         endretAvEnhet = endretAvNavEnhet,
-                        deltaker = deltaker,
+                        deltaker = deltaker.toDeltakerVedVedtak(),
                         fattetDato = if (skalNavFatteVedtak) LocalDateTime.now() else null,
                     )
 
@@ -139,31 +139,24 @@ class PameldingService(
             if (deltaker.deltakerliste.erFellesOppstart) {
                 innbyggerGodkjennInnsok(deltaker)
             } else {
-                innbyggerFattVedtak(deltaker)
+                vedtakService.innbyggerFattVedtak(deltaker.id)
+
+                val deltakerStatus = if (deltaker.status.type == DeltakerStatus.Type.UTKAST_TIL_PAMELDING) {
+                    nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART)
+                } else {
+                    deltaker.status
+                }
+
+                deltaker.copy(
+                    status = deltakerStatus,
+                    sistEndret = LocalDateTime.now(),
+                )
             }
         },
         afterUpsert = { deltaker ->
             hendelseService.hendelseForUtkastGodkjentAvInnbygger(deltaker)
         },
     )
-
-    // benyttes kun i denne klassen og i tester
-    internal fun innbyggerFattVedtak(deltaker: Deltaker): Deltaker {
-        val status = if (deltaker.status.type == DeltakerStatus.Type.UTKAST_TIL_PAMELDING) {
-            nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART)
-        } else {
-            deltaker.status
-        }
-
-        val oppdatertDeltaker = deltaker.copy(
-            status = status,
-            sistEndret = LocalDateTime.now(),
-        )
-
-        vedtakService.innbyggerFattVedtak(oppdatertDeltaker)
-
-        return oppdatertDeltaker
-    }
 
     private fun innbyggerGodkjennInnsok(opprinneligDeltaker: Deltaker): Deltaker {
         val oppdatertDeltaker = opprinneligDeltaker.copy(
@@ -202,8 +195,11 @@ class PameldingService(
         deltakerService.upsertAndProduceDeltaker(
             deltaker = oppdatertDeltaker,
             beforeUpsert = { deltaker ->
-                val vedtak = vedtakService
-                    .avbrytVedtak(deltaker, endretAv, endretAvNavEnhet)
+                val vedtak = vedtakService.avbrytVedtak(
+                    deltakerId = deltaker.id,
+                    avbruttAv = endretAv,
+                    avbruttAvNavEnhet = endretAvNavEnhet,
+                )
 
                 deltaker.copy(vedtaksinformasjon = vedtak.tilVedtaksInformasjon())
             },

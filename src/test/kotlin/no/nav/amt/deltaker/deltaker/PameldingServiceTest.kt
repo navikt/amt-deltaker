@@ -3,6 +3,8 @@ package no.nav.amt.deltaker.deltaker
 import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.result.shouldBeFailure
+import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.every
@@ -250,7 +252,7 @@ class PameldingServiceTest {
             runTest {
                 pameldingService.upsertUtkast(deltaker.id, utkastRequest)
 
-                val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
+                val deltakerFraDb = deltakerRepository.get(deltaker.id).shouldBeSuccess()
                 deltakerFraDb.status.type shouldBe DeltakerStatus.Type.UTKAST_TIL_PAMELDING
                 deltakerFraDb.vedtaksinformasjon shouldNotBe null
 
@@ -295,7 +297,7 @@ class PameldingServiceTest {
             runTest {
                 pameldingService.upsertUtkast(deltaker.id, utkastRequest)
 
-                val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
+                val deltakerFraDb = deltakerRepository.get(deltaker.id).shouldBeSuccess()
                 deltakerFraDb.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
                 deltakerFraDb.vedtaksinformasjon shouldNotBe null
 
@@ -340,7 +342,7 @@ class PameldingServiceTest {
             runTest {
                 pameldingService.upsertUtkast(deltaker.id, utkastRequest)
 
-                val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
+                val deltakerFraDb = deltakerRepository.get(deltaker.id).shouldBeSuccess()
                 deltakerFraDb.status.type shouldBe DeltakerStatus.Type.SOKT_INN
                 deltakerFraDb.vedtaksinformasjon shouldNotBe null
 
@@ -348,7 +350,7 @@ class PameldingServiceTest {
                 vedtak.fattet shouldBe null
                 vedtak.fattetAvNav shouldBe false
 
-                val innsok = innsokPaaFellesOppstartRepository.getForDeltaker(deltaker.id).getOrThrow()
+                val innsok = innsokPaaFellesOppstartRepository.getForDeltaker(deltaker.id).shouldBeSuccess()
                 assertSoftly(innsok) {
                     utkastGodkjentAvNav shouldBe true
                     utkastDelt shouldBe null
@@ -391,7 +393,7 @@ class PameldingServiceTest {
         runTest {
             pameldingService.avbrytUtkast(deltaker.id, avbrytUtkastRequest)
 
-            assertSoftly(deltakerRepository.get(deltaker.id).getOrThrow()) {
+            assertSoftly(deltakerRepository.get(deltaker.id).shouldBeSuccess()) {
                 status.type shouldBe DeltakerStatus.Type.AVBRUTT_UTKAST
                 vedtaksinformasjon shouldBe null
             }
@@ -427,12 +429,14 @@ class PameldingServiceTest {
             assertProducedDeltakerV1(deltaker.id)
             assertProducedHendelse(deltaker.id, HendelseType.InnbyggerGodkjennUtkast::class)
 
-            val oppdatertDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
+            val oppdatertDeltaker = deltakerRepository.get(deltaker.id).shouldBeSuccess()
 
             oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
-            oppdatertDeltaker.vedtaksinformasjon!!.fattet shouldBeCloseTo LocalDateTime.now()
 
-            innsokPaaFellesOppstartRepository.getForDeltaker(deltaker.id).isFailure shouldBe true
+            oppdatertDeltaker.vedtaksinformasjon.shouldNotBeNull()
+            oppdatertDeltaker.vedtaksinformasjon.fattet shouldBeCloseTo LocalDateTime.now()
+
+            innsokPaaFellesOppstartRepository.getForDeltaker(deltaker.id).shouldBeFailure()
         }
 
         @Test
@@ -452,12 +456,14 @@ class PameldingServiceTest {
             assertProducedDeltakerV1(deltaker.id)
             assertProducedHendelse(deltaker.id, HendelseType.InnbyggerGodkjennUtkast::class)
 
-            val oppdatertDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
+            val oppdatertDeltaker = deltakerRepository.get(deltaker.id).shouldBeSuccess()
 
             oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.SOKT_INN
-            oppdatertDeltaker.vedtaksinformasjon!!.fattet shouldBe null
 
-            val innsok = innsokPaaFellesOppstartRepository.getForDeltaker(deltaker.id).getOrThrow()
+            oppdatertDeltaker.vedtaksinformasjon.shouldNotBeNull()
+            oppdatertDeltaker.vedtaksinformasjon.fattet shouldBe null
+
+            val innsok = innsokPaaFellesOppstartRepository.getForDeltaker(deltaker.id).shouldBeSuccess()
             assertSoftly(innsok) {
                 utkastGodkjentAvNav shouldBe false
                 utkastDelt shouldNotBe null
@@ -476,74 +482,15 @@ class PameldingServiceTest {
             val enhet = lagNavEnhet(id = vedtak.opprettetAvEnhet)
             TestRepository.insertAll(deltaker, ansatt, enhet, vedtak)
 
-            shouldThrow<IllegalArgumentException> {
+            val thrown = shouldThrow<IllegalArgumentException> {
                 runTest {
                     pameldingService.innbyggerGodkjennUtkast(deltaker.id)
                 }
             }
 
-            val ikkeOppdatertDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
+            thrown.message shouldBe "Deltaker-id ${deltaker.id} har allerede et fattet vedtak"
 
-            ikkeOppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.UTKAST_TIL_PAMELDING
-        }
-    }
-
-    @Nested
-    inner class InnbyggerFattVedtakTests {
-        @Test
-        fun `innbyggerFattVedtak - deltaker har status utkast - oppretter ny status og upserter`() = runTest {
-            val deltaker = lagDeltaker(
-                status = lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
-            )
-            val vedtak = lagVedtak(deltakerVedVedtak = deltaker)
-            val ansatt = lagNavAnsatt(id = vedtak.opprettetAv)
-            val enhet = lagNavEnhet(id = vedtak.opprettetAvEnhet)
-            TestRepository.insertAll(deltaker, ansatt, enhet, vedtak)
-
-            val deltakerMedVedtak = deltakerRepository.get(deltaker.id).getOrThrow()
-
-            val oppdatertDeltaker = pameldingService.innbyggerFattVedtak(deltakerMedVedtak)
-
-            oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
-            val vedtakFraDb = vedtakRepository.getForDeltaker(deltaker.id).shouldNotBeNull()
-            vedtakFraDb.fattet shouldBeCloseTo LocalDateTime.now()
-        }
-
-        @Test
-        fun `innbyggerFattVedtak - deltaker har ikke status utkast - upserter uten å endre status`() = runTest {
-            val deltaker = lagDeltaker(
-                status = lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
-            )
-            val vedtak = lagVedtak(deltakerVedVedtak = deltaker)
-            val ansatt = lagNavAnsatt(id = vedtak.opprettetAv)
-            val enhet = lagNavEnhet(id = vedtak.opprettetAvEnhet)
-            TestRepository.insertAll(deltaker, ansatt, enhet, vedtak)
-
-            val deltakerMedVedtak = deltakerRepository.get(deltaker.id).getOrThrow()
-
-            val oppdatertDeltaker = pameldingService.innbyggerFattVedtak(deltakerMedVedtak)
-
-            oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.DELTAR
-            val vedtakFraDb = vedtakRepository.getForDeltaker(deltaker.id).shouldNotBeNull()
-            vedtakFraDb.fattet shouldBeCloseTo LocalDateTime.now()
-        }
-
-        @Test
-        fun `innbyggerFattVedtak - vedtak kunne ikke fattes - upserter ikke`() = runTest {
-            val deltaker = lagDeltaker(
-                status = lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
-            )
-            val vedtak = lagVedtak(deltakerVedVedtak = deltaker, fattet = LocalDateTime.now())
-            val ansatt = lagNavAnsatt(id = vedtak.opprettetAv)
-            val enhet = lagNavEnhet(id = vedtak.opprettetAvEnhet)
-            TestRepository.insertAll(deltaker, ansatt, enhet, vedtak)
-
-            shouldThrow<IllegalArgumentException> {
-                pameldingService.innbyggerFattVedtak(deltaker)
-            }
-
-            val ikkeOppdatertDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
-
+            val ikkeOppdatertDeltaker = deltakerRepository.get(deltaker.id).shouldBeSuccess()
             ikkeOppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.UTKAST_TIL_PAMELDING
         }
     }

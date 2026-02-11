@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.deltaker
 
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.model.Deltaker
+import no.nav.amt.lib.models.deltaker.DeltakerVedVedtak
 import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet
@@ -15,11 +16,11 @@ class VedtakService(
     private val log = LoggerFactory.getLogger(javaClass)
 
     fun avbrytVedtak(
-        deltaker: Deltaker,
+        deltakerId: UUID,
         avbruttAv: NavAnsatt,
         avbruttAvNavEnhet: NavEnhet,
     ): Vedtak {
-        val vedtak = hentIkkeFattetVedtak(deltaker.id)
+        val vedtak = hentIkkeFattetVedtakOrThrow(deltakerId)
 
         return vedtakRepository.upsert(
             vedtak.copy(
@@ -60,23 +61,23 @@ class VedtakService(
             fattetAvNav = true,
             endretAv = endretAv,
             endretAvEnhet = endretAvEnhet,
-            deltaker = deltaker,
+            deltaker = deltaker.toDeltakerVedVedtak(),
             fattetDato = LocalDateTime.now(),
         )
     }
 
     /**
      Kan bare brukes når deltaker selv godkjenner utkast.
-     Hvis Nav fatter vedtaket må `oppdaterEllerOpprettVedtak` brukes.
+     Hvis Nav fatter vedtaket må [opprettEllerOppdaterVedtak] brukes.
      */
-    fun innbyggerFattVedtak(deltaker: Deltaker): Vedtak {
-        val ikkeFattetVedtak = hentIkkeFattetVedtak(deltaker.id)
+    fun innbyggerFattVedtak(deltakerId: UUID) {
+        val ikkeFattetVedtak = hentIkkeFattetVedtakOrThrow(deltakerId)
         val fattetVedtak = ikkeFattetVedtak.copy(fattet = LocalDateTime.now())
 
-        return vedtakRepository.upsert(fattetVedtak)
+        vedtakRepository.upsert(fattetVedtak)
     }
 
-    private fun hentIkkeFattetVedtak(deltakerId: UUID): Vedtak {
+    private fun hentIkkeFattetVedtakOrThrow(deltakerId: UUID): Vedtak {
         val vedtak = vedtakRepository.getForDeltaker(deltakerId)
 
         when {
@@ -92,43 +93,26 @@ class VedtakService(
         fattetAvNav: Boolean,
         endretAv: NavAnsatt,
         endretAvEnhet: NavEnhet,
-        deltaker: Deltaker,
+        deltaker: DeltakerVedVedtak,
         fattetDato: LocalDateTime?,
     ): Vedtak {
         val eksisterendeVedtak = vedtakRepository.getForDeltaker(deltaker.id)
 
-        val oppdatertVedtak = lagOppdatertVedtak(
-            original = eksisterendeVedtak,
-            godkjentAvNav = fattetAvNav,
-            endretAv = endretAv,
-            endretAvNavEnhet = endretAvEnhet,
-            deltaker = deltaker,
+        val oppdatertVedtak = Vedtak(
+            id = eksisterendeVedtak?.id ?: UUID.randomUUID(),
+            deltakerId = deltaker.id,
             fattet = fattetDato,
+            gyldigTil = null,
+            deltakerVedVedtak = deltaker,
+            fattetAvNav = fattetAvNav,
+            opprettetAv = eksisterendeVedtak?.opprettetAv ?: endretAv.id,
+            opprettetAvEnhet = eksisterendeVedtak?.opprettetAvEnhet ?: endretAvEnhet.id,
+            opprettet = eksisterendeVedtak?.opprettet ?: LocalDateTime.now(),
+            sistEndretAv = endretAv.id,
+            sistEndretAvEnhet = endretAvEnhet.id,
+            sistEndret = LocalDateTime.now(),
         )
 
         return vedtakRepository.upsert(oppdatertVedtak)
     }
-
-    private fun lagOppdatertVedtak(
-        original: Vedtak?,
-        godkjentAvNav: Boolean,
-        endretAv: NavAnsatt,
-        endretAvNavEnhet: NavEnhet,
-        deltaker: Deltaker,
-        fattet: LocalDateTime? = null,
-        gyldigTil: LocalDateTime? = null,
-    ) = Vedtak(
-        id = original?.id ?: UUID.randomUUID(),
-        deltakerId = deltaker.id,
-        fattet = fattet,
-        gyldigTil = gyldigTil,
-        deltakerVedVedtak = deltaker.toDeltakerVedVedtak(),
-        fattetAvNav = godkjentAvNav,
-        opprettetAv = original?.opprettetAv ?: endretAv.id,
-        opprettetAvEnhet = original?.opprettetAvEnhet ?: endretAvNavEnhet.id,
-        opprettet = original?.opprettet ?: LocalDateTime.now(),
-        sistEndretAv = endretAv.id,
-        sistEndretAvEnhet = endretAvNavEnhet.id,
-        sistEndret = LocalDateTime.now(),
-    )
 }
