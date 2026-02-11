@@ -13,10 +13,10 @@ data class DeltakerEksternV1Dto(
     val startDato: LocalDate?,
     val sluttDato: LocalDate?,
     val status: DeltakerStatusDto,
-    val registrertDato: LocalDateTime,
+    val registrertTidspunkt: LocalDateTime,
     val dagerPerUke: Float?,
-    val prosentStilling: Float?,
-    val endretDato: LocalDateTime,
+    val deltakelsesprosent: Float?,
+    val endretTidspunkt: LocalDateTime,
     val kilde: Kilde?,
     val innhold: DeltakelsesinnholdDto?,
     val deltakelsesmengder: List<DeltakelsesmengdeDto>,
@@ -24,9 +24,9 @@ data class DeltakerEksternV1Dto(
     data class DeltakerStatusDto(
         val type: DeltakerStatus.Type,
         val statusTekst: String,
-        val aarsak: DeltakerStatus.Aarsak.Type?,
-        val aarsakTekst: String?,
-        val opprettetDato: LocalDateTime,
+        val aarsakType: DeltakerStatus.Aarsak.Type?,
+        val aarsakBeskrivelse: String?,
+        val opprettetTidspunkt: LocalDateTime,
     )
 
     data class DeltakelsesinnholdDto(
@@ -42,7 +42,7 @@ data class DeltakerEksternV1Dto(
     data class DeltakelsesmengdeDto(
         val deltakelsesprosent: Float,
         val dagerPerUke: Float?,
-        val gyldigFra: LocalDate,
-        val opprettet: LocalDateTime,
+        val gyldigFraDato: LocalDate,
+        val opprettetTidspunkt: LocalDateTime,
     )
 }

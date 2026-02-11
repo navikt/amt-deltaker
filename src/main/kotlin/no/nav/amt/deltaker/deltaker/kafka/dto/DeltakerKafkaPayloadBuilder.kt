@@ -80,18 +80,18 @@ class DeltakerKafkaPayloadBuilder(
             status = DeltakerEksternV1Dto.DeltakerStatusDto(
                 type = deltaker.status.type,
                 statusTekst = deltaker.status.type.getStatustekst(),
-                aarsak = deltaker.status.aarsak?.type,
-                aarsakTekst = deltaker.status.aarsak?.let {
+                aarsakType = deltaker.status.aarsak?.type,
+                aarsakBeskrivelse = deltaker.status.aarsak?.let {
                     DeltakerStatus
                         .Aarsak(type = it.type, beskrivelse = deltaker.status.aarsak?.beskrivelse)
                         .getVisningsnavn()
                 },
-                opprettetDato = deltaker.status.opprettet,
+                opprettetTidspunkt = deltaker.status.opprettet,
             ),
-            registrertDato = innsoktDato.atStartOfDay(),
+            registrertTidspunkt = innsoktDato.atStartOfDay(),
             dagerPerUke = deltaker.dagerPerUke,
-            prosentStilling = deltaker.deltakelsesprosent,
-            endretDato = maxOf(deltaker.status.opprettet, deltaker.sistEndret),
+            deltakelsesprosent = deltaker.deltakelsesprosent,
+            endretTidspunkt = maxOf(deltaker.status.opprettet, deltaker.sistEndret),
             kilde = deltaker.kilde,
             innhold = deltaker.deltakelsesinnhold?.toDeltakelseEksternV1InnholdDto(),
             deltakelsesmengder = getDeltakelsesmengder(deltaker, deltakerhistorikk).toDeltakerEksternV1Dto(),
@@ -288,8 +288,8 @@ class DeltakerKafkaPayloadBuilder(
         DeltakerEksternV1Dto.DeltakelsesmengdeDto(
             deltakelsesprosent = it.deltakelsesprosent,
             dagerPerUke = it.dagerPerUke,
-            gyldigFra = it.gyldigFra,
-            opprettet = it.opprettet,
+            gyldigFraDato = it.gyldigFra,
+            opprettetTidspunkt = it.opprettet,
         )
     }
 }
