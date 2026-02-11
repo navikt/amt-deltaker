@@ -69,6 +69,27 @@ class VedtakServiceTest {
 
             thrown.message shouldBe "Deltaker-id ${deltaker.id} har allerede et fattet vedtak"
         }
+
+        @Test
+        fun `innbyggerFattVedtak - vedtak er allerede avbrutt - kaster feil`() {
+            val vedtakInTest = TestData.lagVedtak(gyldigTil = LocalDateTime.now(), deltakerVedVedtak = deltaker)
+            insert(vedtakInTest)
+
+            val thrown = shouldThrow<IllegalStateException> {
+                vedtakService.innbyggerFattVedtak(deltaker.id)
+            }
+
+            thrown.message shouldBe "Deltaker-id ${deltaker.id} har et vedtak som er avbrutt"
+        }
+
+        @Test
+        fun `innbyggerFattVedtak - deltaker har ingen vedtak - kaster feil`() {
+            val thrown = shouldThrow<IllegalStateException> {
+                vedtakService.innbyggerFattVedtak(deltaker.id)
+            }
+
+            thrown.message shouldBe "Deltaker-id ${deltaker.id} har ingen vedtak"
+        }
     }
 
     @Nested
@@ -177,6 +198,35 @@ class VedtakServiceTest {
             }
 
             thrown.message shouldBe "Deltaker-id ${deltaker.id} har allerede et fattet vedtak"
+        }
+
+        @Test
+        fun `avbrytVedtak - vedtak er allerede avbrutt - feiler`() {
+            val vedtakInTest = TestData.lagVedtak(gyldigTil = LocalDateTime.now(), deltakerVedVedtak = deltaker)
+            insert(vedtakInTest)
+
+            val thrown = shouldThrow<IllegalStateException> {
+                vedtakService.avbrytVedtak(
+                    deltakerId = deltaker.id,
+                    avbruttAv = avbruttAvAnsatt,
+                    avbruttAvNavEnhet = avbryttAvEnhet,
+                )
+            }
+
+            thrown.message shouldBe "Deltaker-id ${deltaker.id} har et vedtak som er avbrutt"
+        }
+
+        @Test
+        fun `avbrytVedtak - deltaker har ingen vedtak - feiler`() {
+            val thrown = shouldThrow<IllegalStateException> {
+                vedtakService.avbrytVedtak(
+                    deltakerId = deltaker.id,
+                    avbruttAv = avbruttAvAnsatt,
+                    avbruttAvNavEnhet = avbryttAvEnhet,
+                )
+            }
+
+            thrown.message shouldBe "Deltaker-id ${deltaker.id} har ingen vedtak"
         }
     }
 
