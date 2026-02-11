@@ -37,6 +37,7 @@ import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.hendelse.HendelseProducer
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.kafka.utils.assertProduced
+import no.nav.amt.deltaker.kafka.utils.assertProducedDeltakerEksternV1
 import no.nav.amt.deltaker.kafka.utils.assertProducedDeltakerV1
 import no.nav.amt.deltaker.kafka.utils.assertProducedHendelse
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
@@ -429,7 +430,8 @@ class PameldingServiceTest {
 
                 assertProduced(deltaker.id)
                 assertProducedDeltakerV1(deltaker.id)
-                assertProducedHendelse(deltaker.id, HendelseType.InnbyggerGodkjennUtkast::class)
+                assertProducedDeltakerEksternV1(deltaker.id)
+            assertProducedHendelse(deltaker.id, HendelseType.InnbyggerGodkjennUtkast::class)
 
                 val oppdatertDeltaker = deltakerRepository.get(deltaker.id).shouldBeSuccess()
 
@@ -457,7 +459,8 @@ class PameldingServiceTest {
 
                 assertProduced(deltaker.id)
                 assertProducedDeltakerV1(deltaker.id)
-                assertProducedHendelse(deltaker.id, HendelseType.InnbyggerGodkjennUtkast::class)
+                assertProducedDeltakerEksternV1(deltaker.id)
+            assertProducedHendelse(deltaker.id, HendelseType.InnbyggerGodkjennUtkast::class)
 
                 val oppdatertDeltaker = deltakerRepository.get(deltaker.id).shouldBeSuccess()
 

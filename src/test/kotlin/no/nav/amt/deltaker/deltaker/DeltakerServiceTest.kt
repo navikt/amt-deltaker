@@ -37,6 +37,7 @@ import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
 import no.nav.amt.deltaker.hendelse.HendelseProducer
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.kafka.utils.assertProduced
+import no.nav.amt.deltaker.kafka.utils.assertProducedDeltakerEksternV1
 import no.nav.amt.deltaker.kafka.utils.assertProducedDeltakerV1
 import no.nav.amt.deltaker.kafka.utils.assertProducedFeilregistrert
 import no.nav.amt.deltaker.kafka.utils.assertProducedHendelse
@@ -507,6 +508,7 @@ class DeltakerServiceTest {
 
             assertProduced(deltaker.id)
             assertProducedDeltakerV1(deltaker.id)
+            assertProducedDeltakerEksternV1(deltaker.id)
         }
 
         @Test
@@ -818,6 +820,7 @@ class DeltakerServiceTest {
             assertProducedHendelse(deltaker.id, HendelseType.EndreDeltakelsesmengde::class)
             assertProduced(deltaker.id)
             assertProducedDeltakerV1(deltaker.id)
+            assertProducedDeltakerEksternV1(deltaker.id)
         }
 
         @Test
@@ -859,6 +862,7 @@ class DeltakerServiceTest {
             assertProducedHendelse(deltaker.id, HendelseType.EndreDeltakelsesmengde::class)
             assertProduced(deltaker.id)
             assertProducedDeltakerV1(deltaker.id)
+            assertProducedDeltakerEksternV1(deltaker.id)
         }
 
         @Test
@@ -949,6 +953,7 @@ class DeltakerServiceTest {
             assertProducedHendelse(deltaker.id, HendelseType.EndreStartdato::class)
             assertProduced(deltaker.id)
             assertProducedDeltakerV1(deltaker.id)
+            assertProducedDeltakerEksternV1(deltaker.id)
         }
     }
 
@@ -1000,8 +1005,10 @@ class DeltakerServiceTest {
             assertProducedHendelse(deltaker.id, HendelseType.SettPaaVenteliste::class)
             assertProduced(deltaker.id)
             assertProducedDeltakerV1(deltaker.id)
+            assertProducedDeltakerEksternV1(deltaker.id)
             assertProduced(deltaker2.id)
             assertProducedDeltakerV1(deltaker2.id)
+            assertProducedDeltakerEksternV1(deltaker2.id)
         }
 
         @Test
@@ -1067,6 +1074,7 @@ class DeltakerServiceTest {
             assertProducedHendelse(deltaker.id, HendelseType.TildelPlass::class)
             assertProduced(deltaker.id)
             assertProducedDeltakerV1(deltaker.id)
+            assertProducedDeltakerEksternV1(deltaker.id)
         }
 
         @Test
@@ -1141,8 +1149,10 @@ class DeltakerServiceTest {
             assertProducedHendelse(deltaker.id, HendelseType.TildelPlass::class)
             assertProduced(deltaker.id)
             assertProducedDeltakerV1(deltaker.id)
+            assertProducedDeltakerEksternV1(deltaker.id)
             assertProduced(deltaker2.id)
             assertProducedDeltakerV1(deltaker2.id)
+            assertProducedDeltakerEksternV1(deltaker2.id)
         }
 
         @Test
@@ -1215,8 +1225,10 @@ class DeltakerServiceTest {
             assertProducedHendelse(deltaker.id, HendelseType.TildelPlass::class)
             assertProduced(deltaker.id)
             assertProducedDeltakerV1(deltaker.id)
+            assertProducedDeltakerEksternV1(deltaker.id)
             assertProduced(deltaker2.id)
             assertProducedDeltakerV1(deltaker2.id)
+            assertProducedDeltakerEksternV1(deltaker2.id)
         }
 
         @Test
@@ -1279,6 +1291,7 @@ class DeltakerServiceTest {
 
             assertProduced(deltakerInsert.id)
             assertProducedDeltakerV1(deltakerInsert.id)
+            assertProducedDeltakerEksternV1(deltakerInsert.id)
             assertProducedHendelse(deltakerInsert.id, HendelseType.TildelPlass::class)
         }
 
@@ -1344,8 +1357,10 @@ class DeltakerServiceTest {
 
             assertProduced(deltaker.id)
             assertProducedDeltakerV1(deltaker.id)
+            assertProducedDeltakerEksternV1(deltaker.id)
             assertProduced(deltaker2.id)
             assertProducedDeltakerV1(deltaker2.id)
+            assertProducedDeltakerEksternV1(deltaker2.id)
         }
     }
 
@@ -1459,6 +1474,7 @@ class DeltakerServiceTest {
             assertProducedHendelse(deltaker.id, HendelseType.Avslag::class)
             assertProduced(deltaker.id)
             assertProducedDeltakerV1(deltaker.id)
+            assertProducedDeltakerEksternV1(deltaker.id)
         }
     }
 
@@ -1487,6 +1503,7 @@ class DeltakerServiceTest {
 
         assertProduced(deltaker.id)
         assertProducedDeltakerV1(deltaker.id)
+        assertProducedDeltakerEksternV1(deltaker.id)
     }
 
     @Test
@@ -1530,6 +1547,7 @@ class DeltakerServiceTest {
 
         assertProducedFeilregistrert(deltaker.id)
         assertProducedDeltakerV1(deltaker.id)
+        assertProducedDeltakerEksternV1(deltaker.id)
     }
 
     @Nested

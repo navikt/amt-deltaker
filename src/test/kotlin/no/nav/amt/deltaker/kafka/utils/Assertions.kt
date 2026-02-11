@@ -6,6 +6,7 @@ import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.Environment
+import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerEksternV1Dto
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerV1Dto
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerV2Dto
 import no.nav.amt.lib.models.arrangor.melding.Forslag
@@ -39,6 +40,23 @@ suspend fun assertProducedDeltakerV1(deltakerId: UUID) {
     val cache = mutableMapOf<UUID, DeltakerV1Dto>()
 
     val consumer = stringStringConsumer(Environment.DELTAKER_V1_TOPIC) { k, v ->
+        cache[UUID.fromString(k)] = objectMapper.readValue(v)
+    }
+
+    consumer.start()
+
+    eventually {
+        val cachedDeltaker = cache[deltakerId].shouldNotBeNull()
+        cachedDeltaker.id shouldBe deltakerId
+    }
+
+    consumer.close()
+}
+
+suspend fun assertProducedDeltakerEksternV1(deltakerId: UUID) {
+    val cache = mutableMapOf<UUID, DeltakerEksternV1Dto>()
+
+    val consumer = stringStringConsumer(Environment.DELTAKER_EKSTERN_V1_TOPIC) { k, v ->
         cache[UUID.fromString(k)] = objectMapper.readValue(v)
     }
 

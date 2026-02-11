@@ -89,8 +89,6 @@ class DeltakerKafkaPayloadBuilder(
                 opprettetTidspunkt = deltaker.status.opprettet,
             ),
             registrertTidspunkt = innsoktDato.atStartOfDay(),
-            dagerPerUke = deltaker.dagerPerUke,
-            deltakelsesprosent = deltaker.deltakelsesprosent,
             endretTidspunkt = maxOf(deltaker.status.opprettet, deltaker.sistEndret),
             kilde = deltaker.kilde,
             innhold = deltaker.deltakelsesinnhold?.toDeltakelseEksternV1InnholdDto(),

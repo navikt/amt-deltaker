@@ -14,8 +14,6 @@ data class DeltakerEksternV1Dto(
     val sluttDato: LocalDate?,
     val status: DeltakerStatusDto,
     val registrertTidspunkt: LocalDateTime,
-    val dagerPerUke: Float?,
-    val deltakelsesprosent: Float?,
     val endretTidspunkt: LocalDateTime,
     val kilde: Kilde?,
     val innhold: DeltakelsesinnholdDto?,
