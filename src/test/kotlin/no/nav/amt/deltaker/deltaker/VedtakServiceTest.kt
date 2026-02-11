@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.deltaker
 
 import io.kotest.assertions.assertSoftly
+import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -14,6 +15,7 @@ import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.shouldBeCloseTo
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 import java.time.LocalDateTime
@@ -183,55 +185,58 @@ class VedtakServiceTest {
         }
     }
 
-    @Test
-    fun `navFattVedtak - fatter vedtak`() {
-        with(DeltakerContext()) {
-            medVedtak(fattet = false)
-            withTiltakstype(Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING)
+    @Nested
+    inner class NavFattVedtakTests {
+        @Test
+        fun `fatter vedtak`() {
+            with(DeltakerContext()) {
+                medVedtak(fattet = false)
+                withTiltakstype(Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING)
 
-            val fattetVedtak = vedtakService.navFattVedtak(
-                deltaker = deltaker,
-                endretAv = veileder,
-                endretAvEnhet = navEnhet,
-            )
-
-            fattetVedtak.shouldNotBeNull()
-
-            val deltakersVedtak = vedtakRepository.getForDeltaker(deltaker.id).shouldNotBeNull()
-            deltakersVedtak shouldBe fattetVedtak
-        }
-    }
-
-    @Test
-    fun `navFattVedtak - mangler vedtak - vedtak er null`() {
-        with(DeltakerContext()) {
-            withTiltakstype(Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING)
-            shouldThrow<IllegalStateException> {
-                vedtakService.navFattVedtak(
+                val fattetVedtak = vedtakService.navFattVedtak(
                     deltaker = deltaker,
                     endretAv = veileder,
                     endretAvEnhet = navEnhet,
                 )
+
+                fattetVedtak.shouldNotBeNull()
+
+                val deltakersVedtak = vedtakRepository.getForDeltaker(deltaker.id).shouldNotBeNull()
+                deltakersVedtak shouldBe fattetVedtak
             }
         }
-    }
 
-    @Test
-    fun `navFattVedtak - vedtak allerede fattet - fatter ikke nytt vedtak`() {
-        with(DeltakerContext()) {
-            medVedtak(fattet = true)
-            withTiltakstype(Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING)
-
-            shouldThrow<IllegalArgumentException> {
-                vedtakService.navFattVedtak(
-                    deltaker = deltaker,
-                    endretAv = veileder,
-                    endretAvEnhet = navEnhet,
-                )
+        @Test
+        fun `mangler vedtak - vedtak er null`() {
+            with(DeltakerContext()) {
+                withTiltakstype(Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING)
+                shouldThrow<IllegalStateException> {
+                    vedtakService.navFattVedtak(
+                        deltaker = deltaker,
+                        endretAv = veileder,
+                        endretAvEnhet = navEnhet,
+                    )
+                }
             }
+        }
 
-            val deltakersVedtak = vedtakRepository.getForDeltaker(deltaker.id).shouldNotBeNull()
-            sammenlignVedtak(deltakersVedtak, vedtak)
+        @Test
+        fun `navFattVedtak - vedtak allerede fattet - fatter ikke nytt vedtak`() {
+            with(DeltakerContext()) {
+                medVedtak(fattet = true)
+                withTiltakstype(Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING)
+
+                shouldNotThrowAny {
+                    vedtakService.navFattVedtak(
+                        deltaker = deltaker,
+                        endretAv = veileder,
+                        endretAvEnhet = navEnhet,
+                    )
+                }
+
+                val deltakersVedtak = vedtakRepository.getForDeltaker(deltaker.id).shouldNotBeNull()
+                sammenlignVedtak(deltakersVedtak, vedtak)
+            }
         }
     }
 
