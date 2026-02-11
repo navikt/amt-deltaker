@@ -78,7 +78,7 @@ class DeltakerKafkaPayloadBuilder(
             startDato = deltaker.startdato,
             sluttDato = deltaker.sluttdato,
             status = DeltakerEksternV1Dto.DeltakerStatusDto(
-                type = deltaker.status.type,
+                statusType = deltaker.status.type,
                 statusTekst = deltaker.status.type.getStatustekst(),
                 aarsakType = deltaker.status.aarsak?.type,
                 aarsakBeskrivelse = deltaker.status.aarsak?.let {

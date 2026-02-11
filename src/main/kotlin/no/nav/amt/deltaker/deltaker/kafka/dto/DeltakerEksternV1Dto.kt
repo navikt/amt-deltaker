@@ -20,7 +20,7 @@ data class DeltakerEksternV1Dto(
     val deltakelsesmengder: List<DeltakelsesmengdeDto>,
 ) {
     data class DeltakerStatusDto(
-        val type: DeltakerStatus.Type,
+        val statusType: DeltakerStatus.Type,
         val statusTekst: String,
         val aarsakType: DeltakerStatus.Aarsak.Type?,
         val aarsakBeskrivelse: String?,
