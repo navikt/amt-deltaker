@@ -101,7 +101,7 @@ class TiltakskoordinatorApiTest : RouteTestBase() {
         private fun Deltaker.toDeltakerOppdateringResult() = DeltakerOppdateringResult(
             deltaker = this,
             isSuccess = true,
-            exceptionOrNull = null,
+            exception = null,
         )
 
         private fun Deltaker.toDeltakerResponse(

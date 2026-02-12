@@ -17,13 +17,13 @@ object DeltakerProgresjonHandler {
             return emptyList()
         }
 
-        val fremtidigAvsluttendeStatus = DeltakerStatusRepository.getAvsluttendeDeltakerStatuserForOppdatering(
-            deltakere.map { it.id },
+        val fremtidigAvsluttendeStatusList = DeltakerStatusRepository.getAvsluttendeDeltakerStatuserForOppdatering(
+            deltakere.map { it.id }.toSet(),
         )
 
         val deltakereMedFremtidigeAvsluttendeStatus = deltakere
             .mapNotNull { deltaker ->
-                fremtidigAvsluttendeStatus
+                fremtidigAvsluttendeStatusList
                     .find { status -> status.deltakerId == deltaker.id }
                     ?.let {
                         log.info("Endret status for ${deltaker.id} til ${it.deltakerStatus.type}.")

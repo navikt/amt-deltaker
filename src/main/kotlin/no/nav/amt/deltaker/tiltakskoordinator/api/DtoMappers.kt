@@ -25,7 +25,7 @@ object DtoMappers {
             historikk = historikk,
             sistEndret = sistEndret,
             erManueltDeltMedArrangor = erManueltDeltMedArrangor,
-            feilkode = oppdateringResult.exceptionOrNull?.toOppdateringFeilkode(),
+            feilkode = oppdateringResult.exception?.toOppdateringFeilkode(),
         )
     }
 

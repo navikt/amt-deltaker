@@ -161,17 +161,16 @@ class DeltakerService(
         }
     }
 
-    // flyttet fra DeltakerRepository
-    private fun lagreStatus(deltakerId: UUID, deltakerStatus: DeltakerStatus) {
-        DeltakerStatusRepository.lagreStatus(deltakerId, deltakerStatus)
+    private fun lagreStatus(deltakerId: UUID, nyDeltakerStatus: DeltakerStatus) {
+        DeltakerStatusRepository.lagreStatus(deltakerId, nyDeltakerStatus)
 
-        val erNyStatusAktiv = deltakerStatus.gyldigFra.toLocalDate() <= LocalDate.now()
+        val erNyStatusAktiv = nyDeltakerStatus.gyldigFra.toLocalDate() <= LocalDate.now()
 
         if (erNyStatusAktiv) {
-            DeltakerStatusRepository.deaktiverTidligereStatuser(deltakerId, deltakerStatus.id)
+            DeltakerStatusRepository.deaktiverTidligereStatuser(deltakerId, nyDeltakerStatus.id)
         } else {
-            // Dette skjer aldri for arenadeltakelser
-            DeltakerStatusRepository.slettTidligereFremtidigeStatuser(deltakerId, deltakerStatus.id)
+            // Dette skal aldri skje for Arena-deltakelser
+            DeltakerStatusRepository.slettTidligereFremtidigeStatuser(deltakerId, nyDeltakerStatus.id)
         }
     }
 
@@ -214,15 +213,23 @@ class DeltakerService(
 
                 deltakerFromDb
             },
-        ).getOrElse { error ->
-            return DeltakerOppdateringResult(deltaker, false, error)
+        ).getOrElse { throwable ->
+            return DeltakerOppdateringResult(
+                deltaker = deltaker,
+                isSuccess = false,
+                exception = throwable,
+            )
         }
 
-        return DeltakerOppdateringResult(oppdatertDeltaker, true, null)
+        return DeltakerOppdateringResult(
+            deltaker = oppdatertDeltaker,
+            isSuccess = true,
+            exception = null,
+        )
     }
 
     suspend fun oppdaterDeltakere(
-        deltakerIder: List<UUID>,
+        deltakerIder: Set<UUID>,
         endringsType: EndringFraTiltakskoordinator.Endring,
         endretAvIdent: String,
     ): List<DeltakerOppdateringResult> {
@@ -232,7 +239,7 @@ class DeltakerService(
         require(endretAvNavEnhetId != null) { "Tiltakskoordinator ${endretAv.id} mangler en tilknyttet nav-enhet" }
 
         val endretAvEnhet = navEnhetService.hentEllerOpprettNavEnhet(endretAvNavEnhetId)
-        val deltakere = deltakerRepository.getMany(deltakerIder)
+        val deltakere = deltakerRepository.getMany(deltakerIder.toSet())
         val tiltakskoder = deltakere
             .map { it.deltakerliste.tiltakstype.tiltakskode }
             .distinct()
@@ -246,7 +253,7 @@ class DeltakerService(
             if (!oppdateringResult.isSuccess) {
                 log.error(
                     "Kunne ikke oppdatere deltaker fra batch: $deltakerIder med endring ${endringsType::class.simpleName}",
-                    oppdateringResult.exceptionOrNull,
+                    oppdateringResult.exception,
                 )
             }
 
@@ -260,7 +267,7 @@ class DeltakerService(
         endretAv: String,
     ): Deltaker {
         val firstDeltakerOppdateringResult = oppdaterDeltakere(
-            deltakerIder = listOf(deltakerId),
+            deltakerIder = setOf(deltakerId),
             endringsType = avslag,
             endretAvIdent = endretAv,
         ).first()
@@ -268,7 +275,7 @@ class DeltakerService(
         return if (firstDeltakerOppdateringResult.isSuccess) {
             firstDeltakerOppdateringResult.deltaker
         } else {
-            throw firstDeltakerOppdateringResult.exceptionOrNull!!
+            throw firstDeltakerOppdateringResult.exception!!
         }
     }
 

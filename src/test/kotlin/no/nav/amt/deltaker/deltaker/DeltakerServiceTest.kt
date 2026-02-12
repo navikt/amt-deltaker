@@ -369,7 +369,7 @@ class DeltakerServiceTest {
             )
             insert(deltaker)
 
-            val statuser = DeltakerStatusRepository.getAvsluttendeDeltakerStatuserForOppdatering(listOf(deltaker.id))
+            val statuser = DeltakerStatusRepository.getAvsluttendeDeltakerStatuserForOppdatering(setOf(deltaker.id))
             statuser.shouldBeEmpty()
         }
 
@@ -387,7 +387,7 @@ class DeltakerServiceTest {
 
             deltakerService.transactionalDeltakerUpsert(deltaker.copy(status = fremtidigStatus))
 
-            val statuser = DeltakerStatusRepository.getAvsluttendeDeltakerStatuserForOppdatering(listOf(deltaker.id))
+            val statuser = DeltakerStatusRepository.getAvsluttendeDeltakerStatuserForOppdatering(setOf(deltaker.id))
             statuser.shouldBeEmpty()
         }
 
@@ -409,7 +409,7 @@ class DeltakerServiceTest {
 
             deltakerService.transactionalDeltakerUpsert(deltaker1, status1)
 
-            val statuser = DeltakerStatusRepository.getAvsluttendeDeltakerStatuserForOppdatering(listOf(deltaker1.id, deltaker2.id))
+            val statuser = DeltakerStatusRepository.getAvsluttendeDeltakerStatuserForOppdatering(setOf(deltaker1.id, deltaker2.id))
             statuser.size shouldBe 1
             statuser.first().deltakerId shouldBe deltaker1.id
         }
@@ -439,7 +439,7 @@ class DeltakerServiceTest {
             deltakerService.transactionalDeltakerUpsert(oppdatertDeltakerDeltar, nesteStatus)
 
             val statuser: List<DeltakerStatusMedDeltakerId> =
-                DeltakerStatusRepository.getAvsluttendeDeltakerStatuserForOppdatering(listOf(opprinneligDeltaker.id))
+                DeltakerStatusRepository.getAvsluttendeDeltakerStatuserForOppdatering(setOf(opprinneligDeltaker.id))
             statuser.size shouldBe 1
 
             assertSoftly(statuser.first()) {
@@ -934,7 +934,7 @@ class DeltakerServiceTest {
             )
             val deltaker = lagDeltaker(deltakerliste = deltakerliste)
             val deltaker2 = lagDeltaker(deltakerliste = deltakerliste)
-            val deltakerIder = listOf(deltaker.id, deltaker2.id)
+            val deltakerIder = setOf(deltaker.id, deltaker2.id)
             val endretAv = lagNavAnsatt()
             val endretAvEnhet = lagNavEnhet(enhetsnummer = "0326")
             val innsokt = lagInnsoktPaaKurs(deltakerId = deltaker.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
@@ -993,7 +993,7 @@ class DeltakerServiceTest {
             )
 
             val deltaker2 = lagDeltaker(deltakerliste = deltakerliste)
-            val deltakerIder = listOf(deltaker.id, deltaker2.id)
+            val deltakerIder = setOf(deltaker.id, deltaker2.id)
             val innsokt = lagInnsoktPaaKurs(deltakerId = deltaker.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
             val innsokt2 = lagInnsoktPaaKurs(deltakerId = deltaker2.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
             TestRepository.insertAll(endretAv, endretAvEnhet, deltaker, deltaker2, innsokt, innsokt2, vedtak)
@@ -1028,7 +1028,7 @@ class DeltakerServiceTest {
             ikkeEndretDeltakerResult.deltaker shouldBeComparableWith deltaker2
 
             ikkeEndretDeltakerResult.isSuccess shouldBe false
-            ikkeEndretDeltakerResult.exceptionOrNull shouldBe
+            ikkeEndretDeltakerResult.exception shouldBe
                 IllegalStateException("Deltaker ${deltaker2.id} mangler et vedtak som kan fattes")
 
             val historikk1 = deltakerHistorikkService.getForDeltaker(deltaker.id)
@@ -1069,7 +1069,7 @@ class DeltakerServiceTest {
                 sistEndretAv = endretAv,
                 sistEndretAvEnhet = endretAvEnhet,
             )
-            val deltakerIder = listOf(deltaker.id, deltaker2.id)
+            val deltakerIder = setOf(deltaker.id, deltaker2.id)
             val innsokt = lagInnsoktPaaKurs(deltakerId = deltaker.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
             val innsokt2 = lagInnsoktPaaKurs(deltakerId = deltaker2.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
             TestRepository.insertAll(
@@ -1127,7 +1127,7 @@ class DeltakerServiceTest {
             )
             val deltaker = lagDeltaker(deltakerliste = deltakerliste, startdato = null, sluttdato = null)
             val deltaker2 = lagDeltaker(deltakerliste = deltakerliste, startdato = null, sluttdato = null)
-            val deltakerIder = listOf(deltaker.id, deltaker2.id)
+            val deltakerIder = setOf(deltaker.id, deltaker2.id)
             val endretAv = lagNavAnsatt()
             val endretAvEnhet = lagNavEnhet(enhetsnummer = "0326")
             val vedtak = lagVedtak(
@@ -1212,7 +1212,7 @@ class DeltakerServiceTest {
                 sistEndretAvEnhet = endretAvEnhet,
             )
 
-            val deltakerIder = listOf(deltakerInsert.id, deltaker2Insert.id)
+            val deltakerIder = setOf(deltakerInsert.id, deltaker2Insert.id)
             val innsokt = lagInnsoktPaaKurs(deltakerId = deltakerInsert.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
             val innsokt2 = lagInnsoktPaaKurs(
                 deltakerId = deltaker2Insert.id,
@@ -1278,7 +1278,7 @@ class DeltakerServiceTest {
                 status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
             )
 
-            val deltakerIder = listOf(deltaker.id, deltaker2.id)
+            val deltakerIder = setOf(deltaker.id, deltaker2.id)
             val innsokt = lagInnsoktPaaKurs(deltakerId = deltaker.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
             val innsokt2 = lagInnsoktPaaKurs(deltakerId = deltaker2.id, innsoktAv = endretAv.id, innsoktAvEnhet = endretAvEnhet.id)
             TestRepository.insertAll(

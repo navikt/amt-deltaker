@@ -184,7 +184,7 @@ class DeltakerRepositoryTest {
 
         TestRepository.insertAll(deltaker1, deltaker2)
 
-        val deltakere = deltakerRepository.getMany(listOf(deltaker1.id, deltaker2.id))
+        val deltakere = deltakerRepository.getMany(setOf(deltaker1.id, deltaker2.id))
         deltakere shouldHaveSize 2
         deltakere.contains(deltaker1)
         deltakere.contains(deltaker2)
