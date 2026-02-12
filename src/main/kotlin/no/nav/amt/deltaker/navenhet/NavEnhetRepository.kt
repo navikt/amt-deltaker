@@ -65,13 +65,17 @@ class NavEnhetRepository {
         )
     }
 
-    fun getMany(ider: Set<UUID>): List<NavEnhet> = Database.query { session ->
-        session.run(
-            queryOf(
-                "SELECT * FROM nav_enhet WHERE id = ANY(:ider)",
-                mapOf("ider" to ider.toTypedArray()),
-            ).map(::rowMapper).asList,
-        )
+    fun getMany(ider: Set<UUID>): List<NavEnhet> {
+        if (ider.isEmpty()) return emptyList()
+
+        return Database.query { session ->
+            session.run(
+                queryOf(
+                    "SELECT * FROM nav_enhet WHERE id = ANY(:ider)",
+                    mapOf("ider" to ider.toTypedArray()),
+                ).map(::rowMapper).asList,
+            )
+        }
     }
 
     companion object {

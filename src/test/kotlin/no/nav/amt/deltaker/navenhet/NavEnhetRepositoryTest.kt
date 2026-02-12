@@ -4,6 +4,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.lib.testing.DatabaseTestExtension
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 import java.util.UUID
@@ -75,48 +76,51 @@ class NavEnhetRepositoryTest {
         result shouldBe null
     }
 
-    @Test
-    fun `getMany - flere nav enheter - returnerer alle enheter`() {
-        val navEnheter = listOf(
-            TestData.lagNavEnhet(enhetsnummer = "1111", navn = "NAV En"),
-            TestData.lagNavEnhet(enhetsnummer = "2222", navn = "NAV To"),
-            TestData.lagNavEnhet(enhetsnummer = "3333", navn = "NAV Tre"),
-        )
-        navEnheter.forEach { navEnhetRepository.upsert(it) }
+    @Nested
+    inner class GetManyTests {
+        @Test
+        fun `getMany - flere nav enheter - returnerer alle enheter`() {
+            val navEnheter = listOf(
+                TestData.lagNavEnhet(enhetsnummer = "1111", navn = "NAV En"),
+                TestData.lagNavEnhet(enhetsnummer = "2222", navn = "NAV To"),
+                TestData.lagNavEnhet(enhetsnummer = "3333", navn = "NAV Tre"),
+            )
+            navEnheter.forEach { navEnhetRepository.upsert(it) }
 
-        val result = navEnhetRepository.getMany(navEnheter.map { it.id }.toSet())
+            val result = navEnhetRepository.getMany(navEnheter.map { it.id }.toSet())
 
-        result.size shouldBe navEnheter.size
-        result.find { it == navEnheter[0] } shouldNotBe null
-        result.find { it == navEnheter[1] } shouldNotBe null
-        result.find { it == navEnheter[2] } shouldNotBe null
-    }
+            result.size shouldBe navEnheter.size
+            result.find { it == navEnheter[0] } shouldNotBe null
+            result.find { it == navEnheter[1] } shouldNotBe null
+            result.find { it == navEnheter[2] } shouldNotBe null
+        }
 
-    @Test
-    fun `getMany - delvis eksisterende enheter - returnerer kun eksisterende`() {
-        val eksisterendeNavEnhet = TestData.lagNavEnhet(enhetsnummer = "1234", navn = "NAV Eksisterende")
-        navEnhetRepository.upsert(eksisterendeNavEnhet)
-        val ikkeEksisterendeId = UUID.randomUUID()
+        @Test
+        fun `getMany - delvis eksisterende enheter - returnerer kun eksisterende`() {
+            val eksisterendeNavEnhet = TestData.lagNavEnhet(enhetsnummer = "1234", navn = "NAV Eksisterende")
+            navEnhetRepository.upsert(eksisterendeNavEnhet)
+            val ikkeEksisterendeId = UUID.randomUUID()
 
-        val result = navEnhetRepository.getMany(setOf(eksisterendeNavEnhet.id, ikkeEksisterendeId))
+            val result = navEnhetRepository.getMany(setOf(eksisterendeNavEnhet.id, ikkeEksisterendeId))
 
-        result.size shouldBe 1
-        result[0] shouldBe eksisterendeNavEnhet
-    }
+            result.size shouldBe 1
+            result[0] shouldBe eksisterendeNavEnhet
+        }
 
-    @Test
-    fun `getMany - tom liste - returnerer tom liste`() {
-        val result = navEnhetRepository.getMany(emptySet())
+        @Test
+        fun `getMany - tom liste - returnerer tom liste`() {
+            val result = navEnhetRepository.getMany(emptySet())
 
-        result.size shouldBe 0
-    }
+            result.size shouldBe 0
+        }
 
-    @Test
-    fun `getMany - ingen eksisterende enheter - returnerer tom liste`() {
-        val ikkeEksisterendeIder = setOf(UUID.randomUUID(), UUID.randomUUID())
+        @Test
+        fun `getMany - ingen eksisterende enheter - returnerer tom liste`() {
+            val ikkeEksisterendeIder = setOf(UUID.randomUUID(), UUID.randomUUID())
 
-        val result = navEnhetRepository.getMany(ikkeEksisterendeIder)
+            val result = navEnhetRepository.getMany(ikkeEksisterendeIder)
 
-        result.size shouldBe 0
+            result.size shouldBe 0
+        }
     }
 }
