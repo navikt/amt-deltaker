@@ -3,6 +3,7 @@ package no.nav.amt.deltaker.deltaker.db
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import kotliquery.queryOf
+import no.nav.amt.deltaker.deltaker.db.DbUtils.sqlPlaceholders
 import no.nav.amt.deltaker.deltaker.model.AVSLUTTENDE_STATUSER
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.Vedtaksinformasjon
@@ -106,13 +107,17 @@ class DeltakerRepository {
         }
     }
 
-    fun getMany(deltakerIder: List<UUID>): List<Deltaker> = Database.query { session ->
-        session.run(
-            queryOf(
-                buildDeltakerSql("getMany", "d.id = ANY(:ider)"),
-                mapOf("ider" to deltakerIder.toTypedArray()),
-            ).map(::deltakerRowMapper).asList,
-        )
+    fun getMany(deltakerIder: List<UUID>): List<Deltaker> {
+        if (deltakerIder.isEmpty()) return emptyList()
+
+        return Database.query { session ->
+            session.run(
+                queryOf(
+                    buildDeltakerSql("getMany", "d.id IN (${sqlPlaceholders(deltakerIder.size)})"),
+                    *deltakerIder.toTypedArray(),
+                ).map(::deltakerRowMapper).asList,
+            )
+        }
     }
 
     fun getFlereForPerson(personIdent: String): List<Deltaker> = Database.query { session ->
@@ -190,7 +195,7 @@ class DeltakerRepository {
         val sql = buildDeltakerSql(
             "getSluttdatoHarPassert",
             """
-            ds.type IN (${sluttdatoStatuser.joinToString { "?" }})
+            ds.type IN (${sqlPlaceholders(sluttdatoStatuser.size)})
             AND d.sluttdato < CURRENT_DATE
             """.trimIndent(),
         )
@@ -209,8 +214,8 @@ class DeltakerRepository {
         val sql = buildDeltakerSql(
             "getDeltakereSomDeltar",
             """
-            ds.type NOT IN (${avsluttendeDeltakerStatuser.joinToString { "?" }})
-            AND dl.status IN (${avsluttendeDeltakerlisteStatuser.joinToString { "?" }})
+            ds.type NOT IN (${sqlPlaceholders(avsluttendeDeltakerStatuser.size)})
+            AND dl.status IN (${sqlPlaceholders(avsluttendeDeltakerlisteStatuser.size)})
             """.trimIndent(),
         )
 

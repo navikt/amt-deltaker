@@ -28,4 +28,18 @@ object DbUtils {
     } else {
         dateTime
     }
+
+    /**
+     * Lager en kommaseparert liste med SQL-parameter-`?` placeholders.
+     *
+     * Brukes typisk for `IN`-clauses, f.eks.:
+     * ```
+     * val placeholders = sqlPlaceholders(3) // "?, ?, ?"
+     * val sql = "SELECT * FROM deltaker WHERE id IN ($placeholders)"
+     * ```
+     *
+     * @param size Antall placeholders som skal genereres.
+     * @return En streng med `size` spørsmålstegn separert med komma og mellomrom.
+     */
+    fun sqlPlaceholders(size: Int): String = List(size) { "?" }.joinToString(",")
 }

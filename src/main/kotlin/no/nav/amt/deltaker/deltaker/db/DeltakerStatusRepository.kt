@@ -5,6 +5,7 @@ import kotliquery.Query
 import kotliquery.Row
 import kotliquery.queryOf
 import no.nav.amt.deltaker.deltaker.db.DbUtils.nullWhenNearNow
+import no.nav.amt.deltaker.deltaker.db.DbUtils.sqlPlaceholders
 import no.nav.amt.deltaker.utils.toPGObject
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.utils.database.Database
@@ -147,7 +148,7 @@ object DeltakerStatusRepository {
             SELECT ds.* 
             FROM deltaker_status ds 
             WHERE 
-                ds.deltaker_id IN (${deltakerIdListe.joinToString { "?" }})
+                ds.deltaker_id IN (${sqlPlaceholders(deltakerIdListe.size)})
                 AND ds.gyldig_til IS NULL 
                 AND ds.gyldig_fra < current_date + interval '1 day' 
                 AND ds.type IN ('AVBRUTT', 'FULLFORT', 'HAR_SLUTTET') 

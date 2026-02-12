@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.navansatt
 
 import kotliquery.Row
 import kotliquery.queryOf
+import no.nav.amt.deltaker.deltaker.db.DbUtils.sqlPlaceholders
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.utils.database.Database
 import java.util.UUID
@@ -86,11 +87,13 @@ class NavAnsattRepository {
     }
 
     fun getMany(veilederIdenter: List<String>): List<NavAnsatt> {
+        if (veilederIdenter.isEmpty()) return emptyList()
+
         val sql =
             """
             SELECT * 
             FROM nav_ansatt 
-            WHERE nav_ident IN (${veilederIdenter.joinToString { "?" }})
+            WHERE nav_ident IN (${sqlPlaceholders(veilederIdenter.size)})
             """.trimIndent()
 
         return Database.query { session ->
