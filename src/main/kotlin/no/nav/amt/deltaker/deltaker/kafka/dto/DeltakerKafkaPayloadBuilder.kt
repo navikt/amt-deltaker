@@ -62,7 +62,7 @@ class DeltakerKafkaPayloadBuilder(
             endretDato = maxOf(deltaker.status.opprettet, deltaker.sistEndret),
             kilde = deltaker.kilde,
             innhold = deltaker.deltakelsesinnhold?.toDeltakelsesinnholdDto(),
-            deltakelsesmengder = getDeltakelsesmengder(deltaker, deltakerhistorikk).toDeltakerV1Dto(),
+            deltakelsesmengder = getDeltakelsesmengder(deltaker, deltakerhistorikk).toDeltakelsesmengdeV1Dto(),
         )
     }
 
@@ -92,7 +92,7 @@ class DeltakerKafkaPayloadBuilder(
             endretTidspunkt = maxOf(deltaker.status.opprettet, deltaker.sistEndret),
             kilde = deltaker.kilde,
             innhold = deltaker.deltakelsesinnhold?.toDeltakelseEksternV1InnholdDto(),
-            deltakelsesmengder = getDeltakelsesmengder(deltaker, deltakerhistorikk).toDeltakerEksternV1Dto(),
+            deltakelsesmengder = getDeltakelsesmengder(deltaker, deltakerhistorikk).toDeltakelsesmengdeEksternV1Dto(),
         )
     }
 
@@ -273,7 +273,7 @@ class DeltakerKafkaPayloadBuilder(
         return deltakelsesmengder
     }
 
-    private fun List<Deltakelsesmengde>.toDeltakerV1Dto(): List<DeltakerV1Dto.DeltakelsesmengdeDto> = this.map {
+    private fun List<Deltakelsesmengde>.toDeltakelsesmengdeV1Dto(): List<DeltakerV1Dto.DeltakelsesmengdeDto> = this.map {
         DeltakerV1Dto.DeltakelsesmengdeDto(
             deltakelsesprosent = it.deltakelsesprosent,
             dagerPerUke = it.dagerPerUke,
@@ -282,7 +282,7 @@ class DeltakerKafkaPayloadBuilder(
         )
     }
 
-    private fun List<Deltakelsesmengde>.toDeltakerEksternV1Dto(): List<DeltakerEksternV1Dto.DeltakelsesmengdeDto> = this.map {
+    private fun List<Deltakelsesmengde>.toDeltakelsesmengdeEksternV1Dto(): List<DeltakerEksternV1Dto.DeltakelsesmengdeDto> = this.map {
         DeltakerEksternV1Dto.DeltakelsesmengdeDto(
             deltakelsesprosent = it.deltakelsesprosent,
             dagerPerUke = it.dagerPerUke,

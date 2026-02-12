@@ -108,10 +108,10 @@ class EnkeltplassDeltakerConsumerTest {
         every { unleashToggle.skalDelesMedEksterne(any()) } returns false
         every { deltakerProducer.produce(any()) } just Runs
         every { deltakerEksternV1Producer.produce(any()) } just Runs
-        coEvery { deltakerEksternV1Producer.produce(any()) } just Runs
-        coEvery { deltakerKafkaPayloadBuilder.buildDeltakerV1Record(any()) } returns mockk()
-        coEvery { deltakerKafkaPayloadBuilder.buildDeltakerEksternV1Record(any()) } returns mockk()
-        coEvery { deltakerKafkaPayloadBuilder.buildDeltakerV2Record(any()) } returns mockk()
+        every { deltakerEksternV1Producer.produce(any()) } just Runs
+        every { deltakerKafkaPayloadBuilder.buildDeltakerV1Record(any()) } returns mockk()
+        every { deltakerKafkaPayloadBuilder.buildDeltakerEksternV1Record(any()) } returns mockk()
+        every { deltakerKafkaPayloadBuilder.buildDeltakerV2Record(any()) } returns mockk()
     }
 
     @Test

@@ -63,7 +63,16 @@ fun Routing.registerInternalApi(
     suspend fun ApplicationCall.reproduserDeltakere() {
         val request = this.receive<RelastDeltakereRequest>()
         scope.launch {
-            log.info("Relaster ${request.deltakere.size} deltakere komet er master for på deltaker-v2")
+            if (request.publiserTilDeltakerV2) {
+                log.info("Relaster ${request.deltakere.size} deltakere på deltaker-v2")
+            }
+            if (request.publiserTilDeltakerV1) {
+                log.info("Relaster ${request.deltakere.size} deltakere på deltaker-v1")
+            }
+            if (request.publiserTilDeltakerEksternV1) {
+                log.info("Relaster ${request.deltakere.size} deltakere på deltaker-ekstern-v1")
+            }
+
             request.deltakere.forEach { deltakerId ->
                 deltakerProducerService.produce(
                     deltakerRepository.get(deltakerId).getOrThrow(),
@@ -126,6 +135,12 @@ fun Routing.registerInternalApi(
             val request = call.receive<RepubliserRequest>()
             val deltaker = deltakerRepository.get(deltakerId)
             log.info("Relaster deltaker $deltakerId på deltaker-v2")
+            if (request.publiserTilDeltakerV1) {
+                log.info("Relaster deltaker $deltakerId på deltaker-v1")
+            }
+            if (request.publiserTilDeltakerEksternV1) {
+                log.info("Relaster deltaker $deltakerId på deltaker-ekstern-v1")
+            }
             deltakerProducerService.produce(
                 deltaker.getOrThrow(),
                 forcedUpdate = request.forcedUpdate,
