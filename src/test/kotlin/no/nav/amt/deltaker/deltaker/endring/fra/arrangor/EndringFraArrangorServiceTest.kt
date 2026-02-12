@@ -33,7 +33,12 @@ import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.deltaker.unleash.UnleashToggle
-import no.nav.amt.deltaker.utils.data.TestData
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
+import no.nav.amt.deltaker.utils.data.TestData.lagEndringFraArrangor
+import no.nav.amt.deltaker.utils.data.TestData.lagNavAnsatt
+import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
+import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.utils.mockAmtArrangorClient
 import no.nav.amt.deltaker.utils.mockPersonServiceClient
@@ -158,16 +163,16 @@ class EndringFraArrangorServiceTest {
 
     @Test
     fun `upsertEndretDeltaker - legg til oppstartsdato, dato ikke passert - inserter endring og returnerer deltaker`(): Unit = runTest {
-        val deltaker = TestData.lagDeltaker(
+        val deltaker = lagDeltaker(
             startdato = null,
             sluttdato = null,
-            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
+            status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
         )
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
+        val endretAv = lagNavAnsatt()
+        val endretAvEnhet = lagNavEnhet()
 
         TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
-        val vedtak = TestData.lagVedtak(
+        val vedtak = lagVedtak(
             deltakerVedVedtak = deltaker,
             opprettetAv = endretAv,
             opprettetAvEnhet = endretAvEnhet,
@@ -177,7 +182,7 @@ class EndringFraArrangorServiceTest {
 
         val startdato = LocalDate.now().plusDays(2)
         val sluttdato = LocalDate.now().plusMonths(3)
-        val endringFraArrangor = TestData.lagEndringFraArrangor(
+        val endringFraArrangor = lagEndringFraArrangor(
             deltakerId = deltaker.id,
             endring = EndringFraArrangor.LeggTilOppstartsdato(
                 startdato = startdato,
@@ -202,16 +207,16 @@ class EndringFraArrangorServiceTest {
 
     @Test
     fun `upsertEndretDeltaker - legg til oppstartsdato, dato passert - inserter endring og returnerer deltaker`(): Unit = runTest {
-        val deltaker = TestData.lagDeltaker(
+        val deltaker = lagDeltaker(
             startdato = null,
             sluttdato = null,
-            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
+            status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
         )
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
+        val endretAv = lagNavAnsatt()
+        val endretAvEnhet = lagNavEnhet()
 
         TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
-        val vedtak = TestData.lagVedtak(
+        val vedtak = lagVedtak(
             deltakerVedVedtak = deltaker,
             opprettetAv = endretAv,
             opprettetAvEnhet = endretAvEnhet,
@@ -221,7 +226,7 @@ class EndringFraArrangorServiceTest {
 
         val startdato = LocalDate.now().minusDays(2)
         val sluttdato = LocalDate.now().plusMonths(3)
-        val endringFraArrangor = TestData.lagEndringFraArrangor(
+        val endringFraArrangor = lagEndringFraArrangor(
             deltakerId = deltaker.id,
             endring = EndringFraArrangor.LeggTilOppstartsdato(
                 startdato = startdato,
@@ -247,16 +252,16 @@ class EndringFraArrangorServiceTest {
     @Test
     fun `upsertEndretDeltaker - legg til oppstartsdato uten sluttdato, dato passert - inserter endring og returnerer deltaker`(): Unit =
         runTest {
-            val deltaker = TestData.lagDeltaker(
+            val deltaker = lagDeltaker(
                 startdato = null,
                 sluttdato = null,
-                status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
+                status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
             )
-            val endretAv = TestData.lagNavAnsatt()
-            val endretAvEnhet = TestData.lagNavEnhet()
+            val endretAv = lagNavAnsatt()
+            val endretAvEnhet = lagNavEnhet()
 
             TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
-            val vedtak = TestData.lagVedtak(
+            val vedtak = lagVedtak(
                 deltakerVedVedtak = deltaker,
                 opprettetAv = endretAv,
                 opprettetAvEnhet = endretAvEnhet,
@@ -265,7 +270,7 @@ class EndringFraArrangorServiceTest {
             TestRepository.insert(vedtak)
 
             val startdato = LocalDate.now().minusDays(2)
-            val endringFraArrangor = TestData.lagEndringFraArrangor(
+            val endringFraArrangor = lagEndringFraArrangor(
                 deltakerId = deltaker.id,
                 endring = EndringFraArrangor.LeggTilOppstartsdato(
                     startdato = startdato,
@@ -291,16 +296,16 @@ class EndringFraArrangorServiceTest {
     @Test
     fun `upsertEndretDeltaker - legg til oppstartsdato uten sluttdato - fjerner ikke eksisterende sluttdato`(): Unit = runTest {
         val gammelsluttdato = LocalDate.now().plusDays(2)
-        val deltaker = TestData.lagDeltaker(
+        val deltaker = lagDeltaker(
             startdato = LocalDate.of(2021, 1, 1),
             sluttdato = gammelsluttdato,
-            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+            status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
         )
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
+        val endretAv = lagNavAnsatt()
+        val endretAvEnhet = lagNavEnhet()
 
         TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
-        val vedtak = TestData.lagVedtak(
+        val vedtak = lagVedtak(
             deltakerVedVedtak = deltaker,
             opprettetAv = endretAv,
             opprettetAvEnhet = endretAvEnhet,
@@ -309,7 +314,7 @@ class EndringFraArrangorServiceTest {
         TestRepository.insert(vedtak)
 
         val startdato = LocalDate.of(2021, 1, 2)
-        val endringFraArrangor = TestData.lagEndringFraArrangor(
+        val endringFraArrangor = lagEndringFraArrangor(
             deltakerId = deltaker.id,
             endring = EndringFraArrangor.LeggTilOppstartsdato(
                 startdato = startdato,
@@ -339,16 +344,16 @@ class EndringFraArrangorServiceTest {
     @Test
     fun `upsertEndretDeltaker - legg til oppstartsdato, start- og sluttdato passert - inserter endring og returnerer deltaker`(): Unit =
         runTest {
-            val deltaker = TestData.lagDeltaker(
+            val deltaker = lagDeltaker(
                 startdato = null,
                 sluttdato = null,
-                status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
+                status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
             )
-            val endretAv = TestData.lagNavAnsatt()
-            val endretAvEnhet = TestData.lagNavEnhet()
+            val endretAv = lagNavAnsatt()
+            val endretAvEnhet = lagNavEnhet()
 
             TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
-            val vedtak = TestData.lagVedtak(
+            val vedtak = lagVedtak(
                 deltakerVedVedtak = deltaker,
                 opprettetAv = endretAv,
                 opprettetAvEnhet = endretAvEnhet,
@@ -358,7 +363,7 @@ class EndringFraArrangorServiceTest {
 
             val startdato = LocalDate.now().minusMonths(2)
             val sluttdato = LocalDate.now().minusDays(5)
-            val endringFraArrangor = TestData.lagEndringFraArrangor(
+            val endringFraArrangor = lagEndringFraArrangor(
                 deltakerId = deltaker.id,
                 endring = EndringFraArrangor.LeggTilOppstartsdato(
                     startdato = startdato,

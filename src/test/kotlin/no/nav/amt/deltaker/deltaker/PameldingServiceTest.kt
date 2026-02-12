@@ -96,7 +96,7 @@ class PameldingServiceTest {
         fun `opprettKladd - deltaker finnes og deltar fortsatt - returnerer eksisterende deltaker`(): Unit = runTest {
             val expectedDeltaker = lagDeltaker(
                 sluttdato = null,
-                status = lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
             )
             TestRepository.insert(expectedDeltaker)
 
@@ -208,7 +208,7 @@ class PameldingServiceTest {
         fun `opprettKladd - deltaker finnes men har sluttet - oppretter ny deltaker`() {
             val deltaker = lagDeltaker(
                 sluttdato = LocalDate.now().minusMonths(3),
-                status = lagDeltakerStatus(type = DeltakerStatus.Type.HAR_SLUTTET),
+                status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
             )
             TestRepository.insert(deltaker)
 
@@ -230,7 +230,7 @@ class PameldingServiceTest {
         @Test
         fun `upsertUtkast - deltaker finnes - oppdaterer deltaker og oppretter vedtak`() {
             val deltaker = lagDeltaker(
-                status = lagDeltakerStatus(type = DeltakerStatus.Type.KLADD),
+                status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
                 vedtaksinformasjon = null,
             )
             TestRepository.insert(deltaker)
@@ -273,7 +273,7 @@ class PameldingServiceTest {
                 deltakerliste = lagDeltakerliste(
                     pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
                 ),
-                status = lagDeltakerStatus(type = DeltakerStatus.Type.KLADD),
+                status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
                 vedtaksinformasjon = null,
                 startdato = null,
                 sluttdato = null,
@@ -318,7 +318,7 @@ class PameldingServiceTest {
         fun `upsertUtkast - deltaker med trenger godkjenning, godkjent av NAV - oppdaterer deltaker`() {
             val deltaker = lagDeltaker(
                 deltakerliste = lagDeltakerliste(pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING),
-                status = lagDeltakerStatus(type = DeltakerStatus.Type.KLADD),
+                status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
                 vedtaksinformasjon = null,
                 startdato = null,
                 sluttdato = null,
@@ -369,7 +369,7 @@ class PameldingServiceTest {
         TestRepository.insertAll(sistEndretAvNavAnsatt, sistEndretAvNavEnhet)
 
         val deltaker = lagDeltaker(
-            status = lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+            status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
             startdato = null,
             sluttdato = null,
         )
@@ -416,7 +416,7 @@ class PameldingServiceTest {
         fun `innbyggerGodkjennUtkast - deltaker med lopende oppstart - vedtak fattes og ny status er godkjent utkast`() = runTest {
             val deltaker = lagDeltaker(
                 deltakerliste = TestData.lagDeltakerlisteMedLopendeOppstart(),
-                status = lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+                status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
             )
             val vedtak = lagVedtak(deltakerVedVedtak = deltaker)
             val ansatt = lagNavAnsatt(id = vedtak.opprettetAv)
@@ -443,7 +443,7 @@ class PameldingServiceTest {
         fun `innbyggerGodkjennUtkast - deltaker med felles oppstart - vedtak fattes ikke ny status er sokt inn`() = runTest {
             val deltaker = lagDeltaker(
                 deltakerliste = TestData.lagDeltakerlisteMedFellesOppstart(),
-                status = lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+                status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
             )
             val vedtak = lagVedtak(deltakerVedVedtak = deltaker)
             val ansatt = lagNavAnsatt(id = vedtak.opprettetAv)
@@ -475,7 +475,7 @@ class PameldingServiceTest {
         fun `innbyggerGodkjennUtkast - vedtak kunne ikke fattes - upserter ikke`() {
             val deltaker = lagDeltaker(
                 deltakerliste = TestData.lagDeltakerlisteMedLopendeOppstart(),
-                status = lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+                status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
             )
             val vedtak = lagVedtak(deltakerVedVedtak = deltaker, fattet = LocalDateTime.now())
             val ansatt = lagNavAnsatt(id = vedtak.opprettetAv)
@@ -502,7 +502,7 @@ class PameldingServiceTest {
             val deltakerliste = lagDeltakerliste(
                 pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
             )
-            val deltakerStatusKladd = lagDeltakerStatus(type = DeltakerStatus.Type.KLADD)
+            val deltakerStatusKladd = lagDeltakerStatus(DeltakerStatus.Type.KLADD)
             val deltaker = lagDeltaker(
                 deltakerliste = deltakerliste,
                 status = deltakerStatusKladd,
@@ -518,7 +518,7 @@ class PameldingServiceTest {
             val deltakerliste = lagDeltakerliste(
                 pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
             )
-            val deltakerStatusKladd = lagDeltakerStatus(type = DeltakerStatus.Type.KLADD)
+            val deltakerStatusKladd = lagDeltakerStatus(DeltakerStatus.Type.KLADD)
             val deltaker = lagDeltaker(
                 deltakerliste = deltakerliste,
                 status = deltakerStatusKladd,

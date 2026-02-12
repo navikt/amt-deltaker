@@ -31,7 +31,13 @@ import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.deltaker.unleash.UnleashToggle
-import no.nav.amt.deltaker.utils.data.TestData
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerEndring
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
+import no.nav.amt.deltaker.utils.data.TestData.lagForslag
+import no.nav.amt.deltaker.utils.data.TestData.lagNavAnsatt
+import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
+import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.utils.mockAmtArrangorClient
 import no.nav.amt.deltaker.utils.mockPersonServiceClient
@@ -115,9 +121,9 @@ class DeltakerEndringServiceTest {
 
     @Test
     fun `upsertEndring - endret bakgrunnsinformasjon - upserter endring og returnerer deltaker`(): Unit = runTest {
-        val deltaker = TestData.lagDeltaker()
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
+        val deltaker = lagDeltaker()
+        val endretAv = lagNavAnsatt()
+        val endretAvEnhet = lagNavEnhet()
         val utfall = DeltakerEndringUtfall.VellykketEndring(
             deltaker = deltaker,
         )
@@ -150,9 +156,9 @@ class DeltakerEndringServiceTest {
 
     @Test
     fun `upsertEndring - endret innhold - upserter og returnerer endring`(): Unit = runTest {
-        val deltaker = TestData.lagDeltaker()
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
+        val deltaker = lagDeltaker()
+        val endretAv = lagNavAnsatt()
+        val endretAvEnhet = lagNavEnhet()
         val utfall = DeltakerEndringUtfall.VellykketEndring(deltaker)
 
         TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
@@ -191,10 +197,10 @@ class DeltakerEndringServiceTest {
 
     @Test
     fun `upsertEndring - forleng deltakelse - upserter endring og returnerer deltaker`(): Unit = runTest {
-        val deltaker = TestData.lagDeltaker()
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
-        val forslag = TestData.lagForslag(deltakerId = deltaker.id)
+        val deltaker = lagDeltaker()
+        val endretAv = lagNavAnsatt()
+        val endretAvEnhet = lagNavEnhet()
+        val forslag = lagForslag(deltakerId = deltaker.id)
 
         TestRepository.insertAll(deltaker, endretAv, endretAvEnhet, forslag)
 
@@ -244,10 +250,10 @@ class DeltakerEndringServiceTest {
 
     @Test
     fun `upsertEndring - ikke aktuell - upserter endring og returnerer deltaker`(): Unit = runTest {
-        val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.VENTER_PA_OPPSTART))
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
-        val forslag = TestData.lagForslag(deltakerId = deltaker.id, endring = Forslag.IkkeAktuell(EndringAarsak.FattJobb))
+        val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
+        val endretAv = lagNavAnsatt()
+        val endretAvEnhet = lagNavEnhet()
+        val forslag = lagForslag(deltakerId = deltaker.id, endring = Forslag.IkkeAktuell(EndringAarsak.FattJobb))
         val utfall = DeltakerEndringUtfall.VellykketEndring(deltaker)
         TestRepository.insertAll(deltaker, endretAv, endretAvEnhet, forslag)
 
@@ -296,13 +302,13 @@ class DeltakerEndringServiceTest {
 
     @Test
     fun `upsertEndring - fjern oppstartsdato - upserter endring og returnerer deltaker`(): Unit = runTest {
-        val deltaker = TestData.lagDeltaker(
-            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
+        val deltaker = lagDeltaker(
+            status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
             startdato = LocalDate.now().plusDays(3),
             sluttdato = LocalDate.now().plusWeeks(4),
         )
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
+        val endretAv = lagNavAnsatt()
+        val endretAvEnhet = lagNavEnhet()
         val utfall = DeltakerEndringUtfall.VellykketEndring(deltaker)
 
         TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
@@ -335,9 +341,9 @@ class DeltakerEndringServiceTest {
 
     @Test
     fun `behandleLagretEndring - ubehandlet gyldig endring - oppdaterer deltaker og upserter endring med behandlet`() {
-        val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR))
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
+        val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+        val endretAv = lagNavAnsatt()
+        val endretAvEnhet = lagNavEnhet()
 
         TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
 
@@ -346,7 +352,7 @@ class DeltakerEndringServiceTest {
         val id = UUID.randomUUID()
 
         val ubehandletEndring = upsertEndring(
-            TestData.lagDeltakerEndring(
+            lagDeltakerEndring(
                 id = id,
                 deltakerId = deltaker.id,
                 endretAv = endretAv.id,
@@ -374,10 +380,10 @@ class DeltakerEndringServiceTest {
 
     @Test
     fun `behandleLagretEndring - ubehandlet ugyldig endring - oppdaterer ikke deltaker og upserter endring med behandlet`() = runTest {
-        val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR))
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
-        val vedtak = TestData.lagVedtak(
+        val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+        val endretAv = lagNavAnsatt()
+        val endretAvEnhet = lagNavEnhet()
+        val vedtak = lagVedtak(
             deltakerVedVedtak = deltaker,
             opprettetAv = endretAv,
             opprettetAvEnhet = endretAvEnhet,
@@ -387,7 +393,7 @@ class DeltakerEndringServiceTest {
         TestRepository.insertAll(deltaker, endretAv, endretAvEnhet, vedtak)
 
         val ugyldigEndring = upsertEndring(
-            TestData.lagDeltakerEndring(
+            lagDeltakerEndring(
                 deltakerId = deltaker.id,
                 endretAv = endretAv.id,
                 endretAvEnhet = endretAvEnhet.id,
@@ -402,7 +408,7 @@ class DeltakerEndringServiceTest {
         )
 
         val gyldigEndring = upsertEndring(
-            TestData.lagDeltakerEndring(
+            lagDeltakerEndring(
                 deltakerId = deltaker.id,
                 endretAv = endretAv.id,
                 endretAvEnhet = endretAvEnhet.id,
@@ -431,10 +437,10 @@ class DeltakerEndringServiceTest {
 
     @Test
     fun `behandleLagretEndring - endringen er utfort pga endret startdato - oppdaterer ikke deltaker og upserter endring med behandlet`() {
-        val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR))
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
-        val vedtak = TestData.lagVedtak(
+        val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+        val endretAv = lagNavAnsatt()
+        val endretAvEnhet = lagNavEnhet()
+        val vedtak = lagVedtak(
             deltakerVedVedtak = deltaker,
             opprettetAv = endretAv,
             opprettetAvEnhet = endretAvEnhet,
@@ -443,7 +449,7 @@ class DeltakerEndringServiceTest {
 
         val startdato = LocalDate.now().plusWeeks(1)
 
-        val startdatoEndring = TestData.lagDeltakerEndring(
+        val startdatoEndring = lagDeltakerEndring(
             deltakerId = deltaker.id,
             endretAv = endretAv.id,
             endretAvEnhet = endretAvEnhet.id,
@@ -461,7 +467,7 @@ class DeltakerEndringServiceTest {
         val fremtidigDagerPerUke = null
 
         val fremtidigEndring = upsertEndring(
-            TestData.lagDeltakerEndring(
+            lagDeltakerEndring(
                 deltakerId = deltaker.id,
                 endretAv = endretAv.id,
                 endretAvEnhet = endretAvEnhet.id,

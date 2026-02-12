@@ -8,7 +8,14 @@ import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.api.deltaker.toDeltakerEndringEndring
-import no.nav.amt.deltaker.utils.data.TestData
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerlisteMedFellesOppstart
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerlisteMedLopendeOppstart
+import no.nav.amt.deltaker.utils.data.TestData.lagForslag
+import no.nav.amt.deltaker.utils.data.TestData.lagNavAnsatt
+import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
 import no.nav.amt.lib.models.arrangor.melding.EndringAarsak
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
@@ -57,9 +64,9 @@ class DeltakerEndringHandlerTest {
             listOf(gjeldendeMengde, fremtidigMengde),
         )
 
-        val deltaker = TestData.lagDeltaker(
+        val deltaker = lagDeltaker(
             startdato = gammelStartdato,
-            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+            status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
             dagerPerUke = gjeldendeMengde.dagerPerUke,
             deltakelsesprosent = gjeldendeMengde.deltakelsesprosent,
         )
@@ -94,9 +101,9 @@ class DeltakerEndringHandlerTest {
             listOf(gjeldendeMengde, fremtidigMengde),
         )
 
-        val deltaker = TestData.lagDeltaker(
+        val deltaker = lagDeltaker(
             startdato = gammelStartdato,
-            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+            status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR),
             dagerPerUke = gjeldendeMengde.dagerPerUke,
             deltakelsesprosent = gjeldendeMengde.deltakelsesprosent,
         )
@@ -131,9 +138,9 @@ class DeltakerEndringHandlerTest {
             listOf(gjeldendeMengde, fremtidigMengde),
         )
 
-        val deltaker = TestData.lagDeltaker(
+        val deltaker = lagDeltaker(
             startdato = gammelStartdato,
-            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+            status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
             dagerPerUke = gjeldendeMengde.dagerPerUke,
             deltakelsesprosent = gjeldendeMengde.deltakelsesprosent,
         )
@@ -148,9 +155,9 @@ class DeltakerEndringHandlerTest {
 
     @Test
     fun `sjekkUtfall - endret start- og sluttdato i fortid, venter pa oppstart - deltaker blir har sluttet`(): Unit = runBlocking {
-        val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.VENTER_PA_OPPSTART))
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
+        val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
+        val endretAv = lagNavAnsatt()
+        val endretAvEnhet = lagNavEnhet()
         val endringsrequest = StartdatoRequest(
             endretAv = endretAv.navIdent,
             endretAvEnhet = endretAvEnhet.enhetsnummer,
@@ -174,9 +181,9 @@ class DeltakerEndringHandlerTest {
 
     @Test
     fun `sjekkUtfall - endret sluttdato i fortid, startdato mangler, venter pa oppstart - blir ikke aktuell`(): Unit = runBlocking {
-        val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.VENTER_PA_OPPSTART))
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
+        val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
+        val endretAv = lagNavAnsatt()
+        val endretAvEnhet = lagNavEnhet()
         val endringsrequest = StartdatoRequest(
             endretAv = endretAv.navIdent,
             endretAvEnhet = endretAvEnhet.enhetsnummer,
@@ -200,9 +207,9 @@ class DeltakerEndringHandlerTest {
 
     @Test
     fun `sjekkUtfall - endret start- og sluttdato i fortid, deltar - deltaker blir har sluttet`(): Unit = runBlocking {
-        val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR))
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
+        val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+        val endretAv = lagNavAnsatt()
+        val endretAvEnhet = lagNavEnhet()
         val endringsrequest = StartdatoRequest(
             endretAv = endretAv.navIdent,
             endretAvEnhet = endretAvEnhet.enhetsnummer,
@@ -227,13 +234,13 @@ class DeltakerEndringHandlerTest {
 
     @Test
     fun `sjekkUtfall - endret start- og sluttdato i fremtid, fullfort - deltaker blir venter pa oppstart`(): Unit = runBlocking {
-        val deltaker = TestData.lagDeltaker(
-            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.FULLFORT),
+        val deltaker = lagDeltaker(
+            status = lagDeltakerStatus(DeltakerStatus.Type.FULLFORT),
             startdato = LocalDate.now().minusWeeks(10),
             sluttdato = LocalDate.now().minusDays(4),
         )
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
+        val endretAv = lagNavAnsatt()
+        val endretAvEnhet = lagNavEnhet()
         val endringsrequest = StartdatoRequest(
             endretAv = endretAv.navIdent,
             endretAvEnhet = endretAvEnhet.enhetsnummer,
@@ -258,9 +265,9 @@ class DeltakerEndringHandlerTest {
 
     @Test
     fun `sjekkUtfall - endret start- og sluttdato i fremtid, deltar - deltaker blir venter pa oppstart`(): Unit = runBlocking {
-        val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR))
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
+        val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+        val endretAv = lagNavAnsatt()
+        val endretAvEnhet = lagNavEnhet()
         val endringsrequest = StartdatoRequest(
             endretAv = endretAv.navIdent,
             endretAvEnhet = endretAvEnhet.enhetsnummer,
@@ -285,13 +292,13 @@ class DeltakerEndringHandlerTest {
 
     @Test
     fun `sjekkUtfall - endret start- og sluttdato i fremtid, har sluttet - deltaker blir deltar`(): Unit = runBlocking {
-        val deltaker = TestData.lagDeltaker(
+        val deltaker = lagDeltaker(
             startdato = LocalDate.now().minusMonths(1),
             sluttdato = LocalDate.now().minusDays(1),
-            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.HAR_SLUTTET),
+            status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
         )
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
+        val endretAv = lagNavAnsatt()
+        val endretAvEnhet = lagNavEnhet()
 
         val endringsrequest = StartdatoRequest(
             endretAv = endretAv.navIdent,
@@ -317,9 +324,9 @@ class DeltakerEndringHandlerTest {
 
     @Test
     fun `sjekkUtfall - endret sluttdato`(): Unit = runBlocking {
-        val deltaker = TestData.lagDeltaker()
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
+        val deltaker = lagDeltaker()
+        val endretAv = lagNavAnsatt()
+        val endretAvEnhet = lagNavEnhet()
         val endringsrequest = SluttdatoRequest(
             endretAv = endretAv.navIdent,
             endretAvEnhet = endretAvEnhet.enhetsnummer,
@@ -340,9 +347,9 @@ class DeltakerEndringHandlerTest {
 
     @Test
     fun `sjekkUtfall - endret sluttdato frem i tid - endrer status og sluttdato`(): Unit = runBlocking {
-        val deltaker = TestData.lagDeltaker()
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
+        val deltaker = lagDeltaker()
+        val endretAv = lagNavAnsatt()
+        val endretAvEnhet = lagNavEnhet()
         val endringsrequest = SluttdatoRequest(
             endretAv = endretAv.navIdent,
             endretAvEnhet = endretAvEnhet.enhetsnummer,
@@ -363,11 +370,11 @@ class DeltakerEndringHandlerTest {
 
     @Test
     fun `sjekkUtfall - endret sluttarsak`(): Unit = runBlocking {
-        val deltaker = TestData.lagDeltaker(
-            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.HAR_SLUTTET, aarsak = DeltakerStatus.Aarsak.Type.SYK),
+        val deltaker = lagDeltaker(
+            status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET, aarsakType = DeltakerStatus.Aarsak.Type.SYK),
         )
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
+        val endretAv = lagNavAnsatt()
+        val endretAvEnhet = lagNavEnhet()
 
         val endringsrequest = SluttarsakRequest(
             endretAv = endretAv.navIdent,
@@ -389,13 +396,13 @@ class DeltakerEndringHandlerTest {
 
     @Test
     fun `sjekkUtfall - avslutt deltakelse`(): Unit = runBlocking {
-        val deltaker = TestData.lagDeltaker(
-            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+        val deltaker = lagDeltaker(
+            status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
             sluttdato = LocalDate.now().plusMonths(1),
         )
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
-        val forslag = TestData.lagForslag(
+        val endretAv = lagNavAnsatt()
+        val endretAvEnhet = lagNavEnhet()
+        val forslag = lagForslag(
             deltakerId = deltaker.id,
             endring = Forslag.AvsluttDeltakelse(LocalDate.now(), EndringAarsak.FattJobb, null, null),
         )
@@ -423,12 +430,12 @@ class DeltakerEndringHandlerTest {
 
     @Test
     fun `sjekkUtfall - avslutt deltakelse i fremtiden - deltaker får ny sluttdato, fremtidig status`(): Unit = runBlocking {
-        val deltaker = TestData.lagDeltaker(
-            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+        val deltaker = lagDeltaker(
+            status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
             sluttdato = LocalDate.now().plusMonths(1),
         )
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
+        val endretAv = lagNavAnsatt()
+        val endretAvEnhet = lagNavEnhet()
         val endringsrequest = AvsluttDeltakelseRequest(
             endretAv = endretAv.navIdent,
             endretAvEnhet = endretAvEnhet.enhetsnummer,
@@ -452,12 +459,12 @@ class DeltakerEndringHandlerTest {
 
     @Test
     fun `sjekkUtfall - har sluttet, avslutt deltakelse i fremtiden - ny sluttdato, fremtidig status`(): Unit = runBlocking {
-        val deltaker = TestData.lagDeltaker(
-            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.HAR_SLUTTET),
+        val deltaker = lagDeltaker(
+            status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
             sluttdato = LocalDate.now().minusWeeks(1),
         )
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
+        val endretAv = lagNavAnsatt()
+        val endretAvEnhet = lagNavEnhet()
         val endringsrequest = AvsluttDeltakelseRequest(
             endretAv = endretAv.navIdent,
             endretAvEnhet = endretAvEnhet.enhetsnummer,
@@ -492,12 +499,12 @@ class DeltakerEndringHandlerTest {
 
     @Test
     fun `sjekkUtfall - har sluttet, avslutt deltakelse i fortid - returnerer deltaker med ny sluttdato`(): Unit = runBlocking {
-        val deltaker = TestData.lagDeltaker(
-            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.HAR_SLUTTET),
+        val deltaker = lagDeltaker(
+            status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
             sluttdato = LocalDate.now().minusWeeks(1),
         )
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
+        val endretAv = lagNavAnsatt()
+        val endretAvEnhet = lagNavEnhet()
         val endringsrequest = AvsluttDeltakelseRequest(
             endretAv = endretAv.navIdent,
             endretAvEnhet = endretAvEnhet.enhetsnummer,
@@ -528,17 +535,17 @@ class DeltakerEndringHandlerTest {
 
     @Test
     fun `sjekkUtfall - endre avslutning til fullfort`(): Unit = runBlocking {
-        val deltaker = TestData.lagDeltaker(
-            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.AVBRUTT),
+        val deltaker = lagDeltaker(
+            status = lagDeltakerStatus(DeltakerStatus.Type.AVBRUTT),
             sluttdato = LocalDate.now().minusDays(3),
-            deltakerliste = TestData.lagDeltakerliste(
+            deltakerliste = lagDeltakerliste(
                 pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
                 oppstart = Oppstartstype.FELLES,
             ),
         )
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
-        val forslag = TestData.lagForslag(
+        val endretAv = lagNavAnsatt()
+        val endretAvEnhet = lagNavEnhet()
+        val forslag = lagForslag(
             deltakerId = deltaker.id,
             endring = Forslag.EndreAvslutning(aarsak = EndringAarsak.FattJobb, harDeltatt = true, harFullfort = true),
         )
@@ -564,17 +571,17 @@ class DeltakerEndringHandlerTest {
 
     @Test
     fun `sjekkUtfall - endre avslutning til avbrutt`(): Unit = runBlocking {
-        val deltaker = TestData.lagDeltaker(
-            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.FULLFORT),
+        val deltaker = lagDeltaker(
+            status = lagDeltakerStatus(DeltakerStatus.Type.FULLFORT),
             sluttdato = LocalDate.now().minusDays(3),
-            deltakerliste = TestData.lagDeltakerliste(
+            deltakerliste = lagDeltakerliste(
                 pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
                 oppstart = Oppstartstype.FELLES,
             ),
         )
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
-        val forslag = TestData.lagForslag(
+        val endretAv = lagNavAnsatt()
+        val endretAvEnhet = lagNavEnhet()
+        val forslag = lagForslag(
             deltakerId = deltaker.id,
             endring = Forslag.EndreAvslutning(EndringAarsak.FattJobb, null, false),
         )
@@ -600,13 +607,13 @@ class DeltakerEndringHandlerTest {
 
     @Test
     fun `sjekkUtfall - endre avslutning ingen endring - gir erVellykket false`(): Unit = runBlocking {
-        val deltaker = TestData.lagDeltaker(
-            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.FULLFORT),
+        val deltaker = lagDeltaker(
+            status = lagDeltakerStatus(DeltakerStatus.Type.FULLFORT),
             sluttdato = LocalDate.now().minusDays(3),
         )
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
-        val forslag = TestData.lagForslag(
+        val endretAv = lagNavAnsatt()
+        val endretAvEnhet = lagNavEnhet()
+        val forslag = lagForslag(
             deltakerId = deltaker.id,
             endring = Forslag.EndreAvslutning(EndringAarsak.FattJobb, null, true),
         )
@@ -629,12 +636,12 @@ class DeltakerEndringHandlerTest {
 
     @Test
     fun `sjekkUtfall - reaktiver deltakelse lopende oppstart`(): Unit = runBlocking {
-        val deltaker = TestData.lagDeltaker(
-            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.IKKE_AKTUELL),
-            deltakerliste = TestData.lagDeltakerlisteMedLopendeOppstart(),
+        val deltaker = lagDeltaker(
+            status = lagDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL),
+            deltakerliste = lagDeltakerlisteMedLopendeOppstart(),
         )
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
+        val endretAv = lagNavAnsatt()
+        val endretAvEnhet = lagNavEnhet()
         val endringsrequest = ReaktiverDeltakelseRequest(
             endretAv = endretAv.navIdent,
             endretAvEnhet = endretAvEnhet.enhetsnummer,
@@ -656,12 +663,12 @@ class DeltakerEndringHandlerTest {
 
     @Test
     fun `sjekkUtfall - reaktiver deltakelse felles oppstart`(): Unit = runBlocking {
-        val deltaker = TestData.lagDeltaker(
-            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.IKKE_AKTUELL),
-            deltakerliste = TestData.lagDeltakerlisteMedFellesOppstart(),
+        val deltaker = lagDeltaker(
+            status = lagDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL),
+            deltakerliste = lagDeltakerlisteMedFellesOppstart(),
         )
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
+        val endretAv = lagNavAnsatt()
+        val endretAvEnhet = lagNavEnhet()
         val endringsrequest = ReaktiverDeltakelseRequest(
             endretAv = endretAv.navIdent,
             endretAvEnhet = endretAvEnhet.enhetsnummer,
@@ -683,17 +690,17 @@ class DeltakerEndringHandlerTest {
 
     @Test
     fun `sjekkUtfall - endre oppstart når avbrutt endrer ikke status til fullført`(): Unit = runBlocking {
-        val deltaker = TestData.lagDeltaker(
-            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.AVBRUTT),
+        val deltaker = lagDeltaker(
+            status = lagDeltakerStatus(DeltakerStatus.Type.AVBRUTT),
             startdato = LocalDate.now().minusMonths(1),
             sluttdato = LocalDate.now().minusDays(1),
-            deltakerliste = TestData.lagDeltakerliste(
+            deltakerliste = lagDeltakerliste(
                 pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
                 oppstart = Oppstartstype.FELLES,
             ),
         )
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
+        val endretAv = lagNavAnsatt()
+        val endretAvEnhet = lagNavEnhet()
         val endringsrequest = StartdatoRequest(
             endretAv = endretAv.navIdent,
             endretAvEnhet = endretAvEnhet.enhetsnummer,

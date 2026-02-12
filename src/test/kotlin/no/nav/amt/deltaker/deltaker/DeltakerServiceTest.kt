@@ -2,7 +2,8 @@ package no.nav.amt.deltaker.deltaker
 
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.booleans.shouldBeTrue
-import io.kotest.matchers.collections.shouldNotContain
+import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -79,6 +80,7 @@ import no.nav.amt.lib.utils.database.Database
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.RegisterExtension
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -104,14 +106,14 @@ class DeltakerServiceTest {
         @Test
         fun `ny status - inserter ny status og deaktiverer gammel`() = runTest {
             val deltaker = lagDeltaker(
-                status = lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
             )
             insert(deltaker)
 
             val oppdatertDeltaker = deltaker.copy(
                 status = lagDeltakerStatus(
-                    type = DeltakerStatus.Type.HAR_SLUTTET,
-                    aarsak = DeltakerStatus.Aarsak.Type.FATT_JOBB,
+                    statusType = DeltakerStatus.Type.HAR_SLUTTET,
+                    aarsakType = DeltakerStatus.Aarsak.Type.FATT_JOBB,
                 ),
             )
 
@@ -119,16 +121,12 @@ class DeltakerServiceTest {
 
             assertDeltakereAreEqual(deltakerRepository.get(deltaker.id).getOrThrow(), oppdatertDeltaker)
 
-            val statuser = DeltakerStatusRepository.getDeltakerStatuser(deltaker.id)
-
-            statuser.size shouldBe 2
-
-            assertSoftly(statuser.first { it.id == deltaker.status.id }) {
+            assertSoftly(DeltakerStatusRepository.get(deltaker.status.id)) {
                 gyldigTil shouldNotBe null
                 type shouldBe DeltakerStatus.Type.DELTAR
             }
 
-            assertSoftly(statuser.first { it.id == oppdatertDeltaker.status.id }) {
+            assertSoftly(DeltakerStatusRepository.get(oppdatertDeltaker.status.id)) {
                 gyldigTil shouldBe null
                 type shouldBe DeltakerStatus.Type.HAR_SLUTTET
             }
@@ -137,15 +135,15 @@ class DeltakerServiceTest {
         @Test
         fun `ny status gyldig i fremtid - inserter ny status, deaktiverer ikke gammel`() = runTest {
             val deltaker = lagDeltaker(
-                status = lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
             )
             insert(deltaker)
 
             val gyldigFra = LocalDateTime.now().plusDays(3)
             val oppdatertDeltaker = deltaker.copy(
                 status = lagDeltakerStatus(
-                    type = DeltakerStatus.Type.HAR_SLUTTET,
-                    aarsak = DeltakerStatus.Aarsak.Type.FATT_JOBB,
+                    statusType = DeltakerStatus.Type.HAR_SLUTTET,
+                    aarsakType = DeltakerStatus.Aarsak.Type.FATT_JOBB,
                     gyldigFra = gyldigFra,
                 ),
             )
@@ -153,16 +151,12 @@ class DeltakerServiceTest {
             deltakerService.transactionalDeltakerUpsert(oppdatertDeltaker)
             assertDeltakereAreEqual(deltakerRepository.get(deltaker.id).getOrThrow(), deltaker)
 
-            val statuser = DeltakerStatusRepository.getDeltakerStatuser(deltaker.id)
-
-            statuser.size shouldBe 2
-
-            assertSoftly(statuser.first { it.id == deltaker.status.id }) {
+            assertSoftly(DeltakerStatusRepository.get(deltaker.status.id)) {
                 gyldigTil shouldBe null
                 type shouldBe DeltakerStatus.Type.DELTAR
             }
 
-            assertSoftly(statuser.first { it.id == oppdatertDeltaker.status.id }) {
+            assertSoftly(DeltakerStatusRepository.get(oppdatertDeltaker.status.id)) {
                 gyldigTil shouldBe null
                 gyldigFra shouldBeCloseTo gyldigFra
                 type shouldBe DeltakerStatus.Type.HAR_SLUTTET
@@ -172,7 +166,7 @@ class DeltakerServiceTest {
         @Test
         fun `har fremtidig status, mottar ny status - inserter ny status, deaktiverer fremtidig status`() = runTest {
             val opprinneligDeltaker = lagDeltaker(
-                status = lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+                status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR),
                 sluttdato = LocalDate.now().plusWeeks(2),
             )
             insert(opprinneligDeltaker)
@@ -180,8 +174,8 @@ class DeltakerServiceTest {
             val gyldigFra = LocalDateTime.now().plusDays(3)
             val oppdatertDeltakerHarSluttet = opprinneligDeltaker.copy(
                 status = lagDeltakerStatus(
-                    type = DeltakerStatus.Type.HAR_SLUTTET,
-                    aarsak = DeltakerStatus.Aarsak.Type.FATT_JOBB,
+                    statusType = DeltakerStatus.Type.HAR_SLUTTET,
+                    aarsakType = DeltakerStatus.Aarsak.Type.FATT_JOBB,
                     gyldigFra = gyldigFra,
                 ),
                 sluttdato = LocalDate.now().plusDays(3),
@@ -190,7 +184,7 @@ class DeltakerServiceTest {
 
             val oppdatertDeltakerForlenget = opprinneligDeltaker.copy(
                 status = lagDeltakerStatus(
-                    type = DeltakerStatus.Type.DELTAR,
+                    statusType = DeltakerStatus.Type.DELTAR,
                     gyldigFra = LocalDateTime.now(),
                 ),
                 sluttdato = LocalDate.now().plusWeeks(8),
@@ -199,22 +193,18 @@ class DeltakerServiceTest {
 
             assertDeltakereAreEqual(deltakerRepository.get(opprinneligDeltaker.id).getOrThrow(), oppdatertDeltakerForlenget)
 
-            val statuser = DeltakerStatusRepository.getDeltakerStatuser(opprinneligDeltaker.id)
-
-            statuser.size shouldBe 3
-
-            assertSoftly(statuser.first { it.id == opprinneligDeltaker.status.id }) {
+            assertSoftly(DeltakerStatusRepository.get(opprinneligDeltaker.status.id)) {
                 gyldigTil shouldNotBe null
                 type shouldBe DeltakerStatus.Type.DELTAR
             }
 
-            assertSoftly(statuser.first { it.id == oppdatertDeltakerHarSluttet.status.id }) {
+            assertSoftly(DeltakerStatusRepository.get(oppdatertDeltakerHarSluttet.status.id)) {
                 gyldigTil shouldNotBe null
                 gyldigFra shouldBeCloseTo gyldigFra
                 type shouldBe DeltakerStatus.Type.HAR_SLUTTET
             }
 
-            assertSoftly(statuser.first { it.id == oppdatertDeltakerForlenget.status.id }) {
+            assertSoftly(DeltakerStatusRepository.get(oppdatertDeltakerForlenget.status.id)) {
                 gyldigTil shouldBe null
                 type shouldBe DeltakerStatus.Type.DELTAR
             }
@@ -223,7 +213,7 @@ class DeltakerServiceTest {
         @Test
         fun `har fremtidig status, ny fremtidig status - insert ny fremtidig status, sletter gammel fremtidig status`() = runTest {
             val opprinneligDeltaker = lagDeltaker(
-                status = lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
                 sluttdato = LocalDate.now().plusWeeks(2),
             )
             insert(opprinneligDeltaker)
@@ -231,8 +221,8 @@ class DeltakerServiceTest {
             val gyldigFra = LocalDateTime.now().plusDays(3)
             val oppdatertDeltakerHarSluttet = opprinneligDeltaker.copy(
                 status = lagDeltakerStatus(
-                    type = DeltakerStatus.Type.HAR_SLUTTET,
-                    aarsak = DeltakerStatus.Aarsak.Type.FATT_JOBB,
+                    statusType = DeltakerStatus.Type.HAR_SLUTTET,
+                    aarsakType = DeltakerStatus.Aarsak.Type.FATT_JOBB,
                     gyldigFra = gyldigFra,
                 ),
                 sluttdato = LocalDate.now().plusDays(3),
@@ -241,8 +231,8 @@ class DeltakerServiceTest {
 
             val oppdatertDeltakerHarSluttetNyArsak = opprinneligDeltaker.copy(
                 status = lagDeltakerStatus(
-                    type = DeltakerStatus.Type.HAR_SLUTTET,
-                    aarsak = DeltakerStatus.Aarsak.Type.UTDANNING,
+                    statusType = DeltakerStatus.Type.HAR_SLUTTET,
+                    aarsakType = DeltakerStatus.Aarsak.Type.UTDANNING,
                     gyldigFra = gyldigFra,
                 ),
                 sluttdato = LocalDate.now().plusDays(3),
@@ -254,28 +244,27 @@ class DeltakerServiceTest {
                 opprinneligDeltaker.copy(sluttdato = oppdatertDeltakerHarSluttetNyArsak.sluttdato),
             )
 
-            val statuser = DeltakerStatusRepository.getDeltakerStatuser(opprinneligDeltaker.id)
-            statuser.size shouldBe 2
+            assertThrows<NoSuchElementException> {
+                DeltakerStatusRepository.get(oppdatertDeltakerHarSluttet.status.id)
+            }
 
-            statuser.map { it.id } shouldNotContain oppdatertDeltakerHarSluttet.status.id
-
-            assertSoftly(statuser.first { it.id == opprinneligDeltaker.status.id }) {
+            assertSoftly(DeltakerStatusRepository.get(opprinneligDeltaker.status.id)) {
                 gyldigTil shouldBe null
                 type shouldBe DeltakerStatus.Type.DELTAR
             }
 
-            assertSoftly(statuser.first { it.id == oppdatertDeltakerHarSluttetNyArsak.status.id }) {
+            assertSoftly(DeltakerStatusRepository.get(oppdatertDeltakerHarSluttetNyArsak.status.id)) {
                 gyldigTil shouldBe null
                 gyldigFra shouldBeCloseTo gyldigFra
                 type shouldBe DeltakerStatus.Type.HAR_SLUTTET
-                aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.UTDANNING
+                aarsak.shouldNotBeNull().type shouldBe DeltakerStatus.Aarsak.Type.UTDANNING
             }
         }
 
         @Test
         fun `har sluttet til deltar, angitt neste status - oppdaterer status, insert neste fremtidige status`() = runTest {
             val opprinneligDeltaker = lagDeltaker(
-                status = lagDeltakerStatus(type = DeltakerStatus.Type.HAR_SLUTTET),
+                status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
                 sluttdato = LocalDate.now().minusDays(2),
             )
             insert(opprinneligDeltaker)
@@ -283,15 +272,15 @@ class DeltakerServiceTest {
             val nySluttdato = LocalDateTime.now().plusDays(3)
             val oppdatertDeltakerDeltar = opprinneligDeltaker.copy(
                 status = lagDeltakerStatus(
-                    type = DeltakerStatus.Type.DELTAR,
+                    statusType = DeltakerStatus.Type.DELTAR,
                     gyldigFra = LocalDateTime.now(),
                 ),
                 sluttdato = nySluttdato.toLocalDate(),
             )
 
             val nesteStatus = lagDeltakerStatus(
-                type = DeltakerStatus.Type.HAR_SLUTTET,
-                aarsak = DeltakerStatus.Aarsak.Type.UTDANNING,
+                statusType = DeltakerStatus.Type.HAR_SLUTTET,
+                aarsakType = DeltakerStatus.Aarsak.Type.UTDANNING,
                 gyldigFra = nySluttdato,
             )
 
@@ -302,26 +291,22 @@ class DeltakerServiceTest {
                 oppdatertDeltakerDeltar,
             )
 
-            val statuser = DeltakerStatusRepository.getDeltakerStatuser(opprinneligDeltaker.id)
-
-            statuser.size shouldBe 3
-
-            assertSoftly(statuser.first { it.id == opprinneligDeltaker.status.id }) {
+            assertSoftly(DeltakerStatusRepository.get(opprinneligDeltaker.status.id)) {
                 gyldigTil shouldBeCloseTo LocalDateTime.now()
                 type shouldBe DeltakerStatus.Type.HAR_SLUTTET
             }
 
-            assertSoftly(statuser.first { it.id == oppdatertDeltakerDeltar.status.id }) {
+            assertSoftly(DeltakerStatusRepository.get(oppdatertDeltakerDeltar.status.id)) {
                 gyldigTil shouldBe null
                 gyldigFra shouldBeCloseTo LocalDateTime.now()
                 type shouldBe DeltakerStatus.Type.DELTAR
             }
 
-            assertSoftly(statuser.first { it.id == nesteStatus.id }) {
+            assertSoftly(DeltakerStatusRepository.get(nesteStatus.id)) {
                 gyldigTil shouldBe null
                 gyldigFra shouldBeCloseTo nySluttdato
                 type shouldBe DeltakerStatus.Type.HAR_SLUTTET
-                aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.UTDANNING
+                aarsak.shouldNotBeNull().type shouldBe DeltakerStatus.Aarsak.Type.UTDANNING
             }
         }
     }
@@ -331,14 +316,14 @@ class DeltakerServiceTest {
         @Test
         fun `venter pa oppstart, startdato passer - returnerer deltaker`() = runTest {
             val deltaker = lagDeltaker(
-                status = lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+                status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
                 startdato = null,
                 sluttdato = null,
             )
             insert(deltaker)
 
             val oppdatertDeltaker = deltaker.copy(
-                status = lagDeltakerStatus(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
+                status = lagDeltakerStatus(statusType = DeltakerStatus.Type.VENTER_PA_OPPSTART),
                 startdato = LocalDate.now().minusDays(1),
                 sluttdato = LocalDate.now().plusWeeks(2),
             )
@@ -353,14 +338,14 @@ class DeltakerServiceTest {
         @Test
         fun `venter pa oppstart, mangler startdato - returnerer ikke deltaker`() = runTest {
             val deltaker = lagDeltaker(
-                status = lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+                status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
                 startdato = null,
                 sluttdato = null,
             )
             insert(deltaker)
 
             val oppdatertDeltaker = deltaker.copy(
-                status = lagDeltakerStatus(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
+                status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
                 startdato = null,
                 sluttdato = null,
             )
@@ -378,47 +363,47 @@ class DeltakerServiceTest {
         fun `returnerer tom liste nar ingen deltaker har aktiv DELTAR-status`() {
             val deltaker = lagDeltaker(
                 status = lagDeltakerStatus(
-                    type = DeltakerStatus.Type.HAR_SLUTTET,
+                    statusType = DeltakerStatus.Type.HAR_SLUTTET,
                     gyldigTil = null,
                 ),
             )
             insert(deltaker)
 
             val statuser = DeltakerStatusRepository.getAvsluttendeDeltakerStatuserForOppdatering(listOf(deltaker.id))
-            statuser shouldBe emptyList()
+            statuser.shouldBeEmpty()
         }
 
         @Test
         fun `fremtidig HAR_SLUTTET-status skal ikke inkluderes`() = runTest {
             val deltaker = lagDeltaker(
-                status = lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
             )
             insert(deltaker)
 
             val fremtidigStatus = lagDeltakerStatus(
-                type = DeltakerStatus.Type.HAR_SLUTTET,
+                statusType = DeltakerStatus.Type.HAR_SLUTTET,
                 gyldigFra = LocalDateTime.now().plusDays(5),
             )
 
             deltakerService.transactionalDeltakerUpsert(deltaker.copy(status = fremtidigStatus))
 
             val statuser = DeltakerStatusRepository.getAvsluttendeDeltakerStatuserForOppdatering(listOf(deltaker.id))
-            statuser shouldBe emptyList()
+            statuser.shouldBeEmpty()
         }
 
         @Test
         fun `returnerer kun deltakerstatus for deltakere med aktiv DELTAR og gyldig avsluttende status`() = runTest {
             val deltaker1 = lagDeltaker(
-                status = lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
             )
             val deltaker2 = lagDeltaker(
-                status = lagDeltakerStatus(type = DeltakerStatus.Type.HAR_SLUTTET),
+                status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
             )
             insert(deltaker1)
             insert(deltaker2)
 
             val status1 = lagDeltakerStatus(
-                type = DeltakerStatus.Type.HAR_SLUTTET,
+                statusType = DeltakerStatus.Type.HAR_SLUTTET,
                 gyldigFra = LocalDateTime.now().minusDays(1),
             )
 
@@ -432,22 +417,22 @@ class DeltakerServiceTest {
         @Test
         fun `henter avsluttende deltakerstatus for deltaker som har aktiv DELTAR-status og kommende HAR_SLUTTET-status`() = runTest {
             val opprinneligDeltaker = lagDeltaker(
-                status = lagDeltakerStatus(type = DeltakerStatus.Type.HAR_SLUTTET),
+                status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
                 sluttdato = LocalDate.now().minusDays(2),
             )
             insert(opprinneligDeltaker)
 
             val oppdatertDeltakerDeltar = opprinneligDeltaker.copy(
                 status = lagDeltakerStatus(
-                    type = DeltakerStatus.Type.DELTAR,
+                    statusType = DeltakerStatus.Type.DELTAR,
                     gyldigFra = LocalDateTime.now(),
                 ),
                 sluttdato = LocalDate.now().plusDays(3),
             )
 
             val nesteStatus = lagDeltakerStatus(
-                type = DeltakerStatus.Type.HAR_SLUTTET,
-                aarsak = DeltakerStatus.Aarsak.Type.UTDANNING,
+                statusType = DeltakerStatus.Type.HAR_SLUTTET,
+                aarsakType = DeltakerStatus.Aarsak.Type.UTDANNING,
                 gyldigFra = LocalDateTime.now().minusDays(1),
             )
 
@@ -462,7 +447,7 @@ class DeltakerServiceTest {
 
                 assertSoftly(deltakerStatus) {
                     type shouldBe DeltakerStatus.Type.HAR_SLUTTET
-                    aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.UTDANNING
+                    aarsak.shouldNotBeNull().type shouldBe DeltakerStatus.Aarsak.Type.UTDANNING
                     gyldigFra.toLocalDate() shouldBe LocalDate.now().minusDays(1)
                     gyldigTil shouldBe null
                 }
@@ -481,12 +466,12 @@ class DeltakerServiceTest {
             insert(sistEndretAv)
             insert(sistEndretAvEnhet)
             val deltaker = lagDeltaker(
-                status = lagDeltakerStatus(type = DeltakerStatus.Type.KLADD),
+                status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
             )
             insert(deltaker)
 
             val deltakerMedOppdatertStatus = deltaker.copy(
-                status = lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+                status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
             )
             val vedtak = lagVedtak(
                 deltakerId = deltaker.id,
@@ -521,7 +506,7 @@ class DeltakerServiceTest {
             val deltaker = lagDeltaker(
                 navBruker = navBruker,
                 deltakerliste = deltakerliste,
-                status = lagDeltakerStatus(type = DeltakerStatus.Type.KLADD),
+                status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
             )
 
             val deltakerFraDb = deltakerService.upsertAndProduceDeltaker(deltaker)
@@ -555,7 +540,7 @@ class DeltakerServiceTest {
         @Test
         fun `upsertEndretDeltaker - avslutt i fremtiden - setter fremtidig HAR_SLUTTET`() = runTest {
             val deltaker = lagDeltaker(
-                status = lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
                 sluttdato = LocalDate.now().plusMonths(1),
             )
             val endretAv = lagNavAnsatt()
@@ -586,30 +571,25 @@ class DeltakerServiceTest {
             deltakerrespons.sluttdato shouldBe endringsrequest.sluttdato
 
             val oppdatertDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
-
-            oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.DELTAR
             oppdatertDeltaker.sluttdato shouldBe endringsrequest.sluttdato
 
-            val statuser = DeltakerStatusRepository.getDeltakerStatuser(deltaker.id)
-            statuser.size shouldBe 2
-
-            assertSoftly(statuser.first { it.id == deltaker.status.id }) {
+            assertSoftly(DeltakerStatusRepository.get(deltaker.status.id)) {
                 gyldigTil shouldBe null
                 type shouldBe DeltakerStatus.Type.DELTAR
             }
 
-            assertSoftly(statuser.first { it.id != deltaker.status.id }) {
+            assertSoftly(DeltakerStatusRepository.getFremtidige(oppdatertDeltaker.id).first()) {
                 gyldigTil shouldBe null
                 gyldigFra.toLocalDate() shouldBe endringsrequest.sluttdato.plusDays(1)
                 type shouldBe DeltakerStatus.Type.HAR_SLUTTET
-                aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
+                aarsak.shouldNotBeNull().type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
             }
         }
 
         @Test
         fun `upsertEndretDeltaker - avslutt kursdeltaker i fremtiden - setter fremtidig FULLFORT`() = runTest {
             val deltaker = lagDeltaker(
-                status = lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
                 sluttdato = LocalDate.now().plusMonths(1),
                 deltakerliste = lagDeltakerliste(
                     tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING),
@@ -637,34 +617,31 @@ class DeltakerServiceTest {
                 forslagId = null,
             )
 
-            val deltakerrespons = deltakerService.upsertEndretDeltaker(deltaker.id, endringsrequest)
-
-            deltakerrespons.status.type shouldBe DeltakerStatus.Type.DELTAR
-            deltakerrespons.sluttdato shouldBe endringsrequest.sluttdato
+            val deltakerRespons = deltakerService.upsertEndretDeltaker(deltaker.id, endringsrequest)
+            deltakerRespons.status.type shouldBe DeltakerStatus.Type.DELTAR
+            deltakerRespons.sluttdato shouldBe endringsrequest.sluttdato
 
             val oppdatertDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
-
             oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.DELTAR
             oppdatertDeltaker.sluttdato shouldBe endringsrequest.sluttdato
 
-            val statuser = DeltakerStatusRepository.getDeltakerStatuser(deltaker.id)
-            statuser.size shouldBe 2
+            assertSoftly(DeltakerStatusRepository.get(deltaker.status.id)) {
+                gyldigTil shouldBe null
+                type shouldBe DeltakerStatus.Type.DELTAR
+            }
 
-            statuser.first { it.id == deltaker.status.id }.gyldigTil shouldBe null
-            statuser.first { it.id == deltaker.status.id }.type shouldBe DeltakerStatus.Type.DELTAR
-
-            assertSoftly(statuser.first { it.id != deltaker.status.id }) {
+            assertSoftly(DeltakerStatusRepository.getFremtidige(oppdatertDeltaker.id).first()) {
                 gyldigTil shouldBe null
                 gyldigFra.toLocalDate() shouldBe endringsrequest.sluttdato.plusDays(1)
                 type shouldBe DeltakerStatus.Type.FULLFORT
-                aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
+                aarsak.shouldNotBeNull().type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
             }
         }
 
         @Test
         fun `upsertEndretDeltaker - avslutt i fremtiden, blir forlenget - deaktiverer fremtidig HAR_SLUTTET`() = runTest {
             val deltaker = lagDeltaker(
-                status = lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
                 sluttdato = LocalDate.now().plusDays(2),
             )
             val endretAv = lagNavAnsatt()
@@ -680,7 +657,7 @@ class DeltakerServiceTest {
             )
             insert(vedtak)
             val fremtidigHarSluttetStatus = lagDeltakerStatus(
-                type = DeltakerStatus.Type.HAR_SLUTTET,
+                statusType = DeltakerStatus.Type.HAR_SLUTTET,
                 gyldigFra = LocalDateTime.now().plusDays(2),
             )
             insert(fremtidigHarSluttetStatus, deltaker.id)
@@ -703,15 +680,12 @@ class DeltakerServiceTest {
             oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.DELTAR
             oppdatertDeltaker.sluttdato shouldBe endringsrequest.sluttdato
 
-            val statuser = DeltakerStatusRepository.getDeltakerStatuser(deltaker.id)
-            statuser.size shouldBe 2
-
-            assertSoftly(statuser.first { it.id == deltaker.status.id }) {
+            assertSoftly(DeltakerStatusRepository.get(deltaker.status.id)) {
                 gyldigTil shouldBe null
                 type shouldBe DeltakerStatus.Type.DELTAR
             }
 
-            assertSoftly(statuser.first { it.id == fremtidigHarSluttetStatus.id }) {
+            assertSoftly(DeltakerStatusRepository.get(fremtidigHarSluttetStatus.id)) {
                 gyldigTil shouldNotBe null
                 gyldigFra.toLocalDate() shouldBe LocalDate.now().plusDays(2)
                 type shouldBe DeltakerStatus.Type.HAR_SLUTTET
@@ -721,7 +695,7 @@ class DeltakerServiceTest {
         @Test
         fun `upsertEndretDeltaker - har sluttet, skal delta, avslutt i fremtiden - blir DELTAR, fremtidig HAR_SLUTTET`() = runTest {
             val deltaker = lagDeltaker(
-                status = lagDeltakerStatus(type = DeltakerStatus.Type.HAR_SLUTTET),
+                status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
                 sluttdato = LocalDate.now().minusWeeks(1),
             )
             val endretAv = lagNavAnsatt()
@@ -757,23 +731,21 @@ class DeltakerServiceTest {
             oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.DELTAR
             oppdatertDeltaker.sluttdato shouldBe endringsrequest.sluttdato
 
-            val statuser = DeltakerStatusRepository.getDeltakerStatuser(deltaker.id)
-            statuser.size shouldBe 3
-            val opprinneligStatus = statuser.first { it.id == deltaker.status.id }
-            val currentStatus = statuser.first { it.id == oppdatertDeltaker.status.id }
-            val nesteStatus = statuser.first { it.id != opprinneligStatus.id && it.id != currentStatus.id }
+            assertSoftly(DeltakerStatusRepository.get(deltaker.status.id)) {
+                gyldigTil shouldBeCloseTo LocalDateTime.now()
+                type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+            }
 
-            opprinneligStatus.gyldigTil shouldBeCloseTo LocalDateTime.now()
-            opprinneligStatus.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+            assertSoftly(DeltakerStatusRepository.get(oppdatertDeltaker.status.id)) {
+                gyldigTil.shouldBeNull()
+                type shouldBe DeltakerStatus.Type.DELTAR
+            }
 
-            currentStatus.gyldigTil shouldBe null
-            currentStatus.type shouldBe DeltakerStatus.Type.DELTAR
-
-            assertSoftly(nesteStatus) {
+            assertSoftly(DeltakerStatusRepository.getFremtidige(oppdatertDeltaker.id).first()) {
                 gyldigTil shouldBe null
                 gyldigFra.toLocalDate() shouldBe endringsrequest.sluttdato.plusDays(1)
                 type shouldBe DeltakerStatus.Type.HAR_SLUTTET
-                aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
+                aarsak.shouldNotBeNull().type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
             }
         }
 
@@ -862,8 +834,10 @@ class DeltakerServiceTest {
 
         @Test
         fun `upsertEndretDeltaker - endret datoer - upserter endring`() = runTest {
-            val deltaker =
-                lagDeltaker(status = lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR), sluttdato = LocalDate.now().plusDays(1))
+            val deltaker = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+                sluttdato = LocalDate.now().plusDays(1),
+            )
             val endretAv = lagNavAnsatt()
             val endretAvEnhet = lagNavEnhet()
             val vedtak = lagVedtak(deltakerId = deltaker.id, opprettetAv = endretAv, opprettetAvEnhet = endretAvEnhet)
@@ -907,7 +881,7 @@ class DeltakerServiceTest {
         fun `upsertEndretDeltaker - endret startdato - upserter ny dato og status`() = runTest {
             val deltakersSluttdato = LocalDate.now().plusWeeks(3)
             val deltaker = lagDeltaker(
-                status = lagDeltakerStatus(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
+                status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
                 startdato = LocalDate.now().plusDays(3),
                 sluttdato = deltakersSluttdato,
             )
@@ -1295,13 +1269,13 @@ class DeltakerServiceTest {
                 deltakerliste = deltakerliste,
                 startdato = null,
                 sluttdato = null,
-                status = lagDeltakerStatus(type = DeltakerStatus.Type.SOKT_INN),
+                status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
             )
             val deltaker2 = lagDeltaker(
                 deltakerliste = deltakerliste,
                 startdato = null,
                 sluttdato = null,
-                status = lagDeltakerStatus(type = DeltakerStatus.Type.SOKT_INN),
+                status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
             )
 
             val deltakerIder = listOf(deltaker.id, deltaker2.id)
@@ -1388,7 +1362,7 @@ class DeltakerServiceTest {
         @Test
         fun `ny status, siste insert feiler - ruller tilbake alle endringer`() = runTest {
             val deltakerliste = lagDeltakerliste(
-                tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING),
+                tiltakstype = lagTiltakstype(Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING),
                 startDato = LocalDate.now().plusDays(2),
                 sluttDato = LocalDate.now().plusDays(30),
             )
@@ -1467,9 +1441,7 @@ class DeltakerServiceTest {
         val sistEndretAvEnhet = lagNavEnhet()
         insert(sistEndretAv)
         insert(sistEndretAvEnhet)
-        val deltaker = lagDeltaker(
-            status = lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
-        )
+        val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
         insert(deltaker)
         val vedtak = lagVedtak(
             deltakerId = deltaker.id,
@@ -1502,9 +1474,7 @@ class DeltakerServiceTest {
 
     @Test
     fun `feilregistrerDeltaker - deltaker feilregistreres og oppdatert deltaker produseres`() = runTest {
-        val deltaker = lagDeltaker(
-            status = lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
-        )
+        val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
         val vedtak = lagVedtak(deltakerVedVedtak = deltaker)
         val ansatt = lagNavAnsatt(id = vedtak.opprettetAv)
         val enhet = lagNavEnhet(id = vedtak.opprettetAvEnhet)
@@ -1538,7 +1508,7 @@ class DeltakerServiceTest {
             val deltakerliste = lagDeltakerliste()
             val deltaker = lagDeltaker(
                 deltakerliste = deltakerliste,
-                status = lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
                 sluttdato = deltakerliste.sluttDato!!.plusMonths(1),
             )
             val vedtak = lagVedtak(deltakerVedVedtak = deltaker)
@@ -1559,7 +1529,7 @@ class DeltakerServiceTest {
             val deltakerliste = lagDeltakerliste()
             val deltaker = lagDeltaker(
                 deltakerliste = deltakerliste,
-                status = lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
                 sluttdato = deltakerliste.sluttDato!!.minusDays(1),
             )
             val vedtak = lagVedtak(deltakerVedVedtak = deltaker)

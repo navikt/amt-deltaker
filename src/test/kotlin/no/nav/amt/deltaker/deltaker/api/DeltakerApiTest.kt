@@ -7,8 +7,9 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.Runs
 import io.mockk.coEvery
-import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.just
+import io.mockk.verify
 import no.nav.amt.deltaker.deltaker.api.DtoMappers.deltakerEndringResponseFromDeltaker
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
 import no.nav.amt.deltaker.utils.RouteTestBase
@@ -68,7 +69,7 @@ class DeltakerApiTest : RouteTestBase() {
         val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = endring)))
 
         coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
-        coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
+        every { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
 
         val expectedBody = objectMapper.writeValueAsString(deltakerEndringResponseFromDeltaker(deltaker, historikk))
 
@@ -97,7 +98,7 @@ class DeltakerApiTest : RouteTestBase() {
         val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = endring)))
 
         coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
-        coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
+        every { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
 
         val expectedBody = objectMapper.writeValueAsString(deltakerEndringResponseFromDeltaker(deltaker, historikk))
 
@@ -128,7 +129,7 @@ class DeltakerApiTest : RouteTestBase() {
         val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = endring)))
 
         coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
-        coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
+        every { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
 
         val expectedBody = objectMapper.writeValueAsString(deltakerEndringResponseFromDeltaker(deltaker, historikk))
 
@@ -161,7 +162,7 @@ class DeltakerApiTest : RouteTestBase() {
         val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = endring)))
 
         coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
-        coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
+        every { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
 
         val expectedBody = objectMapper.writeValueAsString(deltakerEndringResponseFromDeltaker(deltaker, historikk))
 
@@ -191,7 +192,7 @@ class DeltakerApiTest : RouteTestBase() {
         val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = endring)))
 
         coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
-        coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
+        every { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
 
         val expectedBody = objectMapper.writeValueAsString(
             deltakerEndringResponseFromDeltaker(
@@ -231,14 +232,14 @@ class DeltakerApiTest : RouteTestBase() {
 
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(
-                type = DeltakerStatus.Type.HAR_SLUTTET,
-                aarsak = DeltakerStatus.Aarsak.Type.valueOf(endring.aarsak.type.name),
+                statusType = DeltakerStatus.Type.HAR_SLUTTET,
+                aarsakType = DeltakerStatus.Aarsak.Type.valueOf(endring.aarsak.type.name),
             ),
         )
         val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = endring)))
 
         coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
-        coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
+        every { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
 
         val expectedBody = objectMapper.writeValueAsString(
             deltakerEndringResponseFromDeltaker(
@@ -273,7 +274,7 @@ class DeltakerApiTest : RouteTestBase() {
         val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = endring)))
 
         coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
-        coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
+        every { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
 
         val expectedBody = objectMapper.writeValueAsString(
             deltakerEndringResponseFromDeltaker(
@@ -309,14 +310,14 @@ class DeltakerApiTest : RouteTestBase() {
 
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(
-                type = DeltakerStatus.Type.IKKE_AKTUELL,
-                aarsak = DeltakerStatus.Aarsak.Type.valueOf(endring.aarsak.type.name),
+                statusType = DeltakerStatus.Type.IKKE_AKTUELL,
+                aarsakType = DeltakerStatus.Aarsak.Type.valueOf(endring.aarsak.type.name),
             ),
         )
         val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = endring)))
 
         coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
-        coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
+        every { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
 
         val expectedBody = objectMapper.writeValueAsString(
             deltakerEndringResponseFromDeltaker(
@@ -353,15 +354,15 @@ class DeltakerApiTest : RouteTestBase() {
 
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(
-                type = DeltakerStatus.Type.HAR_SLUTTET,
-                aarsak = DeltakerStatus.Aarsak.Type.valueOf(endring.aarsak!!.type.name),
+                statusType = DeltakerStatus.Type.HAR_SLUTTET,
+                aarsakType = DeltakerStatus.Aarsak.Type.valueOf(endring.aarsak!!.type.name),
             ),
             sluttdato = endring.sluttdato,
         )
         val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = endring)))
 
         coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
-        coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
+        every { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
 
         val expectedBody = objectMapper.writeValueAsString(
             deltakerEndringResponseFromDeltaker(
@@ -400,15 +401,15 @@ class DeltakerApiTest : RouteTestBase() {
 
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(
-                type = DeltakerStatus.Type.FULLFORT,
-                aarsak = null,
+                statusType = DeltakerStatus.Type.FULLFORT,
+                aarsakType = null,
             ),
         )
         val historikk =
             listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = endring)))
 
         coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
-        coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
+        every { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
 
         val expectedBody = objectMapper.writeValueAsString(
             deltakerEndringResponseFromDeltaker(deltaker, historikk),
@@ -439,9 +440,7 @@ class DeltakerApiTest : RouteTestBase() {
         val endring = DeltakerEndring.Endring.ReaktiverDeltakelse(LocalDate.now(), "begrunnelse")
 
         val deltaker = lagDeltaker(
-            status = lagDeltakerStatus(
-                type = DeltakerStatus.Type.VENTER_PA_OPPSTART,
-            ),
+            status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
             startdato = null,
             sluttdato = null,
         )
@@ -449,7 +448,7 @@ class DeltakerApiTest : RouteTestBase() {
             listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = endring)))
 
         coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
-        coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
+        every { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
 
         val expectedBody = objectMapper.writeValueAsString(
             deltakerEndringResponseFromDeltaker(deltaker, historikk),
@@ -476,9 +475,7 @@ class DeltakerApiTest : RouteTestBase() {
         val endring = DeltakerEndring.Endring.FjernOppstartsdato("begrunnelse")
 
         val deltaker = lagDeltaker(
-            status = lagDeltakerStatus(
-                type = DeltakerStatus.Type.VENTER_PA_OPPSTART,
-            ),
+            status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
             startdato = null,
             sluttdato = null,
         )
@@ -486,7 +483,7 @@ class DeltakerApiTest : RouteTestBase() {
             listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = endring)))
 
         coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
-        coEvery { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
+        every { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
 
         val expectedBody = objectMapper.writeValueAsString(
             deltakerEndringResponseFromDeltaker(deltaker, historikk),
@@ -512,14 +509,14 @@ class DeltakerApiTest : RouteTestBase() {
     @Test
     fun `post sist-besokt - har tilgang - returnerer 200`() {
         val deltakerInTest = lagDeltaker(
-            status = lagDeltakerStatus(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
+            status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
             startdato = null,
             sluttdato = null,
         )
 
         val sistBesoktInTest = ZonedDateTime.now()
 
-        coEvery { deltakerService.oppdaterSistBesokt(deltakerInTest.id, sistBesoktInTest) } just Runs
+        every { deltakerService.oppdaterSistBesokt(deltakerInTest.id, sistBesoktInTest) } just Runs
 
         withTestApplicationContext { client ->
             val response = client.post("/deltaker/${deltakerInTest.id}/sist-besokt") {
@@ -529,7 +526,7 @@ class DeltakerApiTest : RouteTestBase() {
             response.status shouldBe HttpStatusCode.OK
         }
 
-        coVerify(exactly = 1) {
+        verify(exactly = 1) {
             deltakerService.oppdaterSistBesokt(
                 deltakerId = deltakerInTest.id,
                 sistBesokt = sistBesoktInTest.withZoneSameInstant(ZoneOffset.UTC),

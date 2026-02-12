@@ -7,7 +7,11 @@ import io.mockk.mockkObject
 import io.mockk.unmockkObject
 import no.nav.amt.deltaker.deltaker.db.DeltakerStatusMedDeltakerId
 import no.nav.amt.deltaker.deltaker.db.DeltakerStatusRepository
-import no.nav.amt.deltaker.utils.data.TestData
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerlisteMedFellesOppstart
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerlisteMedLopendeOppstart
 import no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
@@ -36,16 +40,16 @@ class DeltakerProgresjonTest {
     @Test
     fun `getAvsluttendeStatusUtfall - deltaker deltatt paa opplaering - status fullfort`() {
         val yesterday = LocalDate.now().minusDays(1)
-        val deltakerliste = TestData.lagDeltakerliste(
+        val deltakerliste = lagDeltakerliste(
             tiltakstype = lagTiltakstype(
                 tiltakskode = Tiltakskode.HOYERE_UTDANNING,
             ),
         )
-        val deltaker = TestData.lagDeltaker(
+        val deltaker = lagDeltaker(
             deltakerliste = deltakerliste,
             startdato = deltakerliste.startDato,
             sluttdato = yesterday,
-            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+            status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
         )
 
         every { DeltakerStatusRepository.getAvsluttendeDeltakerStatuserForOppdatering(any()) } returns emptyList()
@@ -65,17 +69,17 @@ class DeltakerProgresjonTest {
     @Test
     fun `getAvsluttendeStatusUtfall - deltaker deltatt paa lopende oppstart - status har sluttet`() {
         val yesterday = LocalDate.now().minusDays(1)
-        val deltakerliste = TestData.lagDeltakerliste(
+        val deltakerliste = lagDeltakerliste(
             tiltakstype = lagTiltakstype(
                 tiltakskode = Tiltakskode.HOYERE_UTDANNING,
             ),
             oppstart = Oppstartstype.LOPENDE,
         )
-        val deltaker = TestData.lagDeltaker(
+        val deltaker = lagDeltaker(
             deltakerliste = deltakerliste,
             startdato = deltakerliste.startDato,
             sluttdato = yesterday,
-            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+            status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
         )
 
         every { DeltakerStatusRepository.getAvsluttendeDeltakerStatuserForOppdatering(any()) } returns emptyList()
@@ -94,12 +98,12 @@ class DeltakerProgresjonTest {
 
     @Test
     fun `getAvsluttendeStatusUtfall - deltar avbrutt deltakerliste - far riktig status og arsak`() {
-        val deltakerliste = TestData.lagDeltakerlisteMedFellesOppstart().copy(status = GjennomforingStatusType.AVBRUTT)
-        val deltaker = TestData.lagDeltaker(
+        val deltakerliste = lagDeltakerlisteMedFellesOppstart().copy(status = GjennomforingStatusType.AVBRUTT)
+        val deltaker = lagDeltaker(
             deltakerliste = deltakerliste,
             startdato = deltakerliste.startDato,
             sluttdato = deltakerliste.sluttDato,
-            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+            status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
         )
 
         every { DeltakerStatusRepository.getAvsluttendeDeltakerStatuserForOppdatering(any()) } returns emptyList()
@@ -117,12 +121,12 @@ class DeltakerProgresjonTest {
 
     @Test
     fun `getAvsluttendeStatusUtfall - venter avbrutt deltakerliste - far riktig status og arsak`() {
-        val deltakerliste = TestData.lagDeltakerlisteMedFellesOppstart().copy(status = GjennomforingStatusType.AVBRUTT)
-        val deltaker = TestData.lagDeltaker(
+        val deltakerliste = lagDeltakerlisteMedFellesOppstart().copy(status = GjennomforingStatusType.AVBRUTT)
+        val deltaker = lagDeltaker(
             deltakerliste = deltakerliste,
             startdato = deltakerliste.startDato,
             sluttdato = deltakerliste.sluttDato,
-            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
+            status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
         )
 
         every { DeltakerStatusRepository.getAvsluttendeDeltakerStatuserForOppdatering(any()) } returns emptyList()
@@ -141,12 +145,12 @@ class DeltakerProgresjonTest {
 
     @Test
     fun `getAvsluttendeStatusUtfall - fremtig avsluttende status - returnerer deltaker med neste status`() {
-        val deltakerliste = TestData.lagDeltakerlisteMedLopendeOppstart().copy(status = GjennomforingStatusType.AVBRUTT)
-        val deltaker = TestData.lagDeltaker(
+        val deltakerliste = lagDeltakerlisteMedLopendeOppstart().copy(status = GjennomforingStatusType.AVBRUTT)
+        val deltaker = lagDeltaker(
             deltakerliste = deltakerliste,
             startdato = deltakerliste.startDato,
             sluttdato = deltakerliste.sluttDato,
-            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
+            status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
         )
 
         val fremtidigStatus =

@@ -10,6 +10,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.plugins.requestvalidation.ValidationResult
 import io.mockk.Runs
 import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.just
 import no.nav.amt.deltaker.deltaker.api.DtoMappers.opprettKladdResponseFromDeltaker
 import no.nav.amt.deltaker.deltaker.api.DtoMappers.utkastResponseFromDeltaker
@@ -92,10 +93,10 @@ class PameldingApiTest : RouteTestBase() {
 
     @Test
     fun `post pamelding utkast - har tilgang - returnerer 200`() {
-        val deltaker = lagDeltaker(status = lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING))
+        val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING))
         val historikk: List<DeltakerHistorikk> = listOf(DeltakerHistorikk.Vedtak(TestData.lagVedtak(deltakerVedVedtak = deltaker)))
 
-        coEvery { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
+        every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
         coEvery { pameldingService.upsertUtkast(deltaker.id, any()) } returns deltaker
 
         withTestApplicationContext { client ->

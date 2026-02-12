@@ -120,8 +120,8 @@ object TestData {
     private val tiltakstypeCache = mutableMapOf<Tiltakskode, Tiltakstype>()
 
     fun lagTiltakstype(
-        id: UUID = UUID.randomUUID(),
         tiltakskode: Tiltakskode = Tiltakskode.OPPFOLGING,
+        id: UUID = UUID.randomUUID(),
         navn: String = "Test tiltak $tiltakskode",
         innsatsgrupper: Set<Innsatsgruppe> = setOf(Innsatsgruppe.STANDARD_INNSATS),
         innhold: DeltakerRegistreringInnhold? = lagDeltakerRegistreringInnhold(),
@@ -278,7 +278,7 @@ object TestData {
         deltakelsesprosent = null,
         bakgrunnsinformasjon = null,
         innhold = Deltakelsesinnhold(deltakerliste.tiltakstype.innhold?.ledetekst, emptyList()),
-        status = lagDeltakerStatus(type = DeltakerStatus.Type.KLADD),
+        status = lagDeltakerStatus(statusType = DeltakerStatus.Type.KLADD),
     )
 
     fun lagDeltaker(
@@ -291,7 +291,7 @@ object TestData {
         deltakelsesprosent: Float? = 100F,
         bakgrunnsinformasjon: String? = "Søkes inn fordi...",
         innhold: Deltakelsesinnhold? = Deltakelsesinnhold("ledetekst", emptyList()),
-        status: DeltakerStatus = lagDeltakerStatus(type = DeltakerStatus.Type.HAR_SLUTTET),
+        status: DeltakerStatus = lagDeltakerStatus(statusType = DeltakerStatus.Type.HAR_SLUTTET),
         vedtaksinformasjon: Vedtaksinformasjon? = null,
         sistEndret: LocalDateTime = LocalDateTime.now(),
         kilde: Kilde = Kilde.KOMET,
@@ -315,17 +315,17 @@ object TestData {
     )
 
     fun lagDeltakerStatus(
+        statusType: DeltakerStatus.Type = DeltakerStatus.Type.DELTAR,
         id: UUID = UUID.randomUUID(),
-        type: DeltakerStatus.Type = DeltakerStatus.Type.DELTAR,
-        aarsak: DeltakerStatus.Aarsak.Type? = null,
+        aarsakType: DeltakerStatus.Aarsak.Type? = null,
         beskrivelse: String? = null,
         gyldigFra: LocalDateTime = LocalDate.now().atStartOfDay(),
         gyldigTil: LocalDateTime? = null,
         opprettet: LocalDateTime = LocalDateTime.now(),
     ) = DeltakerStatus(
         id,
-        type,
-        aarsak?.let { DeltakerStatus.Aarsak(it, beskrivelse) },
+        statusType,
+        aarsakType?.let { DeltakerStatus.Aarsak(it, beskrivelse) },
         gyldigFra,
         gyldigTil,
         opprettet,
@@ -365,7 +365,7 @@ object TestData {
     fun lagVedtak(
         id: UUID = UUID.randomUUID(),
         deltakerVedVedtak: Deltaker = lagDeltaker(
-            status = lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+            status = lagDeltakerStatus(statusType = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
         ),
         deltakerId: UUID = deltakerVedVedtak.id,
         fattet: LocalDateTime? = null,

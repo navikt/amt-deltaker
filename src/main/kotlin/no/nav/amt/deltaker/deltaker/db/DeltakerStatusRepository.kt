@@ -62,7 +62,7 @@ object DeltakerStatusRepository {
         Database.query { session -> session.update(queryOf(sql, params)) }
     }
 
-    fun deaktiverTidligereStatuser(deltakerId: UUID, deltakerStatus: DeltakerStatus) {
+    fun deaktiverTidligereStatuser(deltakerId: UUID, nyStatusId: UUID) {
         val sql =
             """
             UPDATE deltaker_status
@@ -79,13 +79,16 @@ object DeltakerStatusRepository {
             session.update(
                 queryOf(
                     sql,
-                    mapOf("id" to deltakerStatus.id, "deltaker_id" to deltakerId),
+                    mapOf(
+                        "id" to nyStatusId,
+                        "deltaker_id" to deltakerId,
+                    ),
                 ),
             )
         }
     }
 
-    fun slettTidligereFremtidigeStatuser(deltakerId: UUID, deltakerStatus: DeltakerStatus) {
+    fun slettTidligereFremtidigeStatuser(deltakerId: UUID, deltakerStatusId: UUID) {
         val sql =
             """
             DELETE FROM deltaker_status
@@ -100,19 +103,13 @@ object DeltakerStatusRepository {
             session.update(
                 queryOf(
                     sql,
-                    mapOf("id" to deltakerStatus.id, "deltaker_id" to deltakerId),
+                    mapOf(
+                        "id" to deltakerStatusId,
+                        "deltaker_id" to deltakerId,
+                    ),
                 ),
             )
         }
-    }
-
-    fun getDeltakerStatuser(deltakerId: UUID): List<DeltakerStatus> = Database.query { session ->
-        session.run(
-            queryOf(
-                "SELECT * FROM deltaker_status WHERE deltaker_id = :deltaker_id",
-                mapOf("deltaker_id" to deltakerId),
-            ).map(::deltakerStatusRowMapper).asList,
-        )
     }
 
     fun slettStatus(deltakerId: UUID) {
@@ -175,7 +172,27 @@ object DeltakerStatusRepository {
         return Database.query { session -> session.run(query) }
     }
 
-    fun deltakerStatusRowMapper(row: Row) = DeltakerStatus(
+    // benyttes kun i tester
+    internal fun get(deltakerStatusId: UUID): DeltakerStatus = Database.query { session ->
+        session.run(
+            queryOf(
+                "SELECT * FROM deltaker_status WHERE id = ?",
+                deltakerStatusId,
+            ).map(::deltakerStatusRowMapper).asSingle,
+        ) ?: throw NoSuchElementException("Fant ikke deltakerstatus med id $deltakerStatusId")
+    }
+
+    // benyttes kun i tester
+    internal fun getFremtidige(deltakerId: UUID): List<DeltakerStatus> = Database.query { session ->
+        session.run(
+            queryOf(
+                "SELECT * FROM deltaker_status WHERE deltaker_id = ? AND gyldig_fra > CURRENT_TIMESTAMP",
+                deltakerId,
+            ).map(::deltakerStatusRowMapper).asList,
+        )
+    }
+
+    private fun deltakerStatusRowMapper(row: Row) = DeltakerStatus(
         id = row.uuid("id"),
         type = row.string("type").let { t -> DeltakerStatus.Type.valueOf(t) },
         aarsak = row.stringOrNull("aarsak")?.let { aarsak -> objectMapper.readValue(aarsak) },

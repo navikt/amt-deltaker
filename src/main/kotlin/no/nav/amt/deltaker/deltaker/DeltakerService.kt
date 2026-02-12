@@ -168,10 +168,10 @@ class DeltakerService(
         val erNyStatusAktiv = deltakerStatus.gyldigFra.toLocalDate() <= LocalDate.now()
 
         if (erNyStatusAktiv) {
-            DeltakerStatusRepository.deaktiverTidligereStatuser(deltakerId, deltakerStatus)
+            DeltakerStatusRepository.deaktiverTidligereStatuser(deltakerId, deltakerStatus.id)
         } else {
             // Dette skjer aldri for arenadeltakelser
-            DeltakerStatusRepository.slettTidligereFremtidigeStatuser(deltakerId, deltakerStatus)
+            DeltakerStatusRepository.slettTidligereFremtidigeStatuser(deltakerId, deltakerStatus.id)
         }
     }
 

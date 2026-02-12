@@ -2,7 +2,14 @@ package no.nav.amt.deltaker.deltaker
 
 import no.nav.amt.deltaker.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.deltaker.model.Deltaker
-import no.nav.amt.deltaker.utils.data.TestData
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
+import no.nav.amt.deltaker.utils.data.TestData.lagNavAnsatt
+import no.nav.amt.deltaker.utils.data.TestData.lagNavBruker
+import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
+import no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype
+import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -14,19 +21,19 @@ import no.nav.amt.lib.testing.TestPostgresContainer
 import java.time.LocalDate
 
 data class DeltakerContext(
-    val veileder: NavAnsatt = TestData.lagNavAnsatt(),
-    val navEnhet: NavEnhet = TestData.lagNavEnhet(),
-    var deltaker: Deltaker = TestData.lagDeltaker(
-        status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+    val veileder: NavAnsatt = lagNavAnsatt(),
+    val navEnhet: NavEnhet = lagNavEnhet(),
+    var deltaker: Deltaker = lagDeltaker(
+        status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR),
         startdato = LocalDate.now().minusMonths(1),
         sluttdato = LocalDate.now().plusMonths(3),
-        deltakerliste = TestData.lagDeltakerliste(
-            tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
+        deltakerliste = lagDeltakerliste(
+            tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
         ),
-        navBruker = TestData.lagNavBruker(navVeilederId = veileder.id, navEnhetId = navEnhet.id),
+        navBruker = lagNavBruker(navVeilederId = veileder.id, navEnhetId = navEnhet.id),
     ),
 ) {
-    var vedtak: Vedtak = TestData.lagVedtak(
+    var vedtak: Vedtak = lagVedtak(
         deltakerVedVedtak = deltaker,
         fattet = deltaker.sistEndret.minusMonths(3),
         opprettetAv = veileder,
@@ -42,7 +49,7 @@ data class DeltakerContext(
 
     fun withTiltakstype(tiltakskode: Tiltakskode) {
         deltaker = deltaker.copy(
-            deltakerliste = TestData.lagDeltakerliste(tiltakstype = TestData.lagTiltakstype(tiltakskode = tiltakskode)),
+            deltakerliste = lagDeltakerliste(tiltakstype = lagTiltakstype(tiltakskode = tiltakskode)),
         )
     }
 

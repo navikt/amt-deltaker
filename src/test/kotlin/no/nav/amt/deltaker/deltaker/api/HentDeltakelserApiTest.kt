@@ -13,7 +13,13 @@ import no.nav.amt.deltaker.external.data.DeltakerKort
 import no.nav.amt.deltaker.external.data.HentDeltakelserRequest
 import no.nav.amt.deltaker.external.data.Periode
 import no.nav.amt.deltaker.utils.RouteTestBase
-import no.nav.amt.deltaker.utils.data.TestData
+import no.nav.amt.deltaker.utils.data.TestData.lagArrangor
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
+import no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype
+import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
+import no.nav.amt.deltaker.utils.data.TestData.randomIdent
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
@@ -59,21 +65,19 @@ class HentDeltakelserApiTest : RouteTestBase() {
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
 
         val innsoktDato = LocalDate.now().minusDays(4)
-        val deltaker = TestData.lagDeltaker(
-            deltakerliste = TestData.lagDeltakerliste(
-                arrangor = TestData.lagArrangor(overordnetArrangorId = null, navn = "ARRANGØR AS"),
-                tiltakstype = TestData.lagTiltakstype(
+        val deltaker = lagDeltaker(
+            deltakerliste = lagDeltakerliste(
+                arrangor = lagArrangor(overordnetArrangorId = null, navn = "ARRANGØR AS"),
+                tiltakstype = lagTiltakstype(
                     tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
                     navn = "Arbeidsforberedende trening",
                 ),
             ),
-            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+            status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
         )
         val historikk = listOf(
             DeltakerHistorikk.Vedtak(
-                TestData.lagVedtak(
-                    opprettet = innsoktDato.atStartOfDay(),
-                ),
+                lagVedtak(opprettet = innsoktDato.atStartOfDay()),
             ),
         )
 
@@ -119,31 +123,34 @@ class HentDeltakelserApiTest : RouteTestBase() {
         every { poaoTilgangCachedClient.evaluatePolicy(any()) } returns ApiResult(null, Decision.Permit)
 
         val innsoktDato = LocalDate.now().minusDays(4)
-        val deltakerKladd = TestData.lagDeltaker(
-            deltakerliste = TestData.lagDeltakerliste(
-                arrangor = TestData.lagArrangor(overordnetArrangorId = null, navn = "ARRANGØR AS"),
-                tiltakstype = TestData.lagTiltakstype(
+        val deltakerKladd = lagDeltaker(
+            deltakerliste = lagDeltakerliste(
+                arrangor = lagArrangor(overordnetArrangorId = null, navn = "ARRANGØR AS"),
+                tiltakstype = lagTiltakstype(
                     tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
                     navn = "Arbeidsforberedende trening",
                 ),
             ),
-            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.KLADD),
+            status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
         )
-        val avsluttetDeltaker = TestData.lagDeltaker(
-            deltakerliste = TestData.lagDeltakerliste(
-                arrangor = TestData.lagArrangor(overordnetArrangorId = null, navn = "ARRANGØR OG SØNN AS"),
-                tiltakstype = TestData.lagTiltakstype(
+        val avsluttetDeltaker = lagDeltaker(
+            deltakerliste = lagDeltakerliste(
+                arrangor = lagArrangor(overordnetArrangorId = null, navn = "ARRANGØR OG SØNN AS"),
+                tiltakstype = lagTiltakstype(
                     tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
                     navn = "Arbeidsforberedende trening",
                 ),
             ),
             startdato = LocalDate.now().minusMonths(3),
             sluttdato = LocalDate.now().minusDays(2),
-            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.HAR_SLUTTET, aarsak = DeltakerStatus.Aarsak.Type.FATT_JOBB),
+            status = lagDeltakerStatus(
+                statusType = DeltakerStatus.Type.HAR_SLUTTET,
+                aarsakType = DeltakerStatus.Aarsak.Type.FATT_JOBB,
+            ),
         )
         val deltakerhistorikk = listOf(
             DeltakerHistorikk.Vedtak(
-                TestData.lagVedtak(
+                lagVedtak(
                     opprettet = innsoktDato.atStartOfDay(),
                 ),
             ),
@@ -224,6 +231,6 @@ class HentDeltakelserApiTest : RouteTestBase() {
     }
 
     companion object {
-        private val deltakelserRequest = HentDeltakelserRequest(TestData.randomIdent())
+        private val deltakelserRequest = HentDeltakelserRequest(randomIdent())
     }
 }
