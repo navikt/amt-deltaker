@@ -6,6 +6,7 @@ import kotliquery.Row
 import kotliquery.queryOf
 import no.nav.amt.deltaker.deltaker.db.DbUtils.nullWhenNearNow
 import no.nav.amt.deltaker.deltaker.db.DbUtils.sqlPlaceholders
+import no.nav.amt.deltaker.deltaker.model.AVSLUTTENDE_STATUSER
 import no.nav.amt.deltaker.utils.toPGObject
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.utils.database.Database
@@ -36,6 +37,7 @@ object DeltakerStatusRepository {
                 deltaker_id, 
                 type, 
                 aarsak, 
+                gyldig_til,
                 gyldig_fra, 
                 created_at
             )
@@ -43,7 +45,8 @@ object DeltakerStatusRepository {
                 :id, 
                 :deltaker_id, 
                 :type, 
-                :aarsak, 
+                :aarsak,
+                :gyldig_til,
                 COALESCE(:gyldig_fra, CURRENT_TIMESTAMP), 
                 COALESCE(:created_at, CURRENT_TIMESTAMP)
             )
@@ -55,6 +58,7 @@ object DeltakerStatusRepository {
             "deltaker_id" to deltakerId,
             "type" to deltakerStatus.type.name,
             "aarsak" to toPGObject(deltakerStatus.aarsak),
+            "gyldig_til" to deltakerStatus.gyldigTil,
             "gyldig_fra" to nullWhenNearNow(deltakerStatus.gyldigFra),
             "created_at" to nullWhenNearNow(deltakerStatus.opprettet),
         )
@@ -62,7 +66,7 @@ object DeltakerStatusRepository {
         Database.query { session -> session.update(queryOf(sql, params)) }
     }
 
-    fun deaktiverTidligereStatuser(deltakerId: UUID, nyStatusId: UUID) {
+    fun deaktiverTidligereStatuser(deltakerId: UUID, excludeStatusId: UUID) {
         val sql =
             """
             UPDATE deltaker_status
@@ -70,31 +74,35 @@ object DeltakerStatusRepository {
                 gyldig_til = CURRENT_TIMESTAMP,
                 modified_at = CURRENT_TIMESTAMP
             WHERE 
-                deltaker_id = :deltaker_id 
-                AND id != :id 
+                deltaker_id = ? 
+                AND id != ? 
                 AND gyldig_til IS NULL
+                AND (
+                    gyldig_fra < CURRENT_TIMESTAMP
+                    OR
+                    type NOT IN (${sqlPlaceholders(AVSLUTTENDE_STATUSER.size)})
+                )
             """.trimIndent()
 
         return Database.query { session ->
             session.update(
                 queryOf(
                     sql,
-                    mapOf(
-                        "id" to nyStatusId,
-                        "deltaker_id" to deltakerId,
-                    ),
+                    deltakerId,
+                    excludeStatusId,
+                    *AVSLUTTENDE_STATUSER.map { it.name }.toTypedArray(),
                 ),
             )
         }
     }
 
-    fun slettTidligereFremtidigeStatuser(deltakerId: UUID, deltakerStatusId: UUID) {
+    fun slettTidligereFremtidigeStatuser(deltakerId: UUID, excludeStatusId: UUID) {
         val sql =
             """
             DELETE FROM deltaker_status
             WHERE 
                 deltaker_id = :deltaker_id 
-                AND id != :id 
+                AND id != :exclude_id 
                 AND gyldig_til IS NULL
                 AND gyldig_fra > CURRENT_TIMESTAMP
             """.trimIndent()
@@ -104,7 +112,7 @@ object DeltakerStatusRepository {
                 queryOf(
                     sql,
                     mapOf(
-                        "id" to deltakerStatusId,
+                        "exclude_id" to excludeStatusId,
                         "deltaker_id" to deltakerId,
                     ),
                 ),
@@ -137,15 +145,15 @@ object DeltakerStatusRepository {
      * @return en liste av [DeltakerStatusMedDeltakerId] som inneholder både deltaker-id og
      *         den tilhørende avsluttende statusen som bør oppdateres.
      */
-    fun getAvsluttendeDeltakerStatuserForOppdatering(deltakerIdListe: List<UUID>): List<DeltakerStatusMedDeltakerId> {
-        if (deltakerIdListe.isEmpty()) return emptyList()
+    fun getAvsluttendeDeltakerStatuserForOppdatering(deltakerIder: Set<UUID>): List<DeltakerStatusMedDeltakerId> {
+        if (deltakerIder.isEmpty()) return emptyList()
 
         val sql =
             """
             SELECT ds.* 
             FROM deltaker_status ds 
             WHERE 
-                ds.deltaker_id IN (${sqlPlaceholders(deltakerIdListe.size)})
+                ds.deltaker_id IN (${sqlPlaceholders(deltakerIder.size)})
                 AND ds.gyldig_til IS NULL 
                 AND ds.gyldig_fra < current_date + interval '1 day' 
                 AND ds.type IN ('AVBRUTT', 'FULLFORT', 'HAR_SLUTTET') 
@@ -161,7 +169,7 @@ object DeltakerStatusRepository {
 
         val query = queryOf(
             sql,
-            *deltakerIdListe.toTypedArray(),
+            *deltakerIder.toTypedArray(),
         ).map {
             DeltakerStatusMedDeltakerId(
                 deltakerId = it.uuid("deltaker_id"),
