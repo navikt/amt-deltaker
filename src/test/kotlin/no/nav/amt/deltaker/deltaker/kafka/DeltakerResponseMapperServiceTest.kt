@@ -16,7 +16,16 @@ import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
-import no.nav.amt.deltaker.utils.data.TestData
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerEndring
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
+import no.nav.amt.deltaker.utils.data.TestData.lagEndringFraArrangor
+import no.nav.amt.deltaker.utils.data.TestData.lagForslag
+import no.nav.amt.deltaker.utils.data.TestData.lagImportertFraArena
+import no.nav.amt.deltaker.utils.data.TestData.lagNavAnsatt
+import no.nav.amt.deltaker.utils.data.TestData.lagNavBruker
+import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
+import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
@@ -53,22 +62,22 @@ class DeltakerResponseMapperServiceTest {
 
     @Test
     fun `tilDeltakerV2Dto - utkast til pamelding - returnerer riktig DeltakerV2Dto`(): Unit = runBlocking {
-        val sistEndretAv = TestData.lagNavAnsatt()
-        val sistEndretAvEnhet = TestData.lagNavEnhet()
+        val sistEndretAv = lagNavAnsatt()
+        val sistEndretAvEnhet = lagNavEnhet()
         TestRepository.insert(sistEndretAv)
         TestRepository.insert(sistEndretAvEnhet)
-        val veileder = TestData.lagNavAnsatt()
-        val brukersEnhet = TestData.lagNavEnhet()
+        val veileder = lagNavAnsatt()
+        val brukersEnhet = lagNavEnhet()
         TestRepository.insert(veileder)
         TestRepository.insert(brukersEnhet)
-        val navBruker = TestData.lagNavBruker(navVeilederId = veileder.id, navEnhetId = brukersEnhet.id)
+        val navBruker = lagNavBruker(navVeilederId = veileder.id, navEnhetId = brukersEnhet.id)
         TestRepository.insert(navBruker)
-        val deltaker = TestData.lagDeltaker(
+        val deltaker = lagDeltaker(
             navBruker = navBruker,
-            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+            status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
         )
         TestRepository.insert(deltaker)
-        val vedtak = TestData.lagVedtak(
+        val vedtak = lagVedtak(
             deltakerId = deltaker.id,
             deltakerVedVedtak = deltaker,
             opprettetAv = sistEndretAv,
@@ -109,26 +118,26 @@ class DeltakerResponseMapperServiceTest {
 
     @Test
     fun `tilDeltakerV2Dto - har sluttet - returnerer riktig DeltakerV2Dto`(): Unit = runBlocking {
-        val sistEndretAv = TestData.lagNavAnsatt()
-        val sistEndretAvEnhet = TestData.lagNavEnhet()
+        val sistEndretAv = lagNavAnsatt()
+        val sistEndretAvEnhet = lagNavEnhet()
         TestRepository.insert(sistEndretAv)
         TestRepository.insert(sistEndretAvEnhet)
-        val veileder = TestData.lagNavAnsatt()
-        val brukersEnhet = TestData.lagNavEnhet()
+        val veileder = lagNavAnsatt()
+        val brukersEnhet = lagNavEnhet()
         TestRepository.insert(veileder)
         TestRepository.insert(brukersEnhet)
-        val navBruker = TestData.lagNavBruker(navVeilederId = veileder.id, navEnhetId = brukersEnhet.id)
+        val navBruker = lagNavBruker(navVeilederId = veileder.id, navEnhetId = brukersEnhet.id)
         TestRepository.insert(navBruker)
-        val deltaker = TestData.lagDeltaker(
+        val deltaker = lagDeltaker(
             navBruker = navBruker,
-            status = TestData.lagDeltakerStatus(
-                type = DeltakerStatus.Type.HAR_SLUTTET,
-                aarsak = DeltakerStatus.Aarsak.Type.ANNET,
+            status = lagDeltakerStatus(
+                statusType = DeltakerStatus.Type.HAR_SLUTTET,
+                aarsakType = DeltakerStatus.Aarsak.Type.ANNET,
                 beskrivelse = "Flyttet",
             ),
         )
         TestRepository.insert(deltaker)
-        val vedtak = TestData.lagVedtak(
+        val vedtak = lagVedtak(
             deltakerId = deltaker.id,
             deltakerVedVedtak = deltaker,
             opprettetAv = sistEndretAv,
@@ -137,14 +146,14 @@ class DeltakerResponseMapperServiceTest {
             fattet = LocalDateTime.now().minusWeeks(1),
         )
         TestRepository.insert(vedtak)
-        val endring = TestData.lagDeltakerEndring(
+        val endring = lagDeltakerEndring(
             deltakerId = deltaker.id,
             endretAv = veileder.id,
             endretAvEnhet = brukersEnhet.id,
             endret = LocalDateTime.now().minusDays(2),
         )
         TestRepository.insert(endring)
-        val forslag = TestData.lagForslag(
+        val forslag = lagForslag(
             deltakerId = deltaker.id,
             status = Forslag.Status.Tilbakekalt(
                 tilbakekaltAvArrangorAnsattId = UUID.randomUUID(),
@@ -152,7 +161,7 @@ class DeltakerResponseMapperServiceTest {
             ),
         )
         TestRepository.insert(forslag)
-        val endringFraArrangor = TestData.lagEndringFraArrangor(
+        val endringFraArrangor = lagEndringFraArrangor(
             deltakerId = deltaker.id,
             opprettet = LocalDateTime.now(),
         )
@@ -194,26 +203,26 @@ class DeltakerResponseMapperServiceTest {
 
     @Test
     fun `tilDeltakerV2Dto - importert fra arena - returnerer riktig DeltakerV2Dto`(): Unit = runBlocking {
-        val veileder = TestData.lagNavAnsatt()
-        val brukersEnhet = TestData.lagNavEnhet()
+        val veileder = lagNavAnsatt()
+        val brukersEnhet = lagNavEnhet()
         TestRepository.insert(veileder)
         TestRepository.insert(brukersEnhet)
-        val navBruker = TestData.lagNavBruker(navVeilederId = veileder.id, navEnhetId = brukersEnhet.id)
+        val navBruker = lagNavBruker(navVeilederId = veileder.id, navEnhetId = brukersEnhet.id)
         TestRepository.insert(navBruker)
-        val deltaker = TestData.lagDeltaker(
+        val deltaker = lagDeltaker(
             navBruker = navBruker,
             bakgrunnsinformasjon = null,
             innhold = null,
-            status = TestData.lagDeltakerStatus(
-                type = DeltakerStatus.Type.HAR_SLUTTET,
-                aarsak = DeltakerStatus.Aarsak.Type.ANNET,
+            status = lagDeltakerStatus(
+                statusType = DeltakerStatus.Type.HAR_SLUTTET,
+                aarsakType = DeltakerStatus.Aarsak.Type.ANNET,
                 beskrivelse = "Flyttet",
             ),
             kilde = Kilde.ARENA,
         )
         TestRepository.insert(deltaker)
         val innsoktDato = LocalDate.now().minusMonths(5)
-        val importertFraArena = TestData.lagImportertFraArena(
+        val importertFraArena = lagImportertFraArena(
             deltakerId = deltaker.id,
             importertDato = LocalDateTime.now().minusWeeks(2),
             deltakerVedImport = deltaker.toDeltakerVedImport(innsoktDato),
@@ -249,33 +258,33 @@ class DeltakerResponseMapperServiceTest {
 
     @Test
     fun `tilDeltakerV2Dto - importert fra arena, endret - returnerer riktig DeltakerV2Dto`(): Unit = runBlocking {
-        val veileder = TestData.lagNavAnsatt()
-        val brukersEnhet = TestData.lagNavEnhet()
+        val veileder = lagNavAnsatt()
+        val brukersEnhet = lagNavEnhet()
         TestRepository.insert(veileder)
         TestRepository.insert(brukersEnhet)
-        val navBruker = TestData.lagNavBruker(navVeilederId = veileder.id, navEnhetId = brukersEnhet.id)
+        val navBruker = lagNavBruker(navVeilederId = veileder.id, navEnhetId = brukersEnhet.id)
         TestRepository.insert(navBruker)
-        val deltaker = TestData.lagDeltaker(
+        val deltaker = lagDeltaker(
             navBruker = navBruker,
             bakgrunnsinformasjon = null,
             innhold = null,
-            status = TestData.lagDeltakerStatus(
-                type = DeltakerStatus.Type.HAR_SLUTTET,
-                aarsak = DeltakerStatus.Aarsak.Type.ANNET,
+            status = lagDeltakerStatus(
+                statusType = DeltakerStatus.Type.HAR_SLUTTET,
+                aarsakType = DeltakerStatus.Aarsak.Type.ANNET,
                 beskrivelse = "Flyttet",
             ),
             kilde = Kilde.ARENA,
         )
         TestRepository.insert(deltaker)
         val innsoktDato = LocalDate.now().minusMonths(5)
-        val importertFraArena = TestData.lagImportertFraArena(
+        val importertFraArena = lagImportertFraArena(
             deltakerId = deltaker.id,
             importertDato = LocalDateTime.now().minusWeeks(2),
             deltakerVedImport = deltaker.toDeltakerVedImport(innsoktDato),
         )
         TestRepository.insert(importertFraArena)
 
-        val endring = TestData.lagDeltakerEndring(
+        val endring = lagDeltakerEndring(
             deltakerId = deltaker.id,
             endretAv = veileder.id,
             endretAvEnhet = brukersEnhet.id,

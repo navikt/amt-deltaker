@@ -21,18 +21,19 @@ class EndringFraArrangorService(
     private val log = LoggerFactory.getLogger(javaClass)
 
     suspend fun upsertEndretDeltaker(endringFraArrangor: EndringFraArrangor): Deltaker {
-        val deltaker = deltakerRepository.get(endringFraArrangor.deltakerId).getOrThrow()
-        validerIkkeFeilregistrert(deltaker)
+        val eksisterendeDeltaker = deltakerRepository.get(endringFraArrangor.deltakerId).getOrThrow()
+        validerIkkeFeilregistrert(eksisterendeDeltaker)
 
         val endretDeltaker = when (endringFraArrangor.endring) {
             is EndringFraArrangor.LeggTilOppstartsdato -> {
-                endretDeltaker(deltaker, endringFraArrangor.endring)
+                endretDeltaker(eksisterendeDeltaker, endringFraArrangor.endring)
             }
         }
 
-        endretDeltaker.onSuccess { deltaker ->
+        endretDeltaker.onSuccess { innerDeltaker ->
             return deltakerService.upsertAndProduceDeltaker(
-                deltaker = deltaker,
+                deltaker = innerDeltaker,
+                erDeltakerSluttdatoEndret = eksisterendeDeltaker.sluttdato != innerDeltaker.sluttdato,
                 beforeUpsert = { deltaker ->
                     endringFraArrangorRepository.insert(endringFraArrangor)
                     hendelseService.hendelseForEndringFraArrangor(endringFraArrangor, deltaker)
@@ -42,10 +43,10 @@ class EndringFraArrangorService(
         }
 
         endretDeltaker.onFailure {
-            log.warn("Endring fra arrangor for deltaker ${deltaker.id} medfører ingen endring")
+            log.warn("Endring fra arrangor for deltaker ${eksisterendeDeltaker.id} medfører ingen endring")
         }
 
-        return deltaker
+        return eksisterendeDeltaker
     }
 
     private fun endretDeltaker(deltaker: Deltaker, endring: EndringFraArrangor.Endring): Result<Deltaker> {

@@ -77,16 +77,21 @@ class EnkeltplassDeltakerConsumer(
         if (deltakerlisteFromDbResult.isFailure) deltakerlisteRepository.upsert(deltakerliste)
 
         log.info("Ingester enkeltplass deltaker med id ${deltakerPayload.id}")
-        val deltakerStatus = deltakerRepository.get(deltakerPayload.id).getOrNull()?.status
+        val eksisterendeDeltaker = deltakerRepository.get(deltakerPayload.id).getOrNull()
+
         val deltaker = deltakerPayload.toDeltaker(
             deltakerliste = deltakerliste,
             navBruker = navBrukerService.get(deltakerPayload.personIdent).getOrThrow(),
-            forrigeDeltakerStatus = deltakerStatus,
+            forrigeDeltakerStatus = eksisterendeDeltaker?.status,
         )
+
+        val erDeltakerSluttdatoEndret = eksisterendeDeltaker != null &&
+            eksisterendeDeltaker.sluttdato != deltaker.sluttdato
 
         deltakerService
             .transactionalDeltakerUpsert(
                 deltaker = deltaker,
+                erDeltakerSluttdatoEndret = erDeltakerSluttdatoEndret,
                 afterDeltakerUpsert = {
                     importertFraArenaRepository.upsert(deltaker.toImportertData())
                     deltakerProducerService.produce(deltaker)

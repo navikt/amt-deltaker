@@ -107,7 +107,7 @@ class DeltakerRepository {
         }
     }
 
-    fun getMany(deltakerIder: List<UUID>): List<Deltaker> {
+    fun getMany(deltakerIder: Set<UUID>): List<Deltaker> {
         if (deltakerIder.isEmpty()) return emptyList()
 
         return Database.query { session ->

@@ -9,7 +9,15 @@ import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetService
-import no.nav.amt.deltaker.utils.data.TestData
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerEndring
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
+import no.nav.amt.deltaker.utils.data.TestData.lagNavAnsatt
+import no.nav.amt.deltaker.utils.data.TestData.lagNavBruker
+import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
+import no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype
+import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -35,19 +43,19 @@ class DeltakerKafkaPayloadBuilderTest {
         deltakerHistorikkService = deltakerHistorikkService,
         vurderingRepository = vurderingRepository,
     )
-    val veileder: NavAnsatt = TestData.lagNavAnsatt()
-    val navEnhet: NavEnhet = TestData.lagNavEnhet()
+    val veileder: NavAnsatt = lagNavAnsatt()
+    val navEnhet: NavEnhet = lagNavEnhet()
 
-    var deltaker: Deltaker = TestData.lagDeltaker(
-        status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+    var deltaker: Deltaker = lagDeltaker(
+        status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
         startdato = LocalDate.now().minusMonths(1),
         sluttdato = LocalDate.now().plusMonths(3),
-        deltakerliste = TestData.lagDeltakerliste(
-            tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
+        deltakerliste = lagDeltakerliste(
+            tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
         ),
-        navBruker = TestData.lagNavBruker(navVeilederId = veileder.id, navEnhetId = navEnhet.id),
+        navBruker = lagNavBruker(navVeilederId = veileder.id, navEnhetId = navEnhet.id),
     )
-    var vedtak: Vedtak = TestData.lagVedtak(
+    var vedtak: Vedtak = lagVedtak(
         deltakerVedVedtak = deltaker,
         fattet = deltaker.sistEndret.minusMonths(3),
         opprettetAv = veileder,
@@ -89,7 +97,7 @@ class DeltakerKafkaPayloadBuilderTest {
                 )
             }.forEach {
                 val deltaker2 = deltaker.copy(
-                    deltakerliste = TestData.lagDeltakerliste(tiltakstype = TestData.lagTiltakstype(tiltakskode = it)),
+                    deltakerliste = lagDeltakerliste(tiltakstype = lagTiltakstype(tiltakskode = it)),
                 )
                 deltakerKafkaPayloadBuilder.buildDeltakerV1Record(deltaker2).deltakelsesmengder shouldBe emptyList()
             }
@@ -100,7 +108,7 @@ class DeltakerKafkaPayloadBuilderTest {
         val deltakerMedStartDatoFrem = deltaker
             .copy(startdato = nyStartdato)
 
-        val endring = TestData.lagDeltakerEndring(
+        val endring = lagDeltakerEndring(
             deltakerId = deltaker.id,
             endring = DeltakerEndring.Endring.EndreStartdato(
                 startdato = nyStartdato,
@@ -148,7 +156,7 @@ class DeltakerKafkaPayloadBuilderTest {
             )
         }.forEach {
             val deltaker2 = deltaker.copy(
-                deltakerliste = TestData.lagDeltakerliste(tiltakstype = TestData.lagTiltakstype(tiltakskode = it)),
+                deltakerliste = lagDeltakerliste(tiltakstype = lagTiltakstype(tiltakskode = it)),
             )
             deltakerKafkaPayloadBuilder.buildDeltakerEksternV1Record(deltaker2).deltakelsesmengder shouldBe emptyList()
         }
@@ -159,7 +167,7 @@ class DeltakerKafkaPayloadBuilderTest {
         val deltakerMedStartDatoFrem = deltaker
             .copy(startdato = nyStartdato)
 
-        val endring = TestData.lagDeltakerEndring(
+        val endring = lagDeltakerEndring(
             deltakerId = deltaker.id,
             endring = DeltakerEndring.Endring.EndreStartdato(
                 startdato = nyStartdato,

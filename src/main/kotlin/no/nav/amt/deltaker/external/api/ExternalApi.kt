@@ -40,8 +40,8 @@ fun Routing.registerExternalApi(
         // Brukes av mulighetsrommet for å hente personalia på deltakere i deres økonomi-løsning
         // Dokumentasjon: docs/external-deltakere-personalia.md
         post("$apiPath/deltakere/personalia") {
-            val request = call.receive<List<DeltakerID>>()
-            val deltakere: List<Deltaker> = deltakerRepository.getMany(request)
+            val deltakerIdListe = call.receive<List<DeltakerID>>()
+            val deltakere: List<Deltaker> = deltakerRepository.getMany(deltakerIdListe.toSet())
             val navEnheter = navEnhetService.getEnheter(deltakere.mapNotNull { it.navBruker.navEnhetId }.toSet())
 
             call.respond(deltakere.map { DeltakerPersonaliaResponse.from(it, navEnheter) })

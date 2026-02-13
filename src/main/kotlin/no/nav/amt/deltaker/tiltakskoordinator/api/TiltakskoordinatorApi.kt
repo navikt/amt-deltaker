@@ -30,7 +30,7 @@ fun Routing.registerTiltakskoordinatorApi(deltakerService: DeltakerService, delt
 
             val oppdaterteDeltakere = deltakerService
                 .oppdaterDeltakere(
-                    request.deltakerIder,
+                    request.deltakerIder.toSet(),
                     EndringFraTiltakskoordinator.DelMedArrangor,
                     request.endretAv,
                 ).toDeltakerOppdateringResult()
@@ -42,7 +42,7 @@ fun Routing.registerTiltakskoordinatorApi(deltakerService: DeltakerService, delt
             val deltakerIder = request.deltakere
             val oppdaterteDeltakere = deltakerService
                 .oppdaterDeltakere(
-                    deltakerIder,
+                    deltakerIder.toSet(),
                     EndringFraTiltakskoordinator.TildelPlass,
                     request.endretAv,
                 ).toDeltakerOppdateringResult()
@@ -55,7 +55,7 @@ fun Routing.registerTiltakskoordinatorApi(deltakerService: DeltakerService, delt
             val deltakerIder = request.deltakere
             val oppdaterteDeltakere = deltakerService
                 .oppdaterDeltakere(
-                    deltakerIder,
+                    deltakerIder.toSet(),
                     EndringFraTiltakskoordinator.SettPaaVenteliste,
                     request.endretAv,
                 ).toDeltakerOppdateringResult()

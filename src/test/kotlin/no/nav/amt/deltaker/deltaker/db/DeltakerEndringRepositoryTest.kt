@@ -1,7 +1,11 @@
 package no.nav.amt.deltaker.deltaker.db
 
 import io.kotest.matchers.shouldBe
-import no.nav.amt.deltaker.utils.data.TestData
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerEndring
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
+import no.nav.amt.deltaker.utils.data.TestData.lagNavAnsatt
+import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
@@ -22,21 +26,25 @@ class DeltakerEndringRepositoryTest {
 
     @Test
     fun `getForDeltaker - to endringer for deltaker, navansatt og enhet finnes - returnerer endring med navn for ansatt og enhet`() {
-        val navAnsatt1 = TestData.lagNavAnsatt()
+        val navAnsatt1 = lagNavAnsatt()
         TestRepository.insert(navAnsatt1)
-        val navAnsatt2 = TestData.lagNavAnsatt()
+
+        val navAnsatt2 = lagNavAnsatt()
         TestRepository.insert(navAnsatt2)
-        val navEnhet1 = TestData.lagNavEnhet()
+
+        val navEnhet1 = lagNavEnhet()
         TestRepository.insert(navEnhet1)
-        val navEnhet2 = TestData.lagNavEnhet()
+
+        val navEnhet2 = lagNavEnhet()
         TestRepository.insert(navEnhet2)
-        val deltaker = TestData.lagDeltaker()
-        val deltakerEndring = TestData.lagDeltakerEndring(
+
+        val deltaker = lagDeltaker()
+        val deltakerEndring = lagDeltakerEndring(
             deltakerId = deltaker.id,
             endretAv = navAnsatt1.id,
             endretAvEnhet = navEnhet1.id,
         )
-        val deltakerEndring2 = TestData.lagDeltakerEndring(
+        val deltakerEndring2 = lagDeltakerEndring(
             deltakerId = deltaker.id,
             endring = DeltakerEndring.Endring.EndreInnhold("ledetekst", listOf(Innhold("tekst", "type", true, null))),
             endretAv = navAnsatt2.id,
@@ -62,23 +70,27 @@ class DeltakerEndringRepositoryTest {
 
     @Test
     fun `getForDeltaker - deltaker er feilregistrert - returnerer tom liste`() {
-        val navAnsatt1 = TestData.lagNavAnsatt()
+        val navAnsatt1 = lagNavAnsatt()
         TestRepository.insert(navAnsatt1)
-        val navAnsatt2 = TestData.lagNavAnsatt()
+
+        val navAnsatt2 = lagNavAnsatt()
         TestRepository.insert(navAnsatt2)
-        val navEnhet1 = TestData.lagNavEnhet()
+
+        val navEnhet1 = lagNavEnhet()
         TestRepository.insert(navEnhet1)
-        val navEnhet2 = TestData.lagNavEnhet()
+
+        val navEnhet2 = lagNavEnhet()
         TestRepository.insert(navEnhet2)
-        val deltaker = TestData.lagDeltaker(
-            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.FEILREGISTRERT),
+
+        val deltaker = lagDeltaker(
+            status = lagDeltakerStatus(DeltakerStatus.Type.FEILREGISTRERT),
         )
-        val deltakerEndring = TestData.lagDeltakerEndring(
+        val deltakerEndring = lagDeltakerEndring(
             deltakerId = deltaker.id,
             endretAv = navAnsatt1.id,
             endretAvEnhet = navEnhet1.id,
         )
-        val deltakerEndring2 = TestData.lagDeltakerEndring(
+        val deltakerEndring2 = lagDeltakerEndring(
             deltakerId = deltaker.id,
             endring = DeltakerEndring.Endring.EndreInnhold("ledetekst", listOf(Innhold("tekst", "type", true, null))),
             endretAv = navAnsatt2.id,
@@ -96,14 +108,14 @@ class DeltakerEndringRepositoryTest {
 
     @Test
     fun `getUbehandletDeltakelsesmengder - returnerer endringer som skal behandles i dag`() {
-        val navAnsatt = TestData.lagNavAnsatt()
-        val navEnhet = TestData.lagNavEnhet()
-        val deltaker = TestData.lagDeltaker(
-            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+        val navAnsatt = lagNavAnsatt()
+        val navEnhet = lagNavEnhet()
+        val deltaker = lagDeltaker(
+            status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
         )
         TestRepository.insertAll(navEnhet, navAnsatt, deltaker)
 
-        val behandlet = TestData.lagDeltakerEndring(
+        val behandlet = lagDeltakerEndring(
             deltakerId = deltaker.id,
             endretAv = navAnsatt.id,
             endretAvEnhet = navEnhet.id,
@@ -115,7 +127,7 @@ class DeltakerEndringRepositoryTest {
             ),
         )
 
-        val skalBehandles = TestData.lagDeltakerEndring(
+        val skalBehandles = lagDeltakerEndring(
             deltakerId = deltaker.id,
             endretAv = navAnsatt.id,
             endretAvEnhet = navEnhet.id,
@@ -127,7 +139,7 @@ class DeltakerEndringRepositoryTest {
             ),
         )
 
-        val skalBehandlesSenere = TestData.lagDeltakerEndring(
+        val skalBehandlesSenere = lagDeltakerEndring(
             deltakerId = deltaker.id,
             endretAv = navAnsatt.id,
             endretAvEnhet = navEnhet.id,

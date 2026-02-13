@@ -54,6 +54,8 @@ import no.nav.amt.deltaker.utils.data.TestData.lagArrangor
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerlisteMedDirekteVedtak
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerlisteMedTrengerGodkjenning
 import no.nav.amt.deltaker.utils.data.TestData.lagNavAnsatt
 import no.nav.amt.deltaker.utils.data.TestData.lagNavBruker
 import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
@@ -99,7 +101,7 @@ class PameldingServiceTest {
         fun `opprettKladd - deltaker finnes og deltar fortsatt - returnerer eksisterende deltaker`(): Unit = runTest {
             val expectedDeltaker = lagDeltaker(
                 sluttdato = null,
-                status = lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+                status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
             )
             TestRepository.insert(expectedDeltaker)
 
@@ -211,7 +213,7 @@ class PameldingServiceTest {
         fun `opprettKladd - deltaker finnes men har sluttet - oppretter ny deltaker`() {
             val deltaker = lagDeltaker(
                 sluttdato = LocalDate.now().minusMonths(3),
-                status = lagDeltakerStatus(type = DeltakerStatus.Type.HAR_SLUTTET),
+                status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
             )
             TestRepository.insert(deltaker)
 
@@ -233,7 +235,7 @@ class PameldingServiceTest {
         @Test
         fun `upsertUtkast - deltaker finnes - oppdaterer deltaker og oppretter vedtak`() {
             val deltaker = lagDeltaker(
-                status = lagDeltakerStatus(type = DeltakerStatus.Type.KLADD),
+                status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
                 vedtaksinformasjon = null,
             )
             TestRepository.insert(deltaker)
@@ -276,7 +278,7 @@ class PameldingServiceTest {
                 deltakerliste = lagDeltakerliste(
                     pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
                 ),
-                status = lagDeltakerStatus(type = DeltakerStatus.Type.KLADD),
+                status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
                 vedtaksinformasjon = null,
                 startdato = null,
                 sluttdato = null,
@@ -321,7 +323,7 @@ class PameldingServiceTest {
         fun `upsertUtkast - deltaker med trenger godkjenning, godkjent av NAV - oppdaterer deltaker`() {
             val deltaker = lagDeltaker(
                 deltakerliste = lagDeltakerliste(pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING),
-                status = lagDeltakerStatus(type = DeltakerStatus.Type.KLADD),
+                status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
                 vedtaksinformasjon = null,
                 startdato = null,
                 sluttdato = null,
@@ -372,7 +374,7 @@ class PameldingServiceTest {
         TestRepository.insertAll(sistEndretAvNavAnsatt, sistEndretAvNavEnhet)
 
         val deltaker = lagDeltaker(
-            status = lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+            status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
             startdato = null,
             sluttdato = null,
         )
@@ -416,73 +418,70 @@ class PameldingServiceTest {
     @Nested
     inner class InnbyggerGodkjennUtkastTests {
         @Test
-        fun `innbyggerGodkjennUtkast - deltaker på deltakerliste med direktevedtak - vedtak fattes og ny status er godkjent utkast`() =
-            runTest {
-                val deltaker = lagDeltaker(
-                    deltakerliste = TestData.lagDeltakerlisteMedDirekteVedtak(),
-                    status = lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
-                )
-                val vedtak = lagVedtak(deltakerVedVedtak = deltaker)
-                val ansatt = lagNavAnsatt(id = vedtak.opprettetAv)
-                val enhet = lagNavEnhet(id = vedtak.opprettetAvEnhet)
-                TestRepository.insertAll(deltaker, ansatt, enhet, vedtak)
+        fun `innbyggerGodkjennUtkast - deltaker med lopende oppstart - vedtak fattes og ny status er godkjent utkast`() = runTest {
+            val deltaker = lagDeltaker(
+                deltakerliste = lagDeltakerlisteMedDirekteVedtak(),
+                status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+            )
+            val vedtak = lagVedtak(deltakerVedVedtak = deltaker)
+            val ansatt = lagNavAnsatt(id = vedtak.opprettetAv)
+            val enhet = lagNavEnhet(id = vedtak.opprettetAvEnhet)
+            TestRepository.insertAll(deltaker, ansatt, enhet, vedtak)
 
-                pameldingService.innbyggerGodkjennUtkast(deltaker.id)
+            pameldingService.innbyggerGodkjennUtkast(deltaker.id)
 
-                assertProduced(deltaker.id)
-                assertProducedDeltakerV1(deltaker.id)
-                assertProducedDeltakerEksternV1(deltaker.id)
-                assertProducedHendelse(deltaker.id, HendelseType.InnbyggerGodkjennUtkast::class)
+            assertProduced(deltaker.id)
+            assertProducedDeltakerV1(deltaker.id)
+            assertProducedHendelse(deltaker.id, HendelseType.InnbyggerGodkjennUtkast::class)
 
-                val oppdatertDeltaker = deltakerRepository.get(deltaker.id).shouldBeSuccess()
+            val oppdatertDeltaker = deltakerRepository.get(deltaker.id).shouldBeSuccess()
 
-                oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
+            oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
 
-                oppdatertDeltaker.vedtaksinformasjon.shouldNotBeNull()
-                oppdatertDeltaker.vedtaksinformasjon.fattet shouldBeCloseTo LocalDateTime.now()
+            oppdatertDeltaker.vedtaksinformasjon.shouldNotBeNull()
+            oppdatertDeltaker.vedtaksinformasjon.fattet shouldBeCloseTo LocalDateTime.now()
 
-                innsokPaaFellesOppstartRepository.getForDeltaker(deltaker.id).shouldBeFailure()
-            }
+            innsokPaaFellesOppstartRepository.getForDeltaker(deltaker.id).shouldBeFailure()
+        }
 
         @Test
-        fun `innbyggerGodkjennUtkast - deltaker på deltakerliste som krever godkjenning - vedtak fattes ikke ny status er sokt inn`() =
-            runTest {
-                val deltaker = lagDeltaker(
-                    deltakerliste = TestData.lagDeltakerlisteMedTrengerGodkjenning(),
-                    status = lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
-                )
-                val vedtak = lagVedtak(deltakerVedVedtak = deltaker)
-                val ansatt = lagNavAnsatt(id = vedtak.opprettetAv)
-                val enhet = lagNavEnhet(id = vedtak.opprettetAvEnhet)
-                TestRepository.insertAll(deltaker, ansatt, enhet, vedtak)
+        fun `innbyggerGodkjennUtkast - deltaker med felles oppstart - vedtak fattes ikke ny status er sokt inn`() = runTest {
+            val deltaker = lagDeltaker(
+                deltakerliste = lagDeltakerlisteMedTrengerGodkjenning(),
+                status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+            )
+            val vedtak = lagVedtak(deltakerVedVedtak = deltaker)
+            val ansatt = lagNavAnsatt(id = vedtak.opprettetAv)
+            val enhet = lagNavEnhet(id = vedtak.opprettetAvEnhet)
+            TestRepository.insertAll(deltaker, ansatt, enhet, vedtak)
 
-                pameldingService.innbyggerGodkjennUtkast(deltaker.id)
+            pameldingService.innbyggerGodkjennUtkast(deltaker.id)
 
-                assertProduced(deltaker.id)
-                assertProducedDeltakerV1(deltaker.id)
-                assertProducedDeltakerEksternV1(deltaker.id)
-                assertProducedHendelse(deltaker.id, HendelseType.InnbyggerGodkjennUtkast::class)
+            assertProduced(deltaker.id)
+            assertProducedDeltakerV1(deltaker.id)
+            assertProducedDeltakerEksternV1(deltaker.id)
+            assertProducedHendelse(deltaker.id, HendelseType.InnbyggerGodkjennUtkast::class)
 
-                val oppdatertDeltaker = deltakerRepository.get(deltaker.id).shouldBeSuccess()
+            val oppdatertDeltaker = deltakerRepository.get(deltaker.id).shouldBeSuccess()
 
-                oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.SOKT_INN
+            oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.SOKT_INN
 
-                oppdatertDeltaker.vedtaksinformasjon.shouldNotBeNull()
-                oppdatertDeltaker.vedtaksinformasjon.fattet shouldBe null
+            oppdatertDeltaker.vedtaksinformasjon.shouldNotBeNull()
+            oppdatertDeltaker.vedtaksinformasjon.fattet shouldBe null
 
-                val innsok = innsokPaaFellesOppstartRepository.getForDeltaker(deltaker.id).shouldBeSuccess()
-                assertSoftly(innsok) {
-                    utkastGodkjentAvNav shouldBe false
-                    utkastDelt shouldNotBe null
-                    innsokt shouldBeCloseTo LocalDateTime.now()
-                }
+            val innsok = innsokPaaFellesOppstartRepository.getForDeltaker(deltaker.id).shouldBeSuccess()
+            assertSoftly(innsok) {
+                utkastGodkjentAvNav shouldBe false
+                utkastDelt shouldNotBe null
+                innsokt shouldBeCloseTo LocalDateTime.now()
             }
+        }
 
         @Test
         fun `innbyggerGodkjennUtkast - vedtak kunne ikke fattes - upserter ikke`() {
             val deltaker = lagDeltaker(
-                deltakerliste = TestData.lagDeltakerlisteMedDirekteVedtak(),
-                status = lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+                deltakerliste = lagDeltakerlisteMedDirekteVedtak(),
+                status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
             )
             val vedtak = lagVedtak(deltakerVedVedtak = deltaker, fattet = LocalDateTime.now())
             val ansatt = lagNavAnsatt(id = vedtak.opprettetAv)
@@ -509,7 +508,7 @@ class PameldingServiceTest {
             val deltakerliste = lagDeltakerliste(
                 pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
             )
-            val deltakerStatusKladd = lagDeltakerStatus(type = DeltakerStatus.Type.KLADD)
+            val deltakerStatusKladd = lagDeltakerStatus(DeltakerStatus.Type.KLADD)
             val deltaker = lagDeltaker(
                 deltakerliste = deltakerliste,
                 status = deltakerStatusKladd,
@@ -525,7 +524,7 @@ class PameldingServiceTest {
             val deltakerliste = lagDeltakerliste(
                 pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
             )
-            val deltakerStatusKladd = lagDeltakerStatus(type = DeltakerStatus.Type.KLADD)
+            val deltakerStatusKladd = lagDeltakerStatus(DeltakerStatus.Type.KLADD)
             val deltaker = lagDeltaker(
                 deltakerliste = deltakerliste,
                 status = deltakerStatusKladd,

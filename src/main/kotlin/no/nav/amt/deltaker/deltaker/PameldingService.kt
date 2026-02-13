@@ -49,10 +49,11 @@ class PameldingService(
 
         return deltakerService
             .upsertAndProduceDeltaker(
-                lagDeltaker(
+                deltaker = lagDeltaker(
                     navBrukerService.get(personIdent).getOrThrow(),
                     deltakerListeRepository.get(deltakerListeId).getOrThrow(),
                 ),
+                erDeltakerSluttdatoEndret = false,
             ).also { deltaker ->
                 log.info("Lagret kladd for deltaker med id ${deltaker.id}")
             }
@@ -99,6 +100,7 @@ class PameldingService(
 
         val deltaker = deltakerService.upsertAndProduceDeltaker(
             deltaker = oppdatertDeltaker,
+            erDeltakerSluttdatoEndret = opprinneligDeltaker.sluttdato != oppdatertDeltaker.sluttdato,
             beforeUpsert = { deltaker ->
                 val oppdatertVedtak = vedtakService
                     .opprettEllerOppdaterVedtak(
@@ -135,6 +137,7 @@ class PameldingService(
 
     suspend fun innbyggerGodkjennUtkast(deltakerId: UUID): Deltaker = deltakerService.upsertAndProduceDeltaker(
         deltaker = deltakerRepository.get(deltakerId).getOrThrow(),
+        erDeltakerSluttdatoEndret = false,
         beforeUpsert = { deltaker ->
             if (deltaker.deltakerliste.deltakelserMaaGodkjennes) {
                 innbyggerGodkjennInnsok(deltaker)
@@ -194,6 +197,7 @@ class PameldingService(
 
         deltakerService.upsertAndProduceDeltaker(
             deltaker = oppdatertDeltaker,
+            erDeltakerSluttdatoEndret = opprinneligDeltaker.sluttdato != oppdatertDeltaker.sluttdato,
             beforeUpsert = { deltaker ->
                 val vedtak = vedtakService.avbrytVedtak(
                     deltakerId = deltaker.id,

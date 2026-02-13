@@ -74,7 +74,7 @@ data class EndringFraTiltakskoordinatorCtx(
         deltakerliste = deltakerliste,
         startdato = null,
         sluttdato = null,
-        status = lagDeltakerStatus(type = DeltakerStatus.Type.SOKT_INN),
+        status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
     ),
     val endring: EndringFraTiltakskoordinator = TestData.lagEndringFraTiltakskoordinator(
         deltakerId = deltaker.id,
@@ -89,7 +89,7 @@ data class EndringFraTiltakskoordinatorCtx(
     fun medStatusDeltar() {
         deltaker = deltaker.copy(
             id = UUID.randomUUID(),
-            status = lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+            status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
         )
         TestRepository.insert(deltaker)
     }

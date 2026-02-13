@@ -28,7 +28,8 @@ import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.navbruker.NavBrukerService
 import no.nav.amt.deltaker.unleash.UnleashToggle
-import no.nav.amt.deltaker.utils.data.TestData
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestData.lagNavBruker
 import no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype
@@ -118,16 +119,16 @@ class EnkeltplassDeltakerConsumerTest {
     @Test
     fun `consumeDeltaker - skalLeseArenaDataForTiltakstype=false - lagrer ikke enkeltplasser og produserer ikke til deltaker-v2 topic`() {
         val deltakerListe = lagDeltakerliste(
-            tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING),
+            tiltakstype = lagTiltakstype(Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING),
         )
         TestRepository.insert(deltakerListe)
         val sistEndret = LocalDateTime.now().minusDays(1)
-        val deltaker = TestData.lagDeltaker(
+        val deltaker = lagDeltaker(
             kilde = Kilde.ARENA,
             deltakerliste = deltakerListe,
             innhold = null,
             navBruker = lagNavBruker(navEnhetId = null, navVeilederId = null),
-            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR, opprettet = sistEndret),
+            status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR, opprettet = sistEndret),
             sistEndret = sistEndret,
         )
 
@@ -136,7 +137,7 @@ class EnkeltplassDeltakerConsumerTest {
             consumer.consumeDeltaker(toPayload(deltaker))
         }
 
-        coVerify(exactly = 0) { deltakerService.upsertAndProduceDeltaker(any()) }
+        coVerify(exactly = 0) { deltakerService.upsertAndProduceDeltaker(any(), true) }
         verify(exactly = 0) { deltakerProducer.produce(any()) }
     }
 
@@ -149,12 +150,12 @@ class EnkeltplassDeltakerConsumerTest {
 
         val statusOpprettet = LocalDateTime.now().minusWeeks(1)
         val sistEndret = LocalDateTime.now().minusDays(1)
-        val deltaker = TestData.lagDeltaker(
+        val deltaker = lagDeltaker(
             kilde = Kilde.ARENA,
             deltakerliste = deltakerListe,
             innhold = null,
             navBruker = lagNavBruker(navEnhetId = null, navVeilederId = null),
-            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR, opprettet = statusOpprettet),
+            status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR, opprettet = statusOpprettet),
             sistEndret = sistEndret,
         )
         TestRepository.insert(deltaker.navBruker)
@@ -177,15 +178,16 @@ class EnkeltplassDeltakerConsumerTest {
 
         coVerify(exactly = 1) {
             deltakerService.transactionalDeltakerUpsert(
-                match {
+                deltaker = match {
                     it.id == deltaker.id &&
                         it.deltakerliste.id == deltaker.deltakerliste.id &&
                         it.status.type == deltaker.status.type &&
                         it.bakgrunnsinformasjon == null // comes from payload
                 },
-                any(),
-                any(),
-                any(),
+                erDeltakerSluttdatoEndret = any(),
+                nesteStatus = any(),
+                beforeDeltakerUpsert = any(),
+                afterDeltakerUpsert = any(),
             )
         }
 
@@ -223,12 +225,12 @@ class EnkeltplassDeltakerConsumerTest {
 
         val statusOpprettet = LocalDateTime.now().minusWeeks(1)
         val sistEndret = LocalDateTime.now().minusDays(1)
-        val deltaker = TestData.lagDeltaker(
+        val deltaker = lagDeltaker(
             kilde = Kilde.ARENA,
             deltakerliste = deltakerListe,
             innhold = null,
             navBruker = lagNavBruker(navEnhetId = null, navVeilederId = null),
-            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR, opprettet = statusOpprettet),
+            status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR, opprettet = statusOpprettet),
             sistEndret = sistEndret,
         )
         TestRepository.insert(deltakerListe.arrangor)
@@ -256,7 +258,13 @@ class EnkeltplassDeltakerConsumerTest {
         }
 
         coVerify(exactly = 1) {
-            deltakerService.transactionalDeltakerUpsert(any(), any(), any(), any())
+            deltakerService.transactionalDeltakerUpsert(
+                deltaker = any(),
+                erDeltakerSluttdatoEndret = any(),
+                nesteStatus = any(),
+                beforeDeltakerUpsert = any(),
+                afterDeltakerUpsert = any(),
+            )
         }
         coVerify(exactly = 1) {
             deltakerProducerService.produce(any(), any(), any())
@@ -294,16 +302,15 @@ class EnkeltplassDeltakerConsumerTest {
 
         val statusOpprettet = LocalDateTime.now().minusWeeks(1)
         val sistEndret = LocalDateTime.now().minusDays(1)
-        val deltaker = TestData.lagDeltaker(
+        val deltaker = lagDeltaker(
             kilde = Kilde.ARENA,
             deltakerliste = deltakerListe,
             innhold = null,
             navBruker = lagNavBruker(navEnhetId = null, navVeilederId = null),
-            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR, opprettet = statusOpprettet),
+            status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR, opprettet = statusOpprettet),
             sistEndret = sistEndret,
         )
-        val nyStatus = TestData
-            .lagDeltakerStatus(type = DeltakerStatus.Type.FULLFORT, opprettet = LocalDate.now().atStartOfDay())
+        val nyStatus = lagDeltakerStatus(statusType = DeltakerStatus.Type.FULLFORT, opprettet = LocalDate.now().atStartOfDay())
         val deltakerMedNyStatus = deltaker.copy(
             status = nyStatus,
             sluttdato = LocalDate.now().minusDays(1),
@@ -332,6 +339,7 @@ class EnkeltplassDeltakerConsumerTest {
         coVerify(exactly = 1) {
             deltakerService.transactionalDeltakerUpsert(
                 deltaker = any(),
+                erDeltakerSluttdatoEndret = false,
                 nesteStatus = any(),
                 beforeDeltakerUpsert = any(),
                 afterDeltakerUpsert = any(),
@@ -374,12 +382,12 @@ class EnkeltplassDeltakerConsumerTest {
 
         val statusOpprettet = LocalDateTime.now().minusWeeks(1)
         val sistEndret = LocalDateTime.now().minusDays(1)
-        val deltaker = TestData.lagDeltaker(
+        val deltaker = lagDeltaker(
             kilde = Kilde.ARENA,
             deltakerliste = deltakerListe,
             innhold = null,
             navBruker = lagNavBruker(navEnhetId = null, navVeilederId = null),
-            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR, opprettet = statusOpprettet),
+            status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR, opprettet = statusOpprettet),
             sistEndret = sistEndret,
         )
 
@@ -408,7 +416,13 @@ class EnkeltplassDeltakerConsumerTest {
         }
 
         coVerify(exactly = 1) {
-            deltakerService.transactionalDeltakerUpsert(any(), any(), any(), any())
+            deltakerService.transactionalDeltakerUpsert(
+                deltaker = any(),
+                erDeltakerSluttdatoEndret = any(),
+                nesteStatus = any(),
+                beforeDeltakerUpsert = any(),
+                afterDeltakerUpsert = any(),
+            )
         }
         coVerify(exactly = 1) {
             deltakerProducerService.produce(any(), any(), any())

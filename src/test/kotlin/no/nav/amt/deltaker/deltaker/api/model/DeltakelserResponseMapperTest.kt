@@ -17,7 +17,14 @@ import no.nav.amt.deltaker.external.DeltakelserResponseMapper
 import no.nav.amt.deltaker.external.data.DeltakelserResponse
 import no.nav.amt.deltaker.external.data.Periode
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
-import no.nav.amt.deltaker.utils.data.TestData
+import no.nav.amt.deltaker.utils.data.TestData.lagArrangor
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
+import no.nav.amt.deltaker.utils.data.TestData.lagNavAnsatt
+import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
+import no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype
+import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
@@ -48,12 +55,12 @@ class DeltakelserResponseMapperTest {
 
     @Test
     fun `toDeltakelserResponse - kladd - returnerer riktig aktiv deltakelse`() {
-        val deltaker = TestData.lagDeltaker(
-            deltakerliste = TestData.lagDeltakerliste(
-                arrangor = TestData.lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),
-                tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
+        val deltaker = lagDeltaker(
+            deltakerliste = lagDeltakerliste(
+                arrangor = lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),
+                tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
             ),
-            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.KLADD),
+            status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
         )
         TestRepository.insert(deltaker)
 
@@ -81,23 +88,23 @@ class DeltakelserResponseMapperTest {
 
     @Test
     fun `toDeltakelserResponse - utkast, har overordnet arrangor - returnerer riktig aktiv deltakelse`() {
-        val navAnsatt = TestData.lagNavAnsatt()
+        val navAnsatt = lagNavAnsatt()
         TestRepository.insert(navAnsatt)
 
-        val navEnhet = TestData.lagNavEnhet()
+        val navEnhet = lagNavEnhet()
         TestRepository.insert(navEnhet)
 
-        val overordnetArrangor = TestData.lagArrangor(navn = "OVERORDNET ARRANGØR")
+        val overordnetArrangor = lagArrangor(navn = "OVERORDNET ARRANGØR")
         TestRepository.insert(overordnetArrangor)
 
-        val deltaker = TestData.lagDeltaker(
-            deltakerliste = TestData.lagDeltakerliste(
-                arrangor = TestData.lagArrangor(navn = "ARRANGØR", overordnetArrangorId = overordnetArrangor.id),
-                tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
+        val deltaker = lagDeltaker(
+            deltakerliste = lagDeltakerliste(
+                arrangor = lagArrangor(navn = "ARRANGØR", overordnetArrangorId = overordnetArrangor.id),
+                tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
             ),
-            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+            status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
         )
-        val vedtak = TestData.lagVedtak(
+        val vedtak = lagVedtak(
             deltakerId = deltaker.id,
             fattet = null,
             opprettetAv = navAnsatt,
@@ -131,22 +138,22 @@ class DeltakelserResponseMapperTest {
 
     @Test
     fun `toDeltakelserResponse - venter pa oppstart - returnerer riktig aktiv deltakelse`() {
-        val navAnsatt = TestData.lagNavAnsatt()
+        val navAnsatt = lagNavAnsatt()
         TestRepository.insert(navAnsatt)
 
-        val navEnhet = TestData.lagNavEnhet()
+        val navEnhet = lagNavEnhet()
         TestRepository.insert(navEnhet)
 
-        val deltaker = TestData.lagDeltaker(
-            deltakerliste = TestData.lagDeltakerliste(
-                arrangor = TestData.lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),
-                tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
+        val deltaker = lagDeltaker(
+            deltakerliste = lagDeltakerliste(
+                arrangor = lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),
+                tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
             ),
-            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.VENTER_PA_OPPSTART),
+            status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
             startdato = LocalDate.now().plusWeeks(1),
             sluttdato = null,
         )
-        val vedtak = TestData.lagVedtak(
+        val vedtak = lagVedtak(
             deltakerId = deltaker.id,
             fattet = LocalDateTime.now(),
             opprettetAv = navAnsatt,
@@ -180,20 +187,20 @@ class DeltakelserResponseMapperTest {
 
     @Test
     fun `toDeltakelserResponse - deltar - returnerer riktig aktiv deltakelse`() {
-        val navAnsatt = TestData.lagNavAnsatt()
+        val navAnsatt = lagNavAnsatt()
         TestRepository.insert(navAnsatt)
 
-        val navEnhet = TestData.lagNavEnhet()
+        val navEnhet = lagNavEnhet()
         TestRepository.insert(navEnhet)
 
-        val deltaker = TestData.lagDeltaker(
-            deltakerliste = TestData.lagDeltakerliste(
-                arrangor = TestData.lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),
-                tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
+        val deltaker = lagDeltaker(
+            deltakerliste = lagDeltakerliste(
+                arrangor = lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),
+                tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
             ),
-            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.DELTAR),
+            status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
         )
-        val vedtak = TestData.lagVedtak(
+        val vedtak = lagVedtak(
             deltakerId = deltaker.id,
             fattet = LocalDateTime.now(),
             opprettetAv = navAnsatt,
@@ -227,24 +234,24 @@ class DeltakelserResponseMapperTest {
 
     @Test
     fun `toDeltakelserResponse - ikke aktuell - returnerer riktig historisk deltakelse`() {
-        val navAnsatt = TestData.lagNavAnsatt()
+        val navAnsatt = lagNavAnsatt()
         TestRepository.insert(navAnsatt)
 
-        val navEnhet = TestData.lagNavEnhet()
+        val navEnhet = lagNavEnhet()
         TestRepository.insert(navEnhet)
 
-        val deltaker = TestData.lagDeltaker(
-            deltakerliste = TestData.lagDeltakerliste(
-                arrangor = TestData.lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),
-                tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
+        val deltaker = lagDeltaker(
+            deltakerliste = lagDeltakerliste(
+                arrangor = lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),
+                tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
             ),
-            status = TestData.lagDeltakerStatus(
-                type = DeltakerStatus.Type.IKKE_AKTUELL,
-                aarsak = DeltakerStatus.Aarsak.Type.ANNET,
+            status = lagDeltakerStatus(
+                statusType = DeltakerStatus.Type.IKKE_AKTUELL,
+                aarsakType = DeltakerStatus.Aarsak.Type.ANNET,
                 beskrivelse = "flyttet til Spania",
             ),
         )
-        val vedtak = TestData.lagVedtak(
+        val vedtak = lagVedtak(
             deltakerId = deltaker.id,
             fattet = LocalDateTime.now(),
             opprettetAv = navAnsatt,
@@ -278,24 +285,24 @@ class DeltakelserResponseMapperTest {
 
     @Test
     fun `toDeltakelserResponse - har sluttet - returnerer riktig historisk deltakelse`() {
-        val navAnsatt = TestData.lagNavAnsatt()
+        val navAnsatt = lagNavAnsatt()
         TestRepository.insert(navAnsatt)
 
-        val navEnhet = TestData.lagNavEnhet()
+        val navEnhet = lagNavEnhet()
         TestRepository.insert(navEnhet)
 
-        val deltaker = TestData.lagDeltaker(
-            deltakerliste = TestData.lagDeltakerliste(
-                arrangor = TestData.lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),
-                tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
+        val deltaker = lagDeltaker(
+            deltakerliste = lagDeltakerliste(
+                arrangor = lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),
+                tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
             ),
-            status = TestData.lagDeltakerStatus(
-                type = DeltakerStatus.Type.HAR_SLUTTET,
-                aarsak = DeltakerStatus.Aarsak.Type.TRENGER_ANNEN_STOTTE,
+            status = lagDeltakerStatus(
+                statusType = DeltakerStatus.Type.HAR_SLUTTET,
+                aarsakType = DeltakerStatus.Aarsak.Type.TRENGER_ANNEN_STOTTE,
                 beskrivelse = null,
             ),
         )
-        val vedtak = TestData.lagVedtak(
+        val vedtak = lagVedtak(
             deltakerId = deltaker.id,
             fattet = LocalDateTime.now(),
             opprettetAv = navAnsatt,
@@ -329,24 +336,24 @@ class DeltakelserResponseMapperTest {
 
     @Test
     fun `toDeltakelserResponse - avbrutt utkast - returnerer riktig historisk deltakelse`() {
-        val navAnsatt = TestData.lagNavAnsatt()
+        val navAnsatt = lagNavAnsatt()
         TestRepository.insert(navAnsatt)
 
-        val navEnhet = TestData.lagNavEnhet()
+        val navEnhet = lagNavEnhet()
         TestRepository.insert(navEnhet)
 
-        val deltaker = TestData.lagDeltaker(
-            deltakerliste = TestData.lagDeltakerliste(
-                arrangor = TestData.lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),
-                tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
+        val deltaker = lagDeltaker(
+            deltakerliste = lagDeltakerliste(
+                arrangor = lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),
+                tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
             ),
-            status = TestData.lagDeltakerStatus(
-                type = DeltakerStatus.Type.AVBRUTT_UTKAST,
-                aarsak = null,
+            status = lagDeltakerStatus(
+                statusType = DeltakerStatus.Type.AVBRUTT_UTKAST,
+                aarsakType = null,
                 beskrivelse = null,
             ),
         )
-        val vedtak = TestData.lagVedtak(
+        val vedtak = lagVedtak(
             deltakerId = deltaker.id,
             fattet = LocalDateTime.now(),
             opprettetAv = navAnsatt,
@@ -380,29 +387,29 @@ class DeltakelserResponseMapperTest {
 
     @Test
     fun `toDeltakelserResponse - har sluttet og ikke aktuell - returnerer nyeste historiske deltakelse forst`() {
-        val navAnsatt = TestData.lagNavAnsatt()
+        val navAnsatt = lagNavAnsatt()
         TestRepository.insert(navAnsatt)
 
-        val navEnhet = TestData.lagNavEnhet()
+        val navEnhet = lagNavEnhet()
         TestRepository.insert(navEnhet)
 
-        val deltakerliste = TestData.lagDeltakerliste(
-            arrangor = TestData.lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),
-            tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
+        val deltakerliste = lagDeltakerliste(
+            arrangor = lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),
+            tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
         )
 
         TestRepository.insert(deltakerliste)
 
-        val deltakerHarSluttet = TestData.lagDeltaker(
+        val deltakerHarSluttet = lagDeltaker(
             deltakerliste = deltakerliste,
-            status = TestData.lagDeltakerStatus(
-                type = DeltakerStatus.Type.HAR_SLUTTET,
-                aarsak = DeltakerStatus.Aarsak.Type.TRENGER_ANNEN_STOTTE,
+            status = lagDeltakerStatus(
+                statusType = DeltakerStatus.Type.HAR_SLUTTET,
+                aarsakType = DeltakerStatus.Aarsak.Type.TRENGER_ANNEN_STOTTE,
                 beskrivelse = null,
             ),
             sistEndret = LocalDateTime.now().minusWeeks(2),
         )
-        val vedtakHarSluttet = TestData.lagVedtak(
+        val vedtakHarSluttet = lagVedtak(
             deltakerId = deltakerHarSluttet.id,
             fattet = LocalDateTime.now(),
             opprettetAv = navAnsatt,
@@ -412,16 +419,16 @@ class DeltakelserResponseMapperTest {
         TestRepository.insert(deltakerHarSluttet)
         TestRepository.insert(vedtakHarSluttet)
 
-        val deltakerIkkeAktuell = TestData.lagDeltaker(
+        val deltakerIkkeAktuell = lagDeltaker(
             deltakerliste = deltakerliste,
-            status = TestData.lagDeltakerStatus(
-                type = DeltakerStatus.Type.IKKE_AKTUELL,
-                aarsak = DeltakerStatus.Aarsak.Type.ANNET,
+            status = lagDeltakerStatus(
+                statusType = DeltakerStatus.Type.IKKE_AKTUELL,
+                aarsakType = DeltakerStatus.Aarsak.Type.ANNET,
                 beskrivelse = "flyttet til Spania",
             ),
             sistEndret = LocalDateTime.now().minusDays(1),
         )
-        val vedtakIkkeAktuell = TestData.lagVedtak(
+        val vedtakIkkeAktuell = lagVedtak(
             deltakerId = deltakerIkkeAktuell.id,
             fattet = LocalDateTime.now(),
             opprettetAv = navAnsatt,
@@ -443,12 +450,12 @@ class DeltakelserResponseMapperTest {
 
     @Test
     fun `toDeltakelserResponse - pabegynt registrering - returnerer tomme lister`() {
-        val deltaker = TestData.lagDeltaker(
-            deltakerliste = TestData.lagDeltakerliste(
-                arrangor = TestData.lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),
-                tiltakstype = TestData.lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
+        val deltaker = lagDeltaker(
+            deltakerliste = lagDeltakerliste(
+                arrangor = lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),
+                tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING, navn = "Oppfølging"),
             ),
-            status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.PABEGYNT_REGISTRERING),
+            status = lagDeltakerStatus(statusType = DeltakerStatus.Type.PABEGYNT_REGISTRERING),
         )
         TestRepository.insert(deltaker)
 
