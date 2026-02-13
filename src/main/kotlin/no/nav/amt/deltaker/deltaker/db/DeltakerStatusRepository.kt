@@ -78,15 +78,15 @@ object DeltakerStatusRepository {
                 gyldig_til = CURRENT_TIMESTAMP,
                 modified_at = CURRENT_TIMESTAMP
             WHERE 
-                deltaker_id = ? 
-                AND id != ? 
+                deltaker_id = :deltaker_id
+                AND id != :exclude_id
                 AND gyldig_til IS NULL
                 AND (
-                    ? IS TRUE -- sluttdato endret     
+                    :er_deltaker_sluttdato_endret IS TRUE     
                     OR                                      
                     gyldig_fra < CURRENT_TIMESTAMP
                     OR
-                    type NOT IN (${sqlPlaceholders(AVSLUTTENDE_STATUSER.size)})
+                    type NOT IN ($avsluttendeStatuserAsDelimitedString)
                 )
             """.trimIndent()
 
@@ -94,14 +94,18 @@ object DeltakerStatusRepository {
             session.update(
                 queryOf(
                     sql,
-                    deltakerId,
-                    excludeStatusId,
-                    erDeltakerSluttdatoEndret,
-                    *AVSLUTTENDE_STATUSER.map { it.name }.toTypedArray(),
+                    mapOf(
+                        "deltaker_id" to deltakerId,
+                        "exclude_id" to excludeStatusId,
+                        "er_deltaker_sluttdato_endret" to erDeltakerSluttdatoEndret,
+                    ),
                 ),
             )
         }
     }
+
+    private val avsluttendeStatuserAsDelimitedString = AVSLUTTENDE_STATUSER
+        .joinToString { "'${it.name}'" }
 
     fun slettTidligereFremtidigeStatuser(deltakerId: UUID, excludeStatusId: UUID) {
         val sql =
