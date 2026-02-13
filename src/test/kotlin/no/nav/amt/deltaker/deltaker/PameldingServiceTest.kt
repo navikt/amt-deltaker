@@ -432,7 +432,7 @@ class PameldingServiceTest {
                 assertProduced(deltaker.id)
                 assertProducedDeltakerV1(deltaker.id)
                 assertProducedDeltakerEksternV1(deltaker.id)
-            assertProducedHendelse(deltaker.id, HendelseType.InnbyggerGodkjennUtkast::class)
+                assertProducedHendelse(deltaker.id, HendelseType.InnbyggerGodkjennUtkast::class)
 
                 val oppdatertDeltaker = deltakerRepository.get(deltaker.id).shouldBeSuccess()
 
@@ -461,7 +461,7 @@ class PameldingServiceTest {
                 assertProduced(deltaker.id)
                 assertProducedDeltakerV1(deltaker.id)
                 assertProducedDeltakerEksternV1(deltaker.id)
-            assertProducedHendelse(deltaker.id, HendelseType.InnbyggerGodkjennUtkast::class)
+                assertProducedHendelse(deltaker.id, HendelseType.InnbyggerGodkjennUtkast::class)
 
                 val oppdatertDeltaker = deltakerRepository.get(deltaker.id).shouldBeSuccess()
 
