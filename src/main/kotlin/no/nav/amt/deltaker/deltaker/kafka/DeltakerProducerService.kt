@@ -44,7 +44,9 @@ class DeltakerProducerService(
 
     private fun produceDeltakerEksternV1Topic(deltaker: Deltaker) {
         val deltakerEksternV1Record = deltakerKafkaPayloadBuilder.buildDeltakerEksternV1Record(deltaker)
-        deltakerEksternV1Producer.produce(deltakerEksternV1Record)
+        if (unleashToggle.skalProdusereTilDeltakerEksternTopic()) {
+            deltakerEksternV1Producer.produce(deltakerEksternV1Record)
+        }
     }
 
     private fun produceDeltakerV2Topic(deltaker: Deltaker, forcedUpdate: Boolean? = false) {

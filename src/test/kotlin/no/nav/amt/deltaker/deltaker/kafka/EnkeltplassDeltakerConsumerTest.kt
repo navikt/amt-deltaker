@@ -106,6 +106,7 @@ class EnkeltplassDeltakerConsumerTest {
     fun setup() {
         clearAllMocks()
         every { unleashToggle.skalDelesMedEksterne(any()) } returns false
+        every { unleashToggle.skalProdusereTilDeltakerEksternTopic() } returns true
         every { deltakerProducer.produce(any()) } just Runs
         every { deltakerEksternV1Producer.produce(any()) } just Runs
         every { deltakerEksternV1Producer.produce(any()) } just Runs
