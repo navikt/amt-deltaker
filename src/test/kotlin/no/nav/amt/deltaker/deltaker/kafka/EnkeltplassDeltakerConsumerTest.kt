@@ -56,6 +56,7 @@ class EnkeltplassDeltakerConsumerTest {
     private val navBrukerService = mockk<NavBrukerService>()
     private val deltakerKafkaPayloadBuilder = mockk<DeltakerKafkaPayloadBuilder>()
     private val deltakerProducer = mockk<DeltakerProducer>()
+    private val deltakerEksternV1Producer = mockk<DeltakerEksternV1Producer>()
     private val deltakerRepository = spyk(DeltakerRepository())
     private val importertFraArenaRepository = ImportertFraArenaRepository()
     private val deltakerlisteRepository = DeltakerlisteRepository()
@@ -65,6 +66,7 @@ class EnkeltplassDeltakerConsumerTest {
             deltakerKafkaPayloadBuilder = deltakerKafkaPayloadBuilder,
             deltakerProducer = deltakerProducer,
             deltakerV1Producer = mockk(),
+            deltakerEksternV1Producer = deltakerEksternV1Producer,
             unleashToggle = unleashToggle,
         ),
     )
@@ -104,6 +106,13 @@ class EnkeltplassDeltakerConsumerTest {
     fun setup() {
         clearAllMocks()
         every { unleashToggle.skalDelesMedEksterne(any()) } returns false
+        every { unleashToggle.skalProdusereTilDeltakerEksternTopic() } returns true
+        every { deltakerProducer.produce(any()) } just Runs
+        every { deltakerEksternV1Producer.produce(any()) } just Runs
+        every { deltakerEksternV1Producer.produce(any()) } just Runs
+        every { deltakerKafkaPayloadBuilder.buildDeltakerV1Record(any()) } returns mockk()
+        every { deltakerKafkaPayloadBuilder.buildDeltakerEksternV1Record(any()) } returns mockk()
+        every { deltakerKafkaPayloadBuilder.buildDeltakerV2Record(any()) } returns mockk()
     }
 
     @Test
@@ -162,8 +171,6 @@ class EnkeltplassDeltakerConsumerTest {
 
         every { deltakerProducer.produce(any()) } just Runs
         coEvery { navBrukerService.get(deltaker.navBruker.personident) } returns Result.success(deltaker.navBruker)
-        coEvery { deltakerKafkaPayloadBuilder.buildDeltakerV1Record(any()) } returns mockk()
-        coEvery { deltakerKafkaPayloadBuilder.buildDeltakerV2Record(any()) } returns mockk()
         runBlocking {
             consumer.consumeDeltaker(toPayload(deltaker))
         }
@@ -244,8 +251,6 @@ class EnkeltplassDeltakerConsumerTest {
 
         every { deltakerProducer.produce(any()) } just Runs
         coEvery { navBrukerService.get(deltaker.navBruker.personident) } returns Result.success(deltaker.navBruker)
-        coEvery { deltakerKafkaPayloadBuilder.buildDeltakerV1Record(any()) } returns mockk()
-        coEvery { deltakerKafkaPayloadBuilder.buildDeltakerV2Record(any()) } returns mockk()
         runBlocking {
             consumer.consumeDeltaker(toPayload(deltaker))
         }
@@ -319,8 +324,6 @@ class EnkeltplassDeltakerConsumerTest {
 
         every { deltakerProducer.produce(any()) } just Runs
         coEvery { navBrukerService.get(deltaker.navBruker.personident) } returns Result.success(deltaker.navBruker)
-        coEvery { deltakerKafkaPayloadBuilder.buildDeltakerV1Record(any()) } returns mockk()
-        coEvery { deltakerKafkaPayloadBuilder.buildDeltakerV2Record(any()) } returns mockk()
 
         runTest {
             consumer.consumeDeltaker(toPayload(deltakerMedNyStatus))
@@ -396,8 +399,6 @@ class EnkeltplassDeltakerConsumerTest {
 
         every { unleashToggle.skalLeseArenaDataForTiltakstype(Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING) } returns true
         every { unleashToggle.erKometMasterForTiltakstype(Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING) } returns false
-        coEvery { deltakerKafkaPayloadBuilder.buildDeltakerV1Record(any()) } returns mockk()
-        coEvery { deltakerKafkaPayloadBuilder.buildDeltakerV2Record(any()) } returns mockk()
 
         every { deltakerProducer.produce(any()) } just Runs
         coEvery { navBrukerService.get(deltaker.navBruker.personident) } returns Result.success(deltaker.navBruker)

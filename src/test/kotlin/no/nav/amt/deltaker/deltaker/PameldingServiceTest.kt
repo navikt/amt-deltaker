@@ -26,6 +26,7 @@ import no.nav.amt.deltaker.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartService
+import no.nav.amt.deltaker.deltaker.kafka.DeltakerEksternV1Producer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerV1Producer
@@ -36,6 +37,7 @@ import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.hendelse.HendelseProducer
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.kafka.utils.assertProduced
+import no.nav.amt.deltaker.kafka.utils.assertProducedDeltakerEksternV1
 import no.nav.amt.deltaker.kafka.utils.assertProducedDeltakerV1
 import no.nav.amt.deltaker.kafka.utils.assertProducedHendelse
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
@@ -88,6 +90,7 @@ class PameldingServiceTest {
     fun setup() {
         every { unleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns true
         every { unleashToggle.skalDelesMedEksterne(any<Tiltakskode>()) } returns true
+        every { unleashToggle.skalProdusereTilDeltakerEksternTopic() } returns true
     }
 
     @Nested
@@ -428,6 +431,7 @@ class PameldingServiceTest {
 
                 assertProduced(deltaker.id)
                 assertProducedDeltakerV1(deltaker.id)
+                assertProducedDeltakerEksternV1(deltaker.id)
                 assertProducedHendelse(deltaker.id, HendelseType.InnbyggerGodkjennUtkast::class)
 
                 val oppdatertDeltaker = deltakerRepository.get(deltaker.id).shouldBeSuccess()
@@ -456,6 +460,7 @@ class PameldingServiceTest {
 
                 assertProduced(deltaker.id)
                 assertProducedDeltakerV1(deltaker.id)
+                assertProducedDeltakerEksternV1(deltaker.id)
                 assertProducedHendelse(deltaker.id, HendelseType.InnbyggerGodkjennUtkast::class)
 
                 val oppdatertDeltaker = deltakerRepository.get(deltaker.id).shouldBeSuccess()
@@ -583,9 +588,11 @@ class PameldingServiceTest {
 
     private val deltakerProducer = DeltakerProducer(TestOutboxEnvironment.outboxService, TestOutboxEnvironment.kafkaProducer)
     private val deltakerV1Producer = DeltakerV1Producer(TestOutboxEnvironment.outboxService, TestOutboxEnvironment.kafkaProducer)
+    private val deltakerEksternV1Producer =
+        DeltakerEksternV1Producer(TestOutboxEnvironment.outboxService, TestOutboxEnvironment.kafkaProducer)
 
     private val deltakerProducerService =
-        DeltakerProducerService(deltakerKafkaPayloadBuilder, deltakerProducer, deltakerV1Producer, unleashToggle)
+        DeltakerProducerService(deltakerKafkaPayloadBuilder, deltakerProducer, deltakerV1Producer, deltakerEksternV1Producer, unleashToggle)
 
     private val deltakerService = DeltakerService(
         deltakerRepository = deltakerRepository,

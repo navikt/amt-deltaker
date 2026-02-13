@@ -119,4 +119,63 @@ class DeltakerKafkaPayloadBuilderTest {
             .first()
             .gyldigFra shouldBe nyStartdato
     }
+
+    @Test
+    fun `buildDeltakerEksternV1Record - deltaker med deltakelsesmengder - eksternV1 har deltakelsesmengder`() {
+        deltakerKafkaPayloadBuilder
+            .buildDeltakerEksternV1Record(deltaker)
+            .deltakelsesmengder shouldBe historikk.toDeltakelsesmengder().map {
+            DeltakerEksternV1Dto.DeltakelsesmengdeDto(
+                it.deltakelsesprosent,
+                it.dagerPerUke,
+                it.gyldigFra,
+                it.opprettet,
+            )
+        }
+    }
+
+    @Test
+    fun `buildDeltakerEksternV1Record - tiltak uten deltakelsesmengder - har ikke deltakelsesmengder`(): Unit = Tiltakskode.entries
+        .filter {
+            it !in setOf(
+                Tiltakskode.VARIG_TILRETTELAGT_ARBEID_SKJERMET,
+                Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,
+                Tiltakskode.ARBEIDSMARKEDSOPPLAERING,
+                Tiltakskode.NORSKOPPLAERING_GRUNNLEGGENDE_FERDIGHETER_FOV,
+                Tiltakskode.STUDIESPESIALISERING,
+                Tiltakskode.FAG_OG_YRKESOPPLAERING,
+                Tiltakskode.HOYERE_YRKESFAGLIG_UTDANNING,
+            )
+        }.forEach {
+            val deltaker2 = deltaker.copy(
+                deltakerliste = TestData.lagDeltakerliste(tiltakstype = TestData.lagTiltakstype(tiltakskode = it)),
+            )
+            deltakerKafkaPayloadBuilder.buildDeltakerEksternV1Record(deltaker2).deltakelsesmengder shouldBe emptyList()
+        }
+
+    @Test
+    fun `buildDeltakerEksternV1Record - deltakelsesmengde gyldig fra skal ikke vare for startdato`() {
+        val nyStartdato = deltaker.startdato!!.plusMonths(1)
+        val deltakerMedStartDatoFrem = deltaker
+            .copy(startdato = nyStartdato)
+
+        val endring = TestData.lagDeltakerEndring(
+            deltakerId = deltaker.id,
+            endring = DeltakerEndring.Endring.EndreStartdato(
+                startdato = nyStartdato,
+                sluttdato = deltaker.sluttdato,
+                begrunnelse = null,
+            ),
+            endretAv = veileder.id,
+            endretAvEnhet = navEnhet.id,
+        )
+        historikk.add(DeltakerHistorikk.Endring(endring))
+        every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
+
+        deltakerKafkaPayloadBuilder
+            .buildDeltakerEksternV1Record(deltakerMedStartDatoFrem)
+            .deltakelsesmengder
+            .first()
+            .gyldigFraDato shouldBe nyStartdato
+    }
 }

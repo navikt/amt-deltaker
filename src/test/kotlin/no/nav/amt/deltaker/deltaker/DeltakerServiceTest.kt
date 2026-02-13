@@ -26,6 +26,7 @@ import no.nav.amt.deltaker.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.deltaker.forslag.kafka.ArrangorMeldingProducer
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
+import no.nav.amt.deltaker.deltaker.kafka.DeltakerEksternV1Producer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerV1Producer
@@ -36,6 +37,7 @@ import no.nav.amt.deltaker.deltaker.vurdering.VurderingService
 import no.nav.amt.deltaker.hendelse.HendelseProducer
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.kafka.utils.assertProduced
+import no.nav.amt.deltaker.kafka.utils.assertProducedDeltakerEksternV1
 import no.nav.amt.deltaker.kafka.utils.assertProducedDeltakerV1
 import no.nav.amt.deltaker.kafka.utils.assertProducedFeilregistrert
 import no.nav.amt.deltaker.kafka.utils.assertProducedHendelse
@@ -95,6 +97,7 @@ class DeltakerServiceTest {
     fun setup() {
         every { unleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns true
         every { unleashToggle.skalDelesMedEksterne(any<Tiltakskode>()) } returns true
+        every { unleashToggle.skalProdusereTilDeltakerEksternTopic() } returns true
     }
 
     // START tester flyttet fra DeltakerRepository
@@ -506,6 +509,7 @@ class DeltakerServiceTest {
 
             assertProduced(deltaker.id)
             assertProducedDeltakerV1(deltaker.id)
+            assertProducedDeltakerEksternV1(deltaker.id)
         }
 
         @Test
@@ -817,6 +821,7 @@ class DeltakerServiceTest {
             assertProducedHendelse(deltaker.id, HendelseType.EndreDeltakelsesmengde::class)
             assertProduced(deltaker.id)
             assertProducedDeltakerV1(deltaker.id)
+            assertProducedDeltakerEksternV1(deltaker.id)
         }
 
         @Test
@@ -858,6 +863,7 @@ class DeltakerServiceTest {
             assertProducedHendelse(deltaker.id, HendelseType.EndreDeltakelsesmengde::class)
             assertProduced(deltaker.id)
             assertProducedDeltakerV1(deltaker.id)
+            assertProducedDeltakerEksternV1(deltaker.id)
         }
 
         @Test
@@ -948,6 +954,7 @@ class DeltakerServiceTest {
             assertProducedHendelse(deltaker.id, HendelseType.EndreStartdato::class)
             assertProduced(deltaker.id)
             assertProducedDeltakerV1(deltaker.id)
+            assertProducedDeltakerEksternV1(deltaker.id)
         }
     }
 
@@ -999,8 +1006,10 @@ class DeltakerServiceTest {
             assertProducedHendelse(deltaker.id, HendelseType.SettPaaVenteliste::class)
             assertProduced(deltaker.id)
             assertProducedDeltakerV1(deltaker.id)
+            assertProducedDeltakerEksternV1(deltaker.id)
             assertProduced(deltaker2.id)
             assertProducedDeltakerV1(deltaker2.id)
+            assertProducedDeltakerEksternV1(deltaker2.id)
         }
 
         @Test
@@ -1066,6 +1075,7 @@ class DeltakerServiceTest {
             assertProducedHendelse(deltaker.id, HendelseType.TildelPlass::class)
             assertProduced(deltaker.id)
             assertProducedDeltakerV1(deltaker.id)
+            assertProducedDeltakerEksternV1(deltaker.id)
         }
 
         @Test
@@ -1140,8 +1150,10 @@ class DeltakerServiceTest {
             assertProducedHendelse(deltaker.id, HendelseType.TildelPlass::class)
             assertProduced(deltaker.id)
             assertProducedDeltakerV1(deltaker.id)
+            assertProducedDeltakerEksternV1(deltaker.id)
             assertProduced(deltaker2.id)
             assertProducedDeltakerV1(deltaker2.id)
+            assertProducedDeltakerEksternV1(deltaker2.id)
         }
 
         @Test
@@ -1214,8 +1226,10 @@ class DeltakerServiceTest {
             assertProducedHendelse(deltaker.id, HendelseType.TildelPlass::class)
             assertProduced(deltaker.id)
             assertProducedDeltakerV1(deltaker.id)
+            assertProducedDeltakerEksternV1(deltaker.id)
             assertProduced(deltaker2.id)
             assertProducedDeltakerV1(deltaker2.id)
+            assertProducedDeltakerEksternV1(deltaker2.id)
         }
 
         @Test
@@ -1278,6 +1292,7 @@ class DeltakerServiceTest {
 
             assertProduced(deltakerInsert.id)
             assertProducedDeltakerV1(deltakerInsert.id)
+            assertProducedDeltakerEksternV1(deltakerInsert.id)
             assertProducedHendelse(deltakerInsert.id, HendelseType.TildelPlass::class)
         }
 
@@ -1343,8 +1358,10 @@ class DeltakerServiceTest {
 
             assertProduced(deltaker.id)
             assertProducedDeltakerV1(deltaker.id)
+            assertProducedDeltakerEksternV1(deltaker.id)
             assertProduced(deltaker2.id)
             assertProducedDeltakerV1(deltaker2.id)
+            assertProducedDeltakerEksternV1(deltaker2.id)
         }
     }
 
@@ -1458,6 +1475,7 @@ class DeltakerServiceTest {
             assertProducedHendelse(deltaker.id, HendelseType.Avslag::class)
             assertProduced(deltaker.id)
             assertProducedDeltakerV1(deltaker.id)
+            assertProducedDeltakerEksternV1(deltaker.id)
         }
     }
 
@@ -1486,6 +1504,7 @@ class DeltakerServiceTest {
 
         assertProduced(deltaker.id)
         assertProducedDeltakerV1(deltaker.id)
+        assertProducedDeltakerEksternV1(deltaker.id)
     }
 
     @Test
@@ -1529,6 +1548,7 @@ class DeltakerServiceTest {
 
         assertProducedFeilregistrert(deltaker.id)
         assertProducedDeltakerV1(deltaker.id)
+        assertProducedDeltakerEksternV1(deltaker.id)
     }
 
     @Nested
@@ -1629,10 +1649,13 @@ class DeltakerServiceTest {
 
     private val deltakerProducer = DeltakerProducer(TestOutboxEnvironment.outboxService, TestOutboxEnvironment.kafkaProducer)
     private val deltakerV1Producer = DeltakerV1Producer(TestOutboxEnvironment.outboxService, TestOutboxEnvironment.kafkaProducer)
+    private val deltakerEksternV1Producer =
+        DeltakerEksternV1Producer(TestOutboxEnvironment.outboxService, TestOutboxEnvironment.kafkaProducer)
     private val deltakerProducerService = DeltakerProducerService(
         deltakerKafkaPayloadBuilder,
         deltakerProducer,
         deltakerV1Producer,
+        deltakerEksternV1Producer,
         unleashToggle,
     )
 
