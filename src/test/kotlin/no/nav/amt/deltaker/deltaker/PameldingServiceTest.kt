@@ -104,7 +104,7 @@ class PameldingServiceTest {
     @Nested
     inner class OpprettDeltakerTests {
         @Test
-        fun `opprettKladd - deltaker finnes og deltar fortsatt - returnerer eksisterende deltaker`(): Unit = runTest {
+        fun `opprettKladd - deltaker finnes og deltar fortsatt - returnerer eksisterende deltaker`() = runTest {
             val expectedDeltaker = lagDeltaker(
                 sluttdato = null,
                 status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),

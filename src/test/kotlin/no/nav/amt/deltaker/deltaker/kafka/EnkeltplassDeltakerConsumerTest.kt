@@ -13,7 +13,6 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.spyk
 import io.mockk.verify
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.apiclients.mulighetsrommet.MulighetsrommetApiClient
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
@@ -135,7 +134,8 @@ class EnkeltplassDeltakerConsumerTest {
         )
 
         every { unleashToggle.skalLeseArenaDataForTiltakstype(Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING) } returns false
-        runBlocking {
+
+        runTest {
             consumer.consumeDeltaker(toPayload(deltaker))
         }
 
@@ -174,7 +174,8 @@ class EnkeltplassDeltakerConsumerTest {
 
         every { deltakerProducer.produce(any()) } just Runs
         coEvery { navBrukerService.get(deltaker.navBruker.personident) } returns Result.success(deltaker.navBruker)
-        runBlocking {
+
+        runTest {
             consumer.consumeDeltaker(toPayload(deltaker))
         }
 
@@ -253,7 +254,8 @@ class EnkeltplassDeltakerConsumerTest {
 
         every { deltakerProducer.produce(any()) } just Runs
         coEvery { navBrukerService.get(deltaker.navBruker.personident) } returns Result.success(deltaker.navBruker)
-        runBlocking {
+
+        runTest {
             consumer.consumeDeltaker(toPayload(deltaker))
         }
 
@@ -266,7 +268,7 @@ class EnkeltplassDeltakerConsumerTest {
                 afterDeltakerUpsert = any(),
             )
         }
-        coVerify(exactly = 1) {
+        verify(exactly = 1) {
             deltakerProducerService.produce(any(), any(), any())
         }
         verify { deltakerProducer.produce(any()) }
@@ -411,7 +413,7 @@ class EnkeltplassDeltakerConsumerTest {
         every { deltakerProducer.produce(any()) } just Runs
         coEvery { navBrukerService.get(deltaker.navBruker.personident) } returns Result.success(deltaker.navBruker)
 
-        runBlocking {
+        runTest {
             consumer.consumeDeltaker(toPayload(endretDeltaker))
         }
 

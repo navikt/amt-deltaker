@@ -4,7 +4,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
 import io.ktor.http.HttpStatusCode
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.utils.ISOPPFOLGINGSTILFELLE_URL
 import no.nav.amt.deltaker.utils.MockResponseHandler
 import no.nav.amt.deltaker.utils.createMockHttpClient
@@ -16,7 +16,7 @@ import java.time.LocalDate
 
 class IsOppfolgingstilfelleClientTest {
     @Test
-    fun `erSykmeldtMedArbeidsgiver returnerer feilkode`(): Unit = runBlocking {
+    fun `erSykmeldtMedArbeidsgiver returnerer feilkode`() = runTest {
         val oppfolgingstilfelleClient = IsOppfolgingstilfelleClient(
             baseUrl = ISOPPFOLGINGSTILFELLE_URL,
             scope = "scope",
@@ -36,14 +36,14 @@ class IsOppfolgingstilfelleClientTest {
     }
 
     @Test
-    fun `erSykmeldtMedArbeidsgiver - ingen oppfolgingstilfeller - returnerer false`(): Unit = runBlocking {
+    fun `erSykmeldtMedArbeidsgiver - ingen oppfolgingstilfeller - returnerer false`() = runTest {
         MockResponseHandler.addOppfolgingstilfelleRespons(OppfolgingstilfellePersonResponse(emptyList()))
 
         isOppfolgingstilfelleClient.erSykmeldtMedArbeidsgiver(personIdentInTest) shouldBe false
     }
 
     @Test
-    fun `erSykmeldtMedArbeidsgiver - har oppfolgingstilfelle, ikke arbeidsgiver - returnerer false`(): Unit = runBlocking {
+    fun `erSykmeldtMedArbeidsgiver - har oppfolgingstilfelle, ikke arbeidsgiver - returnerer false`() = runTest {
         MockResponseHandler.addOppfolgingstilfelleRespons(
             OppfolgingstilfellePersonResponse(
                 listOf(
@@ -60,7 +60,7 @@ class IsOppfolgingstilfelleClientTest {
     }
 
     @Test
-    fun `erSykmeldtMedArbeidsgiver - oppfolgingstilfelle avsluttet - returnerer false`(): Unit = runBlocking {
+    fun `erSykmeldtMedArbeidsgiver - oppfolgingstilfelle avsluttet - returnerer false`() = runTest {
         MockResponseHandler.addOppfolgingstilfelleRespons(
             OppfolgingstilfellePersonResponse(
                 listOf(
@@ -77,7 +77,7 @@ class IsOppfolgingstilfelleClientTest {
     }
 
     @Test
-    fun `erSykmeldtMedArbeidsgiver - har oppfolgingstilfelle og arbeidsgiver - returnerer true`(): Unit = runBlocking {
+    fun `erSykmeldtMedArbeidsgiver - har oppfolgingstilfelle og arbeidsgiver - returnerer true`() = runTest {
         MockResponseHandler.addOppfolgingstilfelleRespons(
             OppfolgingstilfellePersonResponse(
                 listOf(

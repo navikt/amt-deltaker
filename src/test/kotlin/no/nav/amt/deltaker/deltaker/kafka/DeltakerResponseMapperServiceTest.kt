@@ -48,14 +48,19 @@ import java.util.UUID
 class DeltakerResponseMapperServiceTest {
     private val navEnhetRepository = NavEnhetRepository()
     private val navAnsattRepository = NavAnsattRepository()
+    private val deltakerEndringRepository = DeltakerEndringRepository()
     private val vurderingRepository = VurderingRepository()
     private val vedtakRepository = VedtakRepository()
+    private val forslagRepository = ForslagRepository()
+    private val importertFraArenaRepository = ImportertFraArenaRepository()
+    private val endringFraArrangorRepository = EndringFraArrangorRepository()
+
     private val deltakerHistorikkService = DeltakerHistorikkService(
-        DeltakerEndringRepository(),
+        deltakerEndringRepository,
         vedtakRepository,
-        ForslagRepository(),
-        EndringFraArrangorRepository(),
-        ImportertFraArenaRepository(),
+        forslagRepository,
+        endringFraArrangorRepository,
+        importertFraArenaRepository,
         InnsokPaaFellesOppstartRepository(),
         EndringFraTiltakskoordinatorRepository(),
         vurderingRepository,
@@ -73,7 +78,7 @@ class DeltakerResponseMapperServiceTest {
     }
 
     @Test
-    fun `tilDeltakerV2Dto - utkast til pamelding - returnerer riktig DeltakerV2Dto`(): Unit = runTest {
+    fun `tilDeltakerV2Dto - utkast til pamelding - returnerer riktig DeltakerV2Dto`() = runTest {
         val navBruker = lagNavBruker()
         TestRepository.insert(navBruker)
         val deltaker = lagDeltaker(
@@ -124,7 +129,7 @@ class DeltakerResponseMapperServiceTest {
     }
 
     @Test
-    fun `tilDeltakerV2Dto - har sluttet - returnerer riktig DeltakerV2Dto`(): Unit = runTest {
+    fun `tilDeltakerV2Dto - har sluttet - returnerer riktig DeltakerV2Dto`() = runTest {
         val navBruker = lagNavBruker()
         TestRepository.insert(navBruker)
         val deltaker = lagDeltaker(
@@ -152,7 +157,8 @@ class DeltakerResponseMapperServiceTest {
             endretAvEnhet = navBruker.navEnhetId.shouldNotBeNull(),
             endret = LocalDateTime.now().minusDays(2),
         )
-        TestRepository.insert(endring)
+        deltakerEndringRepository.upsert(endring)
+
         val forslag = lagForslag(
             deltakerId = deltaker.id,
             status = Forslag.Status.Tilbakekalt(
@@ -160,12 +166,13 @@ class DeltakerResponseMapperServiceTest {
                 tilbakekalt = LocalDateTime.now().minusDays(1),
             ),
         )
-        TestRepository.insert(forslag)
+        forslagRepository.upsert(forslag)
+
         val endringFraArrangor = lagEndringFraArrangor(
             deltakerId = deltaker.id,
             opprettet = LocalDateTime.now(),
         )
-        TestRepository.insert(endringFraArrangor)
+        endringFraArrangorRepository.insert(endringFraArrangor)
 
         val deltakerV2Dto = deltakerKafkaPayloadBuilder.buildDeltakerV2Record(deltaker)
 
@@ -205,7 +212,7 @@ class DeltakerResponseMapperServiceTest {
     }
 
     @Test
-    fun `tilDeltakerV2Dto - importert fra arena - returnerer riktig DeltakerV2Dto`(): Unit = runTest {
+    fun `tilDeltakerV2Dto - importert fra arena - returnerer riktig DeltakerV2Dto`() = runTest {
         val navBruker = lagNavBruker()
         TestRepository.insert(navBruker)
         val deltaker = lagDeltaker(
@@ -259,7 +266,7 @@ class DeltakerResponseMapperServiceTest {
     }
 
     @Test
-    fun `tilDeltakerV2Dto - importert fra arena, endret - returnerer riktig DeltakerV2Dto`(): Unit = runTest {
+    fun `tilDeltakerV2Dto - importert fra arena, endret - returnerer riktig DeltakerV2Dto`() = runTest {
         val navBruker = lagNavBruker()
         TestRepository.insert(navBruker)
         val deltaker = lagDeltaker(
@@ -288,7 +295,7 @@ class DeltakerResponseMapperServiceTest {
             endretAvEnhet = navBruker.navEnhetId.shouldNotBeNull(),
             endret = LocalDateTime.now().minusDays(2),
         )
-        TestRepository.insert(endring)
+        deltakerEndringRepository.upsert(endring)
 
         val deltakerV2Dto = deltakerKafkaPayloadBuilder.buildDeltakerV2Record(deltaker)
 

@@ -29,24 +29,12 @@ import java.time.LocalDateTime
 class VedtakServiceTest {
     private val vedtakRepository = VedtakRepository()
     private val vedtakService = VedtakService(vedtakRepository)
+    private val navEnhetRepository = NavEnhetRepository()
+    private val navAnsattRepository = NavAnsattRepository()
 
     companion object {
         @RegisterExtension
         val dbExtension = DatabaseTestExtension()
-
-        private fun insert(vedtak: Vedtak) {
-            val navEnhet = lagNavEnhet(vedtak.opprettetAvEnhet)
-            NavEnhetRepository().upsert(navEnhet)
-
-            NavAnsattRepository().upsert(
-                lagNavAnsatt(
-                    vedtak.opprettetAv,
-                    navEnhetId = vedtak.opprettetAvEnhet,
-                ),
-            )
-            TestRepository.insert(lagDeltakerKladd(id = vedtak.deltakerId))
-            VedtakRepository().upsert(vedtak)
-        }
     }
 
     @Nested
@@ -56,7 +44,7 @@ class VedtakServiceTest {
         @Test
         fun `innbyggerFattVedtak - ikke-fattet vedtak finnes -  fattes`() {
             val vedtakInTest = TestData.lagVedtak(deltakerVedVedtak = deltaker)
-            insert(vedtakInTest)
+            insertVedtak(vedtakInTest)
 
             runTest {
                 vedtakService.innbyggerFattVedtak(deltaker.id)
@@ -73,7 +61,7 @@ class VedtakServiceTest {
         @Test
         fun `innbyggerFattVedtak - vedtaket er fattet - kaster feil`() {
             val vedtakInTest = TestData.lagVedtak(fattet = LocalDateTime.now(), deltakerVedVedtak = deltaker)
-            insert(vedtakInTest)
+            insertVedtak(vedtakInTest)
 
             val thrown = shouldThrow<IllegalArgumentException> {
                 vedtakService.innbyggerFattVedtak(deltaker.id)
@@ -85,7 +73,7 @@ class VedtakServiceTest {
         @Test
         fun `innbyggerFattVedtak - vedtak er allerede avbrutt - kaster feil`() {
             val vedtakInTest = TestData.lagVedtak(gyldigTil = LocalDateTime.now(), deltakerVedVedtak = deltaker)
-            insert(vedtakInTest)
+            insertVedtak(vedtakInTest)
 
             val thrown = shouldThrow<IllegalStateException> {
                 vedtakService.innbyggerFattVedtak(deltaker.id)
@@ -140,7 +128,7 @@ class VedtakServiceTest {
         @Test
         fun `oppdaterEllerOpprettVedtak - vedtak finnes, endres - oppdateres`() {
             val vedtak = TestData.lagVedtak()
-            insert(vedtak)
+            insertVedtak(vedtak)
 
             val oppdatertDeltaker = lagDeltakerKladd(id = vedtak.deltakerId)
                 .copy(bakgrunnsinformasjon = "Endret bakgrunn")
@@ -176,7 +164,7 @@ class VedtakServiceTest {
         @Test
         fun `avbrytVedtak - vedtak kan avbrytes - avbrytes`() {
             val vedtakInTest = TestData.lagVedtak(deltakerVedVedtak = deltaker)
-            insert(vedtakInTest)
+            insertVedtak(vedtakInTest)
 
             runTest {
                 val avbruttVedtak = vedtakService.avbrytVedtak(
@@ -198,7 +186,7 @@ class VedtakServiceTest {
         @Test
         fun `avbrytVedtak - vedtak er fattet og kan ikke avbrytes - feiler`() {
             val vedtakInTest = TestData.lagVedtak(fattet = LocalDateTime.now(), deltakerVedVedtak = deltaker)
-            insert(vedtakInTest)
+            insertVedtak(vedtakInTest)
 
             val thrown = shouldThrow<IllegalArgumentException> {
                 vedtakService.avbrytVedtak(
@@ -214,7 +202,7 @@ class VedtakServiceTest {
         @Test
         fun `avbrytVedtak - vedtak er allerede avbrutt - feiler`() {
             val vedtakInTest = TestData.lagVedtak(gyldigTil = LocalDateTime.now(), deltakerVedVedtak = deltaker)
-            insert(vedtakInTest)
+            insertVedtak(vedtakInTest)
 
             val thrown = shouldThrow<IllegalStateException> {
                 vedtakService.avbrytVedtak(
@@ -246,7 +234,7 @@ class VedtakServiceTest {
         @Test
         fun `navFattVedtak - vedtak finnes, fattes av Nav - oppdateres`() {
             val vedtak = TestData.lagVedtak()
-            insert(vedtak)
+            insertVedtak(vedtak)
 
             val oppdatertDeltaker = lagDeltakerKladd(id = vedtak.deltakerId).copy(bakgrunnsinformasjon = "Endret bakgrunn")
             val endretAvAnsatt = lagNavAnsatt()
@@ -324,5 +312,19 @@ class VedtakServiceTest {
                 sammenlignVedtak(deltakersVedtak, vedtak)
             }
         }
+    }
+
+    private fun insertVedtak(vedtak: Vedtak) {
+        val navEnhet = lagNavEnhet(vedtak.opprettetAvEnhet)
+        navEnhetRepository.upsert(navEnhet)
+
+        navAnsattRepository.upsert(
+            lagNavAnsatt(
+                id = vedtak.opprettetAv,
+                navEnhetId = vedtak.opprettetAvEnhet,
+            ),
+        )
+        TestRepository.insert(lagDeltakerKladd(id = vedtak.deltakerId))
+        vedtakRepository.upsert(vedtak)
     }
 }

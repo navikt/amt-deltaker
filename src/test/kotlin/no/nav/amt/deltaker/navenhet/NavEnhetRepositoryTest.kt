@@ -1,8 +1,7 @@
 package no.nav.amt.deltaker.navenhet
 
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
-import no.nav.amt.deltaker.utils.data.TestData
+import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -19,7 +18,7 @@ class NavEnhetRepositoryTest {
 
     @Test
     fun `upsert - ny nav enhet - inserter`() {
-        val navEnhet = TestData.lagNavEnhet()
+        val navEnhet = lagNavEnhet()
 
         val result = navEnhetRepository.upsert(navEnhet)
 
@@ -29,7 +28,7 @@ class NavEnhetRepositoryTest {
 
     @Test
     fun `upsert - eksisterende nav enhet - oppdaterer`() {
-        val navEnhet = TestData.lagNavEnhet()
+        val navEnhet = lagNavEnhet()
         navEnhetRepository.upsert(navEnhet)
 
         val oppdatertNavEnhet = navEnhet.copy(
@@ -44,10 +43,10 @@ class NavEnhetRepositoryTest {
 
     @Test
     fun `get by enhetsnummer - eksisterende enhet - returnerer enhet`() {
-        val navEnhet = TestData.lagNavEnhet(enhetsnummer = "1234", navn = "NAV Test")
+        val navEnhet = lagNavEnhet(enhetsnummer = "1234", navn = "NAV Test")
         navEnhetRepository.upsert(navEnhet)
 
-        val result = navEnhetRepository.get("1234")
+        val result = navEnhetRepository.get(navEnhet.enhetsnummer)
 
         result shouldBe navEnhet
     }
@@ -61,7 +60,7 @@ class NavEnhetRepositoryTest {
 
     @Test
     fun `get by id - eksisterende enhet - returnerer enhet`() {
-        val navEnhet = TestData.lagNavEnhet()
+        val navEnhet = lagNavEnhet()
         navEnhetRepository.upsert(navEnhet)
 
         val result = navEnhetRepository.get(navEnhet.id)
@@ -81,23 +80,21 @@ class NavEnhetRepositoryTest {
         @Test
         fun `getMany - flere nav enheter - returnerer alle enheter`() {
             val navEnheter = listOf(
-                TestData.lagNavEnhet(enhetsnummer = "1111", navn = "NAV En"),
-                TestData.lagNavEnhet(enhetsnummer = "2222", navn = "NAV To"),
-                TestData.lagNavEnhet(enhetsnummer = "3333", navn = "NAV Tre"),
+                lagNavEnhet(enhetsnummer = "1111", navn = "NAV En"),
+                lagNavEnhet(enhetsnummer = "2222", navn = "NAV To"),
+                lagNavEnhet(enhetsnummer = "3333", navn = "NAV Tre"),
             )
             navEnheter.forEach { navEnhetRepository.upsert(it) }
 
             val result = navEnhetRepository.getMany(navEnheter.map { it.id }.toSet())
 
             result.size shouldBe navEnheter.size
-            result.find { it == navEnheter[0] } shouldNotBe null
-            result.find { it == navEnheter[1] } shouldNotBe null
-            result.find { it == navEnheter[2] } shouldNotBe null
+            result.toSet() shouldBe navEnheter.toSet()
         }
 
         @Test
         fun `getMany - delvis eksisterende enheter - returnerer kun eksisterende`() {
-            val eksisterendeNavEnhet = TestData.lagNavEnhet(enhetsnummer = "1234", navn = "NAV Eksisterende")
+            val eksisterendeNavEnhet = lagNavEnhet(enhetsnummer = "1234", navn = "NAV Eksisterende")
             navEnhetRepository.upsert(eksisterendeNavEnhet)
             val ikkeEksisterendeId = UUID.randomUUID()
 

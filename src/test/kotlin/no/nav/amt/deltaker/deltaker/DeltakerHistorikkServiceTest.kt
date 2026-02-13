@@ -38,16 +38,20 @@ import java.util.UUID
 class DeltakerHistorikkServiceTest {
     private val navEnhetRepository = NavEnhetRepository()
     private val navAnsattRepository = NavAnsattRepository()
+    private val deltakerEndringRepository = DeltakerEndringRepository()
+    private val forslagRepository = ForslagRepository()
+    private val endringFraArrangorRepository = EndringFraArrangorRepository()
+    private val vurderingRepository = VurderingRepository()
 
     private val deltakerHistorikkService = DeltakerHistorikkService(
-        DeltakerEndringRepository(),
+        deltakerEndringRepository,
         VedtakRepository(),
-        ForslagRepository(),
-        EndringFraArrangorRepository(),
+        forslagRepository,
+        endringFraArrangorRepository,
         ImportertFraArenaRepository(),
         InnsokPaaFellesOppstartRepository(),
         EndringFraTiltakskoordinatorRepository(),
-        VurderingRepository(),
+        vurderingRepository,
     )
 
     companion object {
@@ -60,7 +64,8 @@ class DeltakerHistorikkServiceTest {
         val navEnhet = lagNavEnhet()
         navEnhetRepository.upsert(navEnhet)
 
-        val navAnsatt = lagNavAnsatt(navEnhetId = navEnhet.id)
+        val navAnsatt = lagNavAnsatt()
+        TestRepository.insert(navAnsatt)
         navAnsattRepository.upsert(navAnsatt)
 
         val deltaker = lagDeltaker()
@@ -102,12 +107,12 @@ class DeltakerHistorikkServiceTest {
 
         TestRepository.insert(deltaker)
         TestRepository.insert(vedtak)
-        TestRepository.insert(gammelEndring)
-        TestRepository.insert(endringFraArrangor)
-        TestRepository.insert(nyEndring)
-        TestRepository.insert(forslag)
-        TestRepository.insert(forslagVenter)
-        TestRepository.insert(nyVurdering)
+        deltakerEndringRepository.upsert(gammelEndring)
+        endringFraArrangorRepository.insert(endringFraArrangor)
+        deltakerEndringRepository.upsert(nyEndring)
+        forslagRepository.upsert(forslag)
+        forslagRepository.upsert(forslagVenter)
+        vurderingRepository.upsert(nyVurdering)
 
         val historikk = deltakerHistorikkService.getForDeltaker(deltaker.id)
 

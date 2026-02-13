@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.arrangor
 
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.utils.objectMapper
@@ -18,38 +18,32 @@ class ArrangorConsumerTest {
     }
 
     @Test
-    fun `consumeArrangor - ny arrangor - upserter`() {
+    fun `consumeArrangor - ny arrangor - upserter`() = runTest {
         val arrangor = TestData.lagArrangor()
 
-        runBlocking {
-            arrangorConsumer.consume(arrangor.id, objectMapper.writeValueAsString(arrangor))
-        }
+        arrangorConsumer.consume(arrangor.id, objectMapper.writeValueAsString(arrangor))
 
         arrangorRepository.get(arrangor.id) shouldBe arrangor
     }
 
     @Test
-    fun `consumeArrangor - oppdatert arrangor - upserter`() {
+    fun `consumeArrangor - oppdatert arrangor - upserter`() = runTest {
         val arrangor = TestData.lagArrangor()
         arrangorRepository.upsert(arrangor)
 
         val oppdatertArrangor = arrangor.copy(navn = "Oppdatert Arrangor")
 
-        runBlocking {
-            arrangorConsumer.consume(arrangor.id, objectMapper.writeValueAsString(oppdatertArrangor))
-        }
+        arrangorConsumer.consume(arrangor.id, objectMapper.writeValueAsString(oppdatertArrangor))
 
         arrangorRepository.get(arrangor.id) shouldBe oppdatertArrangor
     }
 
     @Test
-    fun `consumeArrangor - tombstonet arrangor - sletter`() {
+    fun `consumeArrangor - tombstonet arrangor - sletter`() = runTest {
         val arrangor = TestData.lagArrangor()
         arrangorRepository.upsert(arrangor)
 
-        runBlocking {
-            arrangorConsumer.consume(arrangor.id, null)
-        }
+        arrangorConsumer.consume(arrangor.id, null)
 
         arrangorRepository.get(arrangor.id) shouldBe null
     }

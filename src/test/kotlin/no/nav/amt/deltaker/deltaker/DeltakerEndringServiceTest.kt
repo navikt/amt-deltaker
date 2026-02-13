@@ -120,7 +120,7 @@ class DeltakerEndringServiceTest {
     }
 
     @Test
-    fun `upsertEndring - endret bakgrunnsinformasjon - upserter endring og returnerer deltaker`(): Unit = runTest {
+    fun `upsertEndring - endret bakgrunnsinformasjon - upserter endring og returnerer deltaker`() = runTest {
         val deltaker = lagDeltaker()
         val endretAv = lagNavAnsatt()
         val endretAvEnhet = lagNavEnhet()
@@ -155,7 +155,7 @@ class DeltakerEndringServiceTest {
     }
 
     @Test
-    fun `upsertEndring - endret innhold - upserter og returnerer endring`(): Unit = runTest {
+    fun `upsertEndring - endret innhold - upserter og returnerer endring`() = runTest {
         val deltaker = lagDeltaker()
         val endretAv = lagNavAnsatt()
         val endretAvEnhet = lagNavEnhet()
@@ -196,7 +196,7 @@ class DeltakerEndringServiceTest {
     }
 
     @Test
-    fun `upsertEndring - forleng deltakelse - upserter endring og returnerer deltaker`(): Unit = runTest {
+    fun `upsertEndring - forleng deltakelse - upserter endring og returnerer deltaker`() = runTest {
         val deltaker = lagDeltaker()
         val endretAv = lagNavAnsatt()
         val endretAvEnhet = lagNavEnhet()
@@ -249,7 +249,7 @@ class DeltakerEndringServiceTest {
     }
 
     @Test
-    fun `upsertEndring - ikke aktuell - upserter endring og returnerer deltaker`(): Unit = runTest {
+    fun `upsertEndring - ikke aktuell - upserter endring og returnerer deltaker`() = runTest {
         val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
         val endretAv = lagNavAnsatt()
         val endretAvEnhet = lagNavEnhet()
@@ -301,7 +301,7 @@ class DeltakerEndringServiceTest {
     }
 
     @Test
-    fun `upsertEndring - fjern oppstartsdato - upserter endring og returnerer deltaker`(): Unit = runTest {
+    fun `upsertEndring - fjern oppstartsdato - upserter endring og returnerer deltaker`() = runTest {
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
             startdato = LocalDate.now().plusDays(3),

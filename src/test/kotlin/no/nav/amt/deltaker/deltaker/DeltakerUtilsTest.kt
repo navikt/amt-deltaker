@@ -1,7 +1,7 @@
 package no.nav.amt.deltaker.deltaker
 
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorCtx
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test
 
 class DeltakerUtilsTest {
     @Test
-    fun `sjekkEndringUtfall - del med arrangør - oppdaterer attributt`(): Unit = runBlocking {
+    fun `sjekkEndringUtfall - del med arrangør - oppdaterer attributt`() = runTest {
         with(EndringFraTiltakskoordinatorCtx()) {
             val endretDeltaker = DeltakerUtils
                 .sjekkEndringUtfall(
@@ -23,7 +23,7 @@ class DeltakerUtilsTest {
     }
 
     @Test
-    fun `sjekkEndringUtfall - del med arrangør - ugyldig endring - returnerer failure`(): Unit = runBlocking {
+    fun `sjekkEndringUtfall - del med arrangør - ugyldig endring - returnerer failure`() = runTest {
         with(EndringFraTiltakskoordinatorCtx()) {
             medStatusDeltar()
             val resultat = DeltakerUtils.sjekkEndringUtfall(
@@ -36,7 +36,7 @@ class DeltakerUtilsTest {
     }
 
     @Test
-    fun `sjekkEndringUtfall - mangler oppfolgingsperiode - returnerer failure`(): Unit = runBlocking {
+    fun `sjekkEndringUtfall - mangler oppfolgingsperiode - returnerer failure`() = runTest {
         with(
             EndringFraTiltakskoordinatorCtx(
                 navBruker = TestData.lagNavBruker().copy(oppfolgingsperioder = emptyList()),
