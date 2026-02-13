@@ -66,6 +66,29 @@ object DeltakerStatusRepository {
         Database.query { session -> session.update(queryOf(sql, params)) }
     }
 
+    /**
+     * Deaktiverer (setter `gyldig_til` til nåværende tidspunkt) alle aktive statuser for en deltaker,
+     * med unntak av én spesifisert status.
+     *
+     * En status regnes som aktiv dersom `gyldig_til` er `NULL`. Metoden oppdaterer alle slike statuser
+     * for gitt [deltakerId], bortsett fra statusen med [excludeStatusId], og setter:
+     * - `gyldig_til` = CURRENT_TIMESTAMP
+     * - `modified_at` = CURRENT_TIMESTAMP
+     *
+     * En status blir kun deaktivert dersom ett av følgende vilkår er oppfylt:
+     * - [erDeltakerSluttdatoEndret] er `true`, eller
+     * - statusens `gyldig_fra` er tidligere enn nåværende tidspunkt, eller
+     * - statusens `type` ikke er blant de avsluttende statusene.
+     *
+     * Dette sikrer at vi lukker tidligere relevante statuser når en ny status opprettes
+     * eller når deltakerens sluttdato endres, samtidig som vi unngår å deaktivere
+     * den eksplisitt angitte statusen.
+     *
+     * @param deltakerId ID til deltakeren statusene tilhører.
+     * @param excludeStatusId ID til statusen som ikke skal deaktiveres.
+     * @param erDeltakerSluttdatoEndret Angir om deltakerens sluttdato er endret,
+     * og dermed om alle aktive statuser skal deaktiveres uavhengig av øvrige vilkår.
+     */
     fun deaktiverTidligereStatuser(
         deltakerId: UUID,
         excludeStatusId: UUID,
