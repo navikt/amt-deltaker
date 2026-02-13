@@ -2,9 +2,9 @@ package no.nav.amt.deltaker.deltaker.db
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
-import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
@@ -96,26 +96,30 @@ class DeltakerStatusRepositoryTest {
 
     @Test
     fun `slettTidligereFremtidigeStatuser - skal slette fremtidige statuser`() {
-        val eksisterendeFremtidigStatus = lagDeltakerStatus(
-            statusType = DeltakerStatus.Type.HAR_SLUTTET,
-            gyldigFra = LocalDateTime.now().plusDays(1),
+        val deltaker = lagDeltaker(
+            status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
         )
-
-        val deltaker = lagDeltaker(status = eksisterendeFremtidigStatus)
         TestRepository.insert(deltaker)
 
-        DeltakerStatusRepository.getFremtidige(deltaker.id).shouldNotBeEmpty()
+        DeltakerStatusRepository.lagreStatus(
+            deltaker.id,
+            lagDeltakerStatus(
+                statusType = DeltakerStatus.Type.DELTAR,
+                gyldigFra = LocalDateTime.now().plusDays(1),
+            ),
+        )
 
-        val nyFremtidigStatusId = UUID.randomUUID()
+        DeltakerStatusRepository.getFremtidige(deltaker.id).size shouldBe 1
 
         // act
         DeltakerStatusRepository.slettTidligereFremtidigeStatuser(
             deltakerId = deltaker.id,
-            excludeStatusId = nyFremtidigStatusId,
+            excludeStatusId = UUID.randomUUID(),
         )
 
         // assert
         DeltakerStatusRepository.getFremtidige(deltaker.id).shouldBeEmpty()
+        DeltakerStatusRepository.get(deltaker.status.id).gyldigTil.shouldBeNull()
     }
 
     @Test
