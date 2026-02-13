@@ -10,8 +10,8 @@ import no.nav.amt.deltaker.deltaker.db.DeltakerStatusRepository
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
-import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerlisteMedFellesOppstart
-import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerlisteMedLopendeOppstart
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerlisteMedDirekteVedtak
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerlisteMedTrengerGodkjenning
 import no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType

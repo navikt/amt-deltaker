@@ -156,7 +156,7 @@ class DeltakerKafkaPayloadBuilderTest {
             )
         }.forEach {
             val deltaker2 = deltaker.copy(
-                deltakerliste = TestData.lagDeltakerliste(tiltakstype = TestData.lagTiltakstype(tiltakskode = it)),
+                deltakerliste = lagDeltakerliste(tiltakstype = lagTiltakstype(tiltakskode = it)),
             )
             deltakerKafkaPayloadBuilder.buildDeltakerEksternV1Record(deltaker2).deltakelsesmengder shouldBe emptyList()
         }
@@ -167,7 +167,7 @@ class DeltakerKafkaPayloadBuilderTest {
         val deltakerMedStartDatoFrem = deltaker
             .copy(startdato = nyStartdato)
 
-        val endring = TestData.lagDeltakerEndring(
+        val endring = lagDeltakerEndring(
             deltakerId = deltaker.id,
             endring = DeltakerEndring.Endring.EndreStartdato(
                 startdato = nyStartdato,

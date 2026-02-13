@@ -26,6 +26,7 @@ import no.nav.amt.deltaker.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartService
+import no.nav.amt.deltaker.deltaker.kafka.DeltakerEksternV1Producer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerV1Producer
@@ -36,6 +37,7 @@ import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.hendelse.HendelseProducer
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.kafka.utils.assertProduced
+import no.nav.amt.deltaker.kafka.utils.assertProducedDeltakerEksternV1
 import no.nav.amt.deltaker.kafka.utils.assertProducedDeltakerV1
 import no.nav.amt.deltaker.kafka.utils.assertProducedHendelse
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
@@ -52,6 +54,8 @@ import no.nav.amt.deltaker.utils.data.TestData.lagArrangor
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerlisteMedDirekteVedtak
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerlisteMedTrengerGodkjenning
 import no.nav.amt.deltaker.utils.data.TestData.lagNavAnsatt
 import no.nav.amt.deltaker.utils.data.TestData.lagNavBruker
 import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
@@ -209,7 +213,7 @@ class PameldingServiceTest {
         fun `opprettKladd - deltaker finnes men har sluttet - oppretter ny deltaker`() {
             val deltaker = lagDeltaker(
                 sluttdato = LocalDate.now().minusMonths(3),
-                status = lagDeltakerStatus(type = DeltakerStatus.Type.HAR_SLUTTET),
+                status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
             )
             TestRepository.insert(deltaker)
 
@@ -416,8 +420,8 @@ class PameldingServiceTest {
         @Test
         fun `innbyggerGodkjennUtkast - deltaker med lopende oppstart - vedtak fattes og ny status er godkjent utkast`() = runTest {
             val deltaker = lagDeltaker(
-                deltakerliste = TestData.lagDeltakerlisteMedLopendeOppstart(),
-                status = lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+                deltakerliste = lagDeltakerlisteMedDirekteVedtak(),
+                status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
             )
             val vedtak = lagVedtak(deltakerVedVedtak = deltaker)
             val ansatt = lagNavAnsatt(id = vedtak.opprettetAv)
@@ -443,8 +447,8 @@ class PameldingServiceTest {
         @Test
         fun `innbyggerGodkjennUtkast - deltaker med felles oppstart - vedtak fattes ikke ny status er sokt inn`() = runTest {
             val deltaker = lagDeltaker(
-                deltakerliste = TestData.lagDeltakerlisteMedFellesOppstart(),
-                status = lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+                deltakerliste = lagDeltakerlisteMedTrengerGodkjenning(),
+                status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
             )
             val vedtak = lagVedtak(deltakerVedVedtak = deltaker)
             val ansatt = lagNavAnsatt(id = vedtak.opprettetAv)
@@ -476,8 +480,8 @@ class PameldingServiceTest {
         @Test
         fun `innbyggerGodkjennUtkast - vedtak kunne ikke fattes - upserter ikke`() {
             val deltaker = lagDeltaker(
-                deltakerliste = TestData.lagDeltakerlisteMedLopendeOppstart(),
-                status = lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+                deltakerliste = lagDeltakerlisteMedDirekteVedtak(),
+                status = lagDeltakerStatus(DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
             )
             val vedtak = lagVedtak(deltakerVedVedtak = deltaker, fattet = LocalDateTime.now())
             val ansatt = lagNavAnsatt(id = vedtak.opprettetAv)
@@ -583,9 +587,11 @@ class PameldingServiceTest {
 
     private val deltakerProducer = DeltakerProducer(TestOutboxEnvironment.outboxService, TestOutboxEnvironment.kafkaProducer)
     private val deltakerV1Producer = DeltakerV1Producer(TestOutboxEnvironment.outboxService, TestOutboxEnvironment.kafkaProducer)
+    private val deltakerEksternV1Producer =
+        DeltakerEksternV1Producer(TestOutboxEnvironment.outboxService, TestOutboxEnvironment.kafkaProducer)
 
     private val deltakerProducerService =
-        DeltakerProducerService(deltakerKafkaPayloadBuilder, deltakerProducer, deltakerV1Producer, unleashToggle)
+        DeltakerProducerService(deltakerKafkaPayloadBuilder, deltakerProducer, deltakerV1Producer, deltakerEksternV1Producer, unleashToggle)
 
     private val deltakerService = DeltakerService(
         deltakerRepository = deltakerRepository,

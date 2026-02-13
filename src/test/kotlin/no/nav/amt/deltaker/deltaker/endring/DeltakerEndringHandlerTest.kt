@@ -8,12 +8,11 @@ import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.api.deltaker.toDeltakerEndringEndring
-import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
-import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerlisteMedFellesOppstart
-import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerlisteMedLopendeOppstart
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerlisteMedDirekteVedtak
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerlisteMedTrengerGodkjenning
 import no.nav.amt.deltaker.utils.data.TestData.lagForslag
 import no.nav.amt.deltaker.utils.data.TestData.lagNavAnsatt
 import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
@@ -665,7 +664,7 @@ class DeltakerEndringHandlerTest {
     @Test
     fun `sjekkUtfall - reaktiver deltakelse felles oppstart`(): Unit = runBlocking {
         val deltaker = lagDeltaker(
-            status = lagDeltakerStatus(type = DeltakerStatus.Type.IKKE_AKTUELL),
+            status = lagDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL),
             deltakerliste = lagDeltakerlisteMedTrengerGodkjenning(),
         )
         val endretAv = lagNavAnsatt()
