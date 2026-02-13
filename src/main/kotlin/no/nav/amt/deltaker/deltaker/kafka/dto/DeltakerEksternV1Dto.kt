@@ -13,7 +13,7 @@ data class DeltakerEksternV1Dto(
     val startDato: LocalDate?,
     val sluttDato: LocalDate?,
     val status: StatusDto,
-    val registrertTidspunkt: LocalDateTime, // TODO: Dato eller timestamp? settes av vedtak.opprettet som er et timestamp
+    val registrertTidspunkt: LocalDateTime,
     val endretTidspunkt: LocalDateTime,
     val kilde: Kilde,
     val innhold: DeltakelsesinnholdDto?,

@@ -56,7 +56,7 @@ class DeltakerKafkaPayloadBuilder(
                 },
                 opprettetDato = deltaker.status.opprettet,
             ),
-            registrertDato = innsoktDato.atStartOfDay(),
+            registrertDato = innsoktDato,
             dagerPerUke = deltaker.dagerPerUke,
             prosentStilling = deltaker.deltakelsesprosent,
             endretDato = maxOf(deltaker.status.opprettet, deltaker.sistEndret),
@@ -68,7 +68,7 @@ class DeltakerKafkaPayloadBuilder(
 
     fun buildDeltakerEksternV1Record(deltaker: Deltaker): DeltakerEksternV1Dto {
         val deltakerhistorikk = deltakerHistorikkService.getForDeltaker(deltaker.id)
-        val innsoktDato = deltakerhistorikk.getInnsoktDato() // TODO: er egentlig vedtak.opprettet som er et timestamp
+        val innsoktDato = deltakerhistorikk.getInnsoktDato()
             ?: throw IllegalStateException("Skal ikke produsere deltaker som mangler vedtak til topic")
 
         return DeltakerEksternV1Dto(
@@ -90,7 +90,7 @@ class DeltakerKafkaPayloadBuilder(
                 ),
                 opprettetTidspunkt = deltaker.status.opprettet,
             ),
-            registrertTidspunkt = innsoktDato.atStartOfDay(), // TODO: bytt ut med registrertDato eller hente timestamp istedet?
+            registrertTidspunkt = innsoktDato,
             endretTidspunkt = maxOf(deltaker.status.opprettet, deltaker.sistEndret),
             kilde = deltaker.kilde,
             innhold = deltaker.deltakelsesinnhold?.toDeltakelseEksternV1InnholdDto(),
@@ -160,7 +160,7 @@ class DeltakerKafkaPayloadBuilder(
             prosentStilling = deltaker.deltakelsesprosent?.toDouble(),
             oppstartsdato = deltaker.startdato,
             sluttdato = deltaker.sluttdato,
-            innsoktDato = innsoktDato,
+            innsoktDato = innsoktDato.toLocalDate(),
             forsteVedtakFattet = deltakerhistorikk.getForsteVedtakFattet(),
             bestillingTekst = deltaker.bakgrunnsinformasjon,
             navKontor = navEnhet?.navn,
