@@ -29,7 +29,7 @@ data class DeltakerEksternV1Dto(
 
     data class DeltakelsesinnholdDto(
         val ledetekst: String?,
-        val innhold: List<InnholdDto>,
+        val valgtInnhold: List<InnholdDto>,
     )
 
     data class InnholdDto(

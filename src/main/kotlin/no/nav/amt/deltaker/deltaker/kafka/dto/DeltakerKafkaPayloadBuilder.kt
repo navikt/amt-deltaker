@@ -207,7 +207,7 @@ class DeltakerKafkaPayloadBuilder(
 
     private fun Deltakelsesinnhold.toDeltakelseEksternV1InnholdDto() = DeltakerEksternV1Dto.DeltakelsesinnholdDto(
         ledetekst = ledetekst,
-        innhold = innhold.filter { it.valgt }.map {
+        valgtInnhold = innhold.filter { it.valgt }.map {
             DeltakerEksternV1Dto.InnholdDto(
                 tekst = it.tekst,
                 innholdskode = it.innholdskode,
