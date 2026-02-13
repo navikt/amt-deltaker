@@ -98,7 +98,7 @@ class DeltakerProgresjonTest {
 
     @Test
     fun `getAvsluttendeStatusUtfall - deltar avbrutt deltakerliste - far riktig status og arsak`() {
-        val deltakerliste = lagDeltakerlisteMedFellesOppstart().copy(status = GjennomforingStatusType.AVBRUTT)
+        val deltakerliste = lagDeltakerlisteMedTrengerGodkjenning().copy(status = GjennomforingStatusType.AVBRUTT)
         val deltaker = lagDeltaker(
             deltakerliste = deltakerliste,
             startdato = deltakerliste.startDato,
@@ -121,7 +121,7 @@ class DeltakerProgresjonTest {
 
     @Test
     fun `getAvsluttendeStatusUtfall - venter avbrutt deltakerliste - far riktig status og arsak`() {
-        val deltakerliste = lagDeltakerlisteMedFellesOppstart().copy(status = GjennomforingStatusType.AVBRUTT)
+        val deltakerliste = lagDeltakerlisteMedTrengerGodkjenning().copy(status = GjennomforingStatusType.AVBRUTT)
         val deltaker = lagDeltaker(
             deltakerliste = deltakerliste,
             startdato = deltakerliste.startDato,
@@ -145,7 +145,7 @@ class DeltakerProgresjonTest {
 
     @Test
     fun `getAvsluttendeStatusUtfall - fremtig avsluttende status - returnerer deltaker med neste status`() {
-        val deltakerliste = lagDeltakerlisteMedLopendeOppstart().copy(status = GjennomforingStatusType.AVBRUTT)
+        val deltakerliste = lagDeltakerlisteMedDirekteVedtak().copy(status = GjennomforingStatusType.AVBRUTT)
         val deltaker = lagDeltaker(
             deltakerliste = deltakerliste,
             startdato = deltakerliste.startDato,

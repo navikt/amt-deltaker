@@ -139,7 +139,7 @@ class PameldingService(
         deltaker = deltakerRepository.get(deltakerId).getOrThrow(),
         erDeltakerSluttdatoEndret = false,
         beforeUpsert = { deltaker ->
-            if (deltaker.deltakerliste.erFellesOppstart) {
+            if (deltaker.deltakerliste.deltakelserMaaGodkjennes) {
                 innbyggerGodkjennInnsok(deltaker)
             } else {
                 vedtakService.innbyggerFattVedtak(deltaker.id)

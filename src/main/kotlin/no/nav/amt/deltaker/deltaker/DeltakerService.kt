@@ -304,13 +304,17 @@ class DeltakerService(
         }
     }
 
-    fun produserDeltakereForPerson(personident: String, publiserTilDeltakerV1: Boolean = true): Unit =
-        deltakerRepository.getFlereForPerson(personident).forEach { deltaker ->
-            deltakerProducerService.produce(
-                deltaker = deltaker,
-                publiserTilDeltakerV1 = publiserTilDeltakerV1,
-            )
-        }
+    fun produserDeltakereForPerson(
+        personident: String,
+        publiserTilDeltakerV1: Boolean = true,
+        publiserTilDeltakerEksternV1: Boolean = true,
+    ): Unit = deltakerRepository.getFlereForPerson(personident).forEach { deltaker ->
+        deltakerProducerService.produce(
+            deltaker = deltaker,
+            publiserTilDeltakerV1 = publiserTilDeltakerV1,
+            publiserTilDeltakerEksternV1 = publiserTilDeltakerEksternV1,
+        )
+    }
 
     fun oppdaterSistBesokt(deltakerId: UUID, sistBesokt: ZonedDateTime) {
         val deltaker = deltakerRepository.get(deltakerId).getOrThrow()

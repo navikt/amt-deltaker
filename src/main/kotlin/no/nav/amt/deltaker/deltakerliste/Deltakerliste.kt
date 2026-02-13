@@ -29,4 +29,5 @@ data class Deltakerliste(
     fun erAvsluttet(): Boolean = erAvlystEllerAvbrutt() || status == GjennomforingStatusType.AVSLUTTET
 
     val erFellesOppstart get() = oppstart == Oppstartstype.FELLES
+    val deltakelserMaaGodkjennes get() = pameldingstype == GjennomforingPameldingType.TRENGER_GODKJENNING
 }

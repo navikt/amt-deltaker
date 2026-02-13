@@ -172,16 +172,18 @@ object TestData {
         pameldingstype = pameldingType,
     )
 
-    fun lagDeltakerlisteMedLopendeOppstart(
+    fun lagDeltakerlisteMedDirekteVedtak(
         tiltakstype: Tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSFORBEREDENDE_TRENING),
     ) = lagDeltakerliste(
         tiltakstype = tiltakstype,
+        pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
     )
 
-    fun lagDeltakerlisteMedFellesOppstart(
+    fun lagDeltakerlisteMedTrengerGodkjenning(
         tiltakstype: Tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING),
     ) = lagDeltakerliste(
         tiltakstype = tiltakstype,
+        pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
     )
 
     fun lagEnkeltplassDeltakerlistePayload(
