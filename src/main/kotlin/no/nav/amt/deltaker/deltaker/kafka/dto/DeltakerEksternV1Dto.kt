@@ -12,19 +12,23 @@ data class DeltakerEksternV1Dto(
     val personIdent: String,
     val startDato: LocalDate?,
     val sluttDato: LocalDate?,
-    val status: DeltakerStatusDto,
-    val registrertTidspunkt: LocalDateTime,
+    val status: StatusDto,
+    val registrertTidspunkt: LocalDateTime, // TODO: Dato eller timestamp? settes av vedtak.opprettet som er et timestamp
     val endretTidspunkt: LocalDateTime,
-    val kilde: Kilde?,
+    val kilde: Kilde,
     val innhold: DeltakelsesinnholdDto?,
     val deltakelsesmengder: List<DeltakelsesmengdeDto>,
 ) {
-    data class DeltakerStatusDto(
-        val statusType: DeltakerStatus.Type,
-        val statusTekst: String,
-        val aarsakType: DeltakerStatus.Aarsak.Type?,
-        val aarsakBeskrivelse: String?,
+    data class StatusDto(
+        val type: DeltakerStatus.Type,
+        val tekst: String,
+        val aarsak: AarsakDto,
         val opprettetTidspunkt: LocalDateTime,
+    )
+
+    data class AarsakDto(
+        val type: DeltakerStatus.Aarsak.Type?,
+        val beskrivelse: String?,
     )
 
     data class DeltakelsesinnholdDto(

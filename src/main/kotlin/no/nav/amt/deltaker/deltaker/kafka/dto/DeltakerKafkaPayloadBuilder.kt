@@ -68,7 +68,7 @@ class DeltakerKafkaPayloadBuilder(
 
     fun buildDeltakerEksternV1Record(deltaker: Deltaker): DeltakerEksternV1Dto {
         val deltakerhistorikk = deltakerHistorikkService.getForDeltaker(deltaker.id)
-        val innsoktDato = deltakerhistorikk.getInnsoktDato()
+        val innsoktDato = deltakerhistorikk.getInnsoktDato() // TODO: er egentlig vedtak.opprettet som er et timestamp
             ?: throw IllegalStateException("Skal ikke produsere deltaker som mangler vedtak til topic")
 
         return DeltakerEksternV1Dto(
@@ -77,18 +77,20 @@ class DeltakerKafkaPayloadBuilder(
             personIdent = deltaker.navBruker.personident,
             startDato = deltaker.startdato,
             sluttDato = deltaker.sluttdato,
-            status = DeltakerEksternV1Dto.DeltakerStatusDto(
-                statusType = deltaker.status.type,
-                statusTekst = deltaker.status.type.getStatustekst(),
-                aarsakType = deltaker.status.aarsak?.type,
-                aarsakBeskrivelse = deltaker.status.aarsak?.let {
-                    DeltakerStatus
-                        .Aarsak(type = it.type, beskrivelse = deltaker.status.aarsak?.beskrivelse)
-                        .getVisningsnavn()
-                },
+            status = DeltakerEksternV1Dto.StatusDto(
+                type = deltaker.status.type,
+                tekst = deltaker.status.type.getStatustekst(),
+                aarsak = DeltakerEksternV1Dto.AarsakDto(
+                    type = deltaker.status.aarsak?.type,
+                    beskrivelse = deltaker.status.aarsak?.let {
+                        DeltakerStatus
+                            .Aarsak(type = it.type, beskrivelse = deltaker.status.aarsak?.beskrivelse)
+                            .getVisningsnavn()
+                    },
+                ),
                 opprettetTidspunkt = deltaker.status.opprettet,
             ),
-            registrertTidspunkt = innsoktDato.atStartOfDay(),
+            registrertTidspunkt = innsoktDato.atStartOfDay(), // TODO: bytt ut med registrertDato eller hente timestamp istedet?
             endretTidspunkt = maxOf(deltaker.status.opprettet, deltaker.sistEndret),
             kilde = deltaker.kilde,
             innhold = deltaker.deltakelsesinnhold?.toDeltakelseEksternV1InnholdDto(),
