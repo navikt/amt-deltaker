@@ -42,11 +42,35 @@ class DeltakerStatusRepositoryTest {
             DeltakerStatusRepository.lagreStatus(deltaker.id, avsluttendeFremtidigStatus)
 
             // act
-            DeltakerStatusRepository.deaktiverTidligereStatuser(deltaker.id, UUID.randomUUID())
+            DeltakerStatusRepository.deaktiverTidligereStatuser(
+                deltakerId = deltaker.id,
+                excludeStatusId = UUID.randomUUID(),
+                erDeltakerSluttdatoEndret = false,
+            )
 
             // assert
             DeltakerStatusRepository.get(deltaker.status.id).gyldigTil.shouldNotBeNull()
             DeltakerStatusRepository.get(avsluttendeFremtidigStatus.id).gyldigTil.shouldBeNull()
+        }
+
+        @Test
+        fun `har fremtidig avsluttende status, deaktiverer fremtidig status`() = runTest {
+            val avsluttendeFremtidigStatus = lagDeltakerStatus(
+                statusType = DeltakerStatus.Type.HAR_SLUTTET,
+                gyldigFra = LocalDateTime.now().plusDays(3),
+            )
+            DeltakerStatusRepository.lagreStatus(deltaker.id, avsluttendeFremtidigStatus)
+
+            // act
+            DeltakerStatusRepository.deaktiverTidligereStatuser(
+                deltakerId = deltaker.id,
+                excludeStatusId = UUID.randomUUID(),
+                erDeltakerSluttdatoEndret = true,
+            )
+
+            // assert
+            DeltakerStatusRepository.get(deltaker.status.id).gyldigTil.shouldNotBeNull()
+            DeltakerStatusRepository.get(avsluttendeFremtidigStatus.id).gyldigTil.shouldNotBeNull()
         }
 
         @Test
@@ -58,7 +82,11 @@ class DeltakerStatusRepositoryTest {
             DeltakerStatusRepository.lagreStatus(deltaker.id, ikkeAvsluttendeFremtidigStatus)
 
             // act
-            DeltakerStatusRepository.deaktiverTidligereStatuser(deltaker.id, UUID.randomUUID())
+            DeltakerStatusRepository.deaktiverTidligereStatuser(
+                deltakerId = deltaker.id,
+                excludeStatusId = UUID.randomUUID(),
+                erDeltakerSluttdatoEndret = false,
+            )
 
             // assert
             DeltakerStatusRepository.get(deltaker.status.id).gyldigTil.shouldNotBeNull()

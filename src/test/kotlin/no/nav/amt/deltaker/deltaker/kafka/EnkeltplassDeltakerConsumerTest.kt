@@ -128,7 +128,7 @@ class EnkeltplassDeltakerConsumerTest {
             consumer.consumeDeltaker(toPayload(deltaker))
         }
 
-        coVerify(exactly = 0) { deltakerService.upsertAndProduceDeltaker(any()) }
+        coVerify(exactly = 0) { deltakerService.upsertAndProduceDeltaker(any(), true) }
         verify(exactly = 0) { deltakerProducer.produce(any()) }
     }
 
@@ -171,15 +171,16 @@ class EnkeltplassDeltakerConsumerTest {
 
         coVerify(exactly = 1) {
             deltakerService.transactionalDeltakerUpsert(
-                match {
+                deltaker = match {
                     it.id == deltaker.id &&
                         it.deltakerliste.id == deltaker.deltakerliste.id &&
                         it.status.type == deltaker.status.type &&
                         it.bakgrunnsinformasjon == null // comes from payload
                 },
-                any(),
-                any(),
-                any(),
+                erDeltakerSluttdatoEndret = any(),
+                nesteStatus = any(),
+                beforeDeltakerUpsert = any(),
+                afterDeltakerUpsert = any(),
             )
         }
 
@@ -252,7 +253,13 @@ class EnkeltplassDeltakerConsumerTest {
         }
 
         coVerify(exactly = 1) {
-            deltakerService.transactionalDeltakerUpsert(any(), any(), any(), any())
+            deltakerService.transactionalDeltakerUpsert(
+                deltaker = any(),
+                erDeltakerSluttdatoEndret = any(),
+                nesteStatus = any(),
+                beforeDeltakerUpsert = any(),
+                afterDeltakerUpsert = any(),
+            )
         }
         coVerify(exactly = 1) {
             deltakerProducerService.produce(any(), any(), any())
@@ -329,6 +336,7 @@ class EnkeltplassDeltakerConsumerTest {
         coVerify(exactly = 1) {
             deltakerService.transactionalDeltakerUpsert(
                 deltaker = any(),
+                erDeltakerSluttdatoEndret = false,
                 nesteStatus = any(),
                 beforeDeltakerUpsert = any(),
                 afterDeltakerUpsert = any(),
@@ -407,7 +415,13 @@ class EnkeltplassDeltakerConsumerTest {
         }
 
         coVerify(exactly = 1) {
-            deltakerService.transactionalDeltakerUpsert(any(), any(), any(), any())
+            deltakerService.transactionalDeltakerUpsert(
+                deltaker = any(),
+                erDeltakerSluttdatoEndret = any(),
+                nesteStatus = any(),
+                beforeDeltakerUpsert = any(),
+                afterDeltakerUpsert = any(),
+            )
         }
         coVerify(exactly = 1) {
             deltakerProducerService.produce(any(), any(), any())

@@ -66,7 +66,11 @@ object DeltakerStatusRepository {
         Database.query { session -> session.update(queryOf(sql, params)) }
     }
 
-    fun deaktiverTidligereStatuser(deltakerId: UUID, excludeStatusId: UUID) {
+    fun deaktiverTidligereStatuser(
+        deltakerId: UUID,
+        excludeStatusId: UUID,
+        erDeltakerSluttdatoEndret: Boolean,
+    ) {
         val sql =
             """
             UPDATE deltaker_status
@@ -78,6 +82,8 @@ object DeltakerStatusRepository {
                 AND id != ? 
                 AND gyldig_til IS NULL
                 AND (
+                    ? IS TRUE -- sluttdato endret     
+                    OR                                      
                     gyldig_fra < CURRENT_TIMESTAMP
                     OR
                     type NOT IN (${sqlPlaceholders(AVSLUTTENDE_STATUSER.size)})
@@ -90,6 +96,7 @@ object DeltakerStatusRepository {
                     sql,
                     deltakerId,
                     excludeStatusId,
+                    erDeltakerSluttdatoEndret,
                     *AVSLUTTENDE_STATUSER.map { it.name }.toTypedArray(),
                 ),
             )

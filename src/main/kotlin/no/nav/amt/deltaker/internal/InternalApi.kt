@@ -97,7 +97,8 @@ fun Routing.registerInternalApi(
                                 opprettet = LocalDateTime.now(),
                             ),
                         ),
-                        forcedUpdate = true,
+                        erDeltakerSluttdatoEndret = false,
+                        forceProduce = true,
                     )
                 }
 
@@ -275,6 +276,7 @@ fun Routing.registerInternalApi(
 
         deltakerService.upsertAndProduceDeltaker(
             deltaker = deltakerRepository.get(deltakerId).getOrThrow(),
+            erDeltakerSluttdatoEndret = false,
             beforeUpsert = { deltaker ->
                 val vedtak = vedtakService.avbrytVedtakVedAvsluttetDeltakerliste(deltaker)
 
