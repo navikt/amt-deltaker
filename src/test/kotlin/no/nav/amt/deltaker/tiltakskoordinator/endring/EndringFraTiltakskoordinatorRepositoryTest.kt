@@ -1,6 +1,7 @@
 package no.nav.amt.deltaker.tiltakskoordinator.endring
 
 import io.kotest.matchers.shouldBe
+import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.utils.data.TestData
@@ -82,6 +83,8 @@ data class EndringFraTiltakskoordinatorCtx(
         endretAvEnhet = navEnhet.id,
     ),
 ) {
+    private val innsokPaaFellesOppstartRepository = InnsokPaaFellesOppstartRepository()
+
     init {
         TestRepository.insertAll(navEnhet, navAnsatt, deltakerliste, deltaker)
     }
@@ -100,6 +103,7 @@ data class EndringFraTiltakskoordinatorCtx(
             innsoktAv = navAnsatt.id,
             innsoktAvEnhet = navEnhet.id,
         )
-        TestRepository.insert(innsok)
+
+        innsokPaaFellesOppstartRepository.insert(innsok)
     }
 }

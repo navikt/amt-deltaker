@@ -11,8 +11,17 @@ import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
+import no.nav.amt.deltaker.navansatt.NavAnsattRepository
+import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
-import no.nav.amt.deltaker.utils.data.TestData
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerEndring
+import no.nav.amt.deltaker.utils.data.TestData.lagEndringFraArrangor
+import no.nav.amt.deltaker.utils.data.TestData.lagForslag
+import no.nav.amt.deltaker.utils.data.TestData.lagNavAnsatt
+import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
+import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
+import no.nav.amt.deltaker.utils.data.TestData.lagVurdering
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
@@ -27,6 +36,9 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 class DeltakerHistorikkServiceTest {
+    private val navEnhetRepository = NavEnhetRepository()
+    private val navAnsattRepository = NavAnsattRepository()
+
     private val deltakerHistorikkService = DeltakerHistorikkService(
         DeltakerEndringRepository(),
         VedtakRepository(),
@@ -45,43 +57,45 @@ class DeltakerHistorikkServiceTest {
 
     @Test
     fun `getForDeltaker - ett vedtak flere endringer og forslag - returner liste riktig sortert`() {
-        val navAnsatt = TestData.lagNavAnsatt()
-        TestRepository.insert(navAnsatt)
-        val navEnhet = TestData.lagNavEnhet()
-        TestRepository.insert(navEnhet)
-        val deltaker = TestData.lagDeltaker()
-        val vedtak = TestData.lagVedtak(
+        val navEnhet = lagNavEnhet()
+        navEnhetRepository.upsert(navEnhet)
+
+        val navAnsatt = lagNavAnsatt(navEnhetId = navEnhet.id)
+        navAnsattRepository.upsert(navAnsatt)
+
+        val deltaker = lagDeltaker()
+        val vedtak = lagVedtak(
             deltakerId = deltaker.id,
             fattet = LocalDateTime.now().minusMonths(1),
             opprettetAv = navAnsatt,
             opprettetAvEnhet = navEnhet,
             sistEndret = LocalDateTime.now().minusMonths(1),
         )
-        val gammelEndring = TestData.lagDeltakerEndring(
+        val gammelEndring = lagDeltakerEndring(
             deltakerId = deltaker.id,
             endretAv = navAnsatt.id,
             endretAvEnhet = navEnhet.id,
             endret = LocalDateTime.now().minusDays(20),
         )
-        val endringFraArrangor = TestData.lagEndringFraArrangor(
+        val endringFraArrangor = lagEndringFraArrangor(
             deltakerId = deltaker.id,
             opprettet = LocalDateTime.now().minusDays(18),
         )
-        val forslag = TestData.lagForslag(
+        val forslag = lagForslag(
             deltakerId = deltaker.id,
             status = Forslag.Status.Tilbakekalt(
                 tilbakekaltAvArrangorAnsattId = UUID.randomUUID(),
                 tilbakekalt = LocalDateTime.now().minusDays(15),
             ),
         )
-        val forslagVenter = TestData.lagForslag(deltakerId = deltaker.id)
-        val nyEndring = TestData.lagDeltakerEndring(
+        val forslagVenter = lagForslag(deltakerId = deltaker.id)
+        val nyEndring = lagDeltakerEndring(
             deltakerId = deltaker.id,
             endretAv = navAnsatt.id,
             endretAvEnhet = navEnhet.id,
             endret = LocalDateTime.now().minusDays(13),
         )
-        val nyVurdering = TestData.lagVurdering(
+        val nyVurdering = lagVurdering(
             deltakerId = deltaker.id,
             gyldigFra = LocalDateTime.now().minusDays(10),
         )
@@ -108,7 +122,7 @@ class DeltakerHistorikkServiceTest {
 
     @Test
     fun `getForDeltaker - ingen endringer - returner tom liste`() {
-        val deltaker = TestData.lagDeltaker()
+        val deltaker = lagDeltaker()
         TestRepository.insert(deltaker)
 
         deltakerHistorikkService.getForDeltaker(deltaker.id) shouldBe emptyList()
@@ -116,7 +130,7 @@ class DeltakerHistorikkServiceTest {
 
     @Test
     fun `getInnsoktDato - ingen vedtak - returnerer null`() {
-        val deltakerhistorikk = listOf<DeltakerHistorikk>(DeltakerHistorikk.Endring(TestData.lagDeltakerEndring()))
+        val deltakerhistorikk = listOf<DeltakerHistorikk>(DeltakerHistorikk.Endring(lagDeltakerEndring()))
 
         deltakerhistorikk.getInnsoktDato() shouldBe null
     }
@@ -124,14 +138,14 @@ class DeltakerHistorikkServiceTest {
     @Test
     fun `getInnsoktDato - to vedtak - returnerer tidligste opprettetdato`() {
         val deltakerhistorikk = listOf(
-            DeltakerHistorikk.Endring(TestData.lagDeltakerEndring()),
+            DeltakerHistorikk.Endring(lagDeltakerEndring()),
             DeltakerHistorikk.Vedtak(
-                TestData.lagVedtak(
+                lagVedtak(
                     opprettet = LocalDateTime.now().minusMonths(1),
                 ),
             ),
             DeltakerHistorikk.Vedtak(
-                TestData.lagVedtak(
+                lagVedtak(
                     opprettet = LocalDateTime.now().minusDays(4),
                 ),
             ),
@@ -144,12 +158,12 @@ class DeltakerHistorikkServiceTest {
     fun `getInnsoktDato - importert arenadeltaker - returnerer riktig dato`() {
         val innsoktDato = LocalDate.now().minusMonths(1)
         val deltakerhistorikk = listOf(
-            DeltakerHistorikk.Endring(TestData.lagDeltakerEndring()),
+            DeltakerHistorikk.Endring(lagDeltakerEndring()),
             DeltakerHistorikk.ImportertFraArena(
                 importertFraArena = ImportertFraArena(
                     deltakerId = UUID.randomUUID(),
                     importertDato = LocalDateTime.now(),
-                    deltakerVedImport = TestData.lagDeltaker().toDeltakerVedImport(innsoktDato = innsoktDato),
+                    deltakerVedImport = lagDeltaker().toDeltakerVedImport(innsoktDato = innsoktDato),
                 ),
             ),
         )
@@ -161,7 +175,7 @@ class DeltakerHistorikkServiceTest {
     fun `getInnsoktDato - har innsok - returnerer riktig dato`() {
         val innsoktDato = LocalDate.now().minusMonths(1)
         val deltakerhistorikk = listOf(
-            DeltakerHistorikk.Endring(TestData.lagDeltakerEndring()),
+            DeltakerHistorikk.Endring(lagDeltakerEndring()),
             DeltakerHistorikk.InnsokPaaFellesOppstart(
                 InnsokPaaFellesOppstart(
                     id = UUID.randomUUID(),

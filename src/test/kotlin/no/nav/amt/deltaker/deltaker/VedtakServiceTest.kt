@@ -9,7 +9,12 @@ import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.deltaker.DeltakerTestUtils.sammenlignVedtak
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
+import no.nav.amt.deltaker.navansatt.NavAnsattRepository
+import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.utils.data.TestData
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerKladd
+import no.nav.amt.deltaker.utils.data.TestData.lagNavAnsatt
+import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
@@ -30,10 +35,17 @@ class VedtakServiceTest {
         val dbExtension = DatabaseTestExtension()
 
         private fun insert(vedtak: Vedtak) {
-            TestRepository.insert(TestData.lagNavAnsatt(vedtak.opprettetAv))
-            TestRepository.insert(TestData.lagNavEnhet(vedtak.opprettetAvEnhet))
-            TestRepository.insert(TestData.lagDeltakerKladd(id = vedtak.deltakerId))
-            TestRepository.insert(vedtak)
+            val navEnhet = lagNavEnhet(vedtak.opprettetAvEnhet)
+            NavEnhetRepository().upsert(navEnhet)
+
+            NavAnsattRepository().upsert(
+                lagNavAnsatt(
+                    vedtak.opprettetAv,
+                    navEnhetId = vedtak.opprettetAvEnhet,
+                ),
+            )
+            TestRepository.insert(lagDeltakerKladd(id = vedtak.deltakerId))
+            VedtakRepository().upsert(vedtak)
         }
     }
 
@@ -94,15 +106,15 @@ class VedtakServiceTest {
 
     @Nested
     inner class OpprettEllerOppdaterVedtakTests {
-        val endretAvAnsatt = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
+        val endretAvAnsatt = lagNavAnsatt()
+        val endretAvEnhet = lagNavEnhet()
 
         @BeforeEach
         fun setup() = TestRepository.insertAll(endretAvAnsatt, endretAvEnhet)
 
         @Test
         fun `oppdaterEllerOpprettVedtak - nytt vedtak - opprettes`() {
-            val deltaker = TestData.lagDeltakerKladd()
+            val deltaker = lagDeltakerKladd()
             TestRepository.insert(deltaker)
 
             runTest {
@@ -130,8 +142,7 @@ class VedtakServiceTest {
             val vedtak = TestData.lagVedtak()
             insert(vedtak)
 
-            val oppdatertDeltaker = TestData
-                .lagDeltakerKladd(id = vedtak.deltakerId)
+            val oppdatertDeltaker = lagDeltakerKladd(id = vedtak.deltakerId)
                 .copy(bakgrunnsinformasjon = "Endret bakgrunn")
 
             runTest {
@@ -156,8 +167,8 @@ class VedtakServiceTest {
     @Nested
     inner class AvbrytVedtakTests {
         val deltaker = TestData.lagDeltaker()
-        val avbruttAvAnsatt = TestData.lagNavAnsatt()
-        val avbryttAvEnhet = TestData.lagNavEnhet()
+        val avbruttAvAnsatt = lagNavAnsatt()
+        val avbryttAvEnhet = lagNavEnhet()
 
         @BeforeEach
         fun setup() = TestRepository.insertAll(avbruttAvAnsatt, avbryttAvEnhet)
@@ -237,9 +248,9 @@ class VedtakServiceTest {
             val vedtak = TestData.lagVedtak()
             insert(vedtak)
 
-            val oppdatertDeltaker = TestData.lagDeltakerKladd(id = vedtak.deltakerId).copy(bakgrunnsinformasjon = "Endret bakgrunn")
-            val endretAvAnsatt = TestData.lagNavAnsatt()
-            val endretAvEnhet = TestData.lagNavEnhet()
+            val oppdatertDeltaker = lagDeltakerKladd(id = vedtak.deltakerId).copy(bakgrunnsinformasjon = "Endret bakgrunn")
+            val endretAvAnsatt = lagNavAnsatt()
+            val endretAvEnhet = lagNavEnhet()
             TestRepository.insertAll(endretAvAnsatt, endretAvEnhet)
 
             runTest {

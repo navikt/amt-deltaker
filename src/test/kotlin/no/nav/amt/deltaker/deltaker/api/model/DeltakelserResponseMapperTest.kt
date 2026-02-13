@@ -16,6 +16,8 @@ import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
 import no.nav.amt.deltaker.external.DeltakelserResponseMapper
 import no.nav.amt.deltaker.external.data.DeltakelserResponse
 import no.nav.amt.deltaker.external.data.Periode
+import no.nav.amt.deltaker.navansatt.NavAnsattRepository
+import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.deltaker.utils.data.TestData.lagArrangor
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
@@ -29,12 +31,19 @@ import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.testing.DatabaseTestExtension
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 import java.time.LocalDate
 import java.time.LocalDateTime
 
 class DeltakelserResponseMapperTest {
+    private val navEnhet = lagNavEnhet()
+    private val navAnsatt = lagNavAnsatt(navEnhetId = navEnhet.id)
+
+    private val navEnhetRepository = NavEnhetRepository()
+    private val navAnsattRepository = NavAnsattRepository()
+
     private val deltakerHistorikkService = DeltakerHistorikkService(
         DeltakerEndringRepository(),
         VedtakRepository(),
@@ -45,12 +54,20 @@ class DeltakelserResponseMapperTest {
         EndringFraTiltakskoordinatorRepository(),
         VurderingRepository(),
     )
-    private val arrangorService = ArrangorService(ArrangorRepository(), mockk())
+
+    private val arrangorRepository = ArrangorRepository()
+    private val arrangorService = ArrangorService(arrangorRepository, mockk())
     private val deltakelserResponseMapper = DeltakelserResponseMapper(deltakerHistorikkService, arrangorService)
 
     companion object {
         @RegisterExtension
         val dbExtension = DatabaseTestExtension()
+    }
+
+    @BeforeEach
+    fun beforeEach() {
+        navEnhetRepository.upsert(navEnhet)
+        navAnsattRepository.upsert(navAnsatt)
     }
 
     @Test
@@ -88,14 +105,8 @@ class DeltakelserResponseMapperTest {
 
     @Test
     fun `toDeltakelserResponse - utkast, har overordnet arrangor - returnerer riktig aktiv deltakelse`() {
-        val navAnsatt = lagNavAnsatt()
-        TestRepository.insert(navAnsatt)
-
-        val navEnhet = lagNavEnhet()
-        TestRepository.insert(navEnhet)
-
         val overordnetArrangor = lagArrangor(navn = "OVERORDNET ARRANGØR")
-        TestRepository.insert(overordnetArrangor)
+        arrangorRepository.upsert(overordnetArrangor)
 
         val deltaker = lagDeltaker(
             deltakerliste = lagDeltakerliste(
@@ -138,12 +149,6 @@ class DeltakelserResponseMapperTest {
 
     @Test
     fun `toDeltakelserResponse - venter pa oppstart - returnerer riktig aktiv deltakelse`() {
-        val navAnsatt = lagNavAnsatt()
-        TestRepository.insert(navAnsatt)
-
-        val navEnhet = lagNavEnhet()
-        TestRepository.insert(navEnhet)
-
         val deltaker = lagDeltaker(
             deltakerliste = lagDeltakerliste(
                 arrangor = lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),
@@ -187,12 +192,6 @@ class DeltakelserResponseMapperTest {
 
     @Test
     fun `toDeltakelserResponse - deltar - returnerer riktig aktiv deltakelse`() {
-        val navAnsatt = lagNavAnsatt()
-        TestRepository.insert(navAnsatt)
-
-        val navEnhet = lagNavEnhet()
-        TestRepository.insert(navEnhet)
-
         val deltaker = lagDeltaker(
             deltakerliste = lagDeltakerliste(
                 arrangor = lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),
@@ -234,12 +233,6 @@ class DeltakelserResponseMapperTest {
 
     @Test
     fun `toDeltakelserResponse - ikke aktuell - returnerer riktig historisk deltakelse`() {
-        val navAnsatt = lagNavAnsatt()
-        TestRepository.insert(navAnsatt)
-
-        val navEnhet = lagNavEnhet()
-        TestRepository.insert(navEnhet)
-
         val deltaker = lagDeltaker(
             deltakerliste = lagDeltakerliste(
                 arrangor = lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),
@@ -285,12 +278,6 @@ class DeltakelserResponseMapperTest {
 
     @Test
     fun `toDeltakelserResponse - har sluttet - returnerer riktig historisk deltakelse`() {
-        val navAnsatt = lagNavAnsatt()
-        TestRepository.insert(navAnsatt)
-
-        val navEnhet = lagNavEnhet()
-        TestRepository.insert(navEnhet)
-
         val deltaker = lagDeltaker(
             deltakerliste = lagDeltakerliste(
                 arrangor = lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),
@@ -336,12 +323,6 @@ class DeltakelserResponseMapperTest {
 
     @Test
     fun `toDeltakelserResponse - avbrutt utkast - returnerer riktig historisk deltakelse`() {
-        val navAnsatt = lagNavAnsatt()
-        TestRepository.insert(navAnsatt)
-
-        val navEnhet = lagNavEnhet()
-        TestRepository.insert(navEnhet)
-
         val deltaker = lagDeltaker(
             deltakerliste = lagDeltakerliste(
                 arrangor = lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),
@@ -387,12 +368,6 @@ class DeltakelserResponseMapperTest {
 
     @Test
     fun `toDeltakelserResponse - har sluttet og ikke aktuell - returnerer nyeste historiske deltakelse forst`() {
-        val navAnsatt = lagNavAnsatt()
-        TestRepository.insert(navAnsatt)
-
-        val navEnhet = lagNavEnhet()
-        TestRepository.insert(navEnhet)
-
         val deltakerliste = lagDeltakerliste(
             arrangor = lagArrangor(navn = "ARRANGØR", overordnetArrangorId = null),
             tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.OPPFOLGING, navn = "Oppfølging"),

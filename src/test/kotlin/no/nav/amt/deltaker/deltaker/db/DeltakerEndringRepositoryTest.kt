@@ -1,6 +1,9 @@
 package no.nav.amt.deltaker.deltaker.db
 
 import io.kotest.matchers.shouldBe
+import no.nav.amt.deltaker.deltaker.DeltakerTestUtils.sammenlignDeltakerEndring
+import no.nav.amt.deltaker.navansatt.NavAnsattRepository
+import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerEndring
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
@@ -11,13 +14,15 @@ import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Innhold
 import no.nav.amt.lib.testing.DatabaseTestExtension
-import no.nav.amt.lib.testing.shouldBeCloseTo
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 import java.time.LocalDate
 
 class DeltakerEndringRepositoryTest {
     private val deltakerEndringRepository = DeltakerEndringRepository()
+
+    private val navEnhetRepository = NavEnhetRepository()
+    private val navAnsattRepository = NavAnsattRepository()
 
     companion object {
         @RegisterExtension
@@ -26,17 +31,17 @@ class DeltakerEndringRepositoryTest {
 
     @Test
     fun `getForDeltaker - to endringer for deltaker, navansatt og enhet finnes - returnerer endring med navn for ansatt og enhet`() {
-        val navAnsatt1 = lagNavAnsatt()
-        TestRepository.insert(navAnsatt1)
-
-        val navAnsatt2 = lagNavAnsatt()
-        TestRepository.insert(navAnsatt2)
-
         val navEnhet1 = lagNavEnhet()
-        TestRepository.insert(navEnhet1)
+        navEnhetRepository.upsert(navEnhet1)
+
+        val navAnsatt1 = lagNavAnsatt(navEnhetId = navEnhet1.id)
+        navAnsattRepository.upsert(navAnsatt1)
 
         val navEnhet2 = lagNavEnhet()
-        TestRepository.insert(navEnhet2)
+        navEnhetRepository.upsert(navEnhet2)
+
+        val navAnsatt2 = lagNavAnsatt(navEnhetId = navEnhet2.id)
+        navAnsattRepository.upsert(navAnsatt2)
 
         val deltaker = lagDeltaker()
         val deltakerEndring = lagDeltakerEndring(
@@ -70,17 +75,17 @@ class DeltakerEndringRepositoryTest {
 
     @Test
     fun `getForDeltaker - deltaker er feilregistrert - returnerer tom liste`() {
-        val navAnsatt1 = lagNavAnsatt()
-        TestRepository.insert(navAnsatt1)
-
-        val navAnsatt2 = lagNavAnsatt()
-        TestRepository.insert(navAnsatt2)
-
         val navEnhet1 = lagNavEnhet()
-        TestRepository.insert(navEnhet1)
+        navEnhetRepository.upsert(navEnhet1)
+
+        val navAnsatt1 = lagNavAnsatt(navEnhetId = navEnhet1.id)
+        navAnsattRepository.upsert(navAnsatt1)
 
         val navEnhet2 = lagNavEnhet()
-        TestRepository.insert(navEnhet2)
+        navEnhetRepository.upsert(navEnhet2)
+
+        val navAnsatt2 = lagNavAnsatt(navEnhetId = navEnhet2.id)
+        navAnsattRepository.upsert(navAnsatt2)
 
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(DeltakerStatus.Type.FEILREGISTRERT),
@@ -108,8 +113,12 @@ class DeltakerEndringRepositoryTest {
 
     @Test
     fun `getUbehandletDeltakelsesmengder - returnerer endringer som skal behandles i dag`() {
-        val navAnsatt = lagNavAnsatt()
         val navEnhet = lagNavEnhet()
+        navEnhetRepository.upsert(navEnhet)
+
+        val navAnsatt = lagNavAnsatt(navEnhetId = navEnhet.id)
+        navAnsattRepository.upsert(navAnsatt)
+
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
         )
@@ -160,13 +169,4 @@ class DeltakerEndringRepositoryTest {
         endringer.size shouldBe 1
         sammenlignDeltakerEndring(endringer.first(), skalBehandles)
     }
-}
-
-fun sammenlignDeltakerEndring(first: DeltakerEndring, second: DeltakerEndring) {
-    first.id shouldBe second.id
-    first.deltakerId shouldBe second.deltakerId
-    first.endring shouldBe second.endring
-    first.endretAv shouldBe second.endretAv
-    first.endretAvEnhet shouldBe second.endretAvEnhet
-    first.endret shouldBeCloseTo second.endret
 }

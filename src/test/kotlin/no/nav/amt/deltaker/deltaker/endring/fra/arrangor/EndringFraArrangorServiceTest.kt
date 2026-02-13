@@ -183,7 +183,7 @@ class EndringFraArrangorServiceTest {
             opprettetAvEnhet = endretAvEnhet,
             fattet = LocalDateTime.now(),
         )
-        TestRepository.insert(vedtak)
+        vedtakRepository.upsert(vedtak)
 
         val startdato = LocalDate.now().plusDays(2)
         val sluttdato = LocalDate.now().plusMonths(3)
@@ -227,7 +227,7 @@ class EndringFraArrangorServiceTest {
             opprettetAvEnhet = endretAvEnhet,
             fattet = LocalDateTime.now(),
         )
-        TestRepository.insert(vedtak)
+        vedtakRepository.upsert(vedtak)
 
         val startdato = LocalDate.now().minusDays(2)
         val sluttdato = LocalDate.now().plusMonths(3)
@@ -272,7 +272,7 @@ class EndringFraArrangorServiceTest {
                 opprettetAvEnhet = endretAvEnhet,
                 fattet = LocalDateTime.now(),
             )
-            TestRepository.insert(vedtak)
+            vedtakRepository.upsert(vedtak)
 
             val startdato = LocalDate.now().minusDays(2)
             val endringFraArrangor = lagEndringFraArrangor(
@@ -316,7 +316,7 @@ class EndringFraArrangorServiceTest {
             opprettetAvEnhet = endretAvEnhet,
             fattet = LocalDateTime.now(),
         )
-        TestRepository.insert(vedtak)
+        vedtakRepository.upsert(vedtak)
 
         val startdato = LocalDate.of(2021, 1, 2)
         val endringFraArrangor = lagEndringFraArrangor(
@@ -364,7 +364,7 @@ class EndringFraArrangorServiceTest {
                 opprettetAvEnhet = endretAvEnhet,
                 fattet = LocalDateTime.now(),
             )
-            TestRepository.insert(vedtak)
+            vedtakRepository.upsert(vedtak)
 
             val startdato = LocalDate.now().minusMonths(2)
             val sluttdato = LocalDate.now().minusDays(5)

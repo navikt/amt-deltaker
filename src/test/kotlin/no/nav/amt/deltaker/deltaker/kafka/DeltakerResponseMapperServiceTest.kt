@@ -1,8 +1,9 @@
 package no.nav.amt.deltaker.deltaker.kafka
 
 import io.kotest.assertions.assertSoftly
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerTestUtils.sammenlignHistorikk
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
@@ -37,6 +38,7 @@ import no.nav.amt.lib.models.deltaker.Personalia
 import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.shouldBeCloseTo
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 import java.time.LocalDate
@@ -47,9 +49,10 @@ class DeltakerResponseMapperServiceTest {
     private val navEnhetRepository = NavEnhetRepository()
     private val navAnsattRepository = NavAnsattRepository()
     private val vurderingRepository = VurderingRepository()
+    private val vedtakRepository = VedtakRepository()
     private val deltakerHistorikkService = DeltakerHistorikkService(
         DeltakerEndringRepository(),
-        VedtakRepository(),
+        vedtakRepository,
         ForslagRepository(),
         EndringFraArrangorRepository(),
         ImportertFraArenaRepository(),
@@ -60,17 +63,18 @@ class DeltakerResponseMapperServiceTest {
     private val deltakerKafkaPayloadBuilder =
         DeltakerKafkaPayloadBuilder(navAnsattRepository, navEnhetRepository, deltakerHistorikkService, vurderingRepository)
 
+    private val sistEndretAvNavEnhet = lagNavEnhet()
+    private val sistEndretAvNavAnsatt = lagNavAnsatt(navEnhetId = sistEndretAvNavEnhet.id)
+
+    @BeforeEach
+    fun setup() {
+        navEnhetRepository.upsert(sistEndretAvNavEnhet)
+        navAnsattRepository.upsert(sistEndretAvNavAnsatt)
+    }
+
     @Test
-    fun `tilDeltakerV2Dto - utkast til pamelding - returnerer riktig DeltakerV2Dto`(): Unit = runBlocking {
-        val sistEndretAv = lagNavAnsatt()
-        val sistEndretAvEnhet = lagNavEnhet()
-        TestRepository.insert(sistEndretAv)
-        TestRepository.insert(sistEndretAvEnhet)
-        val veileder = lagNavAnsatt()
-        val brukersEnhet = lagNavEnhet()
-        TestRepository.insert(veileder)
-        TestRepository.insert(brukersEnhet)
-        val navBruker = lagNavBruker(navVeilederId = veileder.id, navEnhetId = brukersEnhet.id)
+    fun `tilDeltakerV2Dto - utkast til pamelding - returnerer riktig DeltakerV2Dto`(): Unit = runTest {
+        val navBruker = lagNavBruker()
         TestRepository.insert(navBruker)
         val deltaker = lagDeltaker(
             navBruker = navBruker,
@@ -80,8 +84,8 @@ class DeltakerResponseMapperServiceTest {
         val vedtak = lagVedtak(
             deltakerId = deltaker.id,
             deltakerVedVedtak = deltaker,
-            opprettetAv = sistEndretAv,
-            opprettetAvEnhet = sistEndretAvEnhet,
+            opprettetAv = sistEndretAvNavAnsatt,
+            opprettetAvEnhet = sistEndretAvNavEnhet,
             fattet = null,
         )
         TestRepository.insert(vedtak)
@@ -92,6 +96,9 @@ class DeltakerResponseMapperServiceTest {
         sammenlignPersonalia(deltakerV2Dto.personalia, navBruker)
         sammenlignStatus(deltakerV2Dto.status, deltaker.status)
         sammenlignHistorikk(deltakerV2Dto.historikk?.first()!!, DeltakerHistorikk.Vedtak(vedtak))
+
+        val brukersNavEnhet = navEnhetRepository.get(navBruker.navEnhetId.shouldNotBeNull()).shouldNotBeNull()
+        val brukersVeileder = navAnsattRepository.get(navBruker.navVeilederId.shouldNotBeNull()).shouldNotBeNull()
 
         assertSoftly(deltakerV2Dto) {
             id shouldBe deltaker.id
@@ -104,29 +111,21 @@ class DeltakerResponseMapperServiceTest {
             innsoktDato shouldBe vedtak.opprettet.toLocalDate()
             forsteVedtakFattet shouldBe null
             bestillingTekst shouldBe deltaker.bakgrunnsinformasjon
-            navKontor shouldBe brukersEnhet.navn
-            navVeileder shouldBe veileder
+            navKontor shouldBe brukersNavEnhet.navn
+            navVeileder shouldBe brukersVeileder
             deltarPaKurs shouldBe deltaker.deltarPaKurs()
             kilde shouldBe Kilde.KOMET
             innhold shouldBe Deltakelsesinnhold(deltaker.deltakelsesinnhold!!.ledetekst, deltaker.deltakelsesinnhold.innhold)
             historikk?.size shouldBe 1
             sistEndret shouldBeCloseTo deltaker.sistEndret
-            it.sistEndretAv shouldBe sistEndretAv.id
-            it.sistEndretAvEnhet shouldBe sistEndretAvEnhet.id
+            sistEndretAv shouldBe sistEndretAvNavAnsatt.id
+            sistEndretAvEnhet shouldBe sistEndretAvNavEnhet.id
         }
     }
 
     @Test
-    fun `tilDeltakerV2Dto - har sluttet - returnerer riktig DeltakerV2Dto`(): Unit = runBlocking {
-        val sistEndretAv = lagNavAnsatt()
-        val sistEndretAvEnhet = lagNavEnhet()
-        TestRepository.insert(sistEndretAv)
-        TestRepository.insert(sistEndretAvEnhet)
-        val veileder = lagNavAnsatt()
-        val brukersEnhet = lagNavEnhet()
-        TestRepository.insert(veileder)
-        TestRepository.insert(brukersEnhet)
-        val navBruker = lagNavBruker(navVeilederId = veileder.id, navEnhetId = brukersEnhet.id)
+    fun `tilDeltakerV2Dto - har sluttet - returnerer riktig DeltakerV2Dto`(): Unit = runTest {
+        val navBruker = lagNavBruker()
         TestRepository.insert(navBruker)
         val deltaker = lagDeltaker(
             navBruker = navBruker,
@@ -140,16 +139,17 @@ class DeltakerResponseMapperServiceTest {
         val vedtak = lagVedtak(
             deltakerId = deltaker.id,
             deltakerVedVedtak = deltaker,
-            opprettetAv = sistEndretAv,
-            opprettetAvEnhet = sistEndretAvEnhet,
+            opprettetAv = sistEndretAvNavAnsatt,
+            opprettetAvEnhet = sistEndretAvNavEnhet,
             opprettet = LocalDateTime.now().minusWeeks(3),
             fattet = LocalDateTime.now().minusWeeks(1),
         )
         TestRepository.insert(vedtak)
+
         val endring = lagDeltakerEndring(
             deltakerId = deltaker.id,
-            endretAv = veileder.id,
-            endretAvEnhet = brukersEnhet.id,
+            endretAv = navBruker.navVeilederId.shouldNotBeNull(),
+            endretAvEnhet = navBruker.navEnhetId.shouldNotBeNull(),
             endret = LocalDateTime.now().minusDays(2),
         )
         TestRepository.insert(endring)
@@ -181,6 +181,9 @@ class DeltakerResponseMapperServiceTest {
         sammenlignHistorikk(deltakerV2Dto.historikk!![2], DeltakerHistorikk.Endring(endring))
         sammenlignHistorikk(deltakerV2Dto.historikk!![3], DeltakerHistorikk.Vedtak(vedtak))
 
+        val brukersNavEnhet = navEnhetRepository.get(navBruker.navEnhetId.shouldNotBeNull()).shouldNotBeNull()
+        val brukersVeileder = navAnsattRepository.get(navBruker.navVeilederId.shouldNotBeNull()).shouldNotBeNull()
+
         assertSoftly(deltakerV2Dto) {
             dagerPerUke shouldBe deltaker.dagerPerUke
             prosentStilling shouldBe deltaker.deltakelsesprosent?.toDouble()
@@ -189,25 +192,21 @@ class DeltakerResponseMapperServiceTest {
             innsoktDato shouldBe vedtak.opprettet.toLocalDate()
             forsteVedtakFattet shouldBe LocalDateTime.now().minusWeeks(1).toLocalDate()
             bestillingTekst shouldBe deltaker.bakgrunnsinformasjon
-            navKontor shouldBe brukersEnhet.navn
-            navVeileder shouldBe veileder
+            navKontor shouldBe brukersNavEnhet.navn
+            navVeileder shouldBe brukersVeileder
             deltarPaKurs shouldBe deltaker.deltarPaKurs()
             kilde shouldBe Kilde.KOMET
             innhold shouldBe Deltakelsesinnhold(deltaker.deltakelsesinnhold!!.ledetekst, deltaker.deltakelsesinnhold.innhold)
             historikk?.size shouldBe 4
             sistEndret shouldBeCloseTo deltaker.sistEndret
-            it.sistEndretAv shouldBe veileder.id
-            it.sistEndretAvEnhet shouldBe brukersEnhet.id
+            sistEndretAv shouldBe brukersVeileder.id
+            sistEndretAvEnhet shouldBe brukersNavEnhet.id
         }
     }
 
     @Test
-    fun `tilDeltakerV2Dto - importert fra arena - returnerer riktig DeltakerV2Dto`(): Unit = runBlocking {
-        val veileder = lagNavAnsatt()
-        val brukersEnhet = lagNavEnhet()
-        TestRepository.insert(veileder)
-        TestRepository.insert(brukersEnhet)
-        val navBruker = lagNavBruker(navVeilederId = veileder.id, navEnhetId = brukersEnhet.id)
+    fun `tilDeltakerV2Dto - importert fra arena - returnerer riktig DeltakerV2Dto`(): Unit = runTest {
+        val navBruker = lagNavBruker()
         TestRepository.insert(navBruker)
         val deltaker = lagDeltaker(
             navBruker = navBruker,
@@ -234,6 +233,9 @@ class DeltakerResponseMapperServiceTest {
         sammenlignPersonalia(deltakerV2Dto.personalia, navBruker)
         sammenlignStatus(deltakerV2Dto.status, deltaker.status)
 
+        val brukersNavEnhet = navEnhetRepository.get(navBruker.navEnhetId.shouldNotBeNull()).shouldNotBeNull()
+        val brukersVeileder = navAnsattRepository.get(navBruker.navVeilederId.shouldNotBeNull()).shouldNotBeNull()
+
         assertSoftly(deltakerV2Dto) {
             id shouldBe deltaker.id
             deltakerliste.id shouldBe deltaker.deltakerliste.id
@@ -244,8 +246,8 @@ class DeltakerResponseMapperServiceTest {
             it.innsoktDato shouldBe innsoktDato
             forsteVedtakFattet shouldBe innsoktDato
             bestillingTekst shouldBe deltaker.bakgrunnsinformasjon
-            navKontor shouldBe brukersEnhet.navn
-            navVeileder shouldBe veileder
+            navKontor shouldBe brukersNavEnhet.navn
+            navVeileder shouldBe brukersVeileder
             deltarPaKurs shouldBe deltaker.deltarPaKurs()
             kilde shouldBe Kilde.ARENA
             innhold shouldBe deltaker.deltakelsesinnhold
@@ -257,12 +259,8 @@ class DeltakerResponseMapperServiceTest {
     }
 
     @Test
-    fun `tilDeltakerV2Dto - importert fra arena, endret - returnerer riktig DeltakerV2Dto`(): Unit = runBlocking {
-        val veileder = lagNavAnsatt()
-        val brukersEnhet = lagNavEnhet()
-        TestRepository.insert(veileder)
-        TestRepository.insert(brukersEnhet)
-        val navBruker = lagNavBruker(navVeilederId = veileder.id, navEnhetId = brukersEnhet.id)
+    fun `tilDeltakerV2Dto - importert fra arena, endret - returnerer riktig DeltakerV2Dto`(): Unit = runTest {
+        val navBruker = lagNavBruker()
         TestRepository.insert(navBruker)
         val deltaker = lagDeltaker(
             navBruker = navBruker,
@@ -286,8 +284,8 @@ class DeltakerResponseMapperServiceTest {
 
         val endring = lagDeltakerEndring(
             deltakerId = deltaker.id,
-            endretAv = veileder.id,
-            endretAvEnhet = brukersEnhet.id,
+            endretAv = navBruker.navVeilederId.shouldNotBeNull(),
+            endretAvEnhet = navBruker.navEnhetId.shouldNotBeNull(),
             endret = LocalDateTime.now().minusDays(2),
         )
         TestRepository.insert(endring)
@@ -297,6 +295,9 @@ class DeltakerResponseMapperServiceTest {
         sammenlignPersonalia(deltakerV2Dto.personalia, navBruker)
         sammenlignStatus(deltakerV2Dto.status, deltaker.status)
         sammenlignHistorikk(deltakerV2Dto.historikk?.get(0)!!, DeltakerHistorikk.Endring(endring))
+
+        val brukersNavEnhet = navEnhetRepository.get(navBruker.navEnhetId.shouldNotBeNull()).shouldNotBeNull()
+        val brukersVeileder = navAnsattRepository.get(navBruker.navVeilederId.shouldNotBeNull()).shouldNotBeNull()
 
         assertSoftly(deltakerV2Dto) {
             id shouldBe deltaker.id
@@ -308,15 +309,15 @@ class DeltakerResponseMapperServiceTest {
             it.innsoktDato shouldBe innsoktDato
             forsteVedtakFattet shouldBe innsoktDato
             bestillingTekst shouldBe deltaker.bakgrunnsinformasjon
-            navKontor shouldBe brukersEnhet.navn
-            navVeileder shouldBe veileder
+            navKontor shouldBe brukersNavEnhet.navn
+            navVeileder shouldBe brukersVeileder
             deltarPaKurs shouldBe deltaker.deltarPaKurs()
             kilde shouldBe Kilde.ARENA
             innhold shouldBe deltaker.deltakelsesinnhold
             historikk?.size shouldBe 2
             sistEndret shouldBeCloseTo deltaker.sistEndret
-            sistEndretAv shouldBe veileder.id
-            sistEndretAvEnhet shouldBe brukersEnhet.id
+            sistEndretAv shouldBe brukersVeileder.id
+            sistEndretAvEnhet shouldBe brukersNavEnhet.id
         }
     }
 

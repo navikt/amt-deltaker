@@ -2,12 +2,22 @@ package no.nav.amt.deltaker.deltaker
 
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.kafka.utils.sammenlignForslagStatus
+import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerVedVedtak
 import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.testing.shouldBeCloseTo
 
 object DeltakerTestUtils {
+    fun sammenlignDeltakerEndring(first: DeltakerEndring, second: DeltakerEndring) {
+        first.id shouldBe second.id
+        first.deltakerId shouldBe second.deltakerId
+        first.endring shouldBe second.endring
+        first.endretAv shouldBe second.endretAv
+        first.endretAvEnhet shouldBe second.endretAvEnhet
+        first.endret shouldBeCloseTo second.endret
+    }
+
     fun sammenlignVedtak(first: Vedtak, second: Vedtak) {
         first.id shouldBe second.id
         first.deltakerId shouldBe second.deltakerId
