@@ -11,8 +11,6 @@ import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
-import no.nav.amt.lib.models.deltaker.DeltakerVedImport
-import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltaker.Innsatsgruppe
 import no.nav.amt.lib.models.deltaker.InnsokPaaFellesOppstart
 import no.nav.amt.lib.models.deltaker.Kilde
@@ -36,9 +34,7 @@ import no.nav.amt.lib.models.person.address.Bostedsadresse
 import no.nav.amt.lib.models.person.address.Kontaktadresse
 import no.nav.amt.lib.models.person.address.Matrikkeladresse
 import no.nav.amt.lib.models.person.address.Vegadresse
-import no.nav.amt.lib.models.person.dto.NavBrukerDto
 import no.nav.amt.lib.models.person.dto.NavEnhetDto
-import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
@@ -74,6 +70,31 @@ object TestData {
         enhetsnummer: String = randomEnhetsnummer(),
         navn: String = "NAV Testheim",
     ) = NavEnhet(id, enhetsnummer, navn)
+
+    fun lagAdresse(): Adresse = Adresse(
+        bostedsadresse = Bostedsadresse(
+            coAdressenavn = "C/O Gutterommet",
+            vegadresse = null,
+            matrikkeladresse = Matrikkeladresse(
+                tilleggsnavn = "Gården",
+                postnummer = "0484",
+                poststed = "OSLO",
+            ),
+        ),
+        oppholdsadresse = null,
+        kontaktadresse = Kontaktadresse(
+            coAdressenavn = null,
+            vegadresse = Vegadresse(
+                husnummer = "1",
+                husbokstav = null,
+                adressenavn = "Gate",
+                tilleggsnavn = null,
+                postnummer = "1234",
+                poststed = "MOSS",
+            ),
+            postboksadresse = null,
+        ),
+    )
 
     fun lagNavBruker(
         personId: UUID = UUID.randomUUID(),
@@ -119,6 +140,11 @@ object TestData {
 
     private val tiltakstypeCache = mutableMapOf<Tiltakskode, Tiltakstype>()
 
+    fun lagDeltakerRegistreringInnhold(
+        innholdselementer: List<Innholdselement> = listOf(Innholdselement("Tekst", "kode")),
+        ledetekst: String = "Beskrivelse av tilaket",
+    ) = DeltakerRegistreringInnhold(innholdselementer, ledetekst)
+
     fun lagTiltakstype(
         tiltakskode: Tiltakskode = Tiltakskode.OPPFOLGING,
         id: UUID = UUID.randomUUID(),
@@ -138,11 +164,6 @@ object TestData {
 
         return nyttTiltak
     }
-
-    fun lagDeltakerRegistreringInnhold(
-        innholdselementer: List<Innholdselement> = listOf(Innholdselement("Tekst", "kode")),
-        ledetekst: String = "Beskrivelse av tilaket",
-    ) = DeltakerRegistreringInnhold(innholdselementer, ledetekst)
 
     fun lagDeltakerliste(
         id: UUID = UUID.randomUUID(),
@@ -218,69 +239,10 @@ object TestData {
             pameldingType = deltakerliste.pameldingstype,
         )
 
-    fun lagNavBrukerDto(navBruker: NavBruker, navEnhet: NavEnhet) = NavBrukerDto(
-        personId = navBruker.personId,
-        personident = navBruker.personident,
-        fornavn = navBruker.fornavn,
-        mellomnavn = navBruker.mellomnavn,
-        etternavn = navBruker.etternavn,
-        navVeilederId = navBruker.navVeilederId,
-        navEnhet = lagNavEnhetDto(navEnhet),
-        telefon = navBruker.telefon,
-        epost = navBruker.epost,
-        erSkjermet = navBruker.erSkjermet,
-        adresse = navBruker.adresse,
-        adressebeskyttelse = navBruker.adressebeskyttelse,
-        oppfolgingsperioder = navBruker.oppfolgingsperioder,
-        innsatsgruppe = navBruker.innsatsgruppe,
-    )
-
     fun lagNavEnhetDto(navEnhet: NavEnhet) = NavEnhetDto(
         id = navEnhet.id,
         enhetId = navEnhet.enhetsnummer,
         navn = navEnhet.navn,
-    )
-
-    fun lagAdresse(): Adresse = Adresse(
-        bostedsadresse = Bostedsadresse(
-            coAdressenavn = "C/O Gutterommet",
-            vegadresse = null,
-            matrikkeladresse = Matrikkeladresse(
-                tilleggsnavn = "Gården",
-                postnummer = "0484",
-                poststed = "OSLO",
-            ),
-        ),
-        oppholdsadresse = null,
-        kontaktadresse = Kontaktadresse(
-            coAdressenavn = null,
-            vegadresse = Vegadresse(
-                husnummer = "1",
-                husbokstav = null,
-                adressenavn = "Gate",
-                tilleggsnavn = null,
-                postnummer = "1234",
-                poststed = "MOSS",
-            ),
-            postboksadresse = null,
-        ),
-    )
-
-    fun lagDeltakerKladd(
-        id: UUID = UUID.randomUUID(),
-        navBruker: NavBruker = lagNavBruker(),
-        deltakerliste: Deltakerliste = lagDeltakerliste(),
-    ) = lagDeltaker(
-        id = id,
-        navBruker = navBruker,
-        deltakerliste = deltakerliste,
-        startdato = null,
-        sluttdato = null,
-        dagerPerUke = null,
-        deltakelsesprosent = null,
-        bakgrunnsinformasjon = null,
-        innhold = Deltakelsesinnhold(deltakerliste.tiltakstype.innhold?.ledetekst, emptyList()),
-        status = lagDeltakerStatus(statusType = DeltakerStatus.Type.KLADD),
     )
 
     fun lagDeltaker(
@@ -414,35 +376,9 @@ object TestData {
         utkastGodkjentAvNav = utkastGodkjentAvNav,
     )
 
-    fun lagImportertFraArena(
-        deltakerId: UUID = UUID.randomUUID(),
-        importertDato: LocalDateTime = LocalDateTime.now(),
-        deltakerVedImport: DeltakerVedImport = lagDeltaker(id = deltakerId).toDeltakerVedImport(LocalDate.now()),
-    ) = ImportertFraArena(
-        deltakerId,
-        importertDato,
-        deltakerVedImport,
-    )
-
-    fun lagEndringFraTiltakskoordinator(
-        id: UUID = UUID.randomUUID(),
-        deltakerId: UUID = UUID.randomUUID(),
-        endring: EndringFraTiltakskoordinator.Endring = EndringFraTiltakskoordinator.DelMedArrangor,
-        endretAv: UUID = UUID.randomUUID(),
-        endretAvEnhet: UUID = UUID.randomUUID(),
-        endret: LocalDateTime = LocalDateTime.now(),
-    ) = EndringFraTiltakskoordinator(
-        id = id,
-        deltakerId = deltakerId,
-        endring = endring,
-        endretAv = endretAv,
-        endretAvEnhet = endretAvEnhet,
-        endret = endret,
-    )
-
     fun lagVurdering(
         id: UUID = UUID.randomUUID(),
-        deltakerId: UUID = UUID.randomUUID(),
+        deltakerId: UUID,
         vurderingstype: Vurderingstype = Vurderingstype.OPPFYLLER_KRAVENE,
         begrunnelse: String? = null,
         opprettetAvArrangorAnsattId: UUID = UUID.randomUUID(),

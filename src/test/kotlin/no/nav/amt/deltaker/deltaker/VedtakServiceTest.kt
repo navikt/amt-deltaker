@@ -9,15 +9,22 @@ import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.deltaker.DeltakerTestUtils.sammenlignVedtak
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
+import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.utils.data.TestData
-import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerKladd
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
+import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestData.lagNavAnsatt
+import no.nav.amt.deltaker.utils.data.TestData.lagNavBruker
 import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
 import no.nav.amt.deltaker.utils.data.TestRepository
+import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
+import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Vedtak
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
+import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.shouldBeCloseTo
 import org.junit.jupiter.api.BeforeEach
@@ -25,6 +32,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 import java.time.LocalDateTime
+import java.util.UUID
 
 class VedtakServiceTest {
     private val vedtakRepository = VedtakRepository()
@@ -39,7 +47,7 @@ class VedtakServiceTest {
 
     @Nested
     inner class InnbyggerFattVedtakTests {
-        val deltaker = TestData.lagDeltaker()
+        val deltaker = lagDeltaker()
 
         @Test
         fun `innbyggerFattVedtak - ikke-fattet vedtak finnes -  fattes`() {
@@ -154,7 +162,7 @@ class VedtakServiceTest {
 
     @Nested
     inner class AvbrytVedtakTests {
-        val deltaker = TestData.lagDeltaker()
+        val deltaker = lagDeltaker()
         val avbruttAvAnsatt = lagNavAnsatt()
         val avbryttAvEnhet = lagNavEnhet()
 
@@ -327,4 +335,21 @@ class VedtakServiceTest {
         TestRepository.insert(lagDeltakerKladd(id = vedtak.deltakerId))
         vedtakRepository.upsert(vedtak)
     }
+
+    private fun lagDeltakerKladd(
+        id: UUID = UUID.randomUUID(),
+        navBruker: NavBruker = lagNavBruker(),
+        deltakerliste: Deltakerliste = lagDeltakerliste(),
+    ) = lagDeltaker(
+        id = id,
+        navBruker = navBruker,
+        deltakerliste = deltakerliste,
+        startdato = null,
+        sluttdato = null,
+        dagerPerUke = null,
+        deltakelsesprosent = null,
+        bakgrunnsinformasjon = null,
+        innhold = Deltakelsesinnhold(deltakerliste.tiltakstype.innhold?.ledetekst, emptyList()),
+        status = lagDeltakerStatus(statusType = DeltakerStatus.Type.KLADD),
+    )
 }

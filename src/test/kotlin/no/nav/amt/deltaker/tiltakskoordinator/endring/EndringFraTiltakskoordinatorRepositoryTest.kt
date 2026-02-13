@@ -17,6 +17,7 @@ import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.shouldBeCloseTo
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
+import java.time.LocalDateTime
 import java.util.UUID
 
 class EndringFraTiltakskoordinatorRepositoryTest {
@@ -77,10 +78,13 @@ data class EndringFraTiltakskoordinatorCtx(
         sluttdato = null,
         status = lagDeltakerStatus(DeltakerStatus.Type.SOKT_INN),
     ),
-    val endring: EndringFraTiltakskoordinator = TestData.lagEndringFraTiltakskoordinator(
+    val endring: EndringFraTiltakskoordinator = EndringFraTiltakskoordinator(
+        id = UUID.randomUUID(),
         deltakerId = deltaker.id,
+        endring = EndringFraTiltakskoordinator.DelMedArrangor,
         endretAv = navAnsatt.id,
         endretAvEnhet = navEnhet.id,
+        endret = LocalDateTime.now(),
     ),
 ) {
     private val innsokPaaFellesOppstartRepository = InnsokPaaFellesOppstartRepository()

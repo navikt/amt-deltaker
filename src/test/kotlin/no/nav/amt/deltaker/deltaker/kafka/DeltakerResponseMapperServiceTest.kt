@@ -22,7 +22,6 @@ import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerEndring
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagEndringFraArrangor
 import no.nav.amt.deltaker.utils.data.TestData.lagForslag
-import no.nav.amt.deltaker.utils.data.TestData.lagImportertFraArena
 import no.nav.amt.deltaker.utils.data.TestData.lagNavAnsatt
 import no.nav.amt.deltaker.utils.data.TestData.lagNavBruker
 import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
@@ -33,6 +32,7 @@ import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.DeltakerStatusDto
+import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltaker.Personalia
 import no.nav.amt.lib.models.person.NavBruker
@@ -228,7 +228,7 @@ class DeltakerResponseMapperServiceTest {
         )
         TestRepository.insert(deltaker)
         val innsoktDato = LocalDate.now().minusMonths(5)
-        val importertFraArena = lagImportertFraArena(
+        val importertFraArena = ImportertFraArena(
             deltakerId = deltaker.id,
             importertDato = LocalDateTime.now().minusWeeks(2),
             deltakerVedImport = deltaker.toDeltakerVedImport(innsoktDato),
@@ -282,7 +282,7 @@ class DeltakerResponseMapperServiceTest {
         )
         TestRepository.insert(deltaker)
         val innsoktDato = LocalDate.now().minusMonths(5)
-        val importertFraArena = lagImportertFraArena(
+        val importertFraArena = ImportertFraArena(
             deltakerId = deltaker.id,
             importertDato = LocalDateTime.now().minusWeeks(2),
             deltakerVedImport = deltaker.toDeltakerVedImport(innsoktDato),

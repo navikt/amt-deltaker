@@ -13,7 +13,11 @@ import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestData.lagNavAnsatt
 import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
+import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhetDto
 import no.nav.amt.deltaker.utils.mockPersonServiceClient
+import no.nav.amt.lib.models.person.NavBruker
+import no.nav.amt.lib.models.person.NavEnhet
+import no.nav.amt.lib.models.person.dto.NavBrukerDto
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.utils.objectMapper
 import org.junit.jupiter.api.BeforeEach
@@ -32,6 +36,23 @@ class NavBrukerConsumerTest {
     companion object {
         @RegisterExtension
         val dbExtension = DatabaseTestExtension()
+
+        fun lagNavBrukerDto(navBruker: NavBruker, navEnhet: NavEnhet) = NavBrukerDto(
+            personId = navBruker.personId,
+            personident = navBruker.personident,
+            fornavn = navBruker.fornavn,
+            mellomnavn = navBruker.mellomnavn,
+            etternavn = navBruker.etternavn,
+            navVeilederId = navBruker.navVeilederId,
+            navEnhet = lagNavEnhetDto(navEnhet),
+            telefon = navBruker.telefon,
+            epost = navBruker.epost,
+            erSkjermet = navBruker.erSkjermet,
+            adresse = navBruker.adresse,
+            adressebeskyttelse = navBruker.adressebeskyttelse,
+            oppfolgingsperioder = navBruker.oppfolgingsperioder,
+            innsatsgruppe = navBruker.innsatsgruppe,
+        )
     }
 
     @BeforeEach
@@ -53,7 +74,7 @@ class NavBrukerConsumerTest {
 
         navBrukerConsumer.consume(
             navBruker.personId,
-            objectMapper.writeValueAsString(TestData.lagNavBrukerDto(navBruker, navEnhet)),
+            objectMapper.writeValueAsString(lagNavBrukerDto(navBruker, navEnhet)),
         )
 
         navBrukerRepository.get(navBruker.personId).getOrNull() shouldBe navBruker
@@ -75,7 +96,7 @@ class NavBrukerConsumerTest {
 
         navBrukerConsumer.consume(
             navBruker.personId,
-            objectMapper.writeValueAsString(TestData.lagNavBrukerDto(oppdatertNavBruker, navEnhet)),
+            objectMapper.writeValueAsString(lagNavBrukerDto(oppdatertNavBruker, navEnhet)),
         )
 
         navBrukerRepository.get(navBruker.personId).getOrNull() shouldBe oppdatertNavBruker
@@ -97,7 +118,7 @@ class NavBrukerConsumerTest {
 
         navBrukerConsumer.consume(
             navBruker.personId,
-            objectMapper.writeValueAsString(TestData.lagNavBrukerDto(oppdatertNavBruker, navEnhet)),
+            objectMapper.writeValueAsString(lagNavBrukerDto(oppdatertNavBruker, navEnhet)),
         )
 
         navBrukerRepository.get(navBruker.personId).getOrNull() shouldBe oppdatertNavBruker
@@ -122,7 +143,7 @@ class NavBrukerConsumerTest {
 
         navBrukerConsumer.consume(
             navBruker.personId,
-            objectMapper.writeValueAsString(TestData.lagNavBrukerDto(navBruker, navEnhet)),
+            objectMapper.writeValueAsString(lagNavBrukerDto(navBruker, navEnhet)),
         )
 
         navBrukerRepository.get(navBruker.personId).getOrNull() shouldBe navBruker
@@ -142,7 +163,7 @@ class NavBrukerConsumerTest {
 
         navBrukerConsumer.consume(
             navBruker.personId,
-            objectMapper.writeValueAsString(TestData.lagNavBrukerDto(navBruker, navEnhet)),
+            objectMapper.writeValueAsString(lagNavBrukerDto(navBruker, navEnhet)),
         )
 
         navBrukerRepository.get(navBruker.personId).getOrNull() shouldBe navBruker
