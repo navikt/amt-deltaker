@@ -264,7 +264,7 @@ class DeltakerService(
         require(endretAvNavEnhetId != null) { "Tiltakskoordinator ${endretAv.id} mangler en tilknyttet nav-enhet" }
 
         val endretAvEnhet = navEnhetService.hentEllerOpprettNavEnhet(endretAvNavEnhetId)
-        val deltakere = deltakerRepository.getMany(deltakerIder.toSet())
+        val deltakere = deltakerRepository.getMany(deltakerIder)
         val tiltakskoder = deltakere
             .map { it.deltakerliste.tiltakstype.tiltakskode }
             .distinct()
