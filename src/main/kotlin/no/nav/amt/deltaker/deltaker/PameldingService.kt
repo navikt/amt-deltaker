@@ -136,7 +136,7 @@ class PameldingService(
     suspend fun innbyggerGodkjennUtkast(deltakerId: UUID): Deltaker = deltakerService.upsertAndProduceDeltaker(
         deltaker = deltakerRepository.get(deltakerId).getOrThrow(),
         beforeUpsert = { deltaker ->
-            if (deltaker.deltakerliste.erFellesOppstart) {
+            if (deltaker.deltakerliste.deltakelserMaaGodkjennes) {
                 innbyggerGodkjennInnsok(deltaker)
             } else {
                 vedtakService.innbyggerFattVedtak(deltaker.id)

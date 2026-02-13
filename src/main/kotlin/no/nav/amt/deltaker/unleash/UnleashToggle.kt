@@ -13,6 +13,8 @@ class UnleashToggle(
 
     fun skalDelesMedEksterne(tiltakskode: Tiltakskode): Boolean = tiltakstyperKometErMasterFor.any { it.name == tiltakskode.name }
 
+    fun skalProdusereTilDeltakerEksternTopic(): Boolean = unleashClient.isEnabled(PRODUSER_TIL_DELTAKER_EKSTERN_TOPIC)
+
     fun skalLeseArenaDataForTiltakstype(tiltakskode: String): Boolean =
         unleashClient.isEnabled(LES_ARENA_DELTAKERE) && tiltakstyperKometKanLese.any { it.name == tiltakskode }
 
@@ -24,6 +26,7 @@ class UnleashToggle(
     companion object {
         const val ENABLE_KOMET_DELTAKERE = "amt.enable-komet-deltakere"
         const val LES_ARENA_DELTAKERE = "amt.les-arena-deltakere"
+        const val PRODUSER_TIL_DELTAKER_EKSTERN_TOPIC = "amt.produser-deltakere-til-deltaker-ekstern-topic"
 
         private val tiltakstyperKometErMasterFor = setOf(
             Tiltakskode.ARBEIDSFORBEREDENDE_TRENING,

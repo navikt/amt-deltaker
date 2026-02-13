@@ -26,6 +26,7 @@ import no.nav.amt.deltaker.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartService
+import no.nav.amt.deltaker.deltaker.kafka.DeltakerEksternV1Producer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerV1Producer
@@ -36,6 +37,7 @@ import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.hendelse.HendelseProducer
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.kafka.utils.assertProduced
+import no.nav.amt.deltaker.kafka.utils.assertProducedDeltakerEksternV1
 import no.nav.amt.deltaker.kafka.utils.assertProducedDeltakerV1
 import no.nav.amt.deltaker.kafka.utils.assertProducedHendelse
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
@@ -88,6 +90,7 @@ class PameldingServiceTest {
     fun setup() {
         every { unleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns true
         every { unleashToggle.skalDelesMedEksterne(any<Tiltakskode>()) } returns true
+        every { unleashToggle.skalProdusereTilDeltakerEksternTopic() } returns true
     }
 
     @Nested
@@ -413,68 +416,72 @@ class PameldingServiceTest {
     @Nested
     inner class InnbyggerGodkjennUtkastTests {
         @Test
-        fun `innbyggerGodkjennUtkast - deltaker med lopende oppstart - vedtak fattes og ny status er godkjent utkast`() = runTest {
-            val deltaker = lagDeltaker(
-                deltakerliste = TestData.lagDeltakerlisteMedLopendeOppstart(),
-                status = lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
-            )
-            val vedtak = lagVedtak(deltakerVedVedtak = deltaker)
-            val ansatt = lagNavAnsatt(id = vedtak.opprettetAv)
-            val enhet = lagNavEnhet(id = vedtak.opprettetAvEnhet)
-            TestRepository.insertAll(deltaker, ansatt, enhet, vedtak)
+        fun `innbyggerGodkjennUtkast - deltaker på deltakerliste med direktevedtak - vedtak fattes og ny status er godkjent utkast`() =
+            runTest {
+                val deltaker = lagDeltaker(
+                    deltakerliste = TestData.lagDeltakerlisteMedDirekteVedtak(),
+                    status = lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+                )
+                val vedtak = lagVedtak(deltakerVedVedtak = deltaker)
+                val ansatt = lagNavAnsatt(id = vedtak.opprettetAv)
+                val enhet = lagNavEnhet(id = vedtak.opprettetAvEnhet)
+                TestRepository.insertAll(deltaker, ansatt, enhet, vedtak)
 
-            pameldingService.innbyggerGodkjennUtkast(deltaker.id)
+                pameldingService.innbyggerGodkjennUtkast(deltaker.id)
 
-            assertProduced(deltaker.id)
-            assertProducedDeltakerV1(deltaker.id)
-            assertProducedHendelse(deltaker.id, HendelseType.InnbyggerGodkjennUtkast::class)
+                assertProduced(deltaker.id)
+                assertProducedDeltakerV1(deltaker.id)
+                assertProducedDeltakerEksternV1(deltaker.id)
+                assertProducedHendelse(deltaker.id, HendelseType.InnbyggerGodkjennUtkast::class)
 
-            val oppdatertDeltaker = deltakerRepository.get(deltaker.id).shouldBeSuccess()
+                val oppdatertDeltaker = deltakerRepository.get(deltaker.id).shouldBeSuccess()
 
-            oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
+                oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
 
-            oppdatertDeltaker.vedtaksinformasjon.shouldNotBeNull()
-            oppdatertDeltaker.vedtaksinformasjon.fattet shouldBeCloseTo LocalDateTime.now()
+                oppdatertDeltaker.vedtaksinformasjon.shouldNotBeNull()
+                oppdatertDeltaker.vedtaksinformasjon.fattet shouldBeCloseTo LocalDateTime.now()
 
-            innsokPaaFellesOppstartRepository.getForDeltaker(deltaker.id).shouldBeFailure()
-        }
+                innsokPaaFellesOppstartRepository.getForDeltaker(deltaker.id).shouldBeFailure()
+            }
 
         @Test
-        fun `innbyggerGodkjennUtkast - deltaker med felles oppstart - vedtak fattes ikke ny status er sokt inn`() = runTest {
-            val deltaker = lagDeltaker(
-                deltakerliste = TestData.lagDeltakerlisteMedFellesOppstart(),
-                status = lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
-            )
-            val vedtak = lagVedtak(deltakerVedVedtak = deltaker)
-            val ansatt = lagNavAnsatt(id = vedtak.opprettetAv)
-            val enhet = lagNavEnhet(id = vedtak.opprettetAvEnhet)
-            TestRepository.insertAll(deltaker, ansatt, enhet, vedtak)
+        fun `innbyggerGodkjennUtkast - deltaker på deltakerliste som krever godkjenning - vedtak fattes ikke ny status er sokt inn`() =
+            runTest {
+                val deltaker = lagDeltaker(
+                    deltakerliste = TestData.lagDeltakerlisteMedTrengerGodkjenning(),
+                    status = lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
+                )
+                val vedtak = lagVedtak(deltakerVedVedtak = deltaker)
+                val ansatt = lagNavAnsatt(id = vedtak.opprettetAv)
+                val enhet = lagNavEnhet(id = vedtak.opprettetAvEnhet)
+                TestRepository.insertAll(deltaker, ansatt, enhet, vedtak)
 
-            pameldingService.innbyggerGodkjennUtkast(deltaker.id)
+                pameldingService.innbyggerGodkjennUtkast(deltaker.id)
 
-            assertProduced(deltaker.id)
-            assertProducedDeltakerV1(deltaker.id)
-            assertProducedHendelse(deltaker.id, HendelseType.InnbyggerGodkjennUtkast::class)
+                assertProduced(deltaker.id)
+                assertProducedDeltakerV1(deltaker.id)
+                assertProducedDeltakerEksternV1(deltaker.id)
+                assertProducedHendelse(deltaker.id, HendelseType.InnbyggerGodkjennUtkast::class)
 
-            val oppdatertDeltaker = deltakerRepository.get(deltaker.id).shouldBeSuccess()
+                val oppdatertDeltaker = deltakerRepository.get(deltaker.id).shouldBeSuccess()
 
-            oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.SOKT_INN
+                oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.SOKT_INN
 
-            oppdatertDeltaker.vedtaksinformasjon.shouldNotBeNull()
-            oppdatertDeltaker.vedtaksinformasjon.fattet shouldBe null
+                oppdatertDeltaker.vedtaksinformasjon.shouldNotBeNull()
+                oppdatertDeltaker.vedtaksinformasjon.fattet shouldBe null
 
-            val innsok = innsokPaaFellesOppstartRepository.getForDeltaker(deltaker.id).shouldBeSuccess()
-            assertSoftly(innsok) {
-                utkastGodkjentAvNav shouldBe false
-                utkastDelt shouldNotBe null
-                innsokt shouldBeCloseTo LocalDateTime.now()
+                val innsok = innsokPaaFellesOppstartRepository.getForDeltaker(deltaker.id).shouldBeSuccess()
+                assertSoftly(innsok) {
+                    utkastGodkjentAvNav shouldBe false
+                    utkastDelt shouldNotBe null
+                    innsokt shouldBeCloseTo LocalDateTime.now()
+                }
             }
-        }
 
         @Test
         fun `innbyggerGodkjennUtkast - vedtak kunne ikke fattes - upserter ikke`() {
             val deltaker = lagDeltaker(
-                deltakerliste = TestData.lagDeltakerlisteMedLopendeOppstart(),
+                deltakerliste = TestData.lagDeltakerlisteMedDirekteVedtak(),
                 status = lagDeltakerStatus(type = DeltakerStatus.Type.UTKAST_TIL_PAMELDING),
             )
             val vedtak = lagVedtak(deltakerVedVedtak = deltaker, fattet = LocalDateTime.now())
@@ -581,9 +588,11 @@ class PameldingServiceTest {
 
     private val deltakerProducer = DeltakerProducer(TestOutboxEnvironment.outboxService, TestOutboxEnvironment.kafkaProducer)
     private val deltakerV1Producer = DeltakerV1Producer(TestOutboxEnvironment.outboxService, TestOutboxEnvironment.kafkaProducer)
+    private val deltakerEksternV1Producer =
+        DeltakerEksternV1Producer(TestOutboxEnvironment.outboxService, TestOutboxEnvironment.kafkaProducer)
 
     private val deltakerProducerService =
-        DeltakerProducerService(deltakerKafkaPayloadBuilder, deltakerProducer, deltakerV1Producer, unleashToggle)
+        DeltakerProducerService(deltakerKafkaPayloadBuilder, deltakerProducer, deltakerV1Producer, deltakerEksternV1Producer, unleashToggle)
 
     private val deltakerService = DeltakerService(
         deltakerRepository = deltakerRepository,

@@ -631,7 +631,7 @@ class DeltakerEndringHandlerTest {
     fun `sjekkUtfall - reaktiver deltakelse lopende oppstart`(): Unit = runBlocking {
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.IKKE_AKTUELL),
-            deltakerliste = TestData.lagDeltakerlisteMedLopendeOppstart(),
+            deltakerliste = TestData.lagDeltakerlisteMedDirekteVedtak(),
         )
         val endretAv = TestData.lagNavAnsatt()
         val endretAvEnhet = TestData.lagNavEnhet()
@@ -658,7 +658,7 @@ class DeltakerEndringHandlerTest {
     fun `sjekkUtfall - reaktiver deltakelse felles oppstart`(): Unit = runBlocking {
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(type = DeltakerStatus.Type.IKKE_AKTUELL),
-            deltakerliste = TestData.lagDeltakerlisteMedFellesOppstart(),
+            deltakerliste = TestData.lagDeltakerlisteMedTrengerGodkjenning(),
         )
         val endretAv = TestData.lagNavAnsatt()
         val endretAvEnhet = TestData.lagNavEnhet()

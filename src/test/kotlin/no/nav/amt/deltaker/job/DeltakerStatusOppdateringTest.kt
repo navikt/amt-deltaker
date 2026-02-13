@@ -19,6 +19,7 @@ import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagService
 import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
+import no.nav.amt.deltaker.deltaker.kafka.DeltakerEksternV1Producer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducer
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerV1Producer
@@ -85,8 +86,17 @@ class DeltakerStatusOppdateringTest {
 
     private val deltakerProducer = DeltakerProducer(TestOutboxEnvironment.outboxService, TestOutboxEnvironment.kafkaProducer)
     private val deltakerV1Producer = DeltakerV1Producer(TestOutboxEnvironment.outboxService, TestOutboxEnvironment.kafkaProducer)
+    private val deltakerEksternV1Producer =
+        DeltakerEksternV1Producer(TestOutboxEnvironment.outboxService, TestOutboxEnvironment.kafkaProducer)
+
     private val deltakerProducerService =
-        DeltakerProducerService(deltakerKafkaPayloadMapperService, deltakerProducer, deltakerV1Producer, unleashToggle)
+        DeltakerProducerService(
+            deltakerKafkaPayloadMapperService,
+            deltakerProducer,
+            deltakerV1Producer,
+            deltakerEksternV1Producer,
+            unleashToggle,
+        )
     private val arrangorService = ArrangorService(ArrangorRepository(), mockAmtArrangorClient())
     private val vurderingService = VurderingService(vurderingRepository)
     private val hendelseService = HendelseService(
@@ -139,6 +149,7 @@ class DeltakerStatusOppdateringTest {
     fun setup() {
         every { unleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns true
         every { unleashToggle.skalDelesMedEksterne(any<Tiltakskode>()) } returns true
+        every { unleashToggle.skalProdusereTilDeltakerEksternTopic() } returns true
     }
 
     @Test

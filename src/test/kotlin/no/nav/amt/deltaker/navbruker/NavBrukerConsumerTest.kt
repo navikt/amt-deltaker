@@ -4,6 +4,7 @@ import io.kotest.matchers.shouldBe
 import io.mockk.clearMocks
 import io.mockk.coVerify
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
@@ -110,7 +111,7 @@ class NavBrukerConsumerTest {
         }
 
         navBrukerRepository.get(navBruker.personId).getOrNull() shouldBe oppdatertNavBruker
-        coVerify { deltakerService.produserDeltakereForPerson(oppdatertNavBruker.personident, false) }
+        verify { deltakerService.produserDeltakereForPerson(oppdatertNavBruker.personident, false, false) }
     }
 
     @Test

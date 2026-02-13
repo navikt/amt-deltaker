@@ -51,7 +51,7 @@ class DeltakelserResponseMapper(
 
     private fun Deltaker.getInnsoktDato(): LocalDate? = if (status.type in skalViseInnsoktDatoStatuser) {
         val deltakerhistorikk = deltakerHistorikkService.getForDeltaker(id)
-        deltakerhistorikk.getInnsoktDato()
+        deltakerhistorikk.getInnsoktDato()?.toLocalDate()
     } else {
         null
     }

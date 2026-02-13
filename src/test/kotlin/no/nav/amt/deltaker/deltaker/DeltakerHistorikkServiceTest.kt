@@ -19,6 +19,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltaker.InnsokPaaFellesOppstart
 import no.nav.amt.lib.testing.DatabaseTestExtension
+import no.nav.amt.lib.testing.shouldBeCloseTo
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 import java.time.LocalDate
@@ -136,7 +137,7 @@ class DeltakerHistorikkServiceTest {
             ),
         )
 
-        deltakerhistorikk.getInnsoktDato() shouldBe LocalDate.now().minusMonths(1)
+        deltakerhistorikk.getInnsoktDato() shouldBeCloseTo LocalDateTime.now().minusMonths(1)
     }
 
     @Test
@@ -153,7 +154,7 @@ class DeltakerHistorikkServiceTest {
             ),
         )
 
-        deltakerhistorikk.getInnsoktDato() shouldBe innsoktDato
+        deltakerhistorikk.getInnsoktDato() shouldBe innsoktDato.atStartOfDay()
     }
 
     @Test
@@ -175,6 +176,6 @@ class DeltakerHistorikkServiceTest {
             ),
         )
 
-        deltakerhistorikk.getInnsoktDato() shouldBe innsoktDato
+        deltakerhistorikk.getInnsoktDato() shouldBe innsoktDato.atStartOfDay()
     }
 }
