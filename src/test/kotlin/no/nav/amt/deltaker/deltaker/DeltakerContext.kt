@@ -1,7 +1,10 @@
 package no.nav.amt.deltaker.deltaker
 
+import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.deltaker.model.Deltaker
+import no.nav.amt.deltaker.navansatt.NavAnsattRepository
+import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
@@ -21,8 +24,8 @@ import no.nav.amt.lib.testing.TestPostgresContainer
 import java.time.LocalDate
 
 data class DeltakerContext(
-    val veileder: NavAnsatt = lagNavAnsatt(),
     val navEnhet: NavEnhet = lagNavEnhet(),
+    val veileder: NavAnsatt = lagNavAnsatt(navEnhetId = navEnhet.id),
     var deltaker: Deltaker = lagDeltaker(
         status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR),
         startdato = LocalDate.now().minusMonths(1),
@@ -41,10 +44,12 @@ data class DeltakerContext(
     )
     val historikk: MutableList<DeltakerHistorikk> = mutableListOf(DeltakerHistorikk.Vedtak(vedtak))
 
+    val vedtakRepository = VedtakRepository()
+
     init {
         TestPostgresContainer.bootstrap()
-        TestRepository.insert(veileder)
-        TestRepository.insert(navEnhet)
+        NavEnhetRepository().upsert(navEnhet)
+        NavAnsattRepository().upsert(veileder)
     }
 
     fun withTiltakstype(tiltakskode: Tiltakskode) {

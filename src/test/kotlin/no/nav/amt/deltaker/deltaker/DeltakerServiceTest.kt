@@ -482,10 +482,12 @@ class DeltakerServiceTest {
     inner class UpsertDeltakerTests {
         @Test
         fun `upsertDeltaker - deltaker endrer status fra kladd til utkast - oppdaterer og publiserer til kafka`() = runTest {
-            val sistEndretAv = lagNavAnsatt()
             val sistEndretAvEnhet = lagNavEnhet()
-            TestRepository.insert(sistEndretAv)
-            TestRepository.insert(sistEndretAvEnhet)
+            navEnhetRepository.upsert(sistEndretAvEnhet)
+
+            val sistEndretAv = lagNavAnsatt(navEnhetId = sistEndretAvEnhet.id)
+            navAnsattRepository.upsert(sistEndretAv)
+
             val deltaker = lagDeltaker(
                 status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
             )
@@ -502,6 +504,7 @@ class DeltakerServiceTest {
                 fattet = null,
             )
             TestRepository.insert(vedtak)
+
             val oppdatertDeltaker = deltakerMedOppdatertStatus.copy(
                 vedtaksinformasjon = vedtak.tilVedtaksInformasjon(),
             )
@@ -688,7 +691,7 @@ class DeltakerServiceTest {
                 statusType = DeltakerStatus.Type.HAR_SLUTTET,
                 gyldigFra = LocalDateTime.now().plusDays(2),
             )
-            TestRepository.insert(fremtidigHarSluttetStatus, deltaker.id)
+            DeltakerStatusRepository.lagreStatus(deltaker.id, fremtidigHarSluttetStatus)
 
             val endringsrequest = ForlengDeltakelseRequest(
                 endretAv = endretAv.navIdent,
@@ -1483,17 +1486,19 @@ class DeltakerServiceTest {
 
     @Test
     fun `produserDeltakereForPerson - deltaker finnes - publiserer til kafka`() = runTest {
-        val sistEndretAv = lagNavAnsatt()
-        val sistEndretAvEnhet = lagNavEnhet()
-        TestRepository.insert(sistEndretAv)
-        TestRepository.insert(sistEndretAvEnhet)
+        val sistEndretAvNavEnhet = lagNavEnhet()
+        navEnhetRepository.upsert(sistEndretAvNavEnhet)
+
+        val sistEndretAvNavAnsatt = lagNavAnsatt(navEnhetId = sistEndretAvNavEnhet.id)
+        navAnsattRepository.upsert(sistEndretAvNavAnsatt)
+
         val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
         TestRepository.insert(deltaker)
         val vedtak = lagVedtak(
             deltakerId = deltaker.id,
             deltakerVedVedtak = deltaker,
-            opprettetAv = sistEndretAv,
-            opprettetAvEnhet = sistEndretAvEnhet,
+            opprettetAv = sistEndretAvNavAnsatt,
+            opprettetAvEnhet = sistEndretAvNavEnhet,
             fattet = LocalDateTime.now(),
         )
         TestRepository.insert(vedtak)

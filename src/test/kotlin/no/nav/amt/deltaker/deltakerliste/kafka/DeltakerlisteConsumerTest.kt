@@ -95,7 +95,7 @@ class DeltakerlisteConsumerTest {
         every { unleashToggle.skipProsesseringAvGjennomforing(any<String>()) } returns true
 
         val tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING)
-        TestRepository.insert(tiltakstype)
+        tiltakstypeRepository.upsert(tiltakstype)
 
         val expectedDeltakerliste = lagDeltakerliste(arrangor = arrangorInTest, tiltakstype = tiltakstype)
 
@@ -120,7 +120,7 @@ class DeltakerlisteConsumerTest {
     @Test
     fun `ny liste v2 gruppe - lagrer deltakerliste`() {
         val tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING)
-        TestRepository.insert(tiltakstype)
+        tiltakstypeRepository.upsert(tiltakstype)
 
         val deltakerliste = lagDeltakerliste(
             arrangor = arrangorInTest,
@@ -147,7 +147,7 @@ class DeltakerlisteConsumerTest {
     @Test
     fun `ny liste v2 enkeltplass - lagrer deltakerliste`() {
         val tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ENKELTPLASS_FAG_OG_YRKESOPPLAERING)
-        TestRepository.insert(tiltakstype)
+        tiltakstypeRepository.upsert(tiltakstype)
 
         val deltakerliste = lagDeltakerliste(
             arrangor = arrangorInTest,
@@ -182,7 +182,8 @@ class DeltakerlisteConsumerTest {
     @Test
     fun `consumeDeltakerliste - ny liste og arrangor - lagrer deltakerliste`() {
         val tiltakstype = lagTiltakstype()
-        TestRepository.insert(tiltakstype)
+        tiltakstypeRepository.upsert(tiltakstype)
+
         val deltakerliste = lagDeltakerliste(
             arrangor = arrangorInTest,
             tiltakstype = tiltakstype,

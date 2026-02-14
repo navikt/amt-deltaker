@@ -2,28 +2,34 @@ package no.nav.amt.deltaker.navansatt
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import no.nav.amt.deltaker.utils.data.TestData
-import no.nav.amt.deltaker.utils.data.TestRepository
+import no.nav.amt.deltaker.navenhet.NavEnhetRepository
+import no.nav.amt.deltaker.utils.data.TestData.lagNavAnsatt
+import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
 import no.nav.amt.lib.testing.DatabaseTestExtension
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 
 class NavAnsattRepositoryTest {
     private val navAnsattRepository = NavAnsattRepository()
+    private val navEnhetRepository = NavEnhetRepository()
+
+    private val navEnhet = lagNavEnhet()
 
     companion object {
         @RegisterExtension
-        val dbExtension = DatabaseTestExtension()
+        private val dbExtension = DatabaseTestExtension()
+    }
+
+    @BeforeEach
+    fun setup() {
+        navEnhetRepository.upsert(navEnhet)
     }
 
     @Test
     fun `getMany - flere navidenter - returnerer flere ansatte`() {
-        val ansatte = listOf(
-            TestData.lagNavAnsatt(),
-            TestData.lagNavAnsatt(),
-            TestData.lagNavAnsatt(),
-        )
-        ansatte.forEach { TestRepository.insert(it) }
+        val ansatte = List(3) { lagNavAnsatt(navEnhetId = navEnhet.id) }
+        ansatte.forEach { navAnsattRepository.upsert(it) }
 
         val faktiskeAnsatte = navAnsattRepository.getMany(ansatte.map { it.navIdent })
 
@@ -35,8 +41,8 @@ class NavAnsattRepositoryTest {
 
     @Test
     fun `slettNavAnsatt - navansatt blir slettet`() {
-        val navAnsatt = TestData.lagNavAnsatt()
-        TestRepository.insert(navAnsatt)
+        val navAnsatt = lagNavAnsatt(navEnhetId = navEnhet.id)
+        navAnsattRepository.upsert(navAnsatt)
 
         navAnsattRepository.delete(navAnsatt.id)
 

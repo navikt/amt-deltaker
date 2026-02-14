@@ -13,9 +13,9 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.spyk
 import io.mockk.verify
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.apiclients.mulighetsrommet.MulighetsrommetApiClient
+import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
@@ -53,6 +53,7 @@ import java.time.OffsetDateTime
 class EnkeltplassDeltakerConsumerTest {
     private val unleashToggle = mockk<UnleashToggle>()
     private val mulighetsrommetApiClient = mockk<MulighetsrommetApiClient>()
+    private val arrangorRepository = ArrangorRepository()
     private val arrangorService = mockk<ArrangorService>()
     private val navBrukerService = mockk<NavBrukerService>()
     private val deltakerKafkaPayloadBuilder = mockk<DeltakerKafkaPayloadBuilder>()
@@ -61,7 +62,7 @@ class EnkeltplassDeltakerConsumerTest {
     private val deltakerRepository = spyk(DeltakerRepository())
     private val importertFraArenaRepository = ImportertFraArenaRepository()
     private val deltakerlisteRepository = DeltakerlisteRepository()
-    private val tiltakstypeRepository = mockk<TiltakstypeRepository>()
+    private val tiltakstypeRepository = TiltakstypeRepository()
     private val deltakerProducerService = spyk(
         DeltakerProducerService(
             deltakerKafkaPayloadBuilder = deltakerKafkaPayloadBuilder,
@@ -133,7 +134,8 @@ class EnkeltplassDeltakerConsumerTest {
         )
 
         every { unleashToggle.skalLeseArenaDataForTiltakstype(Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING) } returns false
-        runBlocking {
+
+        runTest {
             consumer.consumeDeltaker(toPayload(deltaker))
         }
 
@@ -172,7 +174,8 @@ class EnkeltplassDeltakerConsumerTest {
 
         every { deltakerProducer.produce(any()) } just Runs
         coEvery { navBrukerService.get(deltaker.navBruker.personident) } returns Result.success(deltaker.navBruker)
-        runBlocking {
+
+        runTest {
             consumer.consumeDeltaker(toPayload(deltaker))
         }
 
@@ -233,8 +236,9 @@ class EnkeltplassDeltakerConsumerTest {
             status = lagDeltakerStatus(statusType = DeltakerStatus.Type.DELTAR, opprettet = statusOpprettet),
             sistEndret = sistEndret,
         )
-        TestRepository.insert(deltakerListe.arrangor)
-        TestRepository.insert(deltakerListe.tiltakstype)
+        arrangorRepository.upsert(deltakerListe.arrangor)
+
+        tiltakstypeRepository.upsert(deltakerListe.tiltakstype)
         TestRepository.insert(deltaker.navBruker)
         val importertFraArena = DeltakerHistorikk.ImportertFraArena(
             importertFraArena = ImportertFraArena(
@@ -244,16 +248,14 @@ class EnkeltplassDeltakerConsumerTest {
             ),
         )
         coEvery { arrangorService.hentArrangor(deltakerListe.arrangor.organisasjonsnummer) } returns deltakerListe.arrangor
-        coEvery { tiltakstypeRepository.get(deltakerListe.tiltakstype.tiltakskode) } returns Result.success(
-            deltakerListe.tiltakstype,
-        )
         coEvery { mulighetsrommetApiClient.hentGjennomforingV2(deltakerListe.id) } returns deltakerListe.toV2Response()
         every { unleashToggle.skalLeseArenaDataForTiltakstype(Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING) } returns true
         every { unleashToggle.erKometMasterForTiltakstype(Tiltakskode.ENKELTPLASS_ARBEIDSMARKEDSOPPLAERING) } returns false
 
         every { deltakerProducer.produce(any()) } just Runs
         coEvery { navBrukerService.get(deltaker.navBruker.personident) } returns Result.success(deltaker.navBruker)
-        runBlocking {
+
+        runTest {
             consumer.consumeDeltaker(toPayload(deltaker))
         }
 
@@ -266,7 +268,7 @@ class EnkeltplassDeltakerConsumerTest {
                 afterDeltakerUpsert = any(),
             )
         }
-        coVerify(exactly = 1) {
+        verify(exactly = 1) {
             deltakerProducerService.produce(any(), any(), any())
         }
         verify { deltakerProducer.produce(any()) }
@@ -317,7 +319,7 @@ class EnkeltplassDeltakerConsumerTest {
         )
 
         TestRepository.insert(deltaker)
-        TestRepository.insert(deltakerListe.tiltakstype)
+        tiltakstypeRepository.upsert(deltakerListe.tiltakstype)
         val importertFraArena = DeltakerHistorikk.ImportertFraArena(
             importertFraArena = ImportertFraArena(
                 deltakerId = deltaker.id,
@@ -396,7 +398,7 @@ class EnkeltplassDeltakerConsumerTest {
         )
 
         TestRepository.insert(deltaker)
-        TestRepository.insert(deltakerListe.tiltakstype)
+        tiltakstypeRepository.upsert(deltakerListe.tiltakstype)
         val importertFraArena = DeltakerHistorikk.ImportertFraArena(
             importertFraArena = ImportertFraArena(
                 deltakerId = deltaker.id,
@@ -411,7 +413,7 @@ class EnkeltplassDeltakerConsumerTest {
         every { deltakerProducer.produce(any()) } just Runs
         coEvery { navBrukerService.get(deltaker.navBruker.personident) } returns Result.success(deltaker.navBruker)
 
-        runBlocking {
+        runTest {
             consumer.consumeDeltaker(toPayload(endretDeltaker))
         }
 

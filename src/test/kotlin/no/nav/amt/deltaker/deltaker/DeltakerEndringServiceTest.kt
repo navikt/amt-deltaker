@@ -6,11 +6,11 @@ import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
+import no.nav.amt.deltaker.deltaker.DeltakerTestUtils.sammenlignDeltakerEndring
 import no.nav.amt.deltaker.deltaker.api.deltaker.toDeltakerEndringEndring
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
-import no.nav.amt.deltaker.deltaker.db.sammenlignDeltakerEndring
 import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringService
 import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringUtfall
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
@@ -120,7 +120,7 @@ class DeltakerEndringServiceTest {
     }
 
     @Test
-    fun `upsertEndring - endret bakgrunnsinformasjon - upserter endring og returnerer deltaker`(): Unit = runTest {
+    fun `upsertEndring - endret bakgrunnsinformasjon - upserter endring og returnerer deltaker`() = runTest {
         val deltaker = lagDeltaker()
         val endretAv = lagNavAnsatt()
         val endretAvEnhet = lagNavEnhet()
@@ -155,7 +155,7 @@ class DeltakerEndringServiceTest {
     }
 
     @Test
-    fun `upsertEndring - endret innhold - upserter og returnerer endring`(): Unit = runTest {
+    fun `upsertEndring - endret innhold - upserter og returnerer endring`() = runTest {
         val deltaker = lagDeltaker()
         val endretAv = lagNavAnsatt()
         val endretAvEnhet = lagNavEnhet()
@@ -196,7 +196,7 @@ class DeltakerEndringServiceTest {
     }
 
     @Test
-    fun `upsertEndring - forleng deltakelse - upserter endring og returnerer deltaker`(): Unit = runTest {
+    fun `upsertEndring - forleng deltakelse - upserter endring og returnerer deltaker`() = runTest {
         val deltaker = lagDeltaker()
         val endretAv = lagNavAnsatt()
         val endretAvEnhet = lagNavEnhet()
@@ -249,7 +249,7 @@ class DeltakerEndringServiceTest {
     }
 
     @Test
-    fun `upsertEndring - ikke aktuell - upserter endring og returnerer deltaker`(): Unit = runTest {
+    fun `upsertEndring - ikke aktuell - upserter endring og returnerer deltaker`() = runTest {
         val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
         val endretAv = lagNavAnsatt()
         val endretAvEnhet = lagNavEnhet()
@@ -301,7 +301,7 @@ class DeltakerEndringServiceTest {
     }
 
     @Test
-    fun `upsertEndring - fjern oppstartsdato - upserter endring og returnerer deltaker`(): Unit = runTest {
+    fun `upsertEndring - fjern oppstartsdato - upserter endring og returnerer deltaker`() = runTest {
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
             startdato = LocalDate.now().plusDays(3),

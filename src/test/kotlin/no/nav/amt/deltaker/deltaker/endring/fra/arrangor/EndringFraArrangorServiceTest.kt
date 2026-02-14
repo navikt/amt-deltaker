@@ -167,7 +167,7 @@ class EndringFraArrangorServiceTest {
     }
 
     @Test
-    fun `upsertEndretDeltaker - legg til oppstartsdato, dato ikke passert - inserter endring og returnerer deltaker`(): Unit = runTest {
+    fun `upsertEndretDeltaker - legg til oppstartsdato, dato ikke passert - inserter endring og returnerer deltaker`() = runTest {
         val deltaker = lagDeltaker(
             startdato = null,
             sluttdato = null,
@@ -183,7 +183,7 @@ class EndringFraArrangorServiceTest {
             opprettetAvEnhet = endretAvEnhet,
             fattet = LocalDateTime.now(),
         )
-        TestRepository.insert(vedtak)
+        vedtakRepository.upsert(vedtak)
 
         val startdato = LocalDate.now().plusDays(2)
         val sluttdato = LocalDate.now().plusMonths(3)
@@ -211,7 +211,7 @@ class EndringFraArrangorServiceTest {
     }
 
     @Test
-    fun `upsertEndretDeltaker - legg til oppstartsdato, dato passert - inserter endring og returnerer deltaker`(): Unit = runTest {
+    fun `upsertEndretDeltaker - legg til oppstartsdato, dato passert - inserter endring og returnerer deltaker`() = runTest {
         val deltaker = lagDeltaker(
             startdato = null,
             sluttdato = null,
@@ -227,7 +227,7 @@ class EndringFraArrangorServiceTest {
             opprettetAvEnhet = endretAvEnhet,
             fattet = LocalDateTime.now(),
         )
-        TestRepository.insert(vedtak)
+        vedtakRepository.upsert(vedtak)
 
         val startdato = LocalDate.now().minusDays(2)
         val sluttdato = LocalDate.now().plusMonths(3)
@@ -255,51 +255,50 @@ class EndringFraArrangorServiceTest {
     }
 
     @Test
-    fun `upsertEndretDeltaker - legg til oppstartsdato uten sluttdato, dato passert - inserter endring og returnerer deltaker`(): Unit =
-        runTest {
-            val deltaker = lagDeltaker(
-                startdato = null,
+    fun `upsertEndretDeltaker - legg til oppstartsdato uten sluttdato, dato passert - inserter endring og returnerer deltaker`() = runTest {
+        val deltaker = lagDeltaker(
+            startdato = null,
+            sluttdato = null,
+            status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
+        )
+        val endretAv = lagNavAnsatt()
+        val endretAvEnhet = lagNavEnhet()
+
+        TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
+        val vedtak = lagVedtak(
+            deltakerVedVedtak = deltaker,
+            opprettetAv = endretAv,
+            opprettetAvEnhet = endretAvEnhet,
+            fattet = LocalDateTime.now(),
+        )
+        vedtakRepository.upsert(vedtak)
+
+        val startdato = LocalDate.now().minusDays(2)
+        val endringFraArrangor = lagEndringFraArrangor(
+            deltakerId = deltaker.id,
+            endring = EndringFraArrangor.LeggTilOppstartsdato(
+                startdato = startdato,
                 sluttdato = null,
-                status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
-            )
-            val endretAv = lagNavAnsatt()
-            val endretAvEnhet = lagNavEnhet()
+            ),
+        )
 
-            TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
-            val vedtak = lagVedtak(
-                deltakerVedVedtak = deltaker,
-                opprettetAv = endretAv,
-                opprettetAvEnhet = endretAvEnhet,
-                fattet = LocalDateTime.now(),
-            )
-            TestRepository.insert(vedtak)
-
-            val startdato = LocalDate.now().minusDays(2)
-            val endringFraArrangor = lagEndringFraArrangor(
-                deltakerId = deltaker.id,
-                endring = EndringFraArrangor.LeggTilOppstartsdato(
-                    startdato = startdato,
-                    sluttdato = null,
-                ),
-            )
-
-            val oppdatertDeltaker = endringFraArrangorService.upsertEndretDeltaker(endringFraArrangor)
-            assertSoftly(oppdatertDeltaker) {
-                it.startdato shouldBe startdato
-                it.sluttdato shouldBe null
-                it.status.type shouldBe DeltakerStatus.Type.DELTAR
-            }
-
-            assertSoftly(endringFraArrangorRepository.getForDeltaker(deltaker.id).first()) {
-                it.opprettetAvArrangorAnsattId shouldBe endringFraArrangor.opprettetAvArrangorAnsattId
-                it.endring shouldBe endringFraArrangor.endring
-            }
-
-            assertProducedHendelse(deltaker.id, HendelseType.LeggTilOppstartsdato::class)
+        val oppdatertDeltaker = endringFraArrangorService.upsertEndretDeltaker(endringFraArrangor)
+        assertSoftly(oppdatertDeltaker) {
+            it.startdato shouldBe startdato
+            it.sluttdato shouldBe null
+            it.status.type shouldBe DeltakerStatus.Type.DELTAR
         }
 
+        assertSoftly(endringFraArrangorRepository.getForDeltaker(deltaker.id).first()) {
+            it.opprettetAvArrangorAnsattId shouldBe endringFraArrangor.opprettetAvArrangorAnsattId
+            it.endring shouldBe endringFraArrangor.endring
+        }
+
+        assertProducedHendelse(deltaker.id, HendelseType.LeggTilOppstartsdato::class)
+    }
+
     @Test
-    fun `upsertEndretDeltaker - legg til oppstartsdato uten sluttdato - fjerner ikke eksisterende sluttdato`(): Unit = runTest {
+    fun `upsertEndretDeltaker - legg til oppstartsdato uten sluttdato - fjerner ikke eksisterende sluttdato`() = runTest {
         val gammelsluttdato = LocalDate.now().plusDays(2)
         val deltaker = lagDeltaker(
             startdato = LocalDate.of(2021, 1, 1),
@@ -316,7 +315,7 @@ class EndringFraArrangorServiceTest {
             opprettetAvEnhet = endretAvEnhet,
             fattet = LocalDateTime.now(),
         )
-        TestRepository.insert(vedtak)
+        vedtakRepository.upsert(vedtak)
 
         val startdato = LocalDate.of(2021, 1, 2)
         val endringFraArrangor = lagEndringFraArrangor(
@@ -347,47 +346,46 @@ class EndringFraArrangorServiceTest {
     }
 
     @Test
-    fun `upsertEndretDeltaker - legg til oppstartsdato, start- og sluttdato passert - inserter endring og returnerer deltaker`(): Unit =
-        runTest {
-            val deltaker = lagDeltaker(
-                startdato = null,
-                sluttdato = null,
-                status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
-            )
-            val endretAv = lagNavAnsatt()
-            val endretAvEnhet = lagNavEnhet()
+    fun `upsertEndretDeltaker - legg til oppstartsdato, start- og sluttdato passert - inserter endring og returnerer deltaker`() = runTest {
+        val deltaker = lagDeltaker(
+            startdato = null,
+            sluttdato = null,
+            status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
+        )
+        val endretAv = lagNavAnsatt()
+        val endretAvEnhet = lagNavEnhet()
 
-            TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
-            val vedtak = lagVedtak(
-                deltakerVedVedtak = deltaker,
-                opprettetAv = endretAv,
-                opprettetAvEnhet = endretAvEnhet,
-                fattet = LocalDateTime.now(),
-            )
-            TestRepository.insert(vedtak)
+        TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
+        val vedtak = lagVedtak(
+            deltakerVedVedtak = deltaker,
+            opprettetAv = endretAv,
+            opprettetAvEnhet = endretAvEnhet,
+            fattet = LocalDateTime.now(),
+        )
+        vedtakRepository.upsert(vedtak)
 
-            val startdato = LocalDate.now().minusMonths(2)
-            val sluttdato = LocalDate.now().minusDays(5)
-            val endringFraArrangor = lagEndringFraArrangor(
-                deltakerId = deltaker.id,
-                endring = EndringFraArrangor.LeggTilOppstartsdato(
-                    startdato = startdato,
-                    sluttdato = sluttdato,
-                ),
-            )
+        val startdato = LocalDate.now().minusMonths(2)
+        val sluttdato = LocalDate.now().minusDays(5)
+        val endringFraArrangor = lagEndringFraArrangor(
+            deltakerId = deltaker.id,
+            endring = EndringFraArrangor.LeggTilOppstartsdato(
+                startdato = startdato,
+                sluttdato = sluttdato,
+            ),
+        )
 
-            val oppdatertDeltaker = endringFraArrangorService.upsertEndretDeltaker(endringFraArrangor)
-            assertSoftly(oppdatertDeltaker) {
-                it.startdato shouldBe startdato
-                it.sluttdato shouldBe sluttdato
-                it.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
-            }
-
-            assertSoftly(endringFraArrangorRepository.getForDeltaker(deltaker.id).first()) {
-                it.opprettetAvArrangorAnsattId shouldBe endringFraArrangor.opprettetAvArrangorAnsattId
-                it.endring shouldBe endringFraArrangor.endring
-            }
-
-            assertProducedHendelse(deltaker.id, HendelseType.LeggTilOppstartsdato::class)
+        val oppdatertDeltaker = endringFraArrangorService.upsertEndretDeltaker(endringFraArrangor)
+        assertSoftly(oppdatertDeltaker) {
+            it.startdato shouldBe startdato
+            it.sluttdato shouldBe sluttdato
+            it.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
         }
+
+        assertSoftly(endringFraArrangorRepository.getForDeltaker(deltaker.id).first()) {
+            it.opprettetAvArrangorAnsattId shouldBe endringFraArrangor.opprettetAvArrangorAnsattId
+            it.endring shouldBe endringFraArrangor.endring
+        }
+
+        assertProducedHendelse(deltaker.id, HendelseType.LeggTilOppstartsdato::class)
+    }
 }

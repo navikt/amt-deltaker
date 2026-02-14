@@ -7,7 +7,7 @@ import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.apiclients.oppfolgingstilfelle.IsOppfolgingstilfelleClient
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.navbruker.NavBrukerService
@@ -55,7 +55,7 @@ class OpprettKladdRequestValidatorTest {
     }
 
     @Test
-    fun `validateRequest - ingen feil - skal returnere Valid`(): Unit = runBlocking {
+    fun `validateRequest - ingen feil - skal returnere Valid`() = runTest {
         val validationResult = sut.validateRequest(requestInTest)
 
         validationResult.shouldBeTypeOf<ValidationResult.Valid>()
@@ -63,7 +63,7 @@ class OpprettKladdRequestValidatorTest {
 
     @ParameterizedTest
     @EnumSource(value = GjennomforingStatusType::class, names = ["AVBRUTT", "AVLYST", "AVSLUTTET"])
-    fun `validateRequest - deltakerListe er avsluttet - skal returnere Invalid`(status: GjennomforingStatusType): Unit = runBlocking {
+    fun `validateRequest - deltakerListe er avsluttet - skal returnere Invalid`(status: GjennomforingStatusType) = runTest {
         every { deltakerListeRepository.get(any()) } returns Result.success(
             lagDeltakerliste(status = status),
         )
@@ -75,7 +75,7 @@ class OpprettKladdRequestValidatorTest {
     }
 
     @Test
-    fun `validateRequest - deltakerliste ikke apen for pamelding - skal returnere Invalid`(): Unit = runBlocking {
+    fun `validateRequest - deltakerliste ikke apen for pamelding - skal returnere Invalid`() = runTest {
         every { deltakerListeRepository.get(any()) } returns Result.success(
             lagDeltakerliste(apentForPamelding = false),
         )
@@ -87,7 +87,7 @@ class OpprettKladdRequestValidatorTest {
     }
 
     @Test
-    fun `validateRequest - bruker sin innsatsgruppe i deltakerliste - skal returnere Valid`(): Unit = runBlocking {
+    fun `validateRequest - bruker sin innsatsgruppe i deltakerliste - skal returnere Valid`() = runTest {
         val tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING)
 
         coEvery { brukerService.get(any()) } returns
@@ -99,7 +99,7 @@ class OpprettKladdRequestValidatorTest {
     }
 
     @Test
-    fun `validateRequest - ikke ARBEIDSRETTET_REHABILITERING - skal returnere Invalid`(): Unit = runBlocking {
+    fun `validateRequest - ikke ARBEIDSRETTET_REHABILITERING - skal returnere Invalid`() = runTest {
         every { deltakerListeRepository.get(any()) } returns Result.success(
             lagDeltakerliste(),
         )
@@ -114,7 +114,7 @@ class OpprettKladdRequestValidatorTest {
     }
 
     @Test
-    fun `validateRequest - ARBEIDSRETTET_REHABILITERING og ikke SITUASJONSBESTEMT_INNSATS - skal returnere Invalid`(): Unit = runBlocking {
+    fun `validateRequest - ARBEIDSRETTET_REHABILITERING og ikke SITUASJONSBESTEMT_INNSATS - skal returnere Invalid`() = runTest {
         every { deltakerListeRepository.get(any()) } returns Result.success(
             lagDeltakerliste(tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSRETTET_REHABILITERING)),
         )
@@ -129,40 +129,38 @@ class OpprettKladdRequestValidatorTest {
     }
 
     @Test
-    fun `validateRequest - ARBEIDSRETTET_REHABILITERING og SITUASJONSBESTEMT_INNSATS ikke sykmeldt - skal returnere Invalid`(): Unit =
-        runBlocking {
-            every { deltakerListeRepository.get(any()) } returns Result.success(
-                lagDeltakerliste(tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSRETTET_REHABILITERING)),
-            )
+    fun `validateRequest - ARBEIDSRETTET_REHABILITERING og SITUASJONSBESTEMT_INNSATS ikke sykmeldt - skal returnere Invalid`() = runTest {
+        every { deltakerListeRepository.get(any()) } returns Result.success(
+            lagDeltakerliste(tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSRETTET_REHABILITERING)),
+        )
 
-            coEvery { brukerService.get(any()) } returns
-                Result.success(lagNavBruker(innsatsgruppe = Innsatsgruppe.SITUASJONSBESTEMT_INNSATS))
+        coEvery { brukerService.get(any()) } returns
+            Result.success(lagNavBruker(innsatsgruppe = Innsatsgruppe.SITUASJONSBESTEMT_INNSATS))
 
-            val validationResult = sut.validateRequest(requestInTest)
+        val validationResult = sut.validateRequest(requestInTest)
 
-            validationResult.shouldBeTypeOf<ValidationResult.Invalid>()
-            validationResult.reasons shouldBe listOf("Bruker har ikke riktig innsatsgruppe")
-        }
-
-    @Test
-    fun `validateRequest - ARBEIDSRETTET_REHABILITERING og SITUASJONSBESTEMT_INNSATS sykmeldt - skal returnere Valid`(): Unit =
-        runBlocking {
-            every { deltakerListeRepository.get(any()) } returns Result.success(
-                lagDeltakerliste(tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSRETTET_REHABILITERING)),
-            )
-
-            coEvery { brukerService.get(any()) } returns
-                Result.success(lagNavBruker(innsatsgruppe = Innsatsgruppe.SITUASJONSBESTEMT_INNSATS))
-
-            coEvery { isOppfolgingsTilfelleClient.erSykmeldtMedArbeidsgiver(any()) } returns true
-
-            val validationResult = sut.validateRequest(requestInTest)
-
-            validationResult.shouldBeTypeOf<ValidationResult.Valid>()
-        }
+        validationResult.shouldBeTypeOf<ValidationResult.Invalid>()
+        validationResult.reasons shouldBe listOf("Bruker har ikke riktig innsatsgruppe")
+    }
 
     @Test
-    fun `validateRequest - deltakerliste GRUPPE_ARBEIDSMARKEDSOPPLAERING mangler startdato - skal returnere invalid`(): Unit = runBlocking {
+    fun `validateRequest - ARBEIDSRETTET_REHABILITERING og SITUASJONSBESTEMT_INNSATS sykmeldt - skal returnere Valid`() = runTest {
+        every { deltakerListeRepository.get(any()) } returns Result.success(
+            lagDeltakerliste(tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.ARBEIDSRETTET_REHABILITERING)),
+        )
+
+        coEvery { brukerService.get(any()) } returns
+            Result.success(lagNavBruker(innsatsgruppe = Innsatsgruppe.SITUASJONSBESTEMT_INNSATS))
+
+        coEvery { isOppfolgingsTilfelleClient.erSykmeldtMedArbeidsgiver(any()) } returns true
+
+        val validationResult = sut.validateRequest(requestInTest)
+
+        validationResult.shouldBeTypeOf<ValidationResult.Valid>()
+    }
+
+    @Test
+    fun `validateRequest - deltakerliste GRUPPE_ARBEIDSMARKEDSOPPLAERING mangler startdato - skal returnere invalid`() = runTest {
         every { deltakerListeRepository.get(any()) } returns Result.success(
             lagDeltakerliste(
                 tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING),
@@ -177,7 +175,7 @@ class OpprettKladdRequestValidatorTest {
     }
 
     @Test
-    fun `validateRequest - deltaker 18 ar - skal returnere Invalid`(): Unit = runBlocking {
+    fun `validateRequest - deltaker 18 ar - skal returnere Invalid`() = runTest {
         coEvery {
             personServiceClient.hentNavBrukerFodselsar(any())
         } returns Year.now().minusYears(18).value
@@ -189,7 +187,7 @@ class OpprettKladdRequestValidatorTest {
     }
 
     @Test
-    fun `validateRequest - deltaker 18 ar - skal returnere Valid`(): Unit = runBlocking {
+    fun `validateRequest - deltaker 18 ar - skal returnere Valid`() = runTest {
         every { deltakerListeRepository.get(any()) } returns Result.success(
             lagDeltakerliste(tiltakstype = lagTiltakstype()),
         )

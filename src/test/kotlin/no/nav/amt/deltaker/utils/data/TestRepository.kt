@@ -1,10 +1,23 @@
 package no.nav.amt.deltaker.utils.data
 
 import kotliquery.queryOf
-import no.nav.amt.deltaker.deltaker.db.DbUtils.nullWhenNearNow
+import no.nav.amt.deltaker.arrangor.ArrangorRepository
+import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
+import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
+import no.nav.amt.deltaker.deltaker.db.DeltakerStatusRepository
+import no.nav.amt.deltaker.deltaker.db.VedtakRepository
+import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
+import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
+import no.nav.amt.deltaker.deltaker.importert.fra.arena.ImportertFraArenaRepository
+import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
 import no.nav.amt.deltaker.deltaker.model.Deltaker
-import no.nav.amt.deltaker.deltaker.vurdering.Vurdering
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
+import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
+import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
+import no.nav.amt.deltaker.navansatt.NavAnsattRepository
+import no.nav.amt.deltaker.navbruker.NavBrukerRepository
+import no.nav.amt.deltaker.navenhet.NavEnhetRepository
+import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.deltaker.utils.data.TestData.lagNavAnsatt
 import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
 import no.nav.amt.deltaker.utils.toPGObject
@@ -12,7 +25,6 @@ import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.Arrangor
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
-import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.models.deltaker.InnsokPaaFellesOppstart
 import no.nav.amt.lib.models.deltaker.Vedtak
@@ -22,516 +34,56 @@ import no.nav.amt.lib.models.person.NavBruker
 import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
 import no.nav.amt.lib.utils.database.Database
-import org.slf4j.LoggerFactory
-import java.time.LocalDateTime
-import java.util.UUID
 
 object TestRepository {
-    private val log = LoggerFactory.getLogger(javaClass)
-
-    fun insert(arrangor: Arrangor) {
-        val sql =
-            """
-            INSERT INTO arrangor(id, navn, organisasjonsnummer, overordnet_arrangor_id)
-            VALUES (:id, :navn, :organisasjonsnummer, :overordnet_arrangor_id) 
-            """.trimIndent()
-
-        Database.query { session ->
-            session.update(
-                queryOf(
-                    sql,
-                    mapOf(
-                        "id" to arrangor.id,
-                        "navn" to arrangor.navn,
-                        "organisasjonsnummer" to arrangor.organisasjonsnummer,
-                        "overordnet_arrangor_id" to arrangor.overordnetArrangorId,
-                    ),
-                ),
-            )
-        }
-    }
-
     fun insert(navAnsatt: NavAnsatt) {
-        navAnsatt.navEnhetId?.let { id -> insert(lagNavEnhet(id)) }
+        navAnsatt.navEnhetId?.let { navEnhetId ->
+            NavEnhetRepository().upsert(lagNavEnhet(navEnhetId))
+        }
 
-        val sql =
-            """
-            INSERT INTO nav_ansatt(id, nav_ident, navn, telefonnummer, epost, modified_at, nav_enhet_id)
-            VALUES (:id, :nav_ident, :navn, :telefonnummer, :epost, :modified_at, :nav_enhet_id) 
-            ON CONFLICT (id) DO NOTHING;
-            """.trimIndent()
-
-        val params = mapOf(
-            "id" to navAnsatt.id,
-            "nav_ident" to navAnsatt.navIdent,
-            "navn" to navAnsatt.navn,
-            "telefonnummer" to navAnsatt.telefon,
-            "epost" to navAnsatt.epost,
-            "modified_at" to LocalDateTime.now(),
-            "nav_enhet_id" to navAnsatt.navEnhetId,
-        )
-
-        Database.query { session -> session.update(queryOf(sql, params)) }
-    }
-
-    fun insert(navEnhet: NavEnhet) {
-        val sql =
-            """
-            INSERT INTO nav_enhet(id, nav_enhet_nummer, navn, modified_at)
-            VALUES (:id, :nav_enhet_nummer, :navn, :modified_at) 
-            ON CONFLICT (id) DO NOTHING;
-            """.trimIndent()
-
-        val params = mapOf(
-            "id" to navEnhet.id,
-            "nav_enhet_nummer" to navEnhet.enhetsnummer,
-            "navn" to navEnhet.navn,
-            "modified_at" to LocalDateTime.now(),
-        )
-
-        Database.query { session -> session.update(queryOf(sql, params)) }
+        NavAnsattRepository().upsert(navAnsatt)
     }
 
     fun insert(bruker: NavBruker) {
-        bruker.navEnhetId?.let { enhetId ->
-            try {
-                insert(lagNavEnhet(id = enhetId))
-            } catch (_: Exception) {
-                log.warn("Nav-enhet med id ${bruker.navEnhetId} er allerede opprettet")
-            }
-        }
+        bruker.navEnhetId?.let { NavEnhetRepository().upsert(lagNavEnhet(it)) }
+        bruker.navVeilederId?.let { NavAnsattRepository().upsert(lagNavAnsatt(id = it, navEnhetId = bruker.navEnhetId)) }
 
-        bruker.navVeilederId?.let { veilederId ->
-            try {
-                insert(lagNavAnsatt(id = veilederId))
-            } catch (_: Exception) {
-                log.warn("Nav-ansatt med id ${bruker.navVeilederId} er allerede opprettet")
-            }
-        }
-
-        val sql =
-            """
-            INSERT INTO nav_bruker(
-                person_id, personident, fornavn, mellomnavn, etternavn, nav_veileder_id, nav_enhet_id, telefonnummer, epost, er_skjermet, 
-                adresse, adressebeskyttelse, oppfolgingsperioder, innsatsgruppe
-            ) 
-            VALUES (
-                :person_id, :personident, :fornavn, :mellomnavn, :etternavn, :nav_veileder_id, :nav_enhet_id, :telefonnummer, :epost, :er_skjermet, 
-                :adresse, :adressebeskyttelse, :oppfolgingsperioder, :innsatsgruppe
-            )
-            """.trimIndent()
-
-        val params = mapOf(
-            "person_id" to bruker.personId,
-            "personident" to bruker.personident,
-            "fornavn" to bruker.fornavn,
-            "mellomnavn" to bruker.mellomnavn,
-            "etternavn" to bruker.etternavn,
-            "nav_veileder_id" to bruker.navVeilederId,
-            "nav_enhet_id" to bruker.navEnhetId,
-            "telefonnummer" to bruker.telefon,
-            "epost" to bruker.epost,
-            "er_skjermet" to bruker.erSkjermet,
-            "adresse" to toPGObject(bruker.adresse),
-            "adressebeskyttelse" to bruker.adressebeskyttelse?.name,
-            "oppfolgingsperioder" to toPGObject(bruker.oppfolgingsperioder),
-            "innsatsgruppe" to bruker.innsatsgruppe?.name,
-        )
-
-        Database.query { session -> session.update(queryOf(sql, params)) }
+        NavBrukerRepository().upsert(bruker)
     }
 
-    fun insert(tiltakstype: Tiltakstype) {
-        try {
-            val sql =
-                """
-                INSERT INTO tiltakstype(
-                    id, 
-                    navn, 
-                    tiltakskode,
-                    innsatsgrupper,
-                    innhold)
-                VALUES (:id,
-                    :navn,
-                    :tiltakskode,
-                    :innsatsgrupper,
-                    :innhold)
-                """.trimIndent()
-
-            Database.query { session ->
-                session.update(
-                    queryOf(
-                        sql,
-                        mapOf(
-                            "id" to tiltakstype.id,
-                            "navn" to tiltakstype.navn,
-                            "tiltakskode" to tiltakstype.tiltakskode.name,
-                            "innsatsgrupper" to toPGObject(tiltakstype.innsatsgrupper),
-                            "innhold" to toPGObject(tiltakstype.innhold),
-                        ),
-                    ),
-                )
-            }
-        } catch (_: Exception) {
-            log.warn("Tiltakstype ${tiltakstype.navn} er allerede opprettet")
-        }
-    }
-
-    fun insert(deltakerliste: Deltakerliste) {
-        try {
-            insert(deltakerliste.arrangor)
-        } catch (_: Exception) {
-            log.warn("Arrangor med id ${deltakerliste.arrangor.id} er allerede opprettet")
-        }
-
-        try {
-            insert(deltakerliste.tiltakstype)
-        } catch (_: Exception) {
-            log.warn("Tiltakstype med id ${deltakerliste.tiltakstype.id} er allerede opprettet")
-        }
-
-        val sql =
-            """
-            INSERT INTO deltakerliste (
-                id, 
-                navn, 
-                gjennomforingstype, 
-                status, 
-                arrangor_id, 
-                tiltakstype_id, 
-                start_dato, 
-                slutt_dato, 
-                oppstart, 
-                apent_for_pamelding, 
-                oppmote_sted, 
-                pameldingstype
-            )
-            VALUES (
-                :id, 
-                :navn, 
-                :gjennomforingstype, 
-                :status, 
-                :arrangor_id, 
-                :tiltakstype_id, 
-                :start_dato, 
-                :slutt_dato, 
-                :oppstart, 
-                :apent_for_pamelding, 
-                :oppmote_sted, 
-                :pameldingstype
-            ) 
-            """.trimIndent()
-
-        Database.query { session ->
-            session.update(
-                queryOf(
-                    sql,
-                    mapOf(
-                        "id" to deltakerliste.id,
-                        "navn" to deltakerliste.navn,
-                        "gjennomforingstype" to deltakerliste.gjennomforingstype.name,
-                        "status" to deltakerliste.status?.name,
-                        "arrangor_id" to deltakerliste.arrangor.id,
-                        "tiltakstype_id" to deltakerliste.tiltakstype.id,
-                        "start_dato" to deltakerliste.startDato,
-                        "slutt_dato" to deltakerliste.sluttDato,
-                        "oppstart" to deltakerliste.oppstart?.name,
-                        "apent_for_pamelding" to deltakerliste.apentForPamelding,
-                        "oppmote_sted" to deltakerliste.oppmoteSted,
-                        "pameldingstype" to deltakerliste.pameldingstype?.name,
-                    ),
-                ),
-            )
-        }
-    }
-
-    fun insert(innsok: InnsokPaaFellesOppstart) {
-        val sql =
-            """
-            INSERT INTO innsok_paa_felles_oppstart (
-                id, 
-                deltaker_id, 
-                innsokt, 
-                innsokt_av, 
-                innsokt_av_enhet, 
-                utkast_godkjent_av_nav, 
-                utkast_delt, 
-                deltakelsesinnhold_ved_innsok
-            ) 
-            VALUES (
-                :id, 
-                :deltaker_id, 
-                :innsokt, 
-                :innsokt_av, 
-                :innsokt_av_enhet, 
-                :utkast_godkjent_av_nav, 
-                :utkast_delt, 
-                :deltakelsesinnhold_ved_innsok)
-            """.trimIndent()
-
-        val params = mapOf(
-            "id" to innsok.id,
-            "deltaker_id" to innsok.deltakerId,
-            "innsokt" to innsok.innsokt,
-            "innsokt_av" to innsok.innsoktAv,
-            "innsokt_av_enhet" to innsok.innsoktAvEnhet,
-            "utkast_godkjent_av_nav" to innsok.utkastGodkjentAvNav,
-            "utkast_delt" to innsok.utkastDelt,
-            "deltakelsesinnhold_ved_innsok" to toPGObject(innsok.deltakelsesinnholdVedInnsok),
-        )
-
-        Database.query { session -> session.update(queryOf(sql, params)) }
-    }
-
-    fun insert(deltaker: Deltaker, vedtak: Vedtak? = null) {
-        try {
-            insert(deltaker.navBruker)
-        } catch (_: Exception) {
-            log.warn("Nav-bruker med id ${deltaker.navBruker.personId} er allerede opprettet")
-        }
-
-        try {
-            insert(deltaker.deltakerliste)
-        } catch (_: Exception) {
-            log.warn("Deltakerliste med id ${deltaker.deltakerliste.id} er allerede opprettet")
-        }
-
-        val sql =
-            """
-            INSERT INTO deltaker(
-                id, person_id, deltakerliste_id, startdato, sluttdato, dager_per_uke, 
-                deltakelsesprosent, bakgrunnsinformasjon, innhold, kilde, modified_at,
-                er_manuelt_delt_med_arrangor
-            )
-            VALUES (
-                :id, :person_id, :deltakerlisteId, :startdato, :sluttdato, :dagerPerUke, 
-                :deltakelsesprosent, :bakgrunnsinformasjon, :innhold, :kilde, :sistEndret,
-                :er_manuelt_delt_med_arrangor
-            )
-            """.trimIndent()
-
-        val params = mapOf(
-            "id" to deltaker.id,
-            "person_id" to deltaker.navBruker.personId,
-            "deltakerlisteId" to deltaker.deltakerliste.id,
-            "startdato" to deltaker.startdato,
-            "sluttdato" to deltaker.sluttdato,
-            "dagerPerUke" to deltaker.dagerPerUke,
-            "deltakelsesprosent" to deltaker.deltakelsesprosent,
-            "bakgrunnsinformasjon" to deltaker.bakgrunnsinformasjon,
-            "innhold" to toPGObject(deltaker.deltakelsesinnhold),
-            "kilde" to deltaker.kilde.name,
-            "sistEndret" to deltaker.sistEndret,
-            "er_manuelt_delt_med_arrangor" to deltaker.erManueltDeltMedArrangor,
-        )
-
-        Database.query { session -> session.update(queryOf(sql, params)) }
-
-        insert(deltaker.status, deltaker.id)
-
-        log.info("inserted deltaker ${deltaker.id}")
-
-        if (vedtak != null) {
-            try {
-                insert(vedtak)
-            } catch (_: Exception) {
-                log.warn("Vedtak med id ${vedtak.id} er allerede opprettet")
-            }
-        }
-    }
-
-    fun insert(status: DeltakerStatus, deltakerId: UUID) {
-        val sql =
-            """
-            INSERT INTO 
-                deltaker_status(id, deltaker_id, type, aarsak, gyldig_fra, gyldig_til, created_at) 
-            VALUES (:id, :deltaker_id, :type, :aarsak, 
-                COALESCE(:gyldig_fra, CURRENT_TIMESTAMP), 
-                :gyldig_til, 
-                COALESCE(:created_at, CURRENT_TIMESTAMP)) 
-            ON CONFLICT (id) DO NOTHING;
-            """.trimIndent()
-
-        val params = mapOf(
-            "id" to status.id,
-            "deltaker_id" to deltakerId,
-            "type" to status.type.name,
-            "aarsak" to toPGObject(status.aarsak),
-            "gyldig_fra" to nullWhenNearNow(status.gyldigFra),
-            "gyldig_til" to status.gyldigTil,
-            "created_at" to nullWhenNearNow(status.opprettet),
-        )
-
-        Database.query { session -> session.update(queryOf(sql, params)) }
+    fun insert(deltakerliste: Deltakerliste, overordnetArrangor: Arrangor? = null) {
+        TiltakstypeRepository().upsert(deltakerliste.tiltakstype)
+        overordnetArrangor?.let { ArrangorRepository().upsert(it) }
+        ArrangorRepository().upsert(deltakerliste.arrangor)
+        DeltakerlisteRepository().upsert(deltakerliste)
     }
 
     fun insert(vedtak: Vedtak) {
-        val sql =
-            """
-            INSERT INTO vedtak(
-                id, 
-                deltaker_id, 
-                fattet, 
-                gyldig_til, 
-                deltaker_ved_vedtak, 
-                fattet_av_nav, 
-                opprettet_av,
-                opprettet_av_enhet, 
-                sist_endret_av, 
-                sist_endret_av_enhet, 
-                modified_at, 
-                created_at) 
-            VALUES (
-                :id, 
-                :deltaker_id, 
-                :fattet,
-                :gyldig_til, 
-                :deltaker_ved_vedtak, 
-                :fattet_av_nav, 
-                :opprettet_av,
-                :opprettet_av_enhet, 
-                :sist_endret_av, 
-                :sist_endret_av_enhet, 
-                :sist_endret, 
-                :created_at) 
-            ON CONFLICT (id) DO NOTHING;
-            """.trimIndent()
-
-        val params = mapOf(
-            "id" to vedtak.id,
-            "deltaker_id" to vedtak.deltakerId,
-            "fattet" to vedtak.fattet,
-            "gyldig_til" to vedtak.gyldigTil,
-            "deltaker_ved_vedtak" to toPGObject(vedtak.deltakerVedVedtak),
-            "fattet_av_nav" to vedtak.fattetAvNav,
-            "opprettet_av" to vedtak.opprettetAv,
-            "opprettet_av_enhet" to vedtak.opprettetAvEnhet,
-            "sist_endret_av" to vedtak.sistEndretAv,
-            "sist_endret_av_enhet" to vedtak.sistEndretAvEnhet,
-            "sist_endret" to vedtak.sistEndret,
-            "created_at" to vedtak.opprettet,
-        )
-
-        Database.query { session -> session.update(queryOf(sql, params)) }
-    }
-
-    fun insert(deltakerEndring: DeltakerEndring, behandlet: LocalDateTime? = LocalDateTime.now()) {
-        val sql =
-            """
-            INSERT INTO deltaker_endring (
-                id, 
-                deltaker_id, 
-                endring, 
-                endret, 
-                endret_av, 
-                endret_av_enhet, 
-                modified_at, 
-                forslag_id, 
-                behandlet)
-            VALUES (
-                :id, 
-                :deltaker_id, 
-                :endring, 
-                :endret, 
-                :endret_av, 
-                :endret_av_enhet, 
-                current_timestamp, 
-                :forslag_id, 
-                :behandlet)
-            ON CONFLICT (id) DO NOTHING;
-            """.trimIndent()
-
-        val params = mapOf(
-            "id" to deltakerEndring.id,
-            "deltaker_id" to deltakerEndring.deltakerId,
-            "endring" to toPGObject(deltakerEndring.endring),
-            "endret" to deltakerEndring.endret,
-            "endret_av" to deltakerEndring.endretAv,
-            "endret_av_enhet" to deltakerEndring.endretAvEnhet,
-            "endret" to deltakerEndring.endret,
-            "forslag_id" to deltakerEndring.forslag?.id,
-            "behandlet" to behandlet,
-        )
-
-        Database.query { session -> session.update(queryOf(sql, params)) }
-    }
-
-    fun insert(vurdering: Vurdering) {
-        val sql =
-            """
-            INSERT INTO vurdering (id, deltaker_id, opprettet_av_arrangor_ansatt_id, vurderingstype, begrunnelse, gyldig_fra)
-            VALUES (:id, :deltaker_id, :opprettet_av_arrangor_ansatt_id, :vurderingstype, :begrunnelse, :gyldig_fra)
-            ON CONFLICT (id) DO UPDATE SET
-                opprettet_av_arrangor_ansatt_id = :opprettet_av_arrangor_ansatt_id, 
-                vurderingstype = :vurderingstype, 
-                begrunnelse = :begrunnelse, 
-                gyldig_fra = :gyldig_fra
-            """.trimIndent()
-
-        val params = mapOf(
-            "id" to vurdering.id,
-            "deltaker_id" to vurdering.deltakerId,
-            "opprettet_av_arrangor_ansatt_id" to vurdering.opprettetAvArrangorAnsattId,
-            "vurderingstype" to vurdering.vurderingstype.name,
-            "begrunnelse" to vurdering.begrunnelse,
-            "gyldig_fra" to vurdering.gyldigFra,
-        )
-
-        val query = queryOf(sql, params)
-
-        Database.query { session -> session.update(query) }
-    }
-
-    fun insert(forslag: Forslag) {
-        val sql =
-            """
-            INSERT INTO forslag(id, deltaker_id, arrangoransatt_id, opprettet, begrunnelse, endring, status)
-            VALUES (:id, :deltaker_id, :arrangoransatt_id, :opprettet, :begrunnelse, :endring, :status)
-            ON CONFLICT (id) DO NOTHING;
-            """.trimIndent()
+        VedtakRepository().upsert(vedtak)
 
         Database.query { session ->
             session.update(
                 queryOf(
-                    sql,
+                    "UPDATE vedtak SET modified_at = :sist_endret, created_at = :opprettet WHERE id = :id",
                     mapOf(
-                        "id" to forslag.id,
-                        "deltaker_id" to forslag.deltakerId,
-                        "arrangoransatt_id" to forslag.opprettetAvArrangorAnsattId,
-                        "opprettet" to forslag.opprettet,
-                        "begrunnelse" to forslag.begrunnelse,
-                        "endring" to toPGObject(forslag.endring),
-                        "status" to toPGObject(forslag.status),
+                        "id" to vedtak.id,
+                        "sist_endret" to vedtak.sistEndret,
+                        "opprettet" to vedtak.opprettet,
                     ),
                 ),
             )
         }
     }
 
-    fun insert(endringFraArrangor: EndringFraArrangor) {
-        val sql =
-            """
-            INSERT INTO endring_fra_arrangor (id, deltaker_id, arrangor_ansatt_id, opprettet, endring)
-            VALUES (:id, :deltaker_id, :arrangor_ansatt_id, :opprettet, :endring)
-            ON CONFLICT (id) DO NOTHING
-            """.trimIndent()
-
-        Database.query { session ->
-            session.update(
-                queryOf(
-                    sql,
-                    mapOf(
-                        "id" to endringFraArrangor.id,
-                        "deltaker_id" to endringFraArrangor.deltakerId,
-                        "arrangor_ansatt_id" to endringFraArrangor.opprettetAvArrangorAnsattId,
-                        "opprettet" to endringFraArrangor.opprettet,
-                        "endring" to toPGObject(endringFraArrangor.endring),
-                    ),
-                ),
-            )
-        }
+    fun insert(deltaker: Deltaker, vedtak: Vedtak? = null) {
+        insert(deltaker.navBruker)
+        insert(deltaker.deltakerliste)
+        DeltakerRepository().upsert(deltaker)
+        DeltakerStatusRepository.lagreStatus(deltaker.id, deltaker.status)
+        vedtak?.let { insert(vedtak) }
     }
 
+    // TODO: importert_dato benyttes ikke ImportertFraArenaRepository#upsert, undersøk
     fun insert(importertFraArena: ImportertFraArena) {
         val sql =
             """
@@ -554,41 +106,23 @@ object TestRepository {
         }
     }
 
-    fun insert(endring: EndringFraTiltakskoordinator) {
-        val sql =
-            """
-            INSERT INTO endring_fra_tiltakskoordinator (id, deltaker_id, nav_ansatt_id, endret, endring) 
-            VALUES (:id, :deltaker_id, :nav_ansatt_id, :endret, :endring)
-            """.trimIndent()
-
-        val params = mapOf(
-            "id" to endring.id,
-            "deltaker_id" to endring.deltakerId,
-            "nav_ansatt_id" to endring.endretAv,
-            "endret" to endring.endret,
-            "endring" to toPGObject(endring.endring),
-        )
-
-        Database.query { session -> session.update(queryOf(sql, params)) }
-    }
-
     fun <T> insertAll(vararg values: T) {
         values.forEach {
             when (it) {
                 is NavAnsatt -> insert(it)
                 is NavBruker -> insert(it)
-                is NavEnhet -> insert(it)
-                is Arrangor -> insert(it)
-                is Tiltakstype -> insert(it)
+                is NavEnhet -> NavEnhetRepository().upsert(it)
+                is Arrangor -> ArrangorRepository().upsert(it)
+                is Tiltakstype -> TiltakstypeRepository().upsert(it)
                 is Deltakerliste -> insert(it)
                 is Deltaker -> insert(it)
                 is Vedtak -> insert(it)
-                is Forslag -> insert(it)
-                is DeltakerEndring -> insert(it)
-                is EndringFraArrangor -> insert(it)
-                is ImportertFraArena -> insert(it)
-                is InnsokPaaFellesOppstart -> insert(it)
-                is EndringFraTiltakskoordinator -> insert(it)
+                is Forslag -> ForslagRepository().upsert(it)
+                is DeltakerEndring -> DeltakerEndringRepository().upsert(it)
+                is EndringFraArrangor -> EndringFraArrangorRepository().insert(it)
+                is ImportertFraArena -> ImportertFraArenaRepository().upsert(it)
+                is InnsokPaaFellesOppstart -> InnsokPaaFellesOppstartRepository().insert(it)
+                is EndringFraTiltakskoordinator -> EndringFraTiltakskoordinatorRepository().insert(listOf(it))
                 else -> NotImplementedError("insertAll for type ${it!!::class} er ikke implementert")
             }
         }

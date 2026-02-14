@@ -1,10 +1,11 @@
 package no.nav.amt.deltaker.deltakerliste
 
 import io.kotest.matchers.shouldBe
+import no.nav.amt.deltaker.arrangor.ArrangorRepository
+import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.utils.data.TestData.lagArrangor
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
 import no.nav.amt.deltaker.utils.data.TestData.lagTiltakstype
-import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -13,6 +14,8 @@ import java.time.LocalDate
 
 class DeltakerlisteRepositoryTest {
     private val deltakerlisteRepository = DeltakerlisteRepository()
+    private val arrangorRepository = ArrangorRepository()
+    private val tiltakstypeRepository = TiltakstypeRepository()
 
     companion object {
         @RegisterExtension
@@ -24,10 +27,10 @@ class DeltakerlisteRepositoryTest {
         @Test
         fun `ny minimal deltakerliste - inserter`() {
             val arrangor = lagArrangor()
-            TestRepository.insert(arrangor)
+            arrangorRepository.upsert(arrangor)
 
             val tiltakstype = lagTiltakstype()
-            TestRepository.insert(tiltakstype)
+            tiltakstypeRepository.upsert(tiltakstype)
 
             val deltakerliste = lagDeltakerliste(
                 arrangor = arrangor,
@@ -49,8 +52,9 @@ class DeltakerlisteRepositoryTest {
             val arrangor = lagArrangor()
             val tiltakstype = lagTiltakstype()
             val deltakerliste = lagDeltakerliste(arrangor = arrangor, tiltakstype = tiltakstype)
-            TestRepository.insert(arrangor)
-            TestRepository.insert(tiltakstype)
+
+            arrangorRepository.upsert(arrangor)
+            tiltakstypeRepository.upsert(tiltakstype)
 
             deltakerlisteRepository.upsert(deltakerliste)
 
@@ -62,9 +66,9 @@ class DeltakerlisteRepositoryTest {
             val arrangor = lagArrangor()
             val tiltakstype = lagTiltakstype()
             val deltakerliste = lagDeltakerliste(arrangor = arrangor, tiltakstype = tiltakstype)
-            TestRepository.insert(arrangor)
-            TestRepository.insert(tiltakstype)
 
+            arrangorRepository.upsert(arrangor)
+            tiltakstypeRepository.upsert(tiltakstype)
             deltakerlisteRepository.upsert(deltakerliste)
 
             val oppdatertListe = deltakerliste.copy(sluttDato = LocalDate.now())
@@ -80,9 +84,9 @@ class DeltakerlisteRepositoryTest {
         val arrangor = lagArrangor()
         val tiltakstype = lagTiltakstype()
         val deltakerliste = lagDeltakerliste(arrangor = arrangor, tiltakstype = tiltakstype)
-        TestRepository.insert(arrangor)
-        TestRepository.insert(tiltakstype)
+        arrangorRepository.upsert(arrangor)
 
+        tiltakstypeRepository.upsert(tiltakstype)
         deltakerlisteRepository.upsert(deltakerliste)
 
         deltakerlisteRepository.delete(deltakerliste.id)
@@ -95,8 +99,9 @@ class DeltakerlisteRepositoryTest {
         val arrangor = lagArrangor()
         val tiltakstype = lagTiltakstype()
         val deltakerliste = lagDeltakerliste(arrangor = arrangor, tiltakstype = tiltakstype)
-        TestRepository.insert(arrangor)
-        TestRepository.insert(tiltakstype)
+
+        arrangorRepository.upsert(arrangor)
+        tiltakstypeRepository.upsert(tiltakstype)
         deltakerlisteRepository.upsert(deltakerliste)
 
         val deltakerlisteMedArrangor = deltakerlisteRepository.get(deltakerliste.id).getOrThrow()

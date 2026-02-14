@@ -1,13 +1,19 @@
 package no.nav.amt.deltaker.navbruker
 
 import io.kotest.matchers.shouldBe
+import no.nav.amt.deltaker.navansatt.NavAnsattRepository
+import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.utils.data.TestData
+import no.nav.amt.deltaker.utils.data.TestData.lagNavAnsatt
+import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 
 class NavBrukerRepositoryTest {
+    private val navEnhetRepository = NavEnhetRepository()
+    private val navAnsattRepository = NavAnsattRepository()
     private val navBrukerRepository = NavBrukerRepository()
 
     companion object {
@@ -17,10 +23,12 @@ class NavBrukerRepositoryTest {
 
     @Test
     fun `upsert - ny bruker - inserter`() {
-        val navEnhet = TestData.lagNavEnhet()
-        TestRepository.insert(navEnhet)
-        val navAnsatt = TestData.lagNavAnsatt()
-        TestRepository.insert(navAnsatt)
+        val navEnhet = lagNavEnhet()
+        navEnhetRepository.upsert(navEnhet)
+
+        val navAnsatt = lagNavAnsatt(navEnhetId = navEnhet.id)
+        navAnsattRepository.upsert(navAnsatt)
+
         val bruker = TestData.lagNavBruker(navEnhetId = navEnhet.id, navVeilederId = navAnsatt.id)
 
         navBrukerRepository.upsert(bruker).getOrNull() shouldBe bruker
