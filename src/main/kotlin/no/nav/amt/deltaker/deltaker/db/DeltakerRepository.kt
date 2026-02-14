@@ -175,19 +175,14 @@ class DeltakerRepository {
         val sql = buildDeltakerSql(
             "skalHaStatusDeltar",
             """
-            ds.type = :status
+            ds.type = '${DeltakerStatus.Type.VENTER_PA_OPPSTART.name}'
             AND d.startdato <= CURRENT_DATE
             AND (d.sluttdato IS NULL OR d.sluttdato >= CURRENT_DATE)
             """.trimIndent(),
         )
 
         return Database.query { session ->
-            session.run(
-                queryOf(
-                    sql,
-                    mapOf("status" to DeltakerStatus.Type.VENTER_PA_OPPSTART.name),
-                ).map(::deltakerRowMapper).asList,
-            )
+            session.run(queryOf(sql).map(::deltakerRowMapper).asList)
         }
     }
 
@@ -213,6 +208,8 @@ class DeltakerRepository {
             AND dl.status IN ($AVSLUTTENDE_DELTAKERLISTE_STATUSER_DELIMITED)
             """.trimIndent(),
         )
+
+        println(sql)
 
         return Database.query { session ->
             session.run(queryOf(sql).map(::deltakerRowMapper).asList)
