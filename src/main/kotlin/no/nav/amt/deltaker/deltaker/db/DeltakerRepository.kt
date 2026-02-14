@@ -100,7 +100,7 @@ class DeltakerRepository {
         Database.query { session ->
             session.run(
                 queryOf(
-                    buildDeltakerSql("get", "d.id = :id"),
+                    buildDeltakerSql("get", "d.id = :id", null),
                     mapOf("id" to id),
                 ).map(::deltakerRowMapper).asSingle,
             ) ?: throw NoSuchElementException("Ingen deltaker med id $id")
@@ -208,6 +208,8 @@ class DeltakerRepository {
             AND dl.status IN ($AVSLUTTENDE_DELTAKERLISTE_STATUSER_DELIMITED)
             """.trimIndent(),
         )
+
+        println(sql)
 
         return Database.query { session ->
             session.run(queryOf(sql).map(::deltakerRowMapper).asList)
@@ -330,7 +332,11 @@ class DeltakerRepository {
             }
         }
 
-        private fun buildDeltakerSql(methodName: String, whereClause: String) = """
+        private fun buildDeltakerSql(
+            methodName: String,
+            whereClause: String,
+            limit: Int? = 500,
+        ): String = """
         SELECT 
             1 AS "$methodName",
             d.id AS "d.id",
@@ -408,6 +414,7 @@ class DeltakerRepository {
                 d.id = v.deltaker_id 
                 AND v.gyldig_til IS NULL
             WHERE $whereClause
+            ${limit?.let { "LIMIT $limit" } ?: ""}
       """
     }
 }
