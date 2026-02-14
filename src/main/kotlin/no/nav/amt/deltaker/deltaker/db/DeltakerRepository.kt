@@ -195,7 +195,7 @@ class DeltakerRepository {
         val sql = buildDeltakerSql(
             "getSluttdatoHarPassert",
             """
-            ds.type IN (${sqlPlaceholders(sluttdatoStatuser.size)})
+            ds.type IN (${sqlPlaceholders(SLUTTDATO_PASSERT_STATUSER.size)})
             AND d.sluttdato < CURRENT_DATE
             """.trimIndent(),
         )
@@ -204,7 +204,7 @@ class DeltakerRepository {
             session.run(
                 queryOf(
                     sql,
-                    *sluttdatoStatuser.toTypedArray(),
+                    *SLUTTDATO_PASSERT_STATUSER.toTypedArray(),
                 ).map(::deltakerRowMapper).asList,
             )
         }
@@ -214,8 +214,8 @@ class DeltakerRepository {
         val sql = buildDeltakerSql(
             "getDeltakereSomDeltar",
             """
-            ds.type NOT IN (${sqlPlaceholders(avsluttendeDeltakerStatuser.size)})
-            AND dl.status IN (${sqlPlaceholders(avsluttendeDeltakerlisteStatuser.size)})
+            ds.type IN (${sqlPlaceholders(IKKE_AVSLUTTENDE_STATUSER.size)})
+            AND dl.status IN (${sqlPlaceholders(AVSLUTTENDE_DELTAKERLISTE_STATUSER.size)})
             """.trimIndent(),
         )
 
@@ -223,8 +223,8 @@ class DeltakerRepository {
             session.run(
                 queryOf(
                     sql,
-                    *avsluttendeDeltakerStatuser.toTypedArray(),
-                    *avsluttendeDeltakerlisteStatuser.toTypedArray(),
+                    *IKKE_AVSLUTTENDE_STATUSER.toTypedArray(),
+                    *AVSLUTTENDE_DELTAKERLISTE_STATUSER.toTypedArray(),
                 ).map(::deltakerRowMapper).asList,
             )
         }
@@ -265,14 +265,14 @@ class DeltakerRepository {
     }
 
     companion object {
-        private val sluttdatoStatuser = listOf(
+        private val IKKE_AVSLUTTENDE_STATUSER = (DeltakerStatus.Type.entries.toSet() - AVSLUTTENDE_STATUSER).map { it.name }
+
+        private val SLUTTDATO_PASSERT_STATUSER = setOf(
             DeltakerStatus.Type.VENTER_PA_OPPSTART.name,
             DeltakerStatus.Type.DELTAR.name,
         )
 
-        private val avsluttendeDeltakerStatuser = AVSLUTTENDE_STATUSER.map { it.name }
-
-        private val avsluttendeDeltakerlisteStatuser = listOf(
+        private val AVSLUTTENDE_DELTAKERLISTE_STATUSER = setOf(
             GjennomforingStatusType.AVSLUTTET,
             GjennomforingStatusType.AVBRUTT,
             GjennomforingStatusType.AVLYST,
