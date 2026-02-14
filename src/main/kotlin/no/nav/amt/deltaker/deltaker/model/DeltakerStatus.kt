@@ -11,6 +11,8 @@ val AVSLUTTENDE_STATUSER = setOf(
     DeltakerStatus.Type.AVBRUTT_UTKAST,
 )
 
+val IKKE_AVSLUTTENDE_STATUSER = DeltakerStatus.Type.entries.toSet() - AVSLUTTENDE_STATUSER
+
 val VENTER_PAA_PLASS_STATUSER = setOf(
     DeltakerStatus.Type.SOKT_INN,
     DeltakerStatus.Type.VURDERES,

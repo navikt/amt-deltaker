@@ -6,7 +6,7 @@ import kotliquery.Row
 import kotliquery.queryOf
 import no.nav.amt.deltaker.deltaker.db.DbUtils.nullWhenNearNow
 import no.nav.amt.deltaker.deltaker.db.DbUtils.sqlPlaceholders
-import no.nav.amt.deltaker.deltaker.model.AVSLUTTENDE_STATUSER
+import no.nav.amt.deltaker.deltaker.model.IKKE_AVSLUTTENDE_STATUSER
 import no.nav.amt.deltaker.utils.toPGObject
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.utils.database.Database
@@ -109,7 +109,7 @@ object DeltakerStatusRepository {
                     OR                                      
                     gyldig_fra < CURRENT_TIMESTAMP
                     OR
-                    type NOT IN ($avsluttendeStatuserAsDelimitedString)
+                    type IN ($IKKE_AVSLUTTENDE_STATUSER_AS_DELIMITED_STRING)
                 )
             """.trimIndent()
 
@@ -127,7 +127,7 @@ object DeltakerStatusRepository {
         }
     }
 
-    private val avsluttendeStatuserAsDelimitedString = AVSLUTTENDE_STATUSER
+    private val IKKE_AVSLUTTENDE_STATUSER_AS_DELIMITED_STRING = IKKE_AVSLUTTENDE_STATUSER
         .joinToString { "'${it.name}'" }
 
     fun slettTidligereFremtidigeStatuser(deltakerId: UUID, excludeStatusId: UUID) {

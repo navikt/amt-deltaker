@@ -4,8 +4,8 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import kotliquery.queryOf
 import no.nav.amt.deltaker.deltaker.db.DbUtils.sqlPlaceholders
-import no.nav.amt.deltaker.deltaker.model.AVSLUTTENDE_STATUSER
 import no.nav.amt.deltaker.deltaker.model.Deltaker
+import no.nav.amt.deltaker.deltaker.model.IKKE_AVSLUTTENDE_STATUSER
 import no.nav.amt.deltaker.deltaker.model.Vedtaksinformasjon
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.utils.toPGObject
@@ -175,19 +175,14 @@ class DeltakerRepository {
         val sql = buildDeltakerSql(
             "skalHaStatusDeltar",
             """
-            ds.type = :status
+            ds.type = '${DeltakerStatus.Type.VENTER_PA_OPPSTART.name}'
             AND d.startdato <= CURRENT_DATE
             AND (d.sluttdato IS NULL OR d.sluttdato >= CURRENT_DATE)
             """.trimIndent(),
         )
 
         return Database.query { session ->
-            session.run(
-                queryOf(
-                    sql,
-                    mapOf("status" to DeltakerStatus.Type.VENTER_PA_OPPSTART.name),
-                ).map(::deltakerRowMapper).asList,
-            )
+            session.run(queryOf(sql).map(::deltakerRowMapper).asList)
         }
     }
 
@@ -195,18 +190,13 @@ class DeltakerRepository {
         val sql = buildDeltakerSql(
             "getSluttdatoHarPassert",
             """
-            ds.type IN (${sqlPlaceholders(sluttdatoStatuser.size)})
+            ds.type IN ($SLUTTDATO_PASSERT_STATUSER_DELIMITED)
             AND d.sluttdato < CURRENT_DATE
             """.trimIndent(),
         )
 
         return Database.query { session ->
-            session.run(
-                queryOf(
-                    sql,
-                    *sluttdatoStatuser.toTypedArray(),
-                ).map(::deltakerRowMapper).asList,
-            )
+            session.run(queryOf(sql).map(::deltakerRowMapper).asList)
         }
     }
 
@@ -214,19 +204,15 @@ class DeltakerRepository {
         val sql = buildDeltakerSql(
             "getDeltakereSomDeltar",
             """
-            ds.type NOT IN (${sqlPlaceholders(avsluttendeDeltakerStatuser.size)})
-            AND dl.status IN (${sqlPlaceholders(avsluttendeDeltakerlisteStatuser.size)})
+            ds.type IN ($IKKE_AVSLUTTENDE_STATUSER_DELIMITED)
+            AND dl.status IN ($AVSLUTTENDE_DELTAKERLISTE_STATUSER_DELIMITED)
             """.trimIndent(),
         )
 
+        println(sql)
+
         return Database.query { session ->
-            session.run(
-                queryOf(
-                    sql,
-                    *avsluttendeDeltakerStatuser.toTypedArray(),
-                    *avsluttendeDeltakerlisteStatuser.toTypedArray(),
-                ).map(::deltakerRowMapper).asList,
-            )
+            session.run(queryOf(sql).map(::deltakerRowMapper).asList)
         }
     }
 
@@ -265,18 +251,18 @@ class DeltakerRepository {
     }
 
     companion object {
-        private val sluttdatoStatuser = listOf(
-            DeltakerStatus.Type.VENTER_PA_OPPSTART.name,
-            DeltakerStatus.Type.DELTAR.name,
-        )
+        private val IKKE_AVSLUTTENDE_STATUSER_DELIMITED = IKKE_AVSLUTTENDE_STATUSER.joinToString { "'${it.name}'" }
 
-        private val avsluttendeDeltakerStatuser = AVSLUTTENDE_STATUSER.map { it.name }
+        private val SLUTTDATO_PASSERT_STATUSER_DELIMITED = setOf(
+            DeltakerStatus.Type.VENTER_PA_OPPSTART,
+            DeltakerStatus.Type.DELTAR,
+        ).joinToString { "'${it.name}'" }
 
-        private val avsluttendeDeltakerlisteStatuser = listOf(
+        private val AVSLUTTENDE_DELTAKERLISTE_STATUSER_DELIMITED = setOf(
             GjennomforingStatusType.AVSLUTTET,
             GjennomforingStatusType.AVBRUTT,
             GjennomforingStatusType.AVLYST,
-        ).map { it.name }
+        ).joinToString { "'${it.name}'" }
 
         private fun deltakerRowMapper(row: Row): Deltaker {
             val status = DeltakerStatus.Type.valueOf(row.string("ds.type"))
