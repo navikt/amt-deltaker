@@ -100,7 +100,11 @@ class DeltakerRepository {
         Database.query { session ->
             session.run(
                 queryOf(
-                    buildDeltakerSql("get", "d.id = :id", null),
+                    buildDeltakerSql(
+                        methodName = "get",
+                        whereClause = "d.id = :id",
+                        limit = null,
+                    ),
                     mapOf("id" to id),
                 ).map(::deltakerRowMapper).asSingle,
             ) ?: throw NoSuchElementException("Ingen deltaker med id $id")
@@ -113,7 +117,11 @@ class DeltakerRepository {
         return Database.query { session ->
             session.run(
                 queryOf(
-                    buildDeltakerSql("getMany", "d.id IN (${sqlPlaceholders(deltakerIder.size)})"),
+                    buildDeltakerSql(
+                        methodName = "getMany",
+                        whereClause = "d.id IN (${sqlPlaceholders(deltakerIder.size)})",
+                        limit = deltakerIder.size,
+                    ),
                     *deltakerIder.toTypedArray(),
                 ).map(::deltakerRowMapper).asList,
             )
@@ -141,11 +149,34 @@ class DeltakerRepository {
         )
     }
 
-    fun getDeltakereForDeltakerliste(deltakerlisteId: UUID): List<Deltaker> = Database.query { session ->
+    fun getDeltakerHvorSluttdatoSkalEndres(deltakerlisteId: UUID): List<Deltaker> = Database.query { session ->
         session.run(
             queryOf(
-                buildDeltakerSql("getDeltakereForDeltakerliste", "d.deltakerliste_id = :deltakerliste_id"),
+                buildDeltakerSql(
+                    methodName = "getDeltakerHvorSluttdatoSkalEndres",
+                    whereClause =
+                        """
+                        d.deltakerliste_id = :deltakerliste_id 
+                        AND ds.type IN ($IKKE_AVSLUTTENDE_STATUSER_DELIMITED)
+                        AND d.sluttdato IS NOT NULL
+                        AND dl.slutt_dato IS NOT NULL
+                        AND d.sluttdato > dl.slutt_dato
+                        """.trimIndent(),
+                ),
                 mapOf("deltakerliste_id" to deltakerlisteId),
+            ).map(::deltakerRowMapper).asList,
+        )
+    }
+
+    fun getDeltakereForAvsluttetDeltakerliste(deltakerListeId: UUID): List<Deltaker> = Database.query { session ->
+        session.run(
+            queryOf(
+                buildDeltakerSql(
+                    methodName = "getDeltakereForAvbruttDeltakerliste",
+                    whereClause = "d.deltakerliste_id = :deltakerliste_id AND ds.type != '${DeltakerStatus.Type.KLADD.name}'",
+                    limit = 5_000, // enkelte deltakerlister kan inneholde mange deltakere
+                ),
+                mapOf("deltakerliste_id" to deltakerListeId),
             ).map(::deltakerRowMapper).asList,
         )
     }

@@ -1,8 +1,10 @@
 package no.nav.amt.deltaker.deltaker.db
 
 import io.kotest.assertions.assertSoftly
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
@@ -13,17 +15,120 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltakerliste.GjennomforingStatusType
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.shouldBeCloseTo
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import java.time.LocalDate
 
 class DeltakerRepositoryTest {
     private val deltakerRepository = DeltakerRepository()
 
     @Nested
+    inner class GetDeltakereForAvsluttetDeltakerlisteTests {
+        val deltakerlisteInTest = lagDeltakerliste()
+
+        @BeforeEach
+        fun setup() = TestRepository.insert(deltakerlisteInTest)
+
+        @Test
+        fun `skal returnere tom liste hvis ingen deltakere`() {
+            val deltakere = deltakerRepository.getDeltakereForAvsluttetDeltakerliste(deltakerlisteInTest.id)
+
+            deltakere.shouldBeEmpty()
+        }
+
+        @Test
+        fun `skal filtrere bort deltakere med status KLADD`() {
+            TestRepository.insert(
+                lagDeltaker(
+                    status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
+                    deltakerliste = deltakerlisteInTest,
+                ),
+            )
+
+            val deltakere = deltakerRepository.getDeltakereForAvsluttetDeltakerliste(deltakerlisteInTest.id)
+
+            deltakere.shouldBeEmpty()
+        }
+
+        @Test
+        fun `skal returnere deltakere med status DELTAR`() {
+            TestRepository.insert(
+                lagDeltaker(
+                    status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+                    deltakerliste = deltakerlisteInTest,
+                ),
+            )
+
+            val deltakere = deltakerRepository.getDeltakereForAvsluttetDeltakerliste(deltakerlisteInTest.id)
+
+            deltakere.size shouldBe 1
+        }
+    }
+
+    @Nested
+    inner class GetDeltakerHvorSluttdatoSkalEndresTests {
+        val deltakerlisteInTest = lagDeltakerliste(sluttDato = LocalDate.now().minusDays(2))
+
+        @BeforeEach
+        fun setup() = TestRepository.insert(deltakerlisteInTest)
+
+        @Test
+        fun `skal returnere tom liste hvis ingen deltakere`() {
+            val deltakere = deltakerRepository.getDeltakerHvorSluttdatoSkalEndres(deltakerlisteInTest.id)
+
+            deltakere.shouldBeEmpty()
+        }
+
+        @ParameterizedTest
+        @EnumSource(
+            value = DeltakerStatus.Type::class,
+            names = ["AVBRUTT", "AVBRUTT_UTKAST", "FULLFORT", "HAR_SLUTTET", "IKKE_AKTUELL", "FEILREGISTRERT"],
+        )
+        fun `skal filtrere bort deltakere med avsluttende status`(status: DeltakerStatus.Type) {
+            TestRepository.insert(
+                lagDeltaker(
+                    status = lagDeltakerStatus(status),
+                    deltakerliste = deltakerlisteInTest,
+                ),
+            )
+
+            val deltakere = deltakerRepository.getDeltakerHvorSluttdatoSkalEndres(deltakerlisteInTest.id)
+
+            deltakere.shouldBeEmpty()
+        }
+
+        @Test
+        fun `skal returnere deltakere med sluttdato storre enn deltakerliste sluttdato`() {
+            setOf(
+                LocalDate.now().plusDays(1), // skal returneres
+                LocalDate.now().minusDays(2),
+                null,
+            ).forEach { sluttdato ->
+                TestRepository.insert(
+                    lagDeltaker(
+                        status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+                        deltakerliste = deltakerlisteInTest,
+                        sluttdato = sluttdato,
+                    ),
+                )
+            }
+
+            val deltakere = deltakerRepository.getDeltakerHvorSluttdatoSkalEndres(deltakerlisteInTest.id)
+
+            deltakere.size shouldBe 1
+        }
+    }
+
+    @Nested
     inner class GetAntallDeltakereForDeltakerlisteTests {
         val deltakerlisteInTest = lagDeltakerliste()
+
+        @BeforeEach
+        fun setup() = TestRepository.insert(deltakerlisteInTest)
 
         @Test
         fun `skal returnere 0 hvis ingen deltakere`() {
@@ -52,7 +157,7 @@ class DeltakerRepositoryTest {
             deltakerRepository.upsert(expectedDeltaker)
             DeltakerStatusRepository.lagreStatus(expectedDeltaker.id, expectedDeltaker.status)
 
-            val deltakerFromDb = deltakerRepository.get(expectedDeltaker.id).getOrThrow()
+            val deltakerFromDb = deltakerRepository.get(expectedDeltaker.id).shouldBeSuccess()
             assertDeltakereAreEqual(deltakerFromDb, expectedDeltaker)
         }
 
@@ -70,7 +175,10 @@ class DeltakerRepositoryTest {
 
             deltakerRepository.upsert(oppdatertDeltaker)
 
-            assertDeltakereAreEqual(deltakerRepository.get(deltaker.id).getOrThrow(), oppdatertDeltaker)
+            assertDeltakereAreEqual(
+                deltakerRepository.get(deltaker.id).shouldBeSuccess(),
+                oppdatertDeltaker,
+            )
         }
     }
 
@@ -109,7 +217,7 @@ class DeltakerRepositoryTest {
 
             val deltakereSomSkalHaAvsluttendeStatus = deltakerRepository.getDeltakereHvorSluttdatoHarPassert()
 
-            deltakereSomSkalHaAvsluttendeStatus.size shouldBe 0
+            deltakereSomSkalHaAvsluttendeStatus.shouldBeEmpty()
         }
     }
 
@@ -143,7 +251,7 @@ class DeltakerRepositoryTest {
 
             val deltakerePaAvsluttetDeltakerliste = deltakerRepository.getDeltakereSomDeltarPaAvsluttetDeltakerliste()
 
-            deltakerePaAvsluttetDeltakerliste.size shouldBe 0
+            deltakerePaAvsluttetDeltakerliste.shouldBeEmpty()
         }
     }
 
@@ -154,7 +262,7 @@ class DeltakerRepositoryTest {
             val deltaker = lagDeltaker()
             TestRepository.insert(deltaker)
 
-            val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
+            val deltakerFraDb = deltakerRepository.get(deltaker.id).shouldBeSuccess()
 
             deltakerFraDb.shouldNotBeNull()
             deltakerFraDb.id shouldBe deltaker.id
@@ -165,7 +273,7 @@ class DeltakerRepositoryTest {
             val deltaker = lagDeltaker(status = lagDeltakerStatus(DeltakerStatus.Type.FEILREGISTRERT))
             TestRepository.insert(deltaker)
 
-            val deltakerFraDb = deltakerRepository.get(deltaker.id).getOrThrow()
+            val deltakerFraDb = deltakerRepository.get(deltaker.id).shouldBeSuccess()
             assertSoftly(deltakerFraDb) {
                 startdato shouldBe null
                 sluttdato shouldBe null
@@ -186,8 +294,8 @@ class DeltakerRepositoryTest {
 
         val deltakere = deltakerRepository.getMany(setOf(deltaker1.id, deltaker2.id))
         deltakere shouldHaveSize 2
-        deltakere.contains(deltaker1)
-        deltakere.contains(deltaker2)
+        deltakere.any { it.id == deltaker1.id } shouldBe true
+        deltakere.any { it.id == deltaker2.id } shouldBe true
     }
 
     companion object {

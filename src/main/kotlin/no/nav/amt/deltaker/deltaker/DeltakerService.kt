@@ -333,8 +333,7 @@ class DeltakerService(
 
     suspend fun avsluttDeltakelserPaaDeltakerliste(deltakerliste: Deltakerliste) {
         val deltakerePaAvbruttDeltakerliste = deltakerRepository
-            .getDeltakereForDeltakerliste(deltakerliste.id)
-            .filter { it.status.type != DeltakerStatus.Type.KLADD }
+            .getDeltakereForAvsluttetDeltakerliste(deltakerliste.id)
             .map { it.copy(deltakerliste = deltakerliste) }
 
         avsluttDeltakere(deltakerePaAvbruttDeltakerliste)
@@ -368,22 +367,16 @@ class DeltakerService(
         .skalHaStatusDeltar()
         .distinct()
 
-    suspend fun avgrensSluttdatoerTil(deltakerliste: Deltakerliste) {
-        val deltakere = deltakerRepository
-            .getDeltakereForDeltakerliste(deltakerliste.id)
-            .filter { it.status.type !in DeltakerStatus.avsluttendeStatuser }
-
-        deltakere.forEach {
-            if (it.sluttdato != null && deltakerliste.sluttDato != null && it.sluttdato > deltakerliste.sluttDato) {
-                upsertAndProduceDeltaker(
-                    deltaker = it.copy(sluttdato = deltakerliste.sluttDato),
-                    erDeltakerSluttdatoEndret = true,
-                    forceProduce = true, // For at oppdateringen skal propageres riktig til amt-deltaker-bff så må vi sette denne.
-                )
-                log.info("Deltaker ${it.id} fikk ny sluttdato fordi deltakerlisten sin sluttdato var mindre enn deltakers")
-            }
+    suspend fun avgrensSluttdatoerTil(deltakerliste: Deltakerliste) = deltakerRepository
+        .getDeltakerHvorSluttdatoSkalEndres(deltakerliste.id)
+        .forEach { deltaker ->
+            upsertAndProduceDeltaker(
+                deltaker = deltaker.copy(sluttdato = deltakerliste.sluttDato),
+                erDeltakerSluttdatoEndret = true,
+                forceProduce = true, // For at oppdateringen skal propageres riktig til amt-deltaker-bff så må vi sette denne.
+            )
+            log.info("Deltaker ${deltaker.id} fikk ny sluttdato fordi deltakerlisten sin sluttdato var mindre enn deltakers")
         }
-    }
 
     companion object {
         fun validerIkkeFeilregistrert(deltaker: Deltaker) = require(deltaker.status.type != DeltakerStatus.Type.FEILREGISTRERT) {
