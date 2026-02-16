@@ -16,14 +16,16 @@ class ImportertFraArenaRepository {
             INSERT INTO importert_fra_arena (
                 deltaker_id, 
                 importert_dato, 
-                deltaker_ved_import)
+                deltaker_ved_import
+            )
             VALUES (
                 :deltaker_id,
-                COALESCE(:importert_dato, CURRENT_TIMESTAMP),
-                :deltaker_ved_import)
+                :importert_dato,
+                :deltaker_ved_import
+            )
             ON CONFLICT (deltaker_id) DO UPDATE SET
-              importert_dato      = CURRENT_TIMESTAMP, 
-              deltaker_ved_import = :deltaker_ved_import
+                importert_dato      = :importert_dato, 
+                deltaker_ved_import = :deltaker_ved_import
             """.trimIndent()
 
         Database.query { session ->
@@ -32,6 +34,7 @@ class ImportertFraArenaRepository {
                     sql,
                     mapOf(
                         "deltaker_id" to importertFraArena.deltakerId,
+                        "importert_dato" to importertFraArena.importertDato,
                         "deltaker_ved_import" to toPGObject(importertFraArena.deltakerVedImport),
                     ),
                 ),

@@ -20,7 +20,6 @@ import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.deltaker.utils.data.TestData.lagNavAnsatt
 import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
-import no.nav.amt.deltaker.utils.toPGObject
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.Arrangor
@@ -81,29 +80,6 @@ object TestRepository {
         DeltakerRepository().upsert(deltaker)
         DeltakerStatusRepository.lagreStatus(deltaker.id, deltaker.status)
         vedtak?.let { insert(vedtak) }
-    }
-
-    // TODO: importert_dato benyttes ikke ImportertFraArenaRepository#upsert, undersøk
-    fun insert(importertFraArena: ImportertFraArena) {
-        val sql =
-            """
-            INSERT INTO importert_fra_arena(deltaker_id, importert_dato, deltaker_ved_import)
-            VALUES (:deltaker_id, :importert_dato, :deltaker_ved_import)
-            ON CONFLICT (deltaker_id) DO NOTHING
-            """.trimIndent()
-
-        Database.query { session ->
-            session.update(
-                queryOf(
-                    sql,
-                    mapOf(
-                        "deltaker_id" to importertFraArena.deltakerId,
-                        "importert_dato" to importertFraArena.importertDato,
-                        "deltaker_ved_import" to toPGObject(importertFraArena.deltakerVedImport),
-                    ),
-                ),
-            )
-        }
     }
 
     fun <T> insertAll(vararg values: T) {

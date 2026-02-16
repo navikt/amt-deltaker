@@ -233,7 +233,7 @@ class DeltakerResponseMapperServiceTest {
             importertDato = LocalDateTime.now().minusWeeks(2),
             deltakerVedImport = deltaker.toDeltakerVedImport(innsoktDato),
         )
-        TestRepository.insert(importertFraArena)
+        importertFraArenaRepository.upsert(importertFraArena)
 
         val deltakerV2Dto = deltakerKafkaPayloadBuilder.buildDeltakerV2Record(deltaker)
         sammenlignHistorikk(deltakerV2Dto.historikk?.get(0)!!, DeltakerHistorikk.ImportertFraArena(importertFraArena))
@@ -287,7 +287,7 @@ class DeltakerResponseMapperServiceTest {
             importertDato = LocalDateTime.now().minusWeeks(2),
             deltakerVedImport = deltaker.toDeltakerVedImport(innsoktDato),
         )
-        TestRepository.insert(importertFraArena)
+        importertFraArenaRepository.upsert(importertFraArena)
 
         val endring = lagDeltakerEndring(
             deltakerId = deltaker.id,
