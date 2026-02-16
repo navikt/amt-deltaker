@@ -212,7 +212,15 @@ fun Routing.registerInternalApi(
         if (isInternal(call.request.local.remoteAddress)) {
             val request = call.receive<RepubliserRequest>()
             scope.launch {
-                log.info("Relaster alle deltakere komet er master for på deltaker-v2")
+                if (request.publiserTilDeltakerV2) {
+                    log.info("Relaster alle deltakere komet er master for på deltaker-v2")
+                }
+                if (request.publiserTilDeltakerV1) {
+                    log.info("Relaster alle deltakere komet er master for på deltaker-v1")
+                }
+                if (request.publiserTilDeltakerEksternV1) {
+                    log.info("Relaster alle deltakere komet er master for på deltaker-ekstern-v1")
+                }
                 for (tiltakskode in Tiltakskode.entries) {
                     val deltakerIder = deltakerRepository.getDeltakerIderForTiltakskode(tiltakskode)
 
@@ -223,13 +231,22 @@ fun Routing.registerInternalApi(
                             deltakerRepository.get(deltakerId).getOrThrow(),
                             forcedUpdate = request.forcedUpdate,
                             publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
+                            publiserTilDeltakerV2 = request.publiserTilDeltakerV2,
                             publiserTilDeltakerEksternV1 = request.publiserTilDeltakerEksternV1,
                         )
                     }
 
                     log.info("Ferdig relastet av ${deltakerIder.size} deltakere på tiltakskode ${tiltakskode.name}.")
                 }
-                log.info("Ferdig relastet alle deltakere Team Komet er master for på deltaker-v2")
+                if (request.publiserTilDeltakerV2) {
+                    log.info("Ferdig relastet alle deltakere Team Komet er master for på deltaker-v2")
+                }
+                if (request.publiserTilDeltakerV1) {
+                    log.info("Ferdig relastet alle deltakere Team Komet er master for på deltaker-v1")
+                }
+                if (request.publiserTilDeltakerEksternV1) {
+                    log.info("Ferdig relastet alle deltakere Team Komet er master for på deltaker-ekstern-v1")
+                }
             }
             call.respond(HttpStatusCode.OK)
         } else {
@@ -432,6 +449,7 @@ data class DeleteDeltakereRequest(
 data class RepubliserRequest(
     val forcedUpdate: Boolean,
     val publiserTilDeltakerV1: Boolean,
+    val publiserTilDeltakerV2: Boolean,
     val publiserTilDeltakerEksternV1: Boolean,
 )
 
