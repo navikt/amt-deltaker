@@ -140,7 +140,10 @@ class DeltakerRepository {
     fun getFlereForPerson(personIdent: String, deltakerlisteId: UUID): List<Deltaker> = Database.query { session ->
         session.run(
             queryOf(
-                buildDeltakerSql("getFlereForPerson", "nb.personident = :personident AND d.deltakerliste_id = :deltakerliste_id"),
+                buildDeltakerSql(
+                    "getFlereForPersonDeltakerliste",
+                    "nb.personident = :personident AND d.deltakerliste_id = :deltakerliste_id",
+                ),
                 mapOf(
                     "personident" to personIdent,
                     "deltakerliste_id" to deltakerlisteId,
@@ -239,6 +242,8 @@ class DeltakerRepository {
             AND dl.status IN ($AVSLUTTENDE_DELTAKERLISTE_STATUSER_DELIMITED)
             """.trimIndent(),
         )
+
+        println(sql)
 
         return Database.query { session ->
             session.run(queryOf(sql).map(::deltakerRowMapper).asList)
