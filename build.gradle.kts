@@ -2,7 +2,7 @@ group = "no.nav.amt-deltaker"
 version = "1.0-SNAPSHOT"
 
 plugins {
-    val kotlinVersion = "2.2.21"
+    val kotlinVersion = "2.3.10"
 
     kotlin("jvm") version kotlinVersion
     id("io.ktor.plugin") version "3.4.0"
@@ -18,14 +18,14 @@ repositories {
 }
 
 val ktorVersion = "3.4.0"
-val logbackVersion = "1.5.27"
-val prometeusVersion = "1.16.2"
+val logbackVersion = "1.5.29"
+val prometeusVersion = "1.16.3"
 val ktlintVersion = "1.6.0"
 val jacksonVersion = "2.21.0"
 val logstashEncoderVersion = "9.0"
 val commonVersion = "3.2025.10.10_08.21-bb7c7830d93c"
 val poaoTilgangVersion = "2025.11.03_14.33-9c5783f38a9a"
-val kotestVersion = "6.1.2"
+val kotestVersion = "6.1.3"
 val flywayVersion = "11.20.3"
 val hikariVersion = "7.0.2"
 val kotliqueryVersion = "1.9.1"
