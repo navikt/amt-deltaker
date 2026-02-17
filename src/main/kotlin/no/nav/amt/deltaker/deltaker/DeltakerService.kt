@@ -270,7 +270,9 @@ class DeltakerService(
             .distinct()
 
         require(tiltakskoder.size == 1) { "kan ikke endre på deltakere på flere tiltakskoder samtidig" }
-        require(tiltakskoder.first() in Tiltakstype.kursTiltak) { "kan ikke endre på deltakere på tiltakskoden ${tiltakskoder.first()}" }
+        require(tiltakskoder.first() in Tiltakstype.kursTiltak.plus(Tiltakstype.opplaeringsTiltak)) {
+            "kan ikke endre på deltakere på tiltakskoden ${tiltakskoder.first()}"
+        }
 
         return deltakere.map { deltaker ->
             val oppdateringResult = upsertSingleDeltaker(deltaker, endringsType, endretAv, endretAvEnhet)
