@@ -13,7 +13,6 @@ import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
-import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.deltaker.utils.data.TestData.lagArrangor
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
@@ -29,6 +28,7 @@ import no.nav.amt.lib.models.deltakerliste.kafka.GjennomforingV2KafkaPayload
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.utils.objectMapper
+import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
@@ -43,7 +43,7 @@ class DeltakerlisteConsumerTest {
     private val deltakerService: DeltakerService = mockk(relaxed = true)
     private val arrangorRepository = ArrangorRepository()
     private val arrangorService = ArrangorService(arrangorRepository, mockAmtArrangorClient(arrangorInTest))
-    private val unleashToggle: UnleashToggle = mockk()
+    private val unleashToggle: CommonUnleashToggle = mockk()
 
     private val consumer =
         DeltakerlisteConsumer(
@@ -63,7 +63,7 @@ class DeltakerlisteConsumerTest {
     @BeforeEach
     fun setup() {
         clearAllMocks()
-        every { unleashToggle.skipProsesseringAvGjennomforing(any<String>()) } returns false
+        every { unleashToggle.skalLeseGjennomforing(any<String>()) } returns true
     }
 
     @Test
@@ -92,7 +92,7 @@ class DeltakerlisteConsumerTest {
 
     @Test
     fun `unleashToggle er ikke enabled for tiltakstype - lagrer ikke deltakerliste`() {
-        every { unleashToggle.skipProsesseringAvGjennomforing(any<String>()) } returns true
+        every { unleashToggle.skalLeseGjennomforing(any<String>()) } returns false
 
         val tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_FAG_OG_YRKESOPPLAERING)
         tiltakstypeRepository.upsert(tiltakstype)

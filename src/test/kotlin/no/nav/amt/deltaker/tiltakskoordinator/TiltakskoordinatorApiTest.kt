@@ -11,7 +11,6 @@ import io.mockk.mockk
 import no.nav.amt.deltaker.deltaker.DeltakerOppdateringResult
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
 import no.nav.amt.deltaker.deltaker.model.Deltaker
-import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.deltaker.utils.RouteTestBase
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
@@ -21,11 +20,12 @@ import no.nav.amt.lib.models.deltaker.internalapis.tiltakskoordinator.response.D
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.tiltakskoordinator.requests.DelMedArrangorRequest
 import no.nav.amt.lib.utils.objectMapper
+import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
 class TiltakskoordinatorApiTest : RouteTestBase() {
-    override val unleashToggle = mockk<UnleashToggle>()
+    override val unleashToggle = mockk<CommonUnleashToggle>()
 
     @Test
     fun `skal teste autentisering - mangler token - returnerer 401`() {

@@ -76,7 +76,6 @@ import no.nav.amt.deltaker.navenhet.NavEnhetConsumer
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
-import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.lib.kafka.Producer
 import no.nav.amt.lib.kafka.config.KafkaConfigImpl
 import no.nav.amt.lib.kafka.config.LocalKafkaConfig
@@ -89,6 +88,7 @@ import no.nav.amt.lib.outbox.OutboxService
 import no.nav.amt.lib.utils.applicationConfig
 import no.nav.amt.lib.utils.database.Database
 import no.nav.amt.lib.utils.job.JobManager
+import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import no.nav.poao_tilgang.client.PoaoTilgangCachedClient
 import no.nav.poao_tilgang.client.PoaoTilgangHttpClient
 import kotlin.time.Duration.Companion.seconds
@@ -233,7 +233,7 @@ fun Application.module() {
             .apiKey(environment.unleashApiToken)
             .build(),
     )
-    val unleashToggle = UnleashToggle(unleash)
+    val unleashToggle = CommonUnleashToggle(unleash)
 
     val hendelseProducer = HendelseProducer(outboxService)
     val hendelseService = HendelseService(

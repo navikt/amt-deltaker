@@ -34,8 +34,8 @@ import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
-import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.lib.utils.applicationConfig
+import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import no.nav.poao_tilgang.client.PoaoTilgangCachedClient
 import org.junit.jupiter.api.BeforeEach
 
@@ -61,7 +61,7 @@ abstract class RouteTestBase {
     protected val tilgangskontrollService = TilgangskontrollService(poaoTilgangCachedClient)
 
     protected val unleashClient = FakeUnleash()
-    protected open val unleashToggle = UnleashToggle(unleashClient)
+    protected open val unleashToggle = CommonUnleashToggle(unleashClient)
 
     protected val opprettKladdRequestValidator = mockk<OpprettKladdRequestValidator>()
 

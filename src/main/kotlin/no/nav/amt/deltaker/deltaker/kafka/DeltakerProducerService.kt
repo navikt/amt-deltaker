@@ -2,8 +2,8 @@ package no.nav.amt.deltaker.deltaker.kafka
 
 import no.nav.amt.deltaker.deltaker.kafka.dto.DeltakerKafkaPayloadBuilder
 import no.nav.amt.deltaker.deltaker.model.Deltaker
-import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import java.util.UUID
 
 class DeltakerProducerService(
@@ -11,7 +11,7 @@ class DeltakerProducerService(
     private val deltakerProducer: DeltakerProducer,
     private val deltakerV1Producer: DeltakerV1Producer,
     private val deltakerEksternV1Producer: DeltakerEksternV1Producer,
-    private val unleashToggle: UnleashToggle,
+    private val unleashToggle: CommonUnleashToggle,
 ) {
     fun produce(
         deltaker: Deltaker,
@@ -37,7 +37,7 @@ class DeltakerProducerService(
 
     private fun produceDeltakerV1Topic(deltaker: Deltaker) {
         val deltakerV1Record = deltakerKafkaPayloadBuilder.buildDeltakerV1Record(deltaker)
-        if (unleashToggle.skalDelesMedEksterne(deltaker.deltakerliste.tiltakstype.tiltakskode)) {
+        if (unleashToggle.erKometMasterForTiltakstype(deltaker.deltakerliste.tiltakstype.tiltakskode)) {
             deltakerV1Producer.produce(deltakerV1Record)
         }
     }

@@ -8,7 +8,6 @@ import no.nav.amt.deltaker.navansatt.NavAnsattRepository
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetService
-import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.hendelse.Hendelse
@@ -19,6 +18,7 @@ import no.nav.amt.lib.models.hendelse.toHendelseEndring
 import no.nav.amt.lib.models.person.NavAnsatt
 import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.models.tiltakskoordinator.EndringFraTiltakskoordinator
+import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
@@ -34,7 +34,7 @@ class HendelseService(
     private val arrangorService: ArrangorService,
     private val deltakerHistorikkService: DeltakerHistorikkService,
     private val vurderingService: VurderingService,
-    private val unleashToggle: UnleashToggle,
+    private val unleashToggle: CommonUnleashToggle,
 ) {
     val log: Logger = LoggerFactory.getLogger(javaClass)
 
