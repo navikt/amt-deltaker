@@ -35,7 +35,6 @@ import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
-import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
@@ -53,6 +52,7 @@ import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.TestOutboxEnvironment
+import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
@@ -86,7 +86,7 @@ class DeltakerStatusOppdateringTest {
         )
 
     private val vurderingRepository = VurderingRepository()
-    private val unleashToggle = mockk<UnleashToggle>()
+    private val unleashToggle = mockk<CommonUnleashToggle>()
     private val deltakerKafkaPayloadMapperService =
         DeltakerKafkaPayloadBuilder(navAnsattRepository, navEnhetRepository, deltakerHistorikkService, vurderingRepository)
 
@@ -160,7 +160,6 @@ class DeltakerStatusOppdateringTest {
         navAnsattRepository.upsert(sistEndretAvNavAnsatt)
 
         every { unleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns true
-        every { unleashToggle.skalDelesMedEksterne(any<Tiltakskode>()) } returns true
         every { unleashToggle.skalProdusereTilDeltakerEksternTopic() } returns true
     }
 

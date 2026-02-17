@@ -13,11 +13,11 @@ import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.deltakerliste.toModel
 import no.nav.amt.deltaker.navbruker.NavBrukerService
-import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.deltaker.utils.buildManagedKafkaConsumer
 import no.nav.amt.lib.kafka.Consumer
 import no.nav.amt.lib.models.deltaker.ImportertFraArena
 import no.nav.amt.lib.utils.objectMapper
+import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.util.UUID
@@ -28,7 +28,7 @@ class EnkeltplassDeltakerConsumer(
     private val deltakerlisteRepository: DeltakerlisteRepository,
     private val navBrukerService: NavBrukerService,
     private val importertFraArenaRepository: ImportertFraArenaRepository,
-    private val unleashToggle: UnleashToggle,
+    private val unleashToggle: CommonUnleashToggle,
     private val mulighetsrommetApiClient: MulighetsrommetApiClient,
     private val arrangorService: ArrangorService,
     private val tiltakstypeRepository: TiltakstypeRepository,

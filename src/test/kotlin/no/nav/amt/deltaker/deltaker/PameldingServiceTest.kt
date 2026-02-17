@@ -47,7 +47,6 @@ import no.nav.amt.deltaker.navbruker.NavBrukerService
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
-import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.deltaker.utils.MockResponseHandler
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestData.lagArrangor
@@ -78,6 +77,7 @@ import no.nav.amt.lib.models.person.NavEnhet
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.TestOutboxEnvironment
 import no.nav.amt.lib.testing.shouldBeCloseTo
+import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -97,7 +97,6 @@ class PameldingServiceTest {
         navAnsattRepository.upsert(sistEndretAvNavAnsatt)
 
         every { unleashToggle.erKometMasterForTiltakstype(any<Tiltakskode>()) } returns true
-        every { unleashToggle.skalDelesMedEksterne(any<Tiltakskode>()) } returns true
         every { unleashToggle.skalProdusereTilDeltakerEksternTopic() } returns true
     }
 
@@ -547,7 +546,7 @@ class PameldingServiceTest {
             vurderingRepository,
         )
 
-    private val unleashToggle = mockk<UnleashToggle>(relaxed = true)
+    private val unleashToggle = mockk<CommonUnleashToggle>(relaxed = true)
 
     private val hendelseService = HendelseService(
         HendelseProducer(TestOutboxEnvironment.outboxService),

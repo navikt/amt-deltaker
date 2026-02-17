@@ -27,7 +27,6 @@ import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.navbruker.NavBrukerService
-import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
@@ -43,6 +42,7 @@ import no.nav.amt.lib.models.deltakerliste.kafka.GjennomforingV2KafkaPayload
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.shouldBeEqualTo
+import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
@@ -51,7 +51,7 @@ import java.time.LocalDateTime
 import java.time.OffsetDateTime
 
 class EnkeltplassDeltakerConsumerTest {
-    private val unleashToggle = mockk<UnleashToggle>()
+    private val unleashToggle = mockk<CommonUnleashToggle>()
     private val mulighetsrommetApiClient = mockk<MulighetsrommetApiClient>()
     private val arrangorRepository = ArrangorRepository()
     private val arrangorService = mockk<ArrangorService>()
@@ -107,7 +107,6 @@ class EnkeltplassDeltakerConsumerTest {
     @BeforeEach
     fun setup() {
         clearAllMocks()
-        every { unleashToggle.skalDelesMedEksterne(any()) } returns false
         every { unleashToggle.skalProdusereTilDeltakerEksternTopic() } returns true
         every { deltakerProducer.produce(any()) } just Runs
         every { deltakerEksternV1Producer.produce(any()) } just Runs

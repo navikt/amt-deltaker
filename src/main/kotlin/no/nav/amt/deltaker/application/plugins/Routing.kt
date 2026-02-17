@@ -34,11 +34,11 @@ import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.tiltakskoordinator.api.registerTiltakskoordinatorApi
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
-import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.lib.ktor.auth.exceptions.AuthenticationException
 import no.nav.amt.lib.ktor.auth.exceptions.AuthorizationException
 import no.nav.amt.lib.ktor.routing.registerHealthApi
 import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.OpprettKladdRequest
+import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -59,7 +59,7 @@ fun Application.configureRouting(
     deltakelserResponseMapper: DeltakelserResponseMapper,
     deltakerProducerService: DeltakerProducerService,
     vedtakService: VedtakService,
-    unleashToggle: UnleashToggle,
+    unleashToggle: CommonUnleashToggle,
     innsokPaaFellesOppstartRepository: InnsokPaaFellesOppstartRepository,
     vurderingRepository: VurderingRepository,
     hendelseService: HendelseService,

@@ -14,7 +14,7 @@ import no.nav.amt.deltaker.external.data.DeltakerPersonaliaResponse
 import no.nav.amt.deltaker.external.data.HarAktiveDeltakelserResponse
 import no.nav.amt.deltaker.external.data.HentDeltakelserRequest
 import no.nav.amt.deltaker.navenhet.NavEnhetService
-import no.nav.amt.deltaker.unleash.UnleashToggle
+import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import java.util.UUID
 
 fun Routing.registerExternalApi(
@@ -22,7 +22,7 @@ fun Routing.registerExternalApi(
     navEnhetService: NavEnhetService,
     tilgangskontrollService: TilgangskontrollService,
     deltakelserResponseMapper: DeltakelserResponseMapper,
-    unleashToggle: UnleashToggle,
+    unleashToggle: CommonUnleashToggle,
 ) {
     val apiPath = "/external"
 

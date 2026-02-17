@@ -30,7 +30,6 @@ import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetRepository
 import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
-import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerEndring
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
@@ -58,6 +57,7 @@ import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.testing.DatabaseTestExtension
 import no.nav.amt.lib.testing.TestOutboxEnvironment
 import no.nav.amt.lib.utils.database.Database
+import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 import java.time.LocalDate
@@ -75,7 +75,7 @@ class DeltakerEndringServiceTest {
     private val deltakerEndringRepository = DeltakerEndringRepository()
     private val vurderingRepository = VurderingRepository()
     private val vurderingService = VurderingService(vurderingRepository)
-    private val unleashToggle = mockk<UnleashToggle>(relaxed = true)
+    private val unleashToggle = mockk<CommonUnleashToggle>(relaxed = true)
 
     private val deltakerHistorikkService = DeltakerHistorikkService(
         deltakerEndringRepository,

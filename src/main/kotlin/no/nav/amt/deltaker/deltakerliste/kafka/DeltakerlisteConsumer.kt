@@ -9,11 +9,11 @@ import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.deltakerliste.DeltakerlisteRepository
 import no.nav.amt.deltaker.deltakerliste.tiltakstype.TiltakstypeRepository
 import no.nav.amt.deltaker.deltakerliste.toModel
-import no.nav.amt.deltaker.unleash.UnleashToggle
 import no.nav.amt.deltaker.utils.buildManagedKafkaConsumer
 import no.nav.amt.lib.kafka.Consumer
 import no.nav.amt.lib.models.deltakerliste.kafka.GjennomforingV2KafkaPayload
 import no.nav.amt.lib.utils.objectMapper
+import no.nav.amt.lib.utils.unleash.CommonUnleashToggle
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.UUID
@@ -24,7 +24,7 @@ class DeltakerlisteConsumer(
     private val tiltakstypeRepository: TiltakstypeRepository,
     private val arrangorService: ArrangorService,
     private val deltakerService: DeltakerService,
-    private val unleashToggle: UnleashToggle,
+    private val unleashToggle: CommonUnleashToggle,
 ) : Consumer<UUID, String?> {
     private val consumer = buildManagedKafkaConsumer(
         topic = Environment.DELTAKERLISTE_V2_TOPIC,
@@ -43,7 +43,7 @@ class DeltakerlisteConsumer(
     }
 
     private suspend fun handterDeltakerliste(deltakerlistePayload: GjennomforingV2KafkaPayload) {
-        if (unleashToggle.skipProsesseringAvGjennomforing(deltakerlistePayload.tiltakskode.name)) {
+        if (!unleashToggle.skalLeseGjennomforing(deltakerlistePayload.tiltakskode.name)) {
             return
         }
 
