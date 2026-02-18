@@ -34,10 +34,10 @@ På topicen `amt.deltaker-ekstern-v1` publiseres det siste øyeblikksbildet av d
 
 Topicen inneholder deltakere som kan ha **adressebeskyttelse** (kode 6/7), og skjermede personer (egen ansatt).
 
-Deltakere kan bli slettet, da vil det bli produsert en tombstone for den deltakeren.
+Deltakere kan bli slettet, da vil det bli produsert en tombstone for den deltakeren. En tombstone er en melding med `null` som verdi, hvor key er deltakerens id.
 
 Topicen er satt opp med evig retention og compaction, så den skal inneholde alle deltakere som har vært registrert på de
-nevnte tiltakene.
+nevnte tiltakene. Compaction betyr at kun siste melding for hver key beholdes. Konsumenter som leser fra starten av topicen vil få siste versjon av hver deltaker.
 
 ## Meldinger
 
@@ -93,6 +93,10 @@ nevnte tiltakene.
 
 ### Deltaker
 
+**Format-notater:**
+- `date` - Dato i ISO-8601 format (YYYY-MM-DD)
+- `datetime` - Tidsstempel i ISO-8601 format (YYYY-MM-DDTHH:MM:SS eller YYYY-MM-DDTHH:MM:SS.ssssss)
+
 | Felt                    | Format         | Beskrivelse                                                                                                                                                                                                                                    |
 |-------------------------|----------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **id**                  | `uuid`         | En unik id som identifiserer en enkelt deltaker / deltakelse på ett tiltak. Samme som `Key`                                                                                                                                                    |
@@ -101,8 +105,8 @@ nevnte tiltakene.
 | **startDato**           | `date\|null`   | Dagen deltakeren starter/startet på tiltaket                                                                                                                                                                                                   | 
 | **sluttDato**           | `date\|null`   | Dagen deltakeren slutter/sluttet på tiltaket                                                                                                                                                                                                   |
 | **status**              | `object`       | Nåværende status på deltakeren, forteller f.eks om deltakeren deltar på tiltaket akkurat nå eller venter på oppstart osv. Se [Status](#status)                                                                                                 |
-| **registrertTidspunkt** | `datetime`     | Datoen deltakeren er registrert i Arena. Det er litt ukjent hva som definerer en registrertDato i fremtiden når vi i Komet overtar opprettelsen av deltakere.                                                                                  |
-| **endretTidspunkt**     | `datetime`     | Tidsstempel for siste endring på deltakeren                                                                                                                                                                                                    |
+| **registrertTidspunkt** | `datetime`     | Datoen deltakeren er registrert i Arena. Det er litt ukjent hva som definerer en registrertDato i fremtiden når vi i Komet overtar opprettelsen av deltakere. Tidsstempel i ISO-8601 format.                                                   |
+| **endretTidspunkt**     | `datetime`     | Tidsstempel for siste endring på deltakeren. Tidsstempel i ISO-8601 format.                                                                                                                                                                    |
 | **kilde**               | `string`       | Kilde for deltakeren. Kan være `ARENA` eller `KOMET`. Hvis kilden er `KOMET` ble deltakeren opprettet i Komets nye løsning. Hvis kilde er `ARENA` ble deltakeren opprettet Arena.                                                              |
 | **innhold**             | `object\|null` | Innhold for tiltaksdeltakelsen på strukturert format. Kun for deltakere som er opprettet hos Komet, eller som har fått lagt til innhold etter at Komet ble master for deltakeren.                                                              |
 | **deltakelsesmengder**  | `list`         | Periodiserte deltakelsesmengder. Finnes kun på deltakere som Komet er master for, men gamle meldinger på topic vil kunne mangle dette feltet uavhengig av hvem som er master. Listen vil kun inneholde elementer for deltakarer på AFT og VTA. |
@@ -113,8 +117,8 @@ nevnte tiltakene.
 |------------------------|----------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **type**               | `string`       | En av følgende verdier: `VENTER_PA_OPPSTART`, `DELTAR`, `HAR_SLUTTET`, `IKKE_AKTUELL`, `FEILREGISTRERT`, `SOKT_INN`, `VURDERES`, `VENTELISTE`, `AVBRUTT`, `FULLFORT`, `PABEGYNT_REGISTRERING`, `UTKAST_TIL_PAMELDING`, `AVBRUTT_UTKAST` <br /><br /> Det er litt ulike typer statuser som kan settes på deltakere, basert på hvilke tiltak de deltar på. Hovedregelen er at `FULLFORT` og `AVBRUTT` kan kun settes på deltakere som går på tiltak hvor det er en felles oppstart eller at det er et opplæringstiltak, typisk kurs som `JOBBKLUBB`, `GRUPPE_ARBEIDSMARKEDSPPLAERING`, `GRUPPE_FAG_OG_YRKESOPPLAERING`, mens `HAR_SLUTTET` brukes kun på de andre tiltakene som har et "løpende" inntak og oppstart av deltakere. |
 | **tekst**              | `string`       | Tekstrepresentasjon av statustypen (for visning).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| **aarsak**             | `object`       | Årsak gitt for status til deltaker. Se [Aarsak](#aarsak)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| **opprettetTidspunkt** | `datetime`     | Tidsstempel for når statusen ble opprettet                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| **aarsak**             | `object`       | Årsak for status til deltaker. Objektet er alltid til stede, men `type` og `beskrivelse` er `null` for statuser hvor årsak ikke er relevant (dvs. alle andre enn `HAR_SLUTTET`, `IKKE_AKTUELL`, `AVBRUTT` og `AVBRUTT_UTKAST`). Se [Aarsak](#aarsak)                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| **opprettetTidspunkt** | `datetime`     | Tidsstempel for når statusen ble opprettet. Tidsstempel i ISO-8601 format.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 
 ### Aarsak
 
@@ -128,10 +132,10 @@ på [Confluence](https://confluence.adeo.no/pages/viewpage.action?pageId=5737102
 
 #### Deltakelsesinnhold
 
-| Felt             | Format         | Beskrivelse                                             |
-|------------------|----------------|---------------------------------------------------------|
-| **ledetekst**    | `string\|null` | Generell informasjon om tiltakstypen. Kommer fra Valp.  |
-| **valgtInnhold** | `list`         | Liste over valgt innhold som gjelder denne deltakelsen. |
+| Felt             | Format         | Beskrivelse                                                        |
+|------------------|----------------|--------------------------------------------------------------------|
+| **ledetekst**    | `string\|null` | Generell informasjon om tiltakstypen. Kommer fra Valp.             |
+| **valgtInnhold** | `list`         | Liste over valgt innhold som gjelder denne deltakelsen. Kan være tom liste. |
 
 #### Innhold
 
@@ -142,14 +146,12 @@ på [Confluence](https://confluence.adeo.no/pages/viewpage.action?pageId=5737102
 
 #### Deltakelsesmengde
 
-| Felt                   | Format        | Beskrivelse                                          |
-|------------------------|---------------|------------------------------------------------------|
-| **deltakelsesprosent** | `float`       | Prosentandelen deltakeren opptar av en tiltaksplass. |
-| **dagerPerUke**        | `float\|null` | Antall dager deltakeren deltar på tiltaket per uke.  |
-| **gyldigFraDato**      | `date`        | Dato f.o.m. når deltakalesesmengden trer i kraft.    |
-| **opprettetTidspunkt** | `datetime`    | Når endringen ble opprettet.                         |
-
-Mer informasjon om hvordan periodiserte deltakelsesmengder settes og endres kommer snart.
+| Felt                   | Format        | Beskrivelse                                                   |
+|------------------------|---------------|---------------------------------------------------------------|
+| **deltakelsesprosent** | `float`       | Prosentandelen deltakeren opptar av en tiltaksplass.          |
+| **dagerPerUke**        | `float\|null` | Antall dager deltakeren deltar på tiltaket per uke.           |
+| **gyldigFraDato**      | `date`        | Dato f.o.m. når deltakalesesmengden trer i kraft.             |
+| **opprettetTidspunkt** | `datetime`    | Når endringen ble opprettet. Tidsstempel i ISO-8601 format.   |
 
 ### Skjema
 
