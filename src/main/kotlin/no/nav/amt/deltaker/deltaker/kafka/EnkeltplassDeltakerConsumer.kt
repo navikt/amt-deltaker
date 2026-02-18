@@ -78,10 +78,19 @@ class EnkeltplassDeltakerConsumer(
 
         log.info("Ingester enkeltplass deltaker med id ${deltakerPayload.id}")
         val eksisterendeDeltaker = deltakerRepository.get(deltakerPayload.id).getOrNull()
+        val navBruker = navBrukerService.get(deltakerPayload.personIdent)
+
+        // Work around for falsk identitet i dev sånn at consumeren ikke blir stuck på noen deltakere
+        if (navBruker.isFailure && Environment.isDev()) {
+            log.error(
+                "Klarte ikke hente nav-bruker med ident ${deltakerPayload.personIdent} for deltaker ${deltakerPayload.id}. Feilen var: ${navBruker.exceptionOrNull()}",
+            )
+            return
+        }
 
         val deltaker = deltakerPayload.toDeltaker(
             deltakerliste = deltakerliste,
-            navBruker = navBrukerService.get(deltakerPayload.personIdent).getOrThrow(),
+            navBruker = navBruker.getOrThrow(),
             forrigeDeltakerStatus = eksisterendeDeltaker?.status,
         )
 
