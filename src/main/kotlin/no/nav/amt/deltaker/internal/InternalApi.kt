@@ -74,13 +74,15 @@ fun Routing.registerInternalApi(
             }
 
             request.deltakere.forEach { deltakerId ->
-                deltakerProducerService.produce(
-                    deltakerRepository.get(deltakerId).getOrThrow(),
-                    forcedUpdate = request.forcedUpdate,
-                    publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
-                    publiserTilDeltakerEksternV1 = request.publiserTilDeltakerEksternV1,
-                    publiserTilDeltakerV2 = request.publiserTilDeltakerV2,
-                )
+                Database.transaction {
+                    deltakerProducerService.produce(
+                        deltakerRepository.get(deltakerId).getOrThrow(),
+                        forcedUpdate = request.forcedUpdate,
+                        publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
+                        publiserTilDeltakerEksternV1 = request.publiserTilDeltakerEksternV1,
+                        publiserTilDeltakerV2 = request.publiserTilDeltakerV2,
+                    )
+                }
             }
             log.info("Ferdig med reprodusering av ${request.deltakere.size} deltakere på deltaker-v2")
         }
@@ -142,12 +144,14 @@ fun Routing.registerInternalApi(
             if (request.publiserTilDeltakerEksternV1) {
                 log.info("Relaster deltaker $deltakerId på deltaker-ekstern-v1")
             }
-            deltakerProducerService.produce(
-                deltaker.getOrThrow(),
-                forcedUpdate = request.forcedUpdate,
-                publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
-                publiserTilDeltakerEksternV1 = request.publiserTilDeltakerEksternV1,
-            )
+            Database.transaction {
+                deltakerProducerService.produce(
+                    deltaker.getOrThrow(),
+                    forcedUpdate = request.forcedUpdate,
+                    publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
+                    publiserTilDeltakerEksternV1 = request.publiserTilDeltakerEksternV1,
+                )
+            }
             log.info("Relastet deltaker $deltakerId på deltaker-v2")
             call.respond(HttpStatusCode.OK)
         } else {
@@ -164,13 +168,15 @@ fun Routing.registerInternalApi(
             val request = call.receive<RelastDeltakereRequest>()
             log.info("Republiser deltakere:${request.deltakere} deltakere med ny endretDato på deltaker-v1")
             request.deltakere.forEach { deltakerId ->
-                deltakerProducerService.produce(
-                    deltakerRepository.get(deltakerId).getOrThrow().copy(sistEndret = LocalDateTime.now()),
-                    forcedUpdate = request.forcedUpdate,
-                    publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
-                    publiserTilDeltakerEksternV1 = request.publiserTilDeltakerEksternV1,
-                    publiserTilDeltakerV2 = false,
-                )
+                Database.transaction {
+                    deltakerProducerService.produce(
+                        deltakerRepository.get(deltakerId).getOrThrow().copy(sistEndret = LocalDateTime.now()),
+                        forcedUpdate = request.forcedUpdate,
+                        publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
+                        publiserTilDeltakerEksternV1 = request.publiserTilDeltakerEksternV1,
+                        publiserTilDeltakerV2 = false,
+                    )
+                }
             }
 
             log.info("Republiserte ${request.deltakere.size} på deltaker-v1")
@@ -201,13 +207,15 @@ fun Routing.registerInternalApi(
                 }
                 val deltakerIder = deltakerRepository.getDeltakerIderForTiltakskode(tiltakskode)
                 deltakerIder.forEach {
-                    deltakerProducerService.produce(
-                        deltakerRepository.get(it).getOrThrow(),
-                        forcedUpdate = request.forcedUpdate,
-                        publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
-                        publiserTilDeltakerV2 = request.publiserTilDeltakerV2,
-                        publiserTilDeltakerEksternV1 = request.publiserTilDeltakerEksternV1,
-                    )
+                    Database.transaction {
+                        deltakerProducerService.produce(
+                            deltakerRepository.get(it).getOrThrow(),
+                            forcedUpdate = request.forcedUpdate,
+                            publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
+                            publiserTilDeltakerV2 = request.publiserTilDeltakerV2,
+                            publiserTilDeltakerEksternV1 = request.publiserTilDeltakerEksternV1,
+                        )
+                    }
                 }
                 if (request.publiserTilDeltakerV2) {
                     log.info("Ferdig relastet alle deltakere for tiltakskode ${tiltakskode.name} komet er master for på deltaker-v2")
@@ -246,13 +254,15 @@ fun Routing.registerInternalApi(
                     log.info("Gjør klar for relast av ${deltakerIder.size} deltakere på tiltakskode ${tiltakskode.name}.")
 
                     deltakerIder.forEach { deltakerId ->
-                        deltakerProducerService.produce(
-                            deltakerRepository.get(deltakerId).getOrThrow(),
-                            forcedUpdate = request.forcedUpdate,
-                            publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
-                            publiserTilDeltakerV2 = request.publiserTilDeltakerV2,
-                            publiserTilDeltakerEksternV1 = request.publiserTilDeltakerEksternV1,
-                        )
+                        Database.transaction {
+                            deltakerProducerService.produce(
+                                deltakerRepository.get(deltakerId).getOrThrow(),
+                                forcedUpdate = request.forcedUpdate,
+                                publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
+                                publiserTilDeltakerV2 = request.publiserTilDeltakerV2,
+                                publiserTilDeltakerEksternV1 = request.publiserTilDeltakerEksternV1,
+                            )
+                        }
                     }
 
                     log.info("Ferdig relastet av ${deltakerIder.size} deltakere på tiltakskode ${tiltakskode.name}.")
@@ -358,12 +368,14 @@ fun Routing.registerInternalApi(
                 val deltaker = deltakerRepository.get(endring.deltakerId).getOrThrow()
 
                 if (request.relastDeltaker) {
-                    deltakerProducerService.produce(
-                        deltaker,
-                        forcedUpdate = request.forcedUpdate,
-                        publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
-                        publiserTilDeltakerEksternV1 = request.publiserTilDeltakerEksternV1,
-                    )
+                    Database.transaction {
+                        deltakerProducerService.produce(
+                            deltaker,
+                            forcedUpdate = request.forcedUpdate,
+                            publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
+                            publiserTilDeltakerEksternV1 = request.publiserTilDeltakerEksternV1,
+                        )
+                    }
                     log.info("Ferdig relastet deltaker ${deltaker.id}")
                 }
 
