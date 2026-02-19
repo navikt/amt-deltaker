@@ -190,17 +190,36 @@ fun Routing.registerInternalApi(
             val request = call.receive<RepubliserRequest>()
 
             scope.launch {
-                log.info("Relaster deltakere for tiltakskode ${tiltakskode.name} på deltaker-v2")
+                if (request.publiserTilDeltakerV2) {
+                    log.info("Relaster alle deltakere for tiltakskode ${tiltakskode.name} komet er master for på deltaker-v2")
+                }
+                if (request.publiserTilDeltakerV1) {
+                    log.info("Relaster alle deltakere for tiltakskode ${tiltakskode.name} komet er master for på deltaker-v1")
+                }
+                if (request.publiserTilDeltakerEksternV1) {
+                    log.info("Relaster alle deltakere for tiltakskode ${tiltakskode.name} komet er master for på deltaker-ekstern-v1")
+                }
                 val deltakerIder = deltakerRepository.getDeltakerIderForTiltakskode(tiltakskode)
                 deltakerIder.forEach {
                     deltakerProducerService.produce(
                         deltakerRepository.get(it).getOrThrow(),
                         forcedUpdate = request.forcedUpdate,
                         publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
+                        publiserTilDeltakerV2 = request.publiserTilDeltakerV2,
                         publiserTilDeltakerEksternV1 = request.publiserTilDeltakerEksternV1,
                     )
                 }
-                log.info("Relastet deltakere for tiltakskode ${tiltakskode.name} på deltaker-v2")
+                if (request.publiserTilDeltakerV2) {
+                    log.info("Ferdig relastet alle deltakere for tiltakskode ${tiltakskode.name} komet er master for på deltaker-v2")
+                }
+                if (request.publiserTilDeltakerV1) {
+                    log.info("Ferdig relastet alle deltakere for tiltakskode ${tiltakskode.name} komet er master for på deltaker-v1")
+                }
+                if (request.publiserTilDeltakerEksternV1) {
+                    log.info(
+                        "Ferdig relastet alle deltakere for tiltakskode ${tiltakskode.name} komet er master for på deltaker-ekstern-v1",
+                    )
+                }
             }
             call.respond(HttpStatusCode.OK)
         } else {
