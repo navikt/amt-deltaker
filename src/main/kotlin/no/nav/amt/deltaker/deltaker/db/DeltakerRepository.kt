@@ -243,8 +243,6 @@ class DeltakerRepository {
             """.trimIndent(),
         )
 
-        println(sql)
-
         return Database.query { session ->
             session.run(queryOf(sql).map(::deltakerRowMapper).asList)
         }
