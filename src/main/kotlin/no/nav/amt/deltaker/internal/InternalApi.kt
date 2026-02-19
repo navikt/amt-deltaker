@@ -235,6 +235,68 @@ fun Routing.registerInternalApi(
         }
     }
 
+    post("/internal/relast/tiltakstyper") {
+        if (isInternal(call.request.local.remoteAddress)) {
+            val requestBody = call.receive<RepubliserTiltakskoderRequest>()
+
+            scope.launch {
+                if (requestBody.request.publiserTilDeltakerV2) {
+                    log.info(
+                        "Relaster alle deltakere for tiltakskoder ${requestBody.tiltakskoder.map { it.name }} " +
+                            "komet er master for på deltaker-v2",
+                    )
+                }
+                if (requestBody.request.publiserTilDeltakerV1) {
+                    log.info(
+                        "Relaster alle deltakere for tiltakskoder ${requestBody.tiltakskoder.map { it.name }} " +
+                            "komet er master for på deltaker-v1",
+                    )
+                }
+                if (requestBody.request.publiserTilDeltakerEksternV1) {
+                    log.info(
+                        "Relaster alle deltakere for tiltakskoder ${requestBody.tiltakskoder.map { it.name }} " +
+                            "komet er master for på deltaker-ekstern-v1",
+                    )
+                }
+
+                requestBody.tiltakskoder.forEach { tiltakskode ->
+                    val deltakerIder = deltakerRepository.getDeltakerIderForTiltakskode(tiltakskode)
+                    deltakerIder.forEach {
+                        deltakerProducerService.produce(
+                            deltakerRepository.get(it).getOrThrow(),
+                            forcedUpdate = requestBody.request.forcedUpdate,
+                            publiserTilDeltakerV1 = requestBody.request.publiserTilDeltakerV1,
+                            publiserTilDeltakerV2 = requestBody.request.publiserTilDeltakerV2,
+                            publiserTilDeltakerEksternV1 = requestBody.request.publiserTilDeltakerEksternV1,
+                        )
+                    }
+                }
+
+                if (requestBody.request.publiserTilDeltakerV2) {
+                    log.info(
+                        "Ferdig relastet alle deltakere for tiltakskoder ${requestBody.tiltakskoder.map { it.name }} " +
+                            "komet er master for på deltaker-v2",
+                    )
+                }
+                if (requestBody.request.publiserTilDeltakerV1) {
+                    log.info(
+                        "Ferdig relastet alle deltakere for tiltakskoder ${requestBody.tiltakskoder.map { it.name }} " +
+                            "komet er master for på deltaker-v1",
+                    )
+                }
+                if (requestBody.request.publiserTilDeltakerEksternV1) {
+                    log.info(
+                        "Ferdig relastet alle deltakere for tiltakskoder ${requestBody.tiltakskoder.map { it.name }} " +
+                            "komet er master for på deltaker-ekstern-v1",
+                    )
+                }
+            }
+            call.respond(HttpStatusCode.OK)
+        } else {
+            throw AuthorizationException("Ikke tilgang til api")
+        }
+    }
+
     post("/internal/relast/alle-deltakere") {
         if (isInternal(call.request.local.remoteAddress)) {
             val request = call.receive<RepubliserRequest>()
@@ -482,6 +544,11 @@ data class RepubliserRequest(
     val publiserTilDeltakerV1: Boolean,
     val publiserTilDeltakerV2: Boolean,
     val publiserTilDeltakerEksternV1: Boolean,
+)
+
+data class RepubliserTiltakskoderRequest(
+    val tiltakskoder: List<Tiltakskode>,
+    val request: RepubliserRequest,
 )
 
 fun isInternal(remoteAdress: String): Boolean = remoteAdress == "127.0.0.1"
