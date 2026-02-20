@@ -3,27 +3,27 @@ package no.nav.amt.deltaker.deltaker.endring
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 
-sealed class DeltakerEndringUtfall {
+sealed interface DeltakerEndringUtfall {
     class VellykketEndring(
         val deltaker: Deltaker,
         val nesteStatus: DeltakerStatus? = null,
-    ) : DeltakerEndringUtfall()
+    ) : DeltakerEndringUtfall
 
     class FremtidigEndring(
         val deltaker: Deltaker,
-    ) : DeltakerEndringUtfall()
+    ) : DeltakerEndringUtfall
 
     class UgyldigEndring(
         val error: Throwable,
-    ) : DeltakerEndringUtfall()
+    ) : DeltakerEndringUtfall
 
     val erVellykket: Boolean get() = this is VellykketEndring
 
     val erUgyldig: Boolean get() = this is UgyldigEndring
 
     fun getOrThrow(): Deltaker = when (this) {
-        is VellykketEndring -> this.deltaker
-        is FremtidigEndring -> this.deltaker
-        is UgyldigEndring -> throw this.error
+        is VellykketEndring -> deltaker
+        is FremtidigEndring -> deltaker
+        is UgyldigEndring -> throw error
     }
 }
