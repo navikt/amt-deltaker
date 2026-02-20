@@ -262,13 +262,15 @@ fun Routing.registerInternalApi(
                 requestBody.tiltakskoder.forEach { tiltakskode ->
                     val deltakerIder = deltakerRepository.getDeltakerIderForTiltakskode(tiltakskode)
                     deltakerIder.forEach {
-                        deltakerProducerService.produce(
-                            deltakerRepository.get(it).getOrThrow(),
-                            forcedUpdate = requestBody.request.forcedUpdate,
-                            publiserTilDeltakerV1 = requestBody.request.publiserTilDeltakerV1,
-                            publiserTilDeltakerV2 = requestBody.request.publiserTilDeltakerV2,
-                            publiserTilDeltakerEksternV1 = requestBody.request.publiserTilDeltakerEksternV1,
-                        )
+                        Database.transaction {
+                            deltakerProducerService.produce(
+                                deltakerRepository.get(it).getOrThrow(),
+                                forcedUpdate = requestBody.request.forcedUpdate,
+                                publiserTilDeltakerV1 = requestBody.request.publiserTilDeltakerV1,
+                                publiserTilDeltakerV2 = requestBody.request.publiserTilDeltakerV2,
+                                publiserTilDeltakerEksternV1 = requestBody.request.publiserTilDeltakerEksternV1,
+                            )
+                        }
                     }
                 }
 
