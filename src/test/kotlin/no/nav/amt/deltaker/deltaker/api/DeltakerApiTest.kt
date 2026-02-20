@@ -1,6 +1,5 @@
 package no.nav.amt.deltaker.deltaker.api
 
-import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -132,9 +131,8 @@ class DeltakerApiTest : RouteTestBase() {
             begrunnelse = "begrunnelse",
         )
 
-        val startdatoEndring = startdatoRequest.toEndring()
-        val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = startdatoEndring)))
-        val deltaker = lagDeltaker(startdato = startdatoEndring.startdato)
+        val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = startdatoRequest.toEndring())))
+        val deltaker = lagDeltaker(startdato = startdatoRequest.startdato)
 
         runEndringTest(startdatoRequest, deltaker, historikk)
     }
@@ -149,9 +147,8 @@ class DeltakerApiTest : RouteTestBase() {
             begrunnelse = "begrunnelse",
         )
 
-        val sluttdatoEndring = sluttdatoRequest.toEndring()
-        val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = sluttdatoEndring)))
-        val deltaker = lagDeltaker(sluttdato = sluttdatoEndring.sluttdato)
+        val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = sluttdatoRequest.toEndring())))
+        val deltaker = lagDeltaker(sluttdato = sluttdatoRequest.sluttdato)
 
         runEndringTest(sluttdatoRequest, deltaker, historikk)
     }
@@ -169,12 +166,11 @@ class DeltakerApiTest : RouteTestBase() {
             begrunnelse = "begrunnelse",
         )
 
-        val sluttarsakEndring = sluttarsakRequest.toEndring()
-        val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = sluttarsakEndring)))
+        val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = sluttarsakRequest.toEndring())))
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(
                 statusType = DeltakerStatus.Type.HAR_SLUTTET,
-                aarsakType = DeltakerStatus.Aarsak.Type.valueOf(sluttarsakEndring.aarsak.type.name),
+                aarsakType = DeltakerStatus.Aarsak.Type.FATT_JOBB,
             ),
         )
 
@@ -210,12 +206,11 @@ class DeltakerApiTest : RouteTestBase() {
             begrunnelse = "begrunnelse",
         )
 
-        val ikkeAktuellEndring = ikkeAktuellRequest.toEndring()
-        val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = ikkeAktuellEndring)))
+        val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = ikkeAktuellRequest.toEndring())))
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(
                 statusType = DeltakerStatus.Type.IKKE_AKTUELL,
-                aarsakType = DeltakerStatus.Aarsak.Type.valueOf(ikkeAktuellEndring.aarsak.type.name),
+                aarsakType = DeltakerStatus.Aarsak.Type.IKKE_MOTT,
             ),
         )
 
@@ -236,18 +231,13 @@ class DeltakerApiTest : RouteTestBase() {
             begrunnelse = "begrunnelse",
         )
 
-        val avsluttDeltakelseEndring = avsluttDeltakelseRequest.toEndring()
-        val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = avsluttDeltakelseEndring)))
+        val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = avsluttDeltakelseRequest.toEndring())))
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(
                 statusType = DeltakerStatus.Type.HAR_SLUTTET,
-                aarsakType = DeltakerStatus.Aarsak.Type.valueOf(
-                    avsluttDeltakelseEndring.aarsak
-                        .shouldNotBeNull()
-                        .type.name,
-                ),
+                aarsakType = DeltakerStatus.Aarsak.Type.FATT_JOBB,
             ),
-            sluttdato = avsluttDeltakelseEndring.sluttdato,
+            sluttdato = avsluttDeltakelseRequest.sluttdato,
         )
 
         runEndringTest(avsluttDeltakelseRequest, deltaker, historikk)
@@ -287,8 +277,7 @@ class DeltakerApiTest : RouteTestBase() {
             begrunnelse = "begrunnelse",
         )
 
-        val endring = reaktiverDeltakelseRequest.toEndring()
-        val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = endring)))
+        val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = reaktiverDeltakelseRequest.toEndring())))
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
             startdato = null,
@@ -307,8 +296,7 @@ class DeltakerApiTest : RouteTestBase() {
             begrunnelse = "begrunnelse",
         )
 
-        val oppstartsdatoEndring = fjernOppstartsdatoRequest.toEndring()
-        val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = oppstartsdatoEndring)))
+        val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = fjernOppstartsdatoRequest.toEndring())))
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
             startdato = null,
