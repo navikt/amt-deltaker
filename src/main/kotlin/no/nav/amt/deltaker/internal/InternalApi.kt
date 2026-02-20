@@ -22,6 +22,7 @@ import no.nav.amt.deltaker.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
+import no.nav.amt.deltaker.extensions.getDeltakerId
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
@@ -124,8 +125,7 @@ fun Routing.registerInternalApi(
 
     post("/internal/feilregistrer/{deltakerId}") {
         if (isInternal(call.request.local.remoteAddress)) {
-            val deltakerId = UUID.fromString(call.parameters["deltakerId"])
-            deltakerService.feilregistrerDeltaker(deltakerId)
+            deltakerService.feilregistrerDeltaker(call.getDeltakerId())
             call.respond(HttpStatusCode.OK)
         } else {
             throw AuthorizationException("Ikke tilgang til api")
@@ -134,7 +134,7 @@ fun Routing.registerInternalApi(
 
     post("/internal/relast/{deltakerId}") {
         if (isInternal(call.request.local.remoteAddress)) {
-            val deltakerId = UUID.fromString(call.parameters["deltakerId"])
+            val deltakerId = call.getDeltakerId()
             val request = call.receive<RepubliserRequest>()
             val deltaker = deltakerRepository.get(deltakerId)
             log.info("Relaster deltaker $deltakerId på deltaker-v2")

@@ -11,10 +11,10 @@ import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.PameldingService
 import no.nav.amt.deltaker.deltaker.api.DtoMappers.opprettKladdResponseFromDeltaker
 import no.nav.amt.deltaker.deltaker.api.DtoMappers.utkastResponseFromDeltaker
+import no.nav.amt.deltaker.extensions.getDeltakerId
 import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.AvbrytUtkastRequest
 import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.OpprettKladdRequest
 import no.nav.amt.lib.models.deltaker.internalapis.paamelding.request.UtkastRequest
-import java.util.UUID
 
 fun Routing.registerPameldingApi(pameldingService: PameldingService, historikkService: DeltakerHistorikkService) {
     authenticate("SYSTEM") {
@@ -36,34 +36,41 @@ fun Routing.registerPameldingApi(pameldingService: PameldingService, historikkSe
             /pamelding/{deltakerId}/utenGodkjenning godkjentAvNav=true
          */
         post("/pamelding/{deltakerId}") {
-            val request = call.receive<UtkastRequest>()
-            val deltakerId = UUID.fromString(call.parameters["deltakerId"])
+            val deltaker = pameldingService.upsertUtkast(
+                deltakerId = call.getDeltakerId(),
+                utkast = call.receive<UtkastRequest>(),
+            )
 
-            val deltaker = pameldingService.upsertUtkast(deltakerId, request)
-            val historikk = historikkService.getForDeltaker(deltaker.id)
-            call.respond(utkastResponseFromDeltaker(deltaker, historikk))
+            call.respond(
+                utkastResponseFromDeltaker(
+                    deltaker = deltaker,
+                    historikk = historikkService.getForDeltaker(deltaker.id),
+                ),
+            )
         }
 
         post("/pamelding/{deltakerId}/innbygger/godkjenn-utkast") {
-            val deltakerId = UUID.fromString(call.parameters["deltakerId"])
+            val oppdatertDeltaker = pameldingService.innbyggerGodkjennUtkast(call.getDeltakerId())
 
-            val oppdatertDeltaker = pameldingService.innbyggerGodkjennUtkast(deltakerId)
-            val historikk = historikkService.getForDeltaker(oppdatertDeltaker.id)
-
-            call.respond(utkastResponseFromDeltaker(oppdatertDeltaker, historikk))
+            call.respond(
+                utkastResponseFromDeltaker(
+                    deltaker = oppdatertDeltaker,
+                    historikk = historikkService.getForDeltaker(oppdatertDeltaker.id),
+                ),
+            )
         }
 
         post("/pamelding/{deltakerId}/avbryt") {
-            val request = call.receive<AvbrytUtkastRequest>()
-            val deltakerId = UUID.fromString(call.parameters["deltakerId"])
+            pameldingService.avbrytUtkast(
+                deltakerId = call.getDeltakerId(),
+                avbrytUtkastRequest = call.receive<AvbrytUtkastRequest>(),
+            )
 
-            pameldingService.avbrytUtkast(deltakerId, request)
             call.respond(HttpStatusCode.OK)
         }
 
         delete("/pamelding/{deltakerId}") {
-            val deltakerId = UUID.fromString(call.parameters["deltakerId"])
-            pameldingService.slettKladd(deltakerId)
+            pameldingService.slettKladd(call.getDeltakerId())
             call.respond(HttpStatusCode.OK)
         }
     }
