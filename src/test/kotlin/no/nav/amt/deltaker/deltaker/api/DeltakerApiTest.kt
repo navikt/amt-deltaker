@@ -7,6 +7,7 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.Runs
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.just
 import io.mockk.verify
@@ -46,25 +47,19 @@ class DeltakerApiTest : RouteTestBase() {
     @Test
     fun `skal teste autentisering - mangler token - returnerer 401`() {
         withTestApplicationContext { client ->
-            client.post("/deltaker/${UUID.randomUUID()}/bakgrunnsinformasjon") { setBody("foo") }.status shouldBe
-                HttpStatusCode.Unauthorized
-            client.post("/deltaker/${UUID.randomUUID()}/innhold") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
-            client.post("/deltaker/${UUID.randomUUID()}/endre-avslutning") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
-            client.post("/deltaker/${UUID.randomUUID()}/deltakelsesmengde") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
-            client.post("/deltaker/${UUID.randomUUID()}/startdato") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
-            client.post("/deltaker/${UUID.randomUUID()}/sluttdato") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
-            client.post("/deltaker/${UUID.randomUUID()}/sluttarsak") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
-            client.post("/deltaker/${UUID.randomUUID()}/forleng") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
-            client.post("/deltaker/${UUID.randomUUID()}/ikke-aktuell") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
-            client.post("/deltaker/${UUID.randomUUID()}/avslutt") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
-            client.post("/deltaker/${UUID.randomUUID()}/reaktiver") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
-            client.post("/deltaker/${UUID.randomUUID()}/fjern-oppstartsdato") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
+            client.post("/deltaker/${UUID.randomUUID()}/deltaker-endring") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
         }
     }
 
     @Test
-    fun `post bakgrunnsinformasjon - har tilgang - returnerer 200`() {
+    fun `post bakgrunnsinformasjon til felles endepunkt for endringer - har tilgang - returnerer 200`() {
         val endring = DeltakerEndring.Endring.EndreBakgrunnsinformasjon("bakgrunnsinformasjon")
+        val request = BakgrunnsinformasjonRequest(
+            endretAv = randomIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
+            bakgrunnsinformasjon = endring.bakgrunnsinformasjon,
+        )
+
         val deltaker = lagDeltaker(bakgrunnsinformasjon = endring.bakgrunnsinformasjon)
         val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = endring)))
 
@@ -74,19 +69,15 @@ class DeltakerApiTest : RouteTestBase() {
         val expectedBody = objectMapper.writeValueAsString(deltakerEndringResponseFromDeltaker(deltaker, historikk))
 
         withTestApplicationContext { client ->
-            val response = client.post("/deltaker/${UUID.randomUUID()}/bakgrunnsinformasjon") {
-                postRequest(
-                    BakgrunnsinformasjonRequest(
-                        randomIdent(),
-                        randomEnhetsnummer(),
-                        "bakgrunnsinformasjon",
-                    ),
-                )
+            val response = client.post("/deltaker/${deltaker.id}/deltaker-endring") {
+                postRequest(request)
             }
 
             response.status shouldBe HttpStatusCode.OK
             response.bodyAsText() shouldBe expectedBody
         }
+
+        coVerify { deltakerService.upsertEndretDeltaker(deltaker.id, request) }
     }
 
     @Test
@@ -103,7 +94,7 @@ class DeltakerApiTest : RouteTestBase() {
         val expectedBody = objectMapper.writeValueAsString(deltakerEndringResponseFromDeltaker(deltaker, historikk))
 
         withTestApplicationContext { client ->
-            val response = client.post("/deltaker/${UUID.randomUUID()}/innhold") {
+            val response = client.post("/deltaker/${UUID.randomUUID()}/deltaker-endring") {
                 postRequest(
                     InnholdRequest(
                         randomIdent(),
@@ -134,7 +125,7 @@ class DeltakerApiTest : RouteTestBase() {
         val expectedBody = objectMapper.writeValueAsString(deltakerEndringResponseFromDeltaker(deltaker, historikk))
 
         withTestApplicationContext { client ->
-            val response = client.post("/deltaker/${UUID.randomUUID()}/deltakelsesmengde") {
+            val response = client.post("/deltaker/${UUID.randomUUID()}/deltaker-endring") {
                 postRequest(
                     DeltakelsesmengdeRequest(
                         randomIdent(),
@@ -167,7 +158,7 @@ class DeltakerApiTest : RouteTestBase() {
         val expectedBody = objectMapper.writeValueAsString(deltakerEndringResponseFromDeltaker(deltaker, historikk))
 
         withTestApplicationContext { client ->
-            val response = client.post("/deltaker/${UUID.randomUUID()}/startdato") {
+            val response = client.post("/deltaker/${UUID.randomUUID()}/deltaker-endring") {
                 postRequest(
                     StartdatoRequest(
                         randomIdent(),
@@ -202,7 +193,7 @@ class DeltakerApiTest : RouteTestBase() {
         )
 
         withTestApplicationContext { client ->
-            val response = client.post("/deltaker/${UUID.randomUUID()}/sluttdato") {
+            val response = client.post("/deltaker/${UUID.randomUUID()}/deltaker-endring") {
                 postRequest(
                     SluttdatoRequest(
                         randomIdent(),
@@ -249,7 +240,7 @@ class DeltakerApiTest : RouteTestBase() {
         )
 
         withTestApplicationContext { client ->
-            val response = client.post("/deltaker/${UUID.randomUUID()}/sluttarsak") {
+            val response = client.post("/deltaker/${UUID.randomUUID()}/deltaker-endring") {
                 postRequest(
                     SluttarsakRequest(
                         randomIdent(),
@@ -284,7 +275,7 @@ class DeltakerApiTest : RouteTestBase() {
         )
 
         withTestApplicationContext { client ->
-            val response = client.post("/deltaker/${UUID.randomUUID()}/forleng") {
+            val response = client.post("/deltaker/${UUID.randomUUID()}/deltaker-endring") {
                 postRequest(
                     ForlengDeltakelseRequest(
                         randomIdent(),
@@ -327,7 +318,7 @@ class DeltakerApiTest : RouteTestBase() {
         )
 
         withTestApplicationContext { client ->
-            val response = client.post("/deltaker/${UUID.randomUUID()}/ikke-aktuell") {
+            val response = client.post("/deltaker/${UUID.randomUUID()}/deltaker-endring") {
                 postRequest(
                     IkkeAktuellRequest(
                         randomIdent(),
@@ -372,7 +363,7 @@ class DeltakerApiTest : RouteTestBase() {
         )
 
         withTestApplicationContext { client ->
-            val response = client.post("/deltaker/${UUID.randomUUID()}/avslutt") {
+            val response = client.post("/deltaker/${UUID.randomUUID()}/deltaker-endring") {
                 postRequest(
                     AvsluttDeltakelseRequest(
                         randomIdent(),
@@ -416,7 +407,7 @@ class DeltakerApiTest : RouteTestBase() {
         )
 
         withTestApplicationContext { client ->
-            val response = client.post("/deltaker/${UUID.randomUUID()}/endre-avslutning") {
+            val response = client.post("/deltaker/${UUID.randomUUID()}/deltaker-endring") {
                 postRequest(
                     EndreAvslutningRequest(
                         randomIdent(),
@@ -455,7 +446,7 @@ class DeltakerApiTest : RouteTestBase() {
         )
 
         withTestApplicationContext { client ->
-            val response = client.post("/deltaker/${UUID.randomUUID()}/reaktiver") {
+            val response = client.post("/deltaker/${UUID.randomUUID()}/deltaker-endring") {
                 postRequest(
                     ReaktiverDeltakelseRequest(
                         randomIdent(),
@@ -490,7 +481,7 @@ class DeltakerApiTest : RouteTestBase() {
         )
 
         withTestApplicationContext { client ->
-            val response = client.post("/deltaker/${UUID.randomUUID()}/fjern-oppstartsdato") {
+            val response = client.post("/deltaker/${UUID.randomUUID()}/deltaker-endring") {
                 postRequest(
                     FjernOppstartsdatoRequest(
                         randomIdent(),

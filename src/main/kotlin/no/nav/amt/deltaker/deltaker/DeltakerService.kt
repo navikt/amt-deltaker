@@ -2,7 +2,6 @@ package no.nav.amt.deltaker.deltaker
 
 import no.nav.amt.deltaker.deltaker.DeltakerUtils.nyDeltakerStatus
 import no.nav.amt.deltaker.deltaker.DeltakerUtils.sjekkEndringUtfall
-import no.nav.amt.deltaker.deltaker.api.deltaker.toDeltakerEndringEndring
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerStatusRepository
@@ -105,7 +104,7 @@ class DeltakerService(
         val eksisterendeDeltaker = deltakerRepository.get(deltakerId).getOrThrow()
         validerIkkeFeilregistrert(eksisterendeDeltaker)
 
-        val endring = request.toDeltakerEndringEndring()
+        val endring = request.toEndring()
         val deltakerEndringHandler = DeltakerEndringHandler(
             deltaker = eksisterendeDeltaker,
             endring = endring,

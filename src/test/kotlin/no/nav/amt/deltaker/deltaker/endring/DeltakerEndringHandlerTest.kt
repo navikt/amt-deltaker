@@ -7,7 +7,6 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
-import no.nav.amt.deltaker.deltaker.api.deltaker.toDeltakerEndringEndring
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
@@ -167,7 +166,7 @@ class DeltakerEndringHandlerTest {
             forslagId = null,
         )
         val deltakerEndringHandler =
-            DeltakerEndringHandler(deltaker, endringsrequest.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
+            DeltakerEndringHandler(deltaker, endringsrequest.toEndring(), deltakerHistorikkServiceMock)
         val resultat = deltakerEndringHandler.sjekkUtfall()
 
         resultat.erVellykket shouldBe true
@@ -193,7 +192,7 @@ class DeltakerEndringHandlerTest {
             forslagId = null,
         )
         val deltakerEndringHandler =
-            DeltakerEndringHandler(deltaker, endringsrequest.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
+            DeltakerEndringHandler(deltaker, endringsrequest.toEndring(), deltakerHistorikkServiceMock)
         val resultat = deltakerEndringHandler.sjekkUtfall()
 
         resultat.erVellykket shouldBe true
@@ -220,7 +219,7 @@ class DeltakerEndringHandlerTest {
         )
 
         val deltakerEndringHandler =
-            DeltakerEndringHandler(deltaker, endringsrequest.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
+            DeltakerEndringHandler(deltaker, endringsrequest.toEndring(), deltakerHistorikkServiceMock)
         val resultat = deltakerEndringHandler.sjekkUtfall()
 
         resultat.erVellykket shouldBe true
@@ -251,7 +250,7 @@ class DeltakerEndringHandlerTest {
         )
 
         val deltakerEndringHandler =
-            DeltakerEndringHandler(deltaker, endringsrequest.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
+            DeltakerEndringHandler(deltaker, endringsrequest.toEndring(), deltakerHistorikkServiceMock)
         val resultat = deltakerEndringHandler.sjekkUtfall()
 
         resultat.erVellykket shouldBe true
@@ -278,7 +277,7 @@ class DeltakerEndringHandlerTest {
         )
 
         val deltakerEndringHandler =
-            DeltakerEndringHandler(deltaker, endringsrequest.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
+            DeltakerEndringHandler(deltaker, endringsrequest.toEndring(), deltakerHistorikkServiceMock)
         val resultat = deltakerEndringHandler.sjekkUtfall()
 
         resultat.erVellykket shouldBe true
@@ -310,7 +309,7 @@ class DeltakerEndringHandlerTest {
         )
 
         val deltakerEndringHandler =
-            DeltakerEndringHandler(deltaker, endringsrequest.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
+            DeltakerEndringHandler(deltaker, endringsrequest.toEndring(), deltakerHistorikkServiceMock)
         val resultat = deltakerEndringHandler.sjekkUtfall()
 
         resultat.erVellykket shouldBe true
@@ -336,7 +335,7 @@ class DeltakerEndringHandlerTest {
         )
 
         val deltakerEndringHandler =
-            DeltakerEndringHandler(deltaker, endringsrequest.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
+            DeltakerEndringHandler(deltaker, endringsrequest.toEndring(), deltakerHistorikkServiceMock)
         val resultat = deltakerEndringHandler.sjekkUtfall()
 
         resultat.erVellykket shouldBe true
@@ -359,7 +358,7 @@ class DeltakerEndringHandlerTest {
         )
 
         val deltakerEndringHandler =
-            DeltakerEndringHandler(deltaker, endringsrequest.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
+            DeltakerEndringHandler(deltaker, endringsrequest.toEndring(), deltakerHistorikkServiceMock)
         val resultat = deltakerEndringHandler.sjekkUtfall()
 
         resultat.erVellykket shouldBe true
@@ -385,7 +384,7 @@ class DeltakerEndringHandlerTest {
         )
 
         val deltakerEndringHandler =
-            DeltakerEndringHandler(deltaker, endringsrequest.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
+            DeltakerEndringHandler(deltaker, endringsrequest.toEndring(), deltakerHistorikkServiceMock)
         val resultat = deltakerEndringHandler.sjekkUtfall()
 
         resultat.erVellykket shouldBe true
@@ -416,7 +415,7 @@ class DeltakerEndringHandlerTest {
         )
 
         val deltakerEndringHandler =
-            DeltakerEndringHandler(deltaker, endringsrequest.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
+            DeltakerEndringHandler(deltaker, endringsrequest.toEndring(), deltakerHistorikkServiceMock)
         val resultat = deltakerEndringHandler.sjekkUtfall()
 
         resultat.erVellykket shouldBe true
@@ -446,7 +445,7 @@ class DeltakerEndringHandlerTest {
         )
 
         val deltakerEndringHandler =
-            DeltakerEndringHandler(deltaker, endringsrequest.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
+            DeltakerEndringHandler(deltaker, endringsrequest.toEndring(), deltakerHistorikkServiceMock)
         val resultat = deltakerEndringHandler.sjekkUtfall()
         resultat.erVellykket shouldBe true
 
@@ -475,7 +474,7 @@ class DeltakerEndringHandlerTest {
         )
 
         val deltakerEndringHandler =
-            DeltakerEndringHandler(deltaker, endringsrequest.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
+            DeltakerEndringHandler(deltaker, endringsrequest.toEndring(), deltakerHistorikkServiceMock)
         val resultat = deltakerEndringHandler.sjekkUtfall()
 
         resultat.erVellykket shouldBe true
@@ -515,7 +514,7 @@ class DeltakerEndringHandlerTest {
         )
 
         val deltakerEndringHandler =
-            DeltakerEndringHandler(deltaker, endringsrequest.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
+            DeltakerEndringHandler(deltaker, endringsrequest.toEndring(), deltakerHistorikkServiceMock)
         val resultat = deltakerEndringHandler.sjekkUtfall()
 
         resultat.erVellykket shouldBe true
@@ -560,7 +559,7 @@ class DeltakerEndringHandlerTest {
         )
 
         val deltakerEndringHandler =
-            DeltakerEndringHandler(deltaker, endringsrequest.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
+            DeltakerEndringHandler(deltaker, endringsrequest.toEndring(), deltakerHistorikkServiceMock)
         val resultat = deltakerEndringHandler.sjekkUtfall()
 
         resultat.erVellykket shouldBe true
@@ -596,7 +595,7 @@ class DeltakerEndringHandlerTest {
         )
 
         val deltakerEndringHandler =
-            DeltakerEndringHandler(deltaker, endringsrequest.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
+            DeltakerEndringHandler(deltaker, endringsrequest.toEndring(), deltakerHistorikkServiceMock)
         val resultat = deltakerEndringHandler.sjekkUtfall()
 
         resultat.erVellykket shouldBe true
@@ -628,7 +627,7 @@ class DeltakerEndringHandlerTest {
         )
 
         val deltakerEndringHandler =
-            DeltakerEndringHandler(deltaker, endringsrequest.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
+            DeltakerEndringHandler(deltaker, endringsrequest.toEndring(), deltakerHistorikkServiceMock)
         val resultat = deltakerEndringHandler.sjekkUtfall()
 
         resultat.erVellykket shouldBe false
@@ -649,7 +648,7 @@ class DeltakerEndringHandlerTest {
         )
 
         val deltakerEndringHandler =
-            DeltakerEndringHandler(deltaker, endringsrequest.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
+            DeltakerEndringHandler(deltaker, endringsrequest.toEndring(), deltakerHistorikkServiceMock)
         val resultat = deltakerEndringHandler.sjekkUtfall()
 
         resultat.erVellykket shouldBe true
@@ -676,7 +675,7 @@ class DeltakerEndringHandlerTest {
         )
 
         val deltakerEndringHandler =
-            DeltakerEndringHandler(deltaker, endringsrequest.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
+            DeltakerEndringHandler(deltaker, endringsrequest.toEndring(), deltakerHistorikkServiceMock)
         val resultat = deltakerEndringHandler.sjekkUtfall()
 
         resultat.erVellykket shouldBe true
@@ -711,7 +710,7 @@ class DeltakerEndringHandlerTest {
         )
 
         val deltakerEndringHandler =
-            DeltakerEndringHandler(deltaker, endringsrequest.toDeltakerEndringEndring(), deltakerHistorikkServiceMock)
+            DeltakerEndringHandler(deltaker, endringsrequest.toEndring(), deltakerHistorikkServiceMock)
         val resultat = deltakerEndringHandler.sjekkUtfall()
 
         resultat.erVellykket shouldBe true

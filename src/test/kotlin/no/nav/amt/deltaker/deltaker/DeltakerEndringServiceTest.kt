@@ -7,7 +7,6 @@ import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.deltaker.DeltakerTestUtils.sammenlignDeltakerEndring
-import no.nav.amt.deltaker.deltaker.api.deltaker.toDeltakerEndringEndring
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
@@ -138,7 +137,7 @@ class DeltakerEndringServiceTest {
         Database.transaction {
             deltakerEndringService.upsertEndring(
                 deltakerId = deltaker.id,
-                endring = endringsrequest.toDeltakerEndringEndring(),
+                endring = endringsrequest.toEndring(),
                 utfall = utfall,
                 request = endringsrequest,
             )
@@ -175,7 +174,7 @@ class DeltakerEndringServiceTest {
             resultat = deltakerEndringService
                 .upsertEndring(
                     deltakerId = deltaker.id,
-                    endring = endringsrequest.toDeltakerEndringEndring(),
+                    endring = endringsrequest.toEndring(),
                     utfall = utfall,
                     request = endringsrequest,
                 )!!
@@ -216,7 +215,7 @@ class DeltakerEndringServiceTest {
         Database.transaction {
             deltakerEndringService.upsertEndring(
                 deltakerId = deltaker.id,
-                endring = endringsrequest.toDeltakerEndringEndring(),
+                endring = endringsrequest.toEndring(),
                 utfall = utfall,
                 request = endringsrequest,
             )
@@ -268,7 +267,7 @@ class DeltakerEndringServiceTest {
         Database.transaction {
             deltakerEndringService.upsertEndring(
                 deltakerId = deltaker.id,
-                endring = endringsrequest.toDeltakerEndringEndring(),
+                endring = endringsrequest.toEndring(),
                 utfall = utfall,
                 request = endringsrequest,
             )
@@ -323,7 +322,7 @@ class DeltakerEndringServiceTest {
         Database.transaction {
             deltakerEndringService.upsertEndring(
                 deltakerId = deltaker.id,
-                endring = endringsrequest.toDeltakerEndringEndring(),
+                endring = endringsrequest.toEndring(),
                 utfall = utfall,
                 request = endringsrequest,
             )
