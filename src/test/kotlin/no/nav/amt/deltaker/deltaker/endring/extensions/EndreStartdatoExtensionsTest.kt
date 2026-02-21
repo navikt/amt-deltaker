@@ -1,0 +1,229 @@
+package no.nav.amt.deltaker.deltaker.endring.extensions
+
+import io.kotest.assertions.assertSoftly
+import io.kotest.matchers.result.shouldBeSuccess
+import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.test.runTest
+import no.nav.amt.deltaker.deltaker.endring.extensions.EndringTestUtils.mockDeltakelsesmengdeProvider
+import no.nav.amt.deltaker.utils.data.TestData
+import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.StartdatoRequest
+import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
+import no.nav.amt.lib.models.deltakerliste.Oppstartstype
+import org.junit.jupiter.api.Test
+import java.time.LocalDate
+
+class EndreStartdatoExtensionsTest {
+    @Test
+    fun `oppdaterDeltaker - endret start- og sluttdato i fortid, venter pa oppstart - deltaker blir har sluttet`() = runTest {
+        val deltaker =
+            TestData.lagDeltaker(status = TestData.lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+        val endringsrequest = StartdatoRequest(
+            endretAv = endretAv.navIdent,
+            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            startdato = LocalDate.now().minusWeeks(10),
+            sluttdato = LocalDate.now().minusDays(4),
+            begrunnelse = null,
+            forslagId = null,
+        )
+
+        val resultat = endringsrequest
+            .toEndring()
+            .oppdaterDeltaker(
+                deltaker = deltaker,
+                deltakelsemengdeProvider = mockDeltakelsesmengdeProvider,
+            ).shouldBeSuccess()
+
+        assertSoftly(resultat.deltaker) {
+            status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+            startdato shouldBe endringsrequest.startdato
+            sluttdato shouldBe endringsrequest.sluttdato
+        }
+    }
+
+    @Test
+    fun `oppdaterDeltaker - endret sluttdato i fortid, startdato mangler, venter pa oppstart - blir ikke aktuell`() = runTest {
+        val deltaker =
+            TestData.lagDeltaker(status = TestData.lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+        val endringsrequest = StartdatoRequest(
+            endretAv = endretAv.navIdent,
+            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            startdato = null,
+            sluttdato = LocalDate.now().minusDays(4),
+            begrunnelse = null,
+            forslagId = null,
+        )
+
+        val resultat = endringsrequest
+            .toEndring()
+            .oppdaterDeltaker(
+                deltaker = deltaker,
+                deltakelsemengdeProvider = mockDeltakelsesmengdeProvider,
+            ).shouldBeSuccess()
+
+        assertSoftly(resultat.deltaker) {
+            status.type shouldBe DeltakerStatus.Type.IKKE_AKTUELL
+            startdato shouldBe null
+            sluttdato shouldBe null
+        }
+    }
+
+    @Test
+    fun `oppdaterDeltaker - endret start- og sluttdato i fortid, deltar - deltaker blir har sluttet`() = runTest {
+        val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+        val endringsrequest = StartdatoRequest(
+            endretAv = endretAv.navIdent,
+            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            startdato = LocalDate.now().minusWeeks(10),
+            sluttdato = LocalDate.now().minusDays(4),
+            begrunnelse = null,
+            forslagId = null,
+        )
+
+        val resultat = endringsrequest
+            .toEndring()
+            .oppdaterDeltaker(
+                deltaker = deltaker,
+                deltakelsemengdeProvider = mockDeltakelsesmengdeProvider,
+            ).shouldBeSuccess()
+
+        assertSoftly(resultat.deltaker) {
+            status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+            startdato shouldBe endringsrequest.startdato
+            sluttdato shouldBe endringsrequest.sluttdato
+        }
+    }
+
+    @Test
+    fun `oppdaterDeltaker - endret start- og sluttdato i fremtid, fullfort - deltaker blir venter pa oppstart`() = runTest {
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.FULLFORT),
+            startdato = LocalDate.now().minusWeeks(10),
+            sluttdato = LocalDate.now().minusDays(4),
+        )
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+        val endringsrequest = StartdatoRequest(
+            endretAv = endretAv.navIdent,
+            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            startdato = LocalDate.now().plusDays(10),
+            sluttdato = LocalDate.now().plusWeeks(4),
+            begrunnelse = null,
+            forslagId = null,
+        )
+
+        val resultat = endringsrequest
+            .toEndring()
+            .oppdaterDeltaker(
+                deltaker = deltaker,
+                deltakelsemengdeProvider = mockDeltakelsesmengdeProvider,
+            ).shouldBeSuccess()
+
+        assertSoftly(resultat.deltaker) {
+            status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
+            startdato shouldBe endringsrequest.startdato
+            sluttdato shouldBe endringsrequest.sluttdato
+        }
+    }
+
+    @Test
+    fun `oppdaterDeltaker - endret start- og sluttdato i fremtid, deltar - deltaker blir venter pa oppstart`() = runTest {
+        val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+        val endringsrequest = StartdatoRequest(
+            endretAv = endretAv.navIdent,
+            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            startdato = LocalDate.now().plusDays(10),
+            sluttdato = LocalDate.now().plusWeeks(4),
+            begrunnelse = null,
+            forslagId = null,
+        )
+
+        val resultat = endringsrequest
+            .toEndring()
+            .oppdaterDeltaker(
+                deltaker = deltaker,
+                deltakelsemengdeProvider = mockDeltakelsesmengdeProvider,
+            ).shouldBeSuccess()
+
+        assertSoftly(resultat.deltaker) {
+            status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
+            startdato shouldBe endringsrequest.startdato
+            sluttdato shouldBe endringsrequest.sluttdato
+        }
+    }
+
+    @Test
+    fun `oppdaterDeltaker - endret start- og sluttdato i fremtid, har sluttet - deltaker blir deltar`() = runTest {
+        val deltaker = TestData.lagDeltaker(
+            startdato = LocalDate.now().minusMonths(1),
+            sluttdato = LocalDate.now().minusDays(1),
+            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
+        )
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+
+        val endringsrequest = StartdatoRequest(
+            endretAv = endretAv.navIdent,
+            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            startdato = LocalDate.now().minusDays(10),
+            sluttdato = LocalDate.now().plusWeeks(4),
+            begrunnelse = null,
+            forslagId = null,
+        )
+
+        val resultat = endringsrequest
+            .toEndring()
+            .oppdaterDeltaker(
+                deltaker = deltaker,
+                deltakelsemengdeProvider = mockDeltakelsesmengdeProvider,
+            ).shouldBeSuccess()
+
+        assertSoftly(resultat.deltaker) {
+            status.type shouldBe DeltakerStatus.Type.DELTAR
+            startdato shouldBe endringsrequest.startdato
+            sluttdato shouldBe endringsrequest.sluttdato
+        }
+    }
+
+    @Test
+    fun `oppdaterDeltaker - endre oppstart når avbrutt endrer ikke status til fullført`() = runTest {
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.AVBRUTT),
+            startdato = LocalDate.now().minusMonths(1),
+            sluttdato = LocalDate.now().minusDays(1),
+            deltakerliste = TestData.lagDeltakerliste(
+                pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
+                oppstart = Oppstartstype.FELLES,
+            ),
+        )
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+        val endringsrequest = StartdatoRequest(
+            endretAv = endretAv.navIdent,
+            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            startdato = LocalDate.now().minusMonths(2),
+            sluttdato = null,
+            begrunnelse = null,
+            forslagId = null,
+        )
+
+        val resultat = endringsrequest
+            .toEndring()
+            .oppdaterDeltaker(
+                deltaker = deltaker,
+                deltakelsemengdeProvider = mockDeltakelsesmengdeProvider,
+            ).shouldBeSuccess()
+
+        val oppdatertDeltaker = resultat.deltaker
+        oppdatertDeltaker.startdato shouldBe endringsrequest.startdato
+        oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.AVBRUTT
+    }
+}

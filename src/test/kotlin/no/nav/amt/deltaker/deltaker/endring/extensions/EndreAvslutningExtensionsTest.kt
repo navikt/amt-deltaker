@@ -1,0 +1,131 @@
+package no.nav.amt.deltaker.deltaker.endring.extensions
+
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.result.shouldBeFailure
+import io.kotest.matchers.result.shouldBeSuccess
+import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.test.runTest
+import no.nav.amt.deltaker.deltaker.endring.extensions.EndringTestUtils.mockDeltakelsesmengdeProvider
+import no.nav.amt.deltaker.utils.data.TestData
+import no.nav.amt.lib.models.arrangor.melding.EndringAarsak
+import no.nav.amt.lib.models.arrangor.melding.Forslag
+import no.nav.amt.lib.models.deltaker.DeltakerEndring
+import no.nav.amt.lib.models.deltaker.DeltakerStatus
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.EndreAvslutningRequest
+import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
+import no.nav.amt.lib.models.deltakerliste.Oppstartstype
+import org.junit.jupiter.api.Test
+import java.time.LocalDate
+
+class EndreAvslutningExtensionsTest {
+    @Test
+    fun `oppdaterDeltaker - endre avslutning til fullfort`() = runTest {
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.AVBRUTT),
+            sluttdato = LocalDate.now().minusDays(3),
+            deltakerliste = TestData.lagDeltakerliste(
+                pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
+                oppstart = Oppstartstype.FELLES,
+            ),
+        )
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+        val forslag = TestData.lagForslag(
+            deltakerId = deltaker.id,
+            endring = Forslag.EndreAvslutning(aarsak = EndringAarsak.FattJobb, harDeltatt = true, harFullfort = true),
+        )
+        val endringsrequest = EndreAvslutningRequest(
+            endretAv = endretAv.navIdent,
+            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
+            begrunnelse = "begrunnelse",
+            harFullfort = true,
+            sluttdato = LocalDate.now().minusDays(1),
+            forslagId = forslag.id,
+        )
+
+        val resultat = endringsrequest
+            .toEndring()
+            .oppdaterDeltaker(
+                deltaker = deltaker,
+                deltakelsemengdeProvider = mockDeltakelsesmengdeProvider,
+            ).shouldBeSuccess()
+
+        val deltakerResult = resultat.deltaker
+
+        deltakerResult.status.type shouldBe DeltakerStatus.Type.FULLFORT
+        deltakerResult.status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
+    }
+
+    @Test
+    fun `oppdaterDeltaker - endre avslutning til avbrutt`() = runTest {
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.FULLFORT),
+            sluttdato = LocalDate.now().minusDays(3),
+            deltakerliste = TestData.lagDeltakerliste(
+                pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING,
+                oppstart = Oppstartstype.FELLES,
+            ),
+        )
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+        val forslag = TestData.lagForslag(
+            deltakerId = deltaker.id,
+            endring = Forslag.EndreAvslutning(EndringAarsak.FattJobb, null, false),
+        )
+        val endringsrequest = EndreAvslutningRequest(
+            endretAv = endretAv.navIdent,
+            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
+            begrunnelse = "begrunnelse",
+            harFullfort = false,
+            sluttdato = LocalDate.now().minusDays(1),
+            forslagId = forslag.id,
+        )
+
+        val resultat = endringsrequest
+            .toEndring()
+            .oppdaterDeltaker(
+                deltaker = deltaker,
+                deltakelsemengdeProvider = mockDeltakelsesmengdeProvider,
+            ).shouldBeSuccess()
+        val deltakerResult = resultat.deltaker
+
+        deltakerResult.status.type shouldBe DeltakerStatus.Type.AVBRUTT
+        deltakerResult.status.aarsak
+            .shouldNotBeNull()
+            .type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
+    }
+
+    @Test
+    fun `oppdaterDeltaker - endre avslutning ingen endring - gir erVellykket false`() = runTest {
+        val deltaker = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.FULLFORT),
+            sluttdato = LocalDate.now().minusDays(3),
+        )
+        val endretAv = TestData.lagNavAnsatt()
+        val endretAvEnhet = TestData.lagNavEnhet()
+        val forslag = TestData.lagForslag(
+            deltakerId = deltaker.id,
+            endring = Forslag.EndreAvslutning(EndringAarsak.FattJobb, null, true),
+        )
+        val endringsrequest = EndreAvslutningRequest(
+            endretAv = endretAv.navIdent,
+            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            aarsak = null,
+            begrunnelse = "begrunnelse",
+            harFullfort = true,
+            sluttdato = deltaker.sluttdato,
+            forslagId = forslag.id,
+        )
+
+        val resultat = endringsrequest
+            .toEndring()
+            .oppdaterDeltaker(
+                deltaker = deltaker,
+                deltakelsemengdeProvider = mockDeltakelsesmengdeProvider,
+            )
+
+        resultat.shouldBeFailure()
+    }
+}

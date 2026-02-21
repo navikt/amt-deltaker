@@ -6,8 +6,8 @@ import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerStatusRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
-import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringHandler
 import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringService
+import no.nav.amt.deltaker.deltaker.endring.extensions.oppdaterDeltaker
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
 import no.nav.amt.deltaker.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
@@ -105,13 +105,12 @@ class DeltakerService(
         validerIkkeFeilregistrert(eksisterendeDeltaker)
 
         val endring = endringRequest.toEndring()
-        val deltakerEndringHandler = DeltakerEndringHandler(
-            deltaker = eksisterendeDeltaker,
-            endring = endring,
-            deltakelsemengdeProvider = { deltakerId -> deltakerHistorikkService.getForDeltaker(deltakerId).toDeltakelsesmengder() },
-        )
 
-        val updateResult = deltakerEndringHandler.oppdaterDeltaker().getOrElse { return eksisterendeDeltaker }
+        val updateResult = endring
+            .oppdaterDeltaker(
+                deltaker = eksisterendeDeltaker,
+                deltakelsemengdeProvider = { deltakerId -> deltakerHistorikkService.getForDeltaker(deltakerId).toDeltakelsesmengder() },
+            ).getOrElse { return eksisterendeDeltaker }
 
         return upsertAndProduceDeltaker(
             deltaker = updateResult.deltaker,
@@ -121,7 +120,7 @@ class DeltakerService(
                 deltakerEndringService.upsertEndring(
                     endring = endring,
                     endringRequest = endringRequest,
-                    endringUtfall = updateResult,
+                    endringResultat = updateResult,
                 )
                 deltaker
             },

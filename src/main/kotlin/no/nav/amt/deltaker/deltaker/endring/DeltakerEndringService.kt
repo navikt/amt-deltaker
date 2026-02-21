@@ -29,7 +29,7 @@ class DeltakerEndringService(
     fun upsertEndring(
         endring: DeltakerEndring.Endring,
         endringRequest: EndringRequest,
-        endringUtfall: VellykketEndring,
+        endringResultat: VellykketEndring,
     ): DeltakerEndring {
         val ansatt = navAnsattRepository.getOrThrow(endringRequest.endretAv)
         val enhet = navEnhetRepository.getOrThrow(endringRequest.endretAvEnhet)
@@ -44,7 +44,7 @@ class DeltakerEndringService(
 
         val deltakerEndring = DeltakerEndring(
             id = UUID.randomUUID(),
-            deltakerId = endringUtfall.deltaker.id,
+            deltakerId = endringResultat.deltaker.id,
             endring = endring,
             endretAv = ansatt.id,
             endretAvEnhet = enhet.id,
@@ -52,7 +52,7 @@ class DeltakerEndringService(
             forslag = godkjentForslag,
         )
 
-        val behandletTidspunkt = if (endringUtfall.erFremtidigEndring) null else LocalDateTime.now()
+        val behandletTidspunkt = if (endringResultat.erFremtidigEndring) null else LocalDateTime.now()
 
         deltakerEndringRepository.upsert(
             deltakerEndring = deltakerEndring,
@@ -61,7 +61,7 @@ class DeltakerEndringService(
 
         hendelseService.hendelseForDeltakerEndring(
             deltakerEndring = deltakerEndring,
-            deltaker = endringUtfall.deltaker,
+            deltaker = endringResultat.deltaker,
             navAnsatt = ansatt,
             navEnhet = enhet,
         )

@@ -139,7 +139,7 @@ class DeltakerEndringServiceTest {
         Database.transaction {
             deltakerEndringService.upsertEndring(
                 endring = endringsrequest.toEndring(),
-                endringUtfall = utfall,
+                endringResultat = utfall,
                 endringRequest = endringsrequest,
             )
         }
@@ -175,7 +175,7 @@ class DeltakerEndringServiceTest {
             resultat = deltakerEndringService
                 .upsertEndring(
                     endring = endringsrequest.toEndring(),
-                    endringUtfall = utfall,
+                    endringResultat = utfall,
                     endringRequest = endringsrequest,
                 ).endring
                 as DeltakerEndring.Endring.EndreInnhold
@@ -214,7 +214,7 @@ class DeltakerEndringServiceTest {
         Database.transaction {
             deltakerEndringService.upsertEndring(
                 endring = endringsrequest.toEndring(),
-                endringUtfall = utfall,
+                endringResultat = utfall,
                 endringRequest = endringsrequest,
             )
         }
@@ -265,7 +265,7 @@ class DeltakerEndringServiceTest {
         Database.transaction {
             deltakerEndringService.upsertEndring(
                 endring = endringsrequest.toEndring(),
-                endringUtfall = utfall,
+                endringResultat = utfall,
                 endringRequest = endringsrequest,
             )
         }
@@ -319,7 +319,7 @@ class DeltakerEndringServiceTest {
         Database.transaction {
             deltakerEndringService.upsertEndring(
                 endring = endringsrequest.toEndring(),
-                endringUtfall = utfall,
+                endringResultat = utfall,
                 endringRequest = endringsrequest,
             )
         }
