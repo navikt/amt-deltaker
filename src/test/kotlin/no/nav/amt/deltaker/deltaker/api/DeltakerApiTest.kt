@@ -49,7 +49,7 @@ class DeltakerApiTest : RouteTestBase() {
     @Test
     fun `skal teste autentisering - mangler token - returnerer 401`() {
         withTestApplicationContext { client ->
-            client.post("/deltaker/${UUID.randomUUID()}/deltaker-endring") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
+            client.post("/deltaker/${UUID.randomUUID()}/endre-deltaker") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
             client.post("/deltaker/${UUID.randomUUID()}/sist-besokt") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
         }
     }
@@ -343,7 +343,7 @@ class DeltakerApiTest : RouteTestBase() {
         every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
 
         withTestApplicationContext { client ->
-            val response = client.post("/deltaker/${deltaker.id}/deltaker-endring") {
+            val response = client.post("/deltaker/${deltaker.id}/endre-deltaker") {
                 postRequest(request)
             }
 
