@@ -5,6 +5,8 @@ import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.deltaker.endring.extensions.EndringTestUtils.mockDeltakelsesmengdeProvider
 import no.nav.amt.deltaker.utils.data.TestData
+import no.nav.amt.deltaker.utils.data.TestData.randomEnhetsnummer
+import no.nav.amt.deltaker.utils.data.TestData.randomNavIdent
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.SluttdatoRequest
 import org.junit.jupiter.api.Test
@@ -14,11 +16,9 @@ class EndreSluttdatoExtensionsTest {
     @Test
     fun `oppdaterDeltaker - endret sluttdato`() = runTest {
         val deltaker = TestData.lagDeltaker()
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
         val endringsrequest = SluttdatoRequest(
-            endretAv = endretAv.navIdent,
-            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            endretAv = randomNavIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
             forslagId = null,
             sluttdato = LocalDate.now().minusWeeks(1),
             begrunnelse = "begrunnelse",
@@ -39,11 +39,9 @@ class EndreSluttdatoExtensionsTest {
     @Test
     fun `oppdaterDeltaker - endret sluttdato frem i tid - endrer status og sluttdato`() = runTest {
         val deltaker = TestData.lagDeltaker()
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
         val endringsrequest = SluttdatoRequest(
-            endretAv = endretAv.navIdent,
-            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            endretAv = randomNavIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
             forslagId = null,
             sluttdato = LocalDate.now().plusWeeks(1),
             begrunnelse = "begrunnelse",

@@ -8,40 +8,31 @@ import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.deltaker.endring.extensions.EndringTestUtils.mockDeltakelsesmengdeProvider
 import no.nav.amt.deltaker.utils.data.TestData
-import no.nav.amt.lib.models.arrangor.melding.EndringAarsak
-import no.nav.amt.lib.models.arrangor.melding.Forslag
+import no.nav.amt.deltaker.utils.data.TestData.randomEnhetsnummer
+import no.nav.amt.deltaker.utils.data.TestData.randomNavIdent
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.AvsluttDeltakelseRequest
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import java.util.UUID
 
 class AvsluttDeltakelseExtensionsTest {
     @Test
     fun `oppdaterDeltaker - avslutt deltakelse`() = runTest {
-        val deltaker = TestData.lagDeltaker(
-            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
-            sluttdato = LocalDate.now().plusMonths(1),
-        )
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
-        val forslag = TestData.lagForslag(
-            deltakerId = deltaker.id,
-            endring = Forslag.AvsluttDeltakelse(LocalDate.now(), EndringAarsak.FattJobb, null, null),
-        )
         val endringsrequest = AvsluttDeltakelseRequest(
-            endretAv = endretAv.navIdent,
-            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            endretAv = randomNavIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
             sluttdato = LocalDate.now(),
             aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
             begrunnelse = "begrunnelse",
-            forslagId = forslag.id,
+            forslagId = UUID.randomUUID(),
         )
 
         val resultat = endringsrequest
             .toEndring()
             .oppdaterDeltaker(
-                deltaker = deltaker,
+                deltaker = deltakerSomDeltar,
                 deltakelsemengdeProvider = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()
 
@@ -56,15 +47,9 @@ class AvsluttDeltakelseExtensionsTest {
 
     @Test
     fun `oppdaterDeltaker - avslutt deltakelse i fremtiden - deltaker får ny sluttdato, fremtidig status`() = runTest {
-        val deltaker = TestData.lagDeltaker(
-            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
-            sluttdato = LocalDate.now().plusMonths(1),
-        )
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
         val endringsrequest = AvsluttDeltakelseRequest(
-            endretAv = endretAv.navIdent,
-            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            endretAv = randomNavIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
             sluttdato = LocalDate.now().plusWeeks(1),
             aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
             begrunnelse = null,
@@ -74,7 +59,7 @@ class AvsluttDeltakelseExtensionsTest {
         val resultat = endringsrequest
             .toEndring()
             .oppdaterDeltaker(
-                deltaker = deltaker,
+                deltaker = deltakerSomDeltar,
                 deltakelsemengdeProvider = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()
 
@@ -87,15 +72,9 @@ class AvsluttDeltakelseExtensionsTest {
 
     @Test
     fun `oppdaterDeltaker - har sluttet, avslutt deltakelse i fremtiden - ny sluttdato, fremtidig status`() = runTest {
-        val deltaker = TestData.lagDeltaker(
-            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
-            sluttdato = LocalDate.now().minusWeeks(1),
-        )
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
         val endringsrequest = AvsluttDeltakelseRequest(
-            endretAv = endretAv.navIdent,
-            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            endretAv = randomNavIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
             sluttdato = LocalDate.now().plusWeeks(1),
             aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
             begrunnelse = null,
@@ -105,7 +84,7 @@ class AvsluttDeltakelseExtensionsTest {
         val resultat = endringsrequest
             .toEndring()
             .oppdaterDeltaker(
-                deltaker = deltaker,
+                deltaker = deltakerSomHarSluttet,
                 deltakelsemengdeProvider = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()
 
@@ -125,15 +104,9 @@ class AvsluttDeltakelseExtensionsTest {
 
     @Test
     fun `oppdaterDeltaker - har sluttet, avslutt deltakelse i fortid - returnerer deltaker med ny sluttdato`() = runTest {
-        val deltaker = TestData.lagDeltaker(
-            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
-            sluttdato = LocalDate.now().minusWeeks(1),
-        )
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
         val endringsrequest = AvsluttDeltakelseRequest(
-            endretAv = endretAv.navIdent,
-            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            endretAv = randomNavIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
             sluttdato = LocalDate.now().minusDays(1),
             aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
             begrunnelse = null,
@@ -143,7 +116,7 @@ class AvsluttDeltakelseExtensionsTest {
         val resultat = endringsrequest
             .toEndring()
             .oppdaterDeltaker(
-                deltaker = deltaker,
+                deltaker = deltakerSomHarSluttet,
                 deltakelsemengdeProvider = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()
 
@@ -155,5 +128,17 @@ class AvsluttDeltakelseExtensionsTest {
         }
 
         resultat.nesteStatus.shouldBeNull()
+    }
+
+    companion object {
+        val deltakerSomDeltar = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
+            sluttdato = LocalDate.now().plusMonths(1),
+        )
+
+        val deltakerSomHarSluttet = TestData.lagDeltaker(
+            status = TestData.lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
+            sluttdato = LocalDate.now().minusWeeks(1),
+        )
     }
 }

@@ -7,6 +7,6 @@ import no.nav.amt.lib.models.deltaker.DeltakerEndring
 
 fun DeltakerEndring.Endring.EndreInnhold.hasChanges(deltaker: Deltaker): Boolean = deltaker.deltakelsesinnhold?.innhold != this.innhold
 
-fun DeltakerEndring.Endring.EndreInnhold.endreInnhold(deltaker: Deltaker): VellykketEndring = VellykketEndring(
+fun DeltakerEndring.Endring.EndreInnhold.endreInnhold(deltaker: Deltaker) = VellykketEndring(
     deltaker.copy(deltakelsesinnhold = Deltakelsesinnhold(this.ledetekst, this.innhold)),
 )

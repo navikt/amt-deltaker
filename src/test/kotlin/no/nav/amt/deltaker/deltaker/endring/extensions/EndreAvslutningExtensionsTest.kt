@@ -7,6 +7,8 @@ import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.deltaker.endring.extensions.EndringTestUtils.mockDeltakelsesmengdeProvider
 import no.nav.amt.deltaker.utils.data.TestData
+import no.nav.amt.deltaker.utils.data.TestData.randomEnhetsnummer
+import no.nav.amt.deltaker.utils.data.TestData.randomNavIdent
 import no.nav.amt.lib.models.arrangor.melding.EndringAarsak
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
@@ -28,15 +30,13 @@ class EndreAvslutningExtensionsTest {
                 oppstart = Oppstartstype.FELLES,
             ),
         )
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
         val forslag = TestData.lagForslag(
             deltakerId = deltaker.id,
             endring = Forslag.EndreAvslutning(aarsak = EndringAarsak.FattJobb, harDeltatt = true, harFullfort = true),
         )
         val endringsrequest = EndreAvslutningRequest(
-            endretAv = endretAv.navIdent,
-            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            endretAv = randomNavIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
             aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
             begrunnelse = "begrunnelse",
             harFullfort = true,
@@ -67,15 +67,13 @@ class EndreAvslutningExtensionsTest {
                 oppstart = Oppstartstype.FELLES,
             ),
         )
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
         val forslag = TestData.lagForslag(
             deltakerId = deltaker.id,
             endring = Forslag.EndreAvslutning(EndringAarsak.FattJobb, null, false),
         )
         val endringsrequest = EndreAvslutningRequest(
-            endretAv = endretAv.navIdent,
-            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            endretAv = randomNavIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
             aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
             begrunnelse = "begrunnelse",
             harFullfort = false,
@@ -103,15 +101,13 @@ class EndreAvslutningExtensionsTest {
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.FULLFORT),
             sluttdato = LocalDate.now().minusDays(3),
         )
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
         val forslag = TestData.lagForslag(
             deltakerId = deltaker.id,
             endring = Forslag.EndreAvslutning(EndringAarsak.FattJobb, null, true),
         )
         val endringsrequest = EndreAvslutningRequest(
-            endretAv = endretAv.navIdent,
-            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            endretAv = randomNavIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
             aarsak = null,
             begrunnelse = "begrunnelse",
             harFullfort = true,

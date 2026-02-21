@@ -6,6 +6,8 @@ import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.deltaker.endring.extensions.EndringTestUtils.mockDeltakelsesmengdeProvider
 import no.nav.amt.deltaker.utils.data.TestData
+import no.nav.amt.deltaker.utils.data.TestData.randomEnhetsnummer
+import no.nav.amt.deltaker.utils.data.TestData.randomNavIdent
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.StartdatoRequest
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
@@ -18,11 +20,9 @@ class EndreStartdatoExtensionsTest {
     fun `oppdaterDeltaker - endret start- og sluttdato i fortid, venter pa oppstart - deltaker blir har sluttet`() = runTest {
         val deltaker =
             TestData.lagDeltaker(status = TestData.lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
         val endringsrequest = StartdatoRequest(
-            endretAv = endretAv.navIdent,
-            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            endretAv = randomNavIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
             startdato = LocalDate.now().minusWeeks(10),
             sluttdato = LocalDate.now().minusDays(4),
             begrunnelse = null,
@@ -47,11 +47,9 @@ class EndreStartdatoExtensionsTest {
     fun `oppdaterDeltaker - endret sluttdato i fortid, startdato mangler, venter pa oppstart - blir ikke aktuell`() = runTest {
         val deltaker =
             TestData.lagDeltaker(status = TestData.lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART))
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
         val endringsrequest = StartdatoRequest(
-            endretAv = endretAv.navIdent,
-            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            endretAv = randomNavIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
             startdato = null,
             sluttdato = LocalDate.now().minusDays(4),
             begrunnelse = null,
@@ -75,11 +73,9 @@ class EndreStartdatoExtensionsTest {
     @Test
     fun `oppdaterDeltaker - endret start- og sluttdato i fortid, deltar - deltaker blir har sluttet`() = runTest {
         val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
         val endringsrequest = StartdatoRequest(
-            endretAv = endretAv.navIdent,
-            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            endretAv = randomNavIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
             startdato = LocalDate.now().minusWeeks(10),
             sluttdato = LocalDate.now().minusDays(4),
             begrunnelse = null,
@@ -107,11 +103,9 @@ class EndreStartdatoExtensionsTest {
             startdato = LocalDate.now().minusWeeks(10),
             sluttdato = LocalDate.now().minusDays(4),
         )
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
         val endringsrequest = StartdatoRequest(
-            endretAv = endretAv.navIdent,
-            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            endretAv = randomNavIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
             startdato = LocalDate.now().plusDays(10),
             sluttdato = LocalDate.now().plusWeeks(4),
             begrunnelse = null,
@@ -135,11 +129,9 @@ class EndreStartdatoExtensionsTest {
     @Test
     fun `oppdaterDeltaker - endret start- og sluttdato i fremtid, deltar - deltaker blir venter pa oppstart`() = runTest {
         val deltaker = TestData.lagDeltaker(status = TestData.lagDeltakerStatus(DeltakerStatus.Type.DELTAR))
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
         val endringsrequest = StartdatoRequest(
-            endretAv = endretAv.navIdent,
-            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            endretAv = randomNavIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
             startdato = LocalDate.now().plusDays(10),
             sluttdato = LocalDate.now().plusWeeks(4),
             begrunnelse = null,
@@ -167,12 +159,10 @@ class EndreStartdatoExtensionsTest {
             sluttdato = LocalDate.now().minusDays(1),
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
         )
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
 
         val endringsrequest = StartdatoRequest(
-            endretAv = endretAv.navIdent,
-            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            endretAv = randomNavIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
             startdato = LocalDate.now().minusDays(10),
             sluttdato = LocalDate.now().plusWeeks(4),
             begrunnelse = null,
@@ -204,11 +194,9 @@ class EndreStartdatoExtensionsTest {
                 oppstart = Oppstartstype.FELLES,
             ),
         )
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
         val endringsrequest = StartdatoRequest(
-            endretAv = endretAv.navIdent,
-            endretAvEnhet = endretAvEnhet.enhetsnummer,
+            endretAv = randomNavIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
             startdato = LocalDate.now().minusMonths(2),
             sluttdato = null,
             begrunnelse = null,

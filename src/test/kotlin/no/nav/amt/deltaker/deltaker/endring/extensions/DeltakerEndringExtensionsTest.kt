@@ -7,6 +7,8 @@ import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.deltaker.endring.extensions.EndringTestUtils.mockDeltakelsesmengdeProvider
 import no.nav.amt.deltaker.utils.data.TestData
+import no.nav.amt.deltaker.utils.data.TestData.randomEnhetsnummer
+import no.nav.amt.deltaker.utils.data.TestData.randomNavIdent
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.ReaktiverDeltakelseRequest
 import org.junit.jupiter.api.Test
@@ -18,15 +20,8 @@ class DeltakerEndringExtensionsTest {
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL),
             deltakerliste = TestData.lagDeltakerlisteMedDirekteVedtak(),
         )
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
-        val endringsrequest = ReaktiverDeltakelseRequest(
-            endretAv = endretAv.navIdent,
-            endretAvEnhet = endretAvEnhet.enhetsnummer,
-            begrunnelse = "begrunnelse",
-        )
 
-        val resultat = endringsrequest
+        val resultat = reaktiverDeltakelseRequest
             .toEndring()
             .oppdaterDeltaker(
                 deltaker = deltaker,
@@ -46,15 +41,8 @@ class DeltakerEndringExtensionsTest {
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL),
             deltakerliste = TestData.lagDeltakerlisteMedTrengerGodkjenning(),
         )
-        val endretAv = TestData.lagNavAnsatt()
-        val endretAvEnhet = TestData.lagNavEnhet()
-        val endringsrequest = ReaktiverDeltakelseRequest(
-            endretAv = endretAv.navIdent,
-            endretAvEnhet = endretAvEnhet.enhetsnummer,
-            begrunnelse = "begrunnelse",
-        )
 
-        val resultat = endringsrequest
+        val resultat = reaktiverDeltakelseRequest
             .toEndring()
             .oppdaterDeltaker(
                 deltaker = deltaker,
@@ -66,5 +54,13 @@ class DeltakerEndringExtensionsTest {
             startdato.shouldBeNull()
             sluttdato.shouldBeNull()
         }
+    }
+
+    companion object {
+        private val reaktiverDeltakelseRequest = ReaktiverDeltakelseRequest(
+            endretAv = randomNavIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
+            begrunnelse = "begrunnelse",
+        )
     }
 }
