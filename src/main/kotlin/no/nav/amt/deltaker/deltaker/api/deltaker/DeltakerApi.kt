@@ -53,6 +53,10 @@ fun Routing.registerDeltakerApi(
             call.respond(deltaker)
         }
 
+        post("/deltaker/{deltakerId}/endre-deltaker") {
+            call.handleDeltakerEndring(call.receive<EndringRequest>())
+        }
+
         post("/deltaker/{deltakerId}/bakgrunnsinformasjon") {
             call.handleDeltakerEndring(call.receive<BakgrunnsinformasjonRequest>())
         }

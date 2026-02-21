@@ -63,6 +63,33 @@ class DeltakerApiTest : RouteTestBase() {
     }
 
     @Test
+    fun `post bakgrunnsinformasjon nytt endepunkt - har tilgang - returnerer 200`() {
+        val endring = DeltakerEndring.Endring.EndreBakgrunnsinformasjon("bakgrunnsinformasjon")
+        val deltaker = lagDeltaker(bakgrunnsinformasjon = endring.bakgrunnsinformasjon)
+        val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = endring)))
+
+        coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
+        every { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
+
+        val expectedBody = objectMapper.writeValueAsString(deltakerEndringResponseFromDeltaker(deltaker, historikk))
+
+        withTestApplicationContext { client ->
+            val response = client.post("/deltaker/${UUID.randomUUID()}/endre-deltaker") {
+                postRequest(
+                    BakgrunnsinformasjonRequest(
+                        randomIdent(),
+                        randomEnhetsnummer(),
+                        "bakgrunnsinformasjon",
+                    ),
+                )
+            }
+
+            response.status shouldBe HttpStatusCode.OK
+            response.bodyAsText() shouldBe expectedBody
+        }
+    }
+
+    @Test
     fun `post bakgrunnsinformasjon - har tilgang - returnerer 200`() {
         val endring = DeltakerEndring.Endring.EndreBakgrunnsinformasjon("bakgrunnsinformasjon")
         val deltaker = lagDeltaker(bakgrunnsinformasjon = endring.bakgrunnsinformasjon)
