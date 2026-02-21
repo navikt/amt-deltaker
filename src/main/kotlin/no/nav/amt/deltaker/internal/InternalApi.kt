@@ -207,14 +207,18 @@ fun Routing.registerInternalApi(
                 }
                 val deltakerIder = deltakerRepository.getDeltakerIderForTiltakskode(tiltakskode)
                 deltakerIder.forEach {
-                    Database.transaction {
-                        deltakerProducerService.produce(
-                            deltakerRepository.get(it).getOrThrow(),
-                            forcedUpdate = request.forcedUpdate,
-                            publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
-                            publiserTilDeltakerV2 = request.publiserTilDeltakerV2,
-                            publiserTilDeltakerEksternV1 = request.publiserTilDeltakerEksternV1,
-                        )
+                    try {
+                        Database.transaction {
+                            deltakerProducerService.produce(
+                                deltakerRepository.get(it).getOrThrow(),
+                                forcedUpdate = request.forcedUpdate,
+                                publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
+                                publiserTilDeltakerV2 = request.publiserTilDeltakerV2,
+                                publiserTilDeltakerEksternV1 = request.publiserTilDeltakerEksternV1,
+                            )
+                        }
+                    } catch (e: Exception) {
+                        log.error("Feil ved relast av deltaker $it for tiltakskode ${tiltakskode.name}", e)
                     }
                 }
                 if (request.publiserTilDeltakerV2) {
