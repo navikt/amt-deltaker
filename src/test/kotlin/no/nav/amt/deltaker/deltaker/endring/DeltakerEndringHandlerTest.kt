@@ -1,12 +1,12 @@
 package no.nav.amt.deltaker.deltaker.endring
 
 import io.kotest.assertions.assertSoftly
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.result.shouldBeFailure
+import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
-import io.mockk.every
-import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
@@ -18,9 +18,11 @@ import no.nav.amt.deltaker.utils.data.TestData.lagNavEnhet
 import no.nav.amt.lib.models.arrangor.melding.EndringAarsak
 import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
+import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengde
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengder
+import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.AvsluttDeltakelseRequest
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.EndreAvslutningRequest
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.ReaktiverDeltakelseRequest
@@ -29,17 +31,12 @@ import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.SluttdatoReq
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.StartdatoRequest
 import no.nav.amt.lib.models.deltakerliste.GjennomforingPameldingType
 import no.nav.amt.lib.models.deltakerliste.Oppstartstype
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import java.util.UUID
 
 class DeltakerEndringHandlerTest {
-    val deltakerHistorikkServiceMock = mockk<DeltakerHistorikkService>()
-
-    @BeforeEach
-    fun setup() {
-        every { deltakerHistorikkServiceMock.getForDeltaker(any()) } returns emptyList()
-    }
+    private val mockDeltakelsesmengdeProvider: (UUID) -> Deltakelsesmengder = { _ -> emptyList<DeltakerHistorikk>().toDeltakelsesmengder() }
 
     @Test
     fun `endreDeltakersOppstart - fremtidig startdato - endrer også deltakelsesmengde`() {
@@ -71,6 +68,7 @@ class DeltakerEndringHandlerTest {
         )
 
         val endretDeltaker = endreDeltakersOppstart(deltaker, nyStartdato, null, gammelDeltakelsesmengder)
+
         assertSoftly(endretDeltaker) {
             startdato shouldBe nyStartdato
             dagerPerUke shouldBe fremtidigMengde.dagerPerUke
@@ -108,6 +106,7 @@ class DeltakerEndringHandlerTest {
         )
 
         val endretDeltaker = endreDeltakersOppstart(deltaker, nyStartdato, null, gammelDeltakelsesmengder)
+
         assertSoftly(endretDeltaker) {
             startdato shouldBe nyStartdato
             dagerPerUke shouldBe gjeldendeMengde.dagerPerUke
@@ -166,12 +165,11 @@ class DeltakerEndringHandlerTest {
             forslagId = null,
         )
         val deltakerEndringHandler =
-            DeltakerEndringHandler(deltaker, endringsrequest.toEndring(), deltakerHistorikkServiceMock)
-        val resultat = deltakerEndringHandler.sjekkUtfall()
+            DeltakerEndringHandler(deltaker, endringsrequest.toEndring(), mockDeltakelsesmengdeProvider)
 
-        resultat.erVellykket shouldBe true
+        val resultat = deltakerEndringHandler.oppdaterDeltaker()
 
-        assertSoftly(resultat.getOrThrow()) {
+        assertSoftly(resultat.shouldBeSuccess().deltaker) {
             status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
             startdato shouldBe endringsrequest.startdato
             sluttdato shouldBe endringsrequest.sluttdato
@@ -192,12 +190,11 @@ class DeltakerEndringHandlerTest {
             forslagId = null,
         )
         val deltakerEndringHandler =
-            DeltakerEndringHandler(deltaker, endringsrequest.toEndring(), deltakerHistorikkServiceMock)
-        val resultat = deltakerEndringHandler.sjekkUtfall()
+            DeltakerEndringHandler(deltaker, endringsrequest.toEndring(), mockDeltakelsesmengdeProvider)
 
-        resultat.erVellykket shouldBe true
+        val resultat = deltakerEndringHandler.oppdaterDeltaker()
 
-        assertSoftly(resultat.getOrThrow()) {
+        assertSoftly(resultat.shouldBeSuccess().deltaker) {
             status.type shouldBe DeltakerStatus.Type.IKKE_AKTUELL
             startdato shouldBe null
             sluttdato shouldBe null
@@ -219,12 +216,11 @@ class DeltakerEndringHandlerTest {
         )
 
         val deltakerEndringHandler =
-            DeltakerEndringHandler(deltaker, endringsrequest.toEndring(), deltakerHistorikkServiceMock)
-        val resultat = deltakerEndringHandler.sjekkUtfall()
+            DeltakerEndringHandler(deltaker, endringsrequest.toEndring(), mockDeltakelsesmengdeProvider)
 
-        resultat.erVellykket shouldBe true
+        val resultat = deltakerEndringHandler.oppdaterDeltaker()
 
-        assertSoftly(resultat.getOrThrow()) {
+        assertSoftly(resultat.shouldBeSuccess().deltaker) {
             status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
             startdato shouldBe endringsrequest.startdato
             sluttdato shouldBe endringsrequest.sluttdato
@@ -250,12 +246,11 @@ class DeltakerEndringHandlerTest {
         )
 
         val deltakerEndringHandler =
-            DeltakerEndringHandler(deltaker, endringsrequest.toEndring(), deltakerHistorikkServiceMock)
-        val resultat = deltakerEndringHandler.sjekkUtfall()
+            DeltakerEndringHandler(deltaker, endringsrequest.toEndring(), mockDeltakelsesmengdeProvider)
 
-        resultat.erVellykket shouldBe true
+        val resultat = deltakerEndringHandler.oppdaterDeltaker()
 
-        assertSoftly(resultat.getOrThrow()) {
+        assertSoftly(resultat.shouldBeSuccess().deltaker) {
             status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
             startdato shouldBe endringsrequest.startdato
             sluttdato shouldBe endringsrequest.sluttdato
@@ -277,12 +272,11 @@ class DeltakerEndringHandlerTest {
         )
 
         val deltakerEndringHandler =
-            DeltakerEndringHandler(deltaker, endringsrequest.toEndring(), deltakerHistorikkServiceMock)
-        val resultat = deltakerEndringHandler.sjekkUtfall()
+            DeltakerEndringHandler(deltaker, endringsrequest.toEndring(), mockDeltakelsesmengdeProvider)
 
-        resultat.erVellykket shouldBe true
+        val resultat = deltakerEndringHandler.oppdaterDeltaker()
 
-        assertSoftly(resultat.getOrThrow()) {
+        assertSoftly(resultat.shouldBeSuccess().deltaker) {
             status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
             startdato shouldBe endringsrequest.startdato
             sluttdato shouldBe endringsrequest.sluttdato
@@ -309,12 +303,11 @@ class DeltakerEndringHandlerTest {
         )
 
         val deltakerEndringHandler =
-            DeltakerEndringHandler(deltaker, endringsrequest.toEndring(), deltakerHistorikkServiceMock)
-        val resultat = deltakerEndringHandler.sjekkUtfall()
+            DeltakerEndringHandler(deltaker, endringsrequest.toEndring(), mockDeltakelsesmengdeProvider)
 
-        resultat.erVellykket shouldBe true
+        val resultat = deltakerEndringHandler.oppdaterDeltaker()
 
-        assertSoftly(resultat.getOrThrow()) {
+        assertSoftly(resultat.shouldBeSuccess().deltaker) {
             status.type shouldBe DeltakerStatus.Type.DELTAR
             startdato shouldBe endringsrequest.startdato
             sluttdato shouldBe endringsrequest.sluttdato
@@ -335,11 +328,11 @@ class DeltakerEndringHandlerTest {
         )
 
         val deltakerEndringHandler =
-            DeltakerEndringHandler(deltaker, endringsrequest.toEndring(), deltakerHistorikkServiceMock)
-        val resultat = deltakerEndringHandler.sjekkUtfall()
+            DeltakerEndringHandler(deltaker, endringsrequest.toEndring(), mockDeltakelsesmengdeProvider)
+        val resultat = deltakerEndringHandler.oppdaterDeltaker()
 
-        resultat.erVellykket shouldBe true
-        val oppdatertDeltaker = resultat.getOrThrow()
+        val oppdatertDeltaker = resultat.shouldBeSuccess().deltaker
+
         oppdatertDeltaker.sluttdato shouldBe endringsrequest.sluttdato
         oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
     }
@@ -358,11 +351,11 @@ class DeltakerEndringHandlerTest {
         )
 
         val deltakerEndringHandler =
-            DeltakerEndringHandler(deltaker, endringsrequest.toEndring(), deltakerHistorikkServiceMock)
-        val resultat = deltakerEndringHandler.sjekkUtfall()
+            DeltakerEndringHandler(deltaker, endringsrequest.toEndring(), mockDeltakelsesmengdeProvider)
+        val resultat = deltakerEndringHandler.oppdaterDeltaker()
 
-        resultat.erVellykket shouldBe true
-        val oppdatertDeltaker = resultat.getOrThrow()
+        val oppdatertDeltaker = resultat.shouldBeSuccess().deltaker
+
         oppdatertDeltaker.sluttdato shouldBe endringsrequest.sluttdato
         oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.DELTAR
     }
@@ -384,17 +377,17 @@ class DeltakerEndringHandlerTest {
         )
 
         val deltakerEndringHandler =
-            DeltakerEndringHandler(deltaker, endringsrequest.toEndring(), deltakerHistorikkServiceMock)
-        val resultat = deltakerEndringHandler.sjekkUtfall()
+            DeltakerEndringHandler(deltaker, endringsrequest.toEndring(), mockDeltakelsesmengdeProvider)
+        val resultat = deltakerEndringHandler.oppdaterDeltaker()
 
-        resultat.erVellykket shouldBe true
-        val oppdatertDeltaker = resultat.getOrThrow()
+        val oppdatertDeltaker = resultat.shouldBeSuccess().deltaker
+
         oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
         oppdatertDeltaker.status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
     }
 
     @Test
-    fun `sjekkUtfall - avslutt deltakelse`() = runTest {
+    fun `oppdaterDeltaker - avslutt deltakelse`() = runTest {
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
             sluttdato = LocalDate.now().plusMonths(1),
@@ -414,13 +407,15 @@ class DeltakerEndringHandlerTest {
             forslagId = forslag.id,
         )
 
-        val deltakerEndringHandler =
-            DeltakerEndringHandler(deltaker, endringsrequest.toEndring(), deltakerHistorikkServiceMock)
-        val resultat = deltakerEndringHandler.sjekkUtfall()
+        val deltakerEndringHandler = DeltakerEndringHandler(
+            deltaker = deltaker,
+            endring = endringsrequest.toEndring(),
+            deltakelsemengdeProvider = mockDeltakelsesmengdeProvider,
+        )
 
-        resultat.erVellykket shouldBe true
+        val resultat = deltakerEndringHandler.oppdaterDeltaker()
 
-        assertSoftly(resultat.getOrThrow()) {
+        assertSoftly(resultat.shouldBeSuccess().deltaker) {
             status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
             status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
             sluttdato shouldBe endringsrequest.sluttdato
@@ -428,7 +423,7 @@ class DeltakerEndringHandlerTest {
     }
 
     @Test
-    fun `sjekkUtfall - avslutt deltakelse i fremtiden - deltaker får ny sluttdato, fremtidig status`() = runTest {
+    fun `oppdaterDeltaker - avslutt deltakelse i fremtiden - deltaker får ny sluttdato, fremtidig status`() = runTest {
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
             sluttdato = LocalDate.now().plusMonths(1),
@@ -444,12 +439,15 @@ class DeltakerEndringHandlerTest {
             forslagId = null,
         )
 
-        val deltakerEndringHandler =
-            DeltakerEndringHandler(deltaker, endringsrequest.toEndring(), deltakerHistorikkServiceMock)
-        val resultat = deltakerEndringHandler.sjekkUtfall()
-        resultat.erVellykket shouldBe true
+        val deltakerEndringHandler = DeltakerEndringHandler(
+            deltaker = deltaker,
+            endring = endringsrequest.toEndring(),
+            deltakelsemengdeProvider = mockDeltakelsesmengdeProvider,
+        )
 
-        assertSoftly(resultat.getOrThrow()) {
+        val resultat = deltakerEndringHandler.oppdaterDeltaker()
+
+        assertSoftly(resultat.shouldBeSuccess().deltaker) {
             status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
             status.gyldigFra.toLocalDate() shouldBe endringsrequest.sluttdato.plusDays(1)
             sluttdato shouldBe endringsrequest.sluttdato
@@ -457,7 +455,7 @@ class DeltakerEndringHandlerTest {
     }
 
     @Test
-    fun `sjekkUtfall - har sluttet, avslutt deltakelse i fremtiden - ny sluttdato, fremtidig status`() = runTest {
+    fun `oppdaterDeltaker - har sluttet, avslutt deltakelse i fremtiden - ny sluttdato, fremtidig status`() = runTest {
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
             sluttdato = LocalDate.now().minusWeeks(1),
@@ -473,22 +471,23 @@ class DeltakerEndringHandlerTest {
             forslagId = null,
         )
 
-        val deltakerEndringHandler =
-            DeltakerEndringHandler(deltaker, endringsrequest.toEndring(), deltakerHistorikkServiceMock)
-        val resultat = deltakerEndringHandler.sjekkUtfall()
+        val deltakerEndringHandler = DeltakerEndringHandler(
+            deltaker = deltaker,
+            endring = endringsrequest.toEndring(),
+            deltakelsemengdeProvider = mockDeltakelsesmengdeProvider,
+        )
 
-        resultat.erVellykket shouldBe true
-        resultat as DeltakerEndringUtfall.VellykketEndring
-        val deltakerResult = resultat.deltaker
-        val nesteStatus = resultat.nesteStatus
+        val resultat = deltakerEndringHandler
+            .oppdaterDeltaker()
+            .shouldBeSuccess()
 
-        assertSoftly(deltakerResult) {
+        assertSoftly(resultat.deltaker) {
             status.type shouldBe DeltakerStatus.Type.DELTAR
             status.gyldigFra.toLocalDate() shouldBe LocalDate.now()
             sluttdato shouldBe endringsrequest.sluttdato
         }
 
-        assertSoftly(nesteStatus.shouldNotBeNull()) {
+        assertSoftly(resultat.nesteStatus.shouldNotBeNull()) {
             type shouldBe DeltakerStatus.Type.HAR_SLUTTET
             aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
             gyldigFra.toLocalDate() shouldBe endringsrequest.sluttdato.plusDays(1)
@@ -497,7 +496,7 @@ class DeltakerEndringHandlerTest {
     }
 
     @Test
-    fun `sjekkUtfall - har sluttet, avslutt deltakelse i fortid - returnerer deltaker med ny sluttdato`() = runTest {
+    fun `oppdaterDeltaker - har sluttet, avslutt deltakelse i fortid - returnerer deltaker med ny sluttdato`() = runTest {
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
             sluttdato = LocalDate.now().minusWeeks(1),
@@ -513,27 +512,28 @@ class DeltakerEndringHandlerTest {
             forslagId = null,
         )
 
-        val deltakerEndringHandler =
-            DeltakerEndringHandler(deltaker, endringsrequest.toEndring(), deltakerHistorikkServiceMock)
-        val resultat = deltakerEndringHandler.sjekkUtfall()
+        val deltakerEndringHandler = DeltakerEndringHandler(
+            deltaker = deltaker,
+            endring = endringsrequest.toEndring(),
+            deltakelsemengdeProvider = mockDeltakelsesmengdeProvider,
+        )
 
-        resultat.erVellykket shouldBe true
-        resultat as DeltakerEndringUtfall.VellykketEndring
-        val deltakerResult = resultat.deltaker
-        val nesteStatus = resultat.nesteStatus
+        val resultat = deltakerEndringHandler
+            .oppdaterDeltaker()
+            .shouldBeSuccess()
 
-        assertSoftly(deltakerResult) {
+        assertSoftly(resultat.deltaker) {
             status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
             status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
             status.gyldigFra.toLocalDate() shouldBe LocalDate.now()
             sluttdato shouldBe endringsrequest.sluttdato
         }
 
-        nesteStatus shouldBe null
+        resultat.nesteStatus.shouldBeNull()
     }
 
     @Test
-    fun `sjekkUtfall - endre avslutning til fullfort`() = runTest {
+    fun `oppdaterDeltaker - endre avslutning til fullfort`() = runTest {
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(DeltakerStatus.Type.AVBRUTT),
             sluttdato = LocalDate.now().minusDays(3),
@@ -558,18 +558,22 @@ class DeltakerEndringHandlerTest {
             forslagId = forslag.id,
         )
 
-        val deltakerEndringHandler =
-            DeltakerEndringHandler(deltaker, endringsrequest.toEndring(), deltakerHistorikkServiceMock)
-        val resultat = deltakerEndringHandler.sjekkUtfall()
+        val deltakerEndringHandler = DeltakerEndringHandler(
+            deltaker = deltaker,
+            endring = endringsrequest.toEndring(),
+            deltakelsemengdeProvider = mockDeltakelsesmengdeProvider,
+        )
 
-        resultat.erVellykket shouldBe true
-        val deltakerResult = resultat.getOrThrow()
+        val resultat = deltakerEndringHandler.oppdaterDeltaker().shouldBeSuccess()
+
+        val deltakerResult = resultat.deltaker
+
         deltakerResult.status.type shouldBe DeltakerStatus.Type.FULLFORT
         deltakerResult.status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
     }
 
     @Test
-    fun `sjekkUtfall - endre avslutning til avbrutt`() = runTest {
+    fun `oppdaterDeltaker - endre avslutning til avbrutt`() = runTest {
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(DeltakerStatus.Type.FULLFORT),
             sluttdato = LocalDate.now().minusDays(3),
@@ -594,18 +598,23 @@ class DeltakerEndringHandlerTest {
             forslagId = forslag.id,
         )
 
-        val deltakerEndringHandler =
-            DeltakerEndringHandler(deltaker, endringsrequest.toEndring(), deltakerHistorikkServiceMock)
-        val resultat = deltakerEndringHandler.sjekkUtfall()
+        val deltakerEndringHandler = DeltakerEndringHandler(
+            deltaker = deltaker,
+            endring = endringsrequest.toEndring(),
+            deltakelsemengdeProvider = mockDeltakelsesmengdeProvider,
+        )
 
-        resultat.erVellykket shouldBe true
-        val deltakerResult = resultat.getOrThrow()
+        val resultat = deltakerEndringHandler.oppdaterDeltaker().shouldBeSuccess()
+        val deltakerResult = resultat.deltaker
+
         deltakerResult.status.type shouldBe DeltakerStatus.Type.AVBRUTT
-        deltakerResult.status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
+        deltakerResult.status.aarsak
+            .shouldNotBeNull()
+            .type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
     }
 
     @Test
-    fun `sjekkUtfall - endre avslutning ingen endring - gir erVellykket false`() = runTest {
+    fun `oppdaterDeltaker - endre avslutning ingen endring - gir erVellykket false`() = runTest {
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(DeltakerStatus.Type.FULLFORT),
             sluttdato = LocalDate.now().minusDays(3),
@@ -626,15 +635,19 @@ class DeltakerEndringHandlerTest {
             forslagId = forslag.id,
         )
 
-        val deltakerEndringHandler =
-            DeltakerEndringHandler(deltaker, endringsrequest.toEndring(), deltakerHistorikkServiceMock)
-        val resultat = deltakerEndringHandler.sjekkUtfall()
+        val deltakerEndringHandler = DeltakerEndringHandler(
+            deltaker = deltaker,
+            endring = endringsrequest.toEndring(),
+            deltakelsemengdeProvider = mockDeltakelsesmengdeProvider,
+        )
 
-        resultat.erVellykket shouldBe false
+        val resultat = deltakerEndringHandler.oppdaterDeltaker()
+
+        resultat.shouldBeFailure()
     }
 
     @Test
-    fun `sjekkUtfall - reaktiver deltakelse lopende oppstart`() = runTest {
+    fun `oppdaterDeltaker - reaktiver deltakelse lopende oppstart`() = runTest {
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL),
             deltakerliste = lagDeltakerlisteMedDirekteVedtak(),
@@ -647,21 +660,23 @@ class DeltakerEndringHandlerTest {
             begrunnelse = "begrunnelse",
         )
 
-        val deltakerEndringHandler =
-            DeltakerEndringHandler(deltaker, endringsrequest.toEndring(), deltakerHistorikkServiceMock)
-        val resultat = deltakerEndringHandler.sjekkUtfall()
+        val deltakerEndringHandler = DeltakerEndringHandler(
+            deltaker = deltaker,
+            endring = endringsrequest.toEndring(),
+            deltakelsemengdeProvider = mockDeltakelsesmengdeProvider,
+        )
 
-        resultat.erVellykket shouldBe true
+        val resultat = deltakerEndringHandler.oppdaterDeltaker().shouldBeSuccess()
 
-        assertSoftly(resultat.getOrThrow()) {
+        assertSoftly(resultat.deltaker) {
             status.type shouldBe DeltakerStatus.Type.VENTER_PA_OPPSTART
-            startdato shouldBe null
-            sluttdato shouldBe null
+            startdato.shouldBeNull()
+            sluttdato.shouldBeNull()
         }
     }
 
     @Test
-    fun `sjekkUtfall - reaktiver deltakelse felles oppstart`() = runTest {
+    fun `oppdaterDeltaker - reaktiver deltakelse felles oppstart`() = runTest {
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL),
             deltakerliste = lagDeltakerlisteMedTrengerGodkjenning(),
@@ -674,21 +689,23 @@ class DeltakerEndringHandlerTest {
             begrunnelse = "begrunnelse",
         )
 
-        val deltakerEndringHandler =
-            DeltakerEndringHandler(deltaker, endringsrequest.toEndring(), deltakerHistorikkServiceMock)
-        val resultat = deltakerEndringHandler.sjekkUtfall()
+        val deltakerEndringHandler = DeltakerEndringHandler(
+            deltaker = deltaker,
+            endring = endringsrequest.toEndring(),
+            deltakelsemengdeProvider = mockDeltakelsesmengdeProvider,
+        )
 
-        resultat.erVellykket shouldBe true
+        val resultat = deltakerEndringHandler.oppdaterDeltaker().shouldBeSuccess()
 
-        assertSoftly(resultat.getOrThrow()) {
+        assertSoftly(resultat.deltaker) {
             status.type shouldBe DeltakerStatus.Type.SOKT_INN
-            startdato shouldBe null
-            sluttdato shouldBe null
+            startdato.shouldBeNull()
+            sluttdato.shouldBeNull()
         }
     }
 
     @Test
-    fun `sjekkUtfall - endre oppstart når avbrutt endrer ikke status til fullført`() = runTest {
+    fun `oppdaterDeltaker - endre oppstart når avbrutt endrer ikke status til fullført`() = runTest {
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(DeltakerStatus.Type.AVBRUTT),
             startdato = LocalDate.now().minusMonths(1),
@@ -709,12 +726,16 @@ class DeltakerEndringHandlerTest {
             forslagId = null,
         )
 
-        val deltakerEndringHandler =
-            DeltakerEndringHandler(deltaker, endringsrequest.toEndring(), deltakerHistorikkServiceMock)
-        val resultat = deltakerEndringHandler.sjekkUtfall()
+        val deltakerEndringHandler = DeltakerEndringHandler(
+            deltaker = deltaker,
+            endring = endringsrequest.toEndring(),
+            deltakelsemengdeProvider = mockDeltakelsesmengdeProvider,
+        )
 
-        resultat.erVellykket shouldBe true
-        val oppdatertDeltaker = resultat.getOrThrow()
+        val resultat = deltakerEndringHandler.oppdaterDeltaker().shouldBeSuccess()
+
+        val oppdatertDeltaker = resultat.deltaker
+
         oppdatertDeltaker.startdato shouldBe endringsrequest.startdato
         oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.AVBRUTT
     }

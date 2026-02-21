@@ -8,7 +8,6 @@ import no.nav.amt.deltaker.deltaker.db.DeltakerStatusRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringHandler
 import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringService
-import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringUtfall
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
 import no.nav.amt.deltaker.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
@@ -23,6 +22,7 @@ import no.nav.amt.deltaker.navenhet.NavEnhetService
 import no.nav.amt.deltaker.tiltakskoordinator.endring.EndringFraTiltakskoordinatorRepository
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Kilde
+import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.EndringRequest
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.lib.models.hendelse.HendelseType
@@ -100,55 +100,32 @@ class DeltakerService(
         log.info("Feilregistrert deltaker med id $deltakerId")
     }
 
-    suspend fun upsertEndretDeltaker(deltakerId: UUID, request: EndringRequest): Deltaker {
+    suspend fun upsertEndretDeltaker(deltakerId: UUID, endringRequest: EndringRequest): Deltaker {
         val eksisterendeDeltaker = deltakerRepository.get(deltakerId).getOrThrow()
         validerIkkeFeilregistrert(eksisterendeDeltaker)
 
-        val endring = request.toEndring()
+        val endring = endringRequest.toEndring()
         val deltakerEndringHandler = DeltakerEndringHandler(
             deltaker = eksisterendeDeltaker,
             endring = endring,
-            deltakerHistorikkService = deltakerHistorikkService,
+            deltakelsemengdeProvider = { deltakerId -> deltakerHistorikkService.getForDeltaker(deltakerId).toDeltakelsesmengder() },
         )
 
-        return when (val utfall = deltakerEndringHandler.sjekkUtfall()) {
-            is DeltakerEndringUtfall.VellykketEndring -> {
-                upsertAndProduceDeltaker(
-                    deltaker = utfall.deltaker,
-                    erDeltakerSluttdatoEndret = eksisterendeDeltaker.sluttdato != utfall.deltaker.sluttdato,
-                    nesteStatus = utfall.nesteStatus,
-                    beforeUpsert = { deltaker ->
-                        deltakerEndringService.upsertEndring(
-                            deltakerId = deltaker.id,
-                            endring = endring,
-                            utfall = utfall,
-                            request = request,
-                        )
-                        deltaker
-                    },
-                )
-            }
+        val updateResult = deltakerEndringHandler.oppdaterDeltaker().getOrElse { return eksisterendeDeltaker }
 
-            is DeltakerEndringUtfall.FremtidigEndring -> {
-                upsertAndProduceDeltaker(
-                    utfall.deltaker,
-                    erDeltakerSluttdatoEndret = eksisterendeDeltaker.sluttdato != utfall.deltaker.sluttdato,
-                    beforeUpsert = { deltaker ->
-                        deltakerEndringService.upsertEndring(
-                            deltakerId = deltaker.id,
-                            endring = endring,
-                            utfall = utfall,
-                            request = request,
-                        )
-                        deltaker
-                    },
+        return upsertAndProduceDeltaker(
+            deltaker = updateResult.deltaker,
+            erDeltakerSluttdatoEndret = eksisterendeDeltaker.sluttdato != updateResult.deltaker.sluttdato,
+            nesteStatus = updateResult.nesteStatus,
+            beforeUpsert = { deltaker ->
+                deltakerEndringService.upsertEndring(
+                    endring = endring,
+                    endringRequest = endringRequest,
+                    endringUtfall = updateResult,
                 )
-            }
-
-            is DeltakerEndringUtfall.UgyldigEndring -> {
-                eksisterendeDeltaker
-            }
-        }
+                deltaker
+            },
+        )
     }
 
     suspend fun transactionalDeltakerUpsert(

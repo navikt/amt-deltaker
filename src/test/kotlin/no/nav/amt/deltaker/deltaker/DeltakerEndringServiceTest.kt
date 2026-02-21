@@ -1,6 +1,8 @@
 package no.nav.amt.deltaker.deltaker
 
 import io.kotest.assertions.assertSoftly
+import io.kotest.matchers.result.shouldBeFailure
+import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
@@ -11,7 +13,7 @@ import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.VedtakRepository
 import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringService
-import no.nav.amt.deltaker.deltaker.endring.DeltakerEndringUtfall
+import no.nav.amt.deltaker.deltaker.endring.VellykketEndring
 import no.nav.amt.deltaker.deltaker.endring.fra.arrangor.EndringFraArrangorRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.forslag.ForslagService
@@ -123,7 +125,7 @@ class DeltakerEndringServiceTest {
         val deltaker = lagDeltaker()
         val endretAv = lagNavAnsatt()
         val endretAvEnhet = lagNavEnhet()
-        val utfall = DeltakerEndringUtfall.VellykketEndring(
+        val utfall = VellykketEndring(
             deltaker = deltaker,
         )
         TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
@@ -136,10 +138,9 @@ class DeltakerEndringServiceTest {
 
         Database.transaction {
             deltakerEndringService.upsertEndring(
-                deltakerId = deltaker.id,
                 endring = endringsrequest.toEndring(),
-                utfall = utfall,
-                request = endringsrequest,
+                endringUtfall = utfall,
+                endringRequest = endringsrequest,
             )
         }
 
@@ -158,7 +159,7 @@ class DeltakerEndringServiceTest {
         val deltaker = lagDeltaker()
         val endretAv = lagNavAnsatt()
         val endretAvEnhet = lagNavEnhet()
-        val utfall = DeltakerEndringUtfall.VellykketEndring(deltaker)
+        val utfall = VellykketEndring(deltaker)
 
         TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
 
@@ -173,12 +174,10 @@ class DeltakerEndringServiceTest {
         Database.transaction {
             resultat = deltakerEndringService
                 .upsertEndring(
-                    deltakerId = deltaker.id,
                     endring = endringsrequest.toEndring(),
-                    utfall = utfall,
-                    request = endringsrequest,
-                )!!
-                .endring
+                    endringUtfall = utfall,
+                    endringRequest = endringsrequest,
+                ).endring
                 as DeltakerEndring.Endring.EndreInnhold
         }
 
@@ -210,14 +209,13 @@ class DeltakerEndringServiceTest {
             begrunnelse = "begrunnelse",
             forslagId = forslag.id,
         )
-        val utfall = DeltakerEndringUtfall.VellykketEndring(deltaker)
+        val utfall = VellykketEndring(deltaker)
 
         Database.transaction {
             deltakerEndringService.upsertEndring(
-                deltakerId = deltaker.id,
                 endring = endringsrequest.toEndring(),
-                utfall = utfall,
-                request = endringsrequest,
+                endringUtfall = utfall,
+                endringRequest = endringsrequest,
             )
         }
 
@@ -253,7 +251,7 @@ class DeltakerEndringServiceTest {
         val endretAv = lagNavAnsatt()
         val endretAvEnhet = lagNavEnhet()
         val forslag = lagForslag(deltakerId = deltaker.id, endring = Forslag.IkkeAktuell(EndringAarsak.FattJobb))
-        val utfall = DeltakerEndringUtfall.VellykketEndring(deltaker)
+        val utfall = VellykketEndring(deltaker)
         TestRepository.insertAll(deltaker, endretAv, endretAvEnhet, forslag)
 
         val endringsrequest = IkkeAktuellRequest(
@@ -266,10 +264,9 @@ class DeltakerEndringServiceTest {
 
         Database.transaction {
             deltakerEndringService.upsertEndring(
-                deltakerId = deltaker.id,
                 endring = endringsrequest.toEndring(),
-                utfall = utfall,
-                request = endringsrequest,
+                endringUtfall = utfall,
+                endringRequest = endringsrequest,
             )
         }
 
@@ -308,7 +305,7 @@ class DeltakerEndringServiceTest {
         )
         val endretAv = lagNavAnsatt()
         val endretAvEnhet = lagNavEnhet()
-        val utfall = DeltakerEndringUtfall.VellykketEndring(deltaker)
+        val utfall = VellykketEndring(deltaker)
 
         TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
 
@@ -321,10 +318,9 @@ class DeltakerEndringServiceTest {
 
         Database.transaction {
             deltakerEndringService.upsertEndring(
-                deltakerId = deltaker.id,
                 endring = endringsrequest.toEndring(),
-                utfall = utfall,
-                request = endringsrequest,
+                endringUtfall = utfall,
+                endringRequest = endringsrequest,
             )
         }
 
@@ -366,10 +362,11 @@ class DeltakerEndringServiceTest {
             ),
         )
 
-        val resultat = deltakerEndringService.behandleLagretDeltakelsesmengde(ubehandletEndring, deltaker)
+        val resultat = deltakerEndringService
+            .behandleLagretDeltakelsesmengde(ubehandletEndring, deltaker)
+            .shouldBeSuccess()
 
-        resultat.erVellykket shouldBe true
-        val oppdatertDeltaker = resultat.getOrThrow()
+        val oppdatertDeltaker = resultat.deltaker
         oppdatertDeltaker.deltakelsesprosent shouldBe deltakelsesprosent
         oppdatertDeltaker.dagerPerUke shouldBe dagerPerUke
 
@@ -421,12 +418,11 @@ class DeltakerEndringServiceTest {
             ),
         )
 
-        lateinit var resultat: DeltakerEndringUtfall
         Database.transaction {
-            resultat = deltakerEndringService.behandleLagretDeltakelsesmengde(ugyldigEndring, deltaker)
+            deltakerEndringService
+                .behandleLagretDeltakelsesmengde(ugyldigEndring, deltaker)
+                .shouldBeFailure()
         }
-
-        resultat.erUgyldig shouldBe true
 
         val ubehandlete = deltakerEndringRepository.getUbehandletDeltakelsesmengder()
 
@@ -487,7 +483,8 @@ class DeltakerEndringServiceTest {
                 dagerPerUke = fremtidigDagerPerUke,
             ), // deltaker skal være oppdatert pga startdatoendringen...
         )
-        resultat.erUgyldig shouldBe true
+
+        resultat.shouldBeFailure()
 
         val ubehandlete = deltakerEndringRepository.getUbehandletDeltakelsesmengder()
         ubehandlete.size shouldBe 0
@@ -503,7 +500,7 @@ class DeltakerEndringServiceTest {
     private fun upsertEndring(endring: DeltakerEndring): DeltakerEndring {
         deltakerEndringRepository.upsert(
             deltakerEndring = endring,
-            behandlet = null,
+            behandletTidspunkt = null,
         )
         return deltakerEndringRepository.get(endring.id).getOrThrow()
     }

@@ -1,6 +1,5 @@
 package no.nav.amt.deltaker.deltaker.endring
 
-import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerUtils.nyDeltakerStatus
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
@@ -8,38 +7,40 @@ import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.Deltakelsesmengder
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengde
-import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.UUID
 
 class DeltakerEndringHandler(
     private val deltaker: Deltaker,
-    val endring: DeltakerEndring.Endring,
-    private val deltakerHistorikkService: DeltakerHistorikkService,
+    private val endring: DeltakerEndring.Endring,
+    private val deltakelsemengdeProvider: (deltakerId: UUID) -> Deltakelsesmengder,
 ) {
-    fun sjekkUtfall(): DeltakerEndringUtfall = when (endring) {
-        is DeltakerEndring.Endring.AvsluttDeltakelse -> avsluttDeltakelse(endring)
-        is DeltakerEndring.Endring.EndreAvslutning -> endreAvslutning(endring)
-        is DeltakerEndring.Endring.AvbrytDeltakelse -> avbrytDeltakelse(endring)
-        is DeltakerEndring.Endring.EndreBakgrunnsinformasjon -> endreBakgrunnsinformasjon(endring)
-        is DeltakerEndring.Endring.EndreDeltakelsesmengde -> endreDeltakelsesmengde(endring)
-        is DeltakerEndring.Endring.EndreInnhold -> endreInnhold(endring)
-        is DeltakerEndring.Endring.EndreSluttdato -> endreSluttdato(endring)
-        is DeltakerEndring.Endring.EndreSluttarsak -> endreSluttarsak(endring)
-        is DeltakerEndring.Endring.EndreStartdato -> endreStartdato(endring)
-        is DeltakerEndring.Endring.ForlengDeltakelse -> forlengDeltakelse(endring)
-        is DeltakerEndring.Endring.IkkeAktuell -> ikkeAktuell(endring)
-        is DeltakerEndring.Endring.ReaktiverDeltakelse -> reaktiverDeltakelse()
-        is DeltakerEndring.Endring.FjernOppstartsdato -> fjernOppstartsdato()
+    fun oppdaterDeltaker(): Result<VellykketEndring> = runCatching {
+        when (endring) {
+            is DeltakerEndring.Endring.AvsluttDeltakelse -> avsluttDeltakelse(endring)
+            is DeltakerEndring.Endring.EndreAvslutning -> endreAvslutning(endring)
+            is DeltakerEndring.Endring.AvbrytDeltakelse -> avbrytDeltakelse(endring)
+            is DeltakerEndring.Endring.EndreBakgrunnsinformasjon -> endreBakgrunnsinformasjon(endring)
+            is DeltakerEndring.Endring.EndreDeltakelsesmengde -> endreDeltakelsesmengde(endring)
+            is DeltakerEndring.Endring.EndreInnhold -> endreInnhold(endring)
+            is DeltakerEndring.Endring.EndreSluttdato -> endreSluttdato(endring)
+            is DeltakerEndring.Endring.EndreSluttarsak -> endreSluttarsak(endring)
+            is DeltakerEndring.Endring.EndreStartdato -> endreStartdato(endring)
+            is DeltakerEndring.Endring.ForlengDeltakelse -> forlengDeltakelse(endring)
+            is DeltakerEndring.Endring.IkkeAktuell -> ikkeAktuell(endring)
+            is DeltakerEndring.Endring.ReaktiverDeltakelse -> reaktiverDeltakelse()
+            is DeltakerEndring.Endring.FjernOppstartsdato -> fjernOppstartsdato()
+        }
     }
 
-    private fun endreDeltaker(erEndret: Boolean, block: () -> DeltakerEndringUtfall.VellykketEndring) = if (erEndret) {
+    private fun endreDeltaker(erEndret: Boolean, block: () -> VellykketEndring) = if (erEndret) {
         block()
     } else {
         ugyldigEndring()
     }
 
-    private fun ugyldigEndring() = DeltakerEndringUtfall.UgyldigEndring(IllegalStateException("Ingen gyldig endring"))
+    private fun ugyldigEndring(): Nothing = throw IllegalStateException("Ingen gyldig endring")
 
     private fun reaktiverDeltakelse() = endreDeltaker(deltaker.status.type == DeltakerStatus.Type.IKKE_AKTUELL) {
         val nyStatus = if (deltaker.deltakerliste.deltakelserMaaGodkjennes) {
@@ -48,7 +49,7 @@ class DeltakerEndringHandler(
             nyDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART)
         }
 
-        DeltakerEndringUtfall.VellykketEndring(
+        VellykketEndring(
             deltaker.copy(
                 status = nyStatus,
                 startdato = null,
@@ -59,7 +60,7 @@ class DeltakerEndringHandler(
 
     private fun ikkeAktuell(endring: DeltakerEndring.Endring.IkkeAktuell) =
         endreDeltaker(deltaker.status.aarsak != endring.aarsak.toDeltakerStatusAarsak()) {
-            DeltakerEndringUtfall.VellykketEndring(
+            VellykketEndring(
                 deltaker.copy(
                     status = nyDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL, endring.aarsak.toDeltakerStatusAarsak()),
                     startdato = null,
@@ -70,7 +71,7 @@ class DeltakerEndringHandler(
 
     private fun forlengDeltakelse(endring: DeltakerEndring.Endring.ForlengDeltakelse) =
         endreDeltaker(deltaker.sluttdato != endring.sluttdato) {
-            DeltakerEndringUtfall.VellykketEndring(
+            VellykketEndring(
                 deltaker.copy(
                     sluttdato = endring.sluttdato,
                     status = deltaker.getStatusEndretSluttdato(endring.sluttdato),
@@ -80,25 +81,25 @@ class DeltakerEndringHandler(
 
     private fun endreStartdato(endring: DeltakerEndring.Endring.EndreStartdato) =
         endreDeltaker(deltaker.startdato != endring.startdato || deltaker.sluttdato != endring.sluttdato) {
-            DeltakerEndringUtfall.VellykketEndring(
+            VellykketEndring(
                 endreDeltakersOppstart(
-                    deltaker,
-                    endring.startdato,
-                    endring.sluttdato,
-                    deltakerHistorikkService.getForDeltaker(deltaker.id).toDeltakelsesmengder(),
+                    deltaker = deltaker,
+                    startdato = endring.startdato,
+                    sluttdato = endring.sluttdato,
+                    deltakelsesmengder = deltakelsemengdeProvider(deltaker.id),
                 ),
             )
         }
 
     private fun endreSluttarsak(endring: DeltakerEndring.Endring.EndreSluttarsak) =
         endreDeltaker(deltaker.status.aarsak != endring.aarsak.toDeltakerStatusAarsak()) {
-            DeltakerEndringUtfall.VellykketEndring(
+            VellykketEndring(
                 deltaker.copy(status = nyDeltakerStatus(deltaker.status.type, endring.aarsak.toDeltakerStatusAarsak())),
             )
         }
 
     private fun endreSluttdato(endring: DeltakerEndring.Endring.EndreSluttdato) = endreDeltaker(endring.sluttdato != deltaker.sluttdato) {
-        DeltakerEndringUtfall.VellykketEndring(
+        VellykketEndring(
             deltaker.copy(
                 sluttdato = endring.sluttdato,
                 status = deltaker.getStatusEndretSluttdato(endring.sluttdato),
@@ -108,40 +109,40 @@ class DeltakerEndringHandler(
 
     private fun endreInnhold(endring: DeltakerEndring.Endring.EndreInnhold) =
         endreDeltaker(deltaker.deltakelsesinnhold?.innhold != endring.innhold) {
-            DeltakerEndringUtfall.VellykketEndring(
+            VellykketEndring(
                 deltaker.copy(deltakelsesinnhold = Deltakelsesinnhold(endring.ledetekst, endring.innhold)),
             )
         }
 
-    private fun endreDeltakelsesmengde(endring: DeltakerEndring.Endring.EndreDeltakelsesmengde): DeltakerEndringUtfall {
-        val deltakelsesmengder = deltakerHistorikkService.getForDeltaker(deltaker.id).toDeltakelsesmengder()
+    private fun endreDeltakelsesmengde(endring: DeltakerEndring.Endring.EndreDeltakelsesmengde): VellykketEndring {
+        val deltakelsesmengder = deltakelsemengdeProvider(deltaker.id)
         val nyDeltakelsesmengde = endring.toDeltakelsesmengde(LocalDateTime.now())
 
         if (!deltakelsesmengder.validerNyDeltakelsesmengde(nyDeltakelsesmengde)) {
-            return ugyldigEndring()
+            ugyldigEndring()
         }
 
         return if (nyDeltakelsesmengde.gyldigFra <= LocalDate.now()) {
-            DeltakerEndringUtfall.VellykketEndring(
+            VellykketEndring(
                 deltaker.copy(
                     deltakelsesprosent = endring.deltakelsesprosent,
                     dagerPerUke = endring.dagerPerUke,
                 ),
             )
         } else {
-            DeltakerEndringUtfall.FremtidigEndring(deltaker)
+            VellykketEndring(deltaker = deltaker, erFremtidigEndring = true)
         }
     }
 
     private fun endreBakgrunnsinformasjon(endring: DeltakerEndring.Endring.EndreBakgrunnsinformasjon) =
         endreDeltaker(deltaker.bakgrunnsinformasjon != endring.bakgrunnsinformasjon) {
-            DeltakerEndringUtfall.VellykketEndring(
+            VellykketEndring(
                 deltaker.copy(bakgrunnsinformasjon = endring.bakgrunnsinformasjon),
             )
         }
 
     private fun fjernOppstartsdato() = endreDeltaker(deltaker.startdato != null) {
-        DeltakerEndringUtfall.VellykketEndring(
+        VellykketEndring(
             deltaker.copy(
                 startdato = null,
                 sluttdato = null,
@@ -157,7 +158,7 @@ class DeltakerEndringHandler(
         if (deltaker.status.type == DeltakerStatus.Type.DELTAR || !endring.skalFortsattDelta()) {
             // Skal deltaker avsluttes nå eller i fremtiden
 
-            DeltakerEndringUtfall.VellykketEndring(
+            VellykketEndring(
                 deltaker.copy(
                     sluttdato = endring.sluttdato,
                     status = endring.getAvsluttendeStatus(),
@@ -166,7 +167,7 @@ class DeltakerEndringHandler(
         } else {
             // Deltaker er avsluttet allerede, men nav veileder godkjenner et forlag om å avslutte deltaker frem i tid
             // Da settes status til DELTAR igjen med en fremtidig(neste) avsluttende status
-            DeltakerEndringUtfall.VellykketEndring(
+            VellykketEndring(
                 deltaker.copy(
                     sluttdato = endring.sluttdato,
                     status = nyDeltakerStatus(DeltakerStatus.Type.DELTAR),
@@ -183,7 +184,7 @@ class DeltakerEndringHandler(
             deltaker.status.aarsak != endring.aarsak?.toDeltakerStatusAarsak(),
     ) {
         if (endring.sluttdato != null && endring.skalFortsattDelta() == true) {
-            DeltakerEndringUtfall.VellykketEndring(
+            VellykketEndring(
                 deltaker.copy(
                     sluttdato = endring.sluttdato!!,
                     status = nyDeltakerStatus(DeltakerStatus.Type.DELTAR),
@@ -191,7 +192,7 @@ class DeltakerEndringHandler(
                 nesteStatus = endring.getEndreAvslutningStatus(),
             )
         } else {
-            DeltakerEndringUtfall.VellykketEndring(
+            VellykketEndring(
                 deltaker.copy(
                     status = endring.getEndreAvslutningStatus(),
                     sluttdato = endring.sluttdato,
@@ -206,7 +207,7 @@ class DeltakerEndringHandler(
             deltaker.status.aarsak != endring.aarsak.toDeltakerStatusAarsak(),
     ) {
         if (deltaker.status.type == DeltakerStatus.Type.DELTAR || !endring.skalFortsattDelta()) {
-            DeltakerEndringUtfall.VellykketEndring(
+            VellykketEndring(
                 deltaker.copy(
                     sluttdato = endring.sluttdato,
                     status = endring.getAvbruttStatus(),
@@ -214,7 +215,7 @@ class DeltakerEndringHandler(
             )
         } else {
             // Status er ikke Deltar, men deltakeren skal få deltar status
-            DeltakerEndringUtfall.VellykketEndring(
+            VellykketEndring(
                 deltaker.copy(
                     sluttdato = endring.sluttdato,
                     status = nyDeltakerStatus(DeltakerStatus.Type.DELTAR),

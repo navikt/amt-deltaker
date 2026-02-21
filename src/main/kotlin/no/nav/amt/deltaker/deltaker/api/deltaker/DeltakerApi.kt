@@ -33,7 +33,7 @@ fun Routing.registerDeltakerApi(
         post("/deltaker/{deltakerId}/deltaker-endring") {
             val deltaker = deltakerService.upsertEndretDeltaker(
                 deltakerId = call.getDeltakerId(),
-                request = call.receive<EndringRequest>(),
+                endringRequest = call.receive<EndringRequest>(),
             )
             val historikk = historikkService.getForDeltaker(deltaker.id)
 
