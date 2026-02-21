@@ -33,7 +33,7 @@ class AvsluttDeltakelseExtensionsTest {
             .toEndring()
             .oppdaterDeltaker(
                 deltaker = deltakerSomDeltar,
-                deltakelsemengdeProvider = mockDeltakelsesmengdeProvider,
+                getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()
 
         val oppdatertDeltaker = resultat.deltaker
@@ -60,7 +60,7 @@ class AvsluttDeltakelseExtensionsTest {
             .toEndring()
             .oppdaterDeltaker(
                 deltaker = deltakerSomDeltar,
-                deltakelsemengdeProvider = mockDeltakelsesmengdeProvider,
+                getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()
 
         assertSoftly(resultat.deltaker) {
@@ -85,7 +85,7 @@ class AvsluttDeltakelseExtensionsTest {
             .toEndring()
             .oppdaterDeltaker(
                 deltaker = deltakerSomHarSluttet,
-                deltakelsemengdeProvider = mockDeltakelsesmengdeProvider,
+                getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()
 
         assertSoftly(resultat.deltaker) {
@@ -117,7 +117,7 @@ class AvsluttDeltakelseExtensionsTest {
             .toEndring()
             .oppdaterDeltaker(
                 deltaker = deltakerSomHarSluttet,
-                deltakelsemengdeProvider = mockDeltakelsesmengdeProvider,
+                getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()
 
         assertSoftly(resultat.deltaker) {

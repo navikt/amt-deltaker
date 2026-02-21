@@ -10,7 +10,7 @@ import java.util.UUID
 
 fun DeltakerEndring.Endring.oppdaterDeltaker(
     deltaker: Deltaker,
-    deltakelsemengdeProvider: (deltakerId: UUID) -> Deltakelsesmengder,
+    getDeltakelsemengder: (deltakerId: UUID) -> Deltakelsesmengder,
 ): Result<VellykketEndring> = runCatching {
     when (this) {
         is DeltakerEndring.Endring.AvsluttDeltakelse -> {
@@ -48,7 +48,7 @@ fun DeltakerEndring.Endring.oppdaterDeltaker(
         is DeltakerEndring.Endring.EndreDeltakelsesmengde -> {
             handleEndring(
                 deltaker = deltaker,
-                hasChanges = { this.hasChanges(deltakelsemengdeProvider(deltaker.id)) },
+                hasChanges = { this.hasChanges(getDeltakelsemengder(deltaker.id)) },
                 apply = DeltakerEndring.Endring.EndreDeltakelsesmengde::endreDeltakelsesmengde,
             )
         }
@@ -84,7 +84,7 @@ fun DeltakerEndring.Endring.oppdaterDeltaker(
                 apply = {
                     this.endreStartdato(
                         deltaker = deltaker,
-                        deltakelsesmengder = deltakelsemengdeProvider(deltaker.id),
+                        deltakelsesmengder = getDeltakelsemengder(deltaker.id),
                     )
                 },
             )

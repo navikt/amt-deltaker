@@ -109,7 +109,7 @@ class DeltakerService(
         val updateResult = endring
             .oppdaterDeltaker(
                 deltaker = eksisterendeDeltaker,
-                deltakelsemengdeProvider = { deltakerId -> deltakerHistorikkService.getForDeltaker(deltakerId).toDeltakelsesmengder() },
+                getDeltakelsemengder = { deltakerId -> deltakerHistorikkService.getForDeltaker(deltakerId).toDeltakelsesmengder() },
             ).getOrElse { return eksisterendeDeltaker }
 
         return upsertAndProduceDeltaker(

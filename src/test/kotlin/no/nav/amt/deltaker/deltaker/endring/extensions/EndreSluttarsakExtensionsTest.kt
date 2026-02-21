@@ -20,7 +20,7 @@ class EndreSluttarsakExtensionsTest {
             .toEndring()
             .oppdaterDeltaker(
                 deltaker = deltaker,
-                deltakelsemengdeProvider = mockDeltakelsesmengdeProvider,
+                getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()
 
         val oppdatertDeltaker = resultat.deltaker

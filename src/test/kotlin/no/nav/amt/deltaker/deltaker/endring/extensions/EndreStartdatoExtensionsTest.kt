@@ -33,7 +33,7 @@ class EndreStartdatoExtensionsTest {
             .toEndring()
             .oppdaterDeltaker(
                 deltaker = deltaker,
-                deltakelsemengdeProvider = mockDeltakelsesmengdeProvider,
+                getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()
 
         assertSoftly(resultat.deltaker) {
@@ -60,7 +60,7 @@ class EndreStartdatoExtensionsTest {
             .toEndring()
             .oppdaterDeltaker(
                 deltaker = deltaker,
-                deltakelsemengdeProvider = mockDeltakelsesmengdeProvider,
+                getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()
 
         assertSoftly(resultat.deltaker) {
@@ -86,7 +86,7 @@ class EndreStartdatoExtensionsTest {
             .toEndring()
             .oppdaterDeltaker(
                 deltaker = deltaker,
-                deltakelsemengdeProvider = mockDeltakelsesmengdeProvider,
+                getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()
 
         assertSoftly(resultat.deltaker) {
@@ -116,7 +116,7 @@ class EndreStartdatoExtensionsTest {
             .toEndring()
             .oppdaterDeltaker(
                 deltaker = deltaker,
-                deltakelsemengdeProvider = mockDeltakelsesmengdeProvider,
+                getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()
 
         assertSoftly(resultat.deltaker) {
@@ -142,7 +142,7 @@ class EndreStartdatoExtensionsTest {
             .toEndring()
             .oppdaterDeltaker(
                 deltaker = deltaker,
-                deltakelsemengdeProvider = mockDeltakelsesmengdeProvider,
+                getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()
 
         assertSoftly(resultat.deltaker) {
@@ -173,7 +173,7 @@ class EndreStartdatoExtensionsTest {
             .toEndring()
             .oppdaterDeltaker(
                 deltaker = deltaker,
-                deltakelsemengdeProvider = mockDeltakelsesmengdeProvider,
+                getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()
 
         assertSoftly(resultat.deltaker) {
@@ -207,7 +207,7 @@ class EndreStartdatoExtensionsTest {
             .toEndring()
             .oppdaterDeltaker(
                 deltaker = deltaker,
-                deltakelsemengdeProvider = mockDeltakelsesmengdeProvider,
+                getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()
 
         val oppdatertDeltaker = resultat.deltaker
