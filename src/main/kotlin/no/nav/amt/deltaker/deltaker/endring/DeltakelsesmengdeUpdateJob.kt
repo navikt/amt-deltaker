@@ -50,19 +50,17 @@ class DeltakelsesmengdeUpdateJob(
             endringer = deltakerEndringRepository.getUbehandletDeltakelsesmengder(offset)
             endringer.forEach { deltakerEndring ->
                 val opprinneligDeltaker = deltakerRepository.get(deltakerEndring.deltakerId).getOrThrow()
-                val endringsutfall = deltakerEndringService.behandleLagretDeltakelsesmengde(
-                    endring = deltakerEndring,
-                    deltaker = opprinneligDeltaker,
-                )
 
-                if (endringsutfall.erVellykket) {
-                    val oppdatertDeltaker = endringsutfall.getOrThrow()
-
-                    deltakerService.upsertAndProduceDeltaker(
-                        deltaker = oppdatertDeltaker,
-                        erDeltakerSluttdatoEndret = opprinneligDeltaker.sluttdato != oppdatertDeltaker.sluttdato,
-                    )
-                }
+                deltakerEndringService
+                    .behandleLagretDeltakelsesmengde(
+                        deltakerEndring = deltakerEndring,
+                        deltaker = opprinneligDeltaker,
+                    ).onSuccess { vellykketEndring ->
+                        deltakerService.upsertAndProduceDeltaker(
+                            deltaker = vellykketEndring.deltaker,
+                            erDeltakerSluttdatoEndret = opprinneligDeltaker.sluttdato != vellykketEndring.deltaker.sluttdato,
+                        )
+                    }
             }
             offset += endringer.size
         } while (endringer.isNotEmpty())

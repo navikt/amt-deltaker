@@ -14,7 +14,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 class DeltakerEndringRepository {
-    fun upsert(deltakerEndring: DeltakerEndring, behandlet: LocalDateTime? = LocalDateTime.now()) {
+    fun upsert(deltakerEndring: DeltakerEndring, behandletTidspunkt: LocalDateTime? = LocalDateTime.now()) {
         val sql =
             """
             INSERT INTO deltaker_endring (
@@ -56,7 +56,7 @@ class DeltakerEndringRepository {
             "endret_av" to deltakerEndring.endretAv,
             "endret_av_enhet" to deltakerEndring.endretAvEnhet,
             "forslag_id" to deltakerEndring.forslag?.id,
-            "behandlet" to behandlet,
+            "behandlet" to behandletTidspunkt,
         )
 
         Database.query { session -> session.update(queryOf(sql, params)) }

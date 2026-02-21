@@ -4,7 +4,7 @@ import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.DeltakerService.Companion.validerIkkeFeilregistrert
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
-import no.nav.amt.deltaker.deltaker.endring.endreDeltakersOppstart
+import no.nav.amt.deltaker.deltaker.endring.extensions.endreDeltakersOppstart
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.lib.models.arrangor.melding.EndringFraArrangor
@@ -59,11 +59,10 @@ class EndringFraArrangorService(
         return when (endring) {
             is EndringFraArrangor.LeggTilOppstartsdato -> {
                 endreDeltaker(deltaker.startdato != endring.startdato) {
-                    endreDeltakersOppstart(
-                        deltaker,
-                        endring.startdato,
-                        endring.sluttdato,
-                        deltakerHistorikkService.getForDeltaker(deltaker.id).toDeltakelsesmengder(),
+                    deltaker.endreDeltakersOppstart(
+                        startdato = endring.startdato,
+                        sluttdato = endring.sluttdato,
+                        deltakelsesmengder = deltakerHistorikkService.getForDeltaker(deltaker.id).toDeltakelsesmengder(),
                     )
                 }
             }

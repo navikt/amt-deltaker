@@ -27,17 +27,14 @@ class DeltakerEndringService(
     private val log = LoggerFactory.getLogger(javaClass)
 
     fun upsertEndring(
-        deltakerId: UUID,
         endring: DeltakerEndring.Endring,
-        utfall: DeltakerEndringUtfall,
-        request: EndringRequest,
-    ): DeltakerEndring? {
-        if (utfall.erUgyldig) return null
+        endringRequest: EndringRequest,
+        endringResultat: VellykketEndring,
+    ): DeltakerEndring {
+        val ansatt = navAnsattRepository.getOrThrow(endringRequest.endretAv)
+        val enhet = navEnhetRepository.getOrThrow(endringRequest.endretAvEnhet)
 
-        val ansatt = navAnsattRepository.getOrThrow(request.endretAv)
-        val enhet = navEnhetRepository.getOrThrow(request.endretAvEnhet)
-
-        val godkjentForslag = request.getForslagId()?.let { forslagId ->
+        val godkjentForslag = endringRequest.getForslagId()?.let { forslagId ->
             forslagService.godkjennForslag(
                 forslagId = forslagId,
                 godkjentAvAnsattId = ansatt.id,
@@ -47,7 +44,7 @@ class DeltakerEndringService(
 
         val deltakerEndring = DeltakerEndring(
             id = UUID.randomUUID(),
-            deltakerId = deltakerId,
+            deltakerId = endringResultat.deltaker.id,
             endring = endring,
             endretAv = ansatt.id,
             endretAvEnhet = enhet.id,
@@ -55,37 +52,51 @@ class DeltakerEndringService(
             forslag = godkjentForslag,
         )
 
-        val behandlet = if (utfall.erVellykket) LocalDateTime.now() else null
+        val behandletTidspunkt = if (endringResultat.erFremtidigEndring) null else LocalDateTime.now()
 
-        deltakerEndringRepository.upsert(deltakerEndring, behandlet)
-        hendelseService.hendelseForDeltakerEndring(deltakerEndring, utfall.getOrThrow(), ansatt, enhet)
+        deltakerEndringRepository.upsert(
+            deltakerEndring = deltakerEndring,
+            behandletTidspunkt = behandletTidspunkt,
+        )
+
+        hendelseService.hendelseForDeltakerEndring(
+            deltakerEndring = deltakerEndring,
+            deltaker = endringResultat.deltaker,
+            navAnsatt = ansatt,
+            navEnhet = enhet,
+        )
+
         return deltakerEndring
     }
 
-    fun behandleLagretDeltakelsesmengde(endring: DeltakerEndring, deltaker: Deltaker): DeltakerEndringUtfall {
-        val deltakelsesmengde = endring.toDeltakelsesmengde()
-            ?: throw IllegalStateException("Endring ${endring.id} er ikke en EndreDeltakelsesmengde")
+    fun behandleLagretDeltakelsesmengde(deltakerEndring: DeltakerEndring, deltaker: Deltaker): Result<VellykketEndring> {
+        val deltakelsesmengde = deltakerEndring.toDeltakelsesmengde()
+            ?: throw IllegalStateException("Endring ${deltakerEndring.id} er ikke en EndreDeltakelsesmengde")
 
         val gyldigeDeltakelsesmengder = deltakerHistorikkService.getForDeltaker(deltaker.id).toDeltakelsesmengder()
 
         val endringenErIkkeUtfort = deltaker.deltakelsesprosent != deltakelsesmengde.deltakelsesprosent ||
             deltaker.dagerPerUke != deltakelsesmengde.dagerPerUke
 
+        val logMessage = "Behandler endring: ${deltakerEndring.id}, deltaker: ${deltaker.id}"
+
         val utfall =
             if (deltakelsesmengde == gyldigeDeltakelsesmengder.gjeldende && endringenErIkkeUtfort) {
-                DeltakerEndringUtfall.VellykketEndring(
-                    deltaker.copy(
-                        deltakelsesprosent = deltakelsesmengde.deltakelsesprosent,
-                        dagerPerUke = deltakelsesmengde.dagerPerUke,
+                log.info("$logMessage, utfall: Vellykket")
+                Result.success(
+                    VellykketEndring(
+                        deltaker.copy(
+                            deltakelsesprosent = deltakelsesmengde.deltakelsesprosent,
+                            dagerPerUke = deltakelsesmengde.dagerPerUke,
+                        ),
                     ),
                 )
             } else {
-                DeltakerEndringUtfall.UgyldigEndring(IllegalStateException("Endringen er ikke lenger gyldig"))
+                log.info("$logMessage, utfall: Ikke vellykket")
+                Result.failure(IllegalStateException("Endringen er ikke lenger gyldig"))
             }
 
-        log.info("Behandler endring: ${endring.id}, utfall: ${utfall::class.simpleName}, deltaker: ${deltaker.id}")
-
-        deltakerEndringRepository.upsert(endring, LocalDateTime.now())
+        deltakerEndringRepository.upsert(deltakerEndring, LocalDateTime.now())
 
         return utfall
     }
