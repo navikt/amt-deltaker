@@ -32,7 +32,7 @@ class NavEnhetRepositoryTest {
         navEnhetRepository.upsert(navEnhet)
 
         val oppdatertNavEnhet = navEnhet.copy(
-            navn = "Oppdatert NAV Enhet",
+            navn = "Oppdatert Nav-enhet",
             enhetsnummer = "9999",
         )
         val result = navEnhetRepository.upsert(oppdatertNavEnhet)
@@ -80,9 +80,9 @@ class NavEnhetRepositoryTest {
         @Test
         fun `getMany - flere nav enheter - returnerer alle enheter`() {
             val navEnheter = listOf(
-                lagNavEnhet(enhetsnummer = "1111", navn = "NAV En"),
-                lagNavEnhet(enhetsnummer = "2222", navn = "NAV To"),
-                lagNavEnhet(enhetsnummer = "3333", navn = "NAV Tre"),
+                lagNavEnhet(enhetsnummer = "1111", navn = "Nav En"),
+                lagNavEnhet(enhetsnummer = "2222", navn = "Nav To"),
+                lagNavEnhet(enhetsnummer = "3333", navn = "Nav Tre"),
             )
             navEnheter.forEach { navEnhetRepository.upsert(it) }
 
@@ -94,7 +94,7 @@ class NavEnhetRepositoryTest {
 
         @Test
         fun `getMany - delvis eksisterende enheter - returnerer kun eksisterende`() {
-            val eksisterendeNavEnhet = lagNavEnhet(enhetsnummer = "1234", navn = "NAV Eksisterende")
+            val eksisterendeNavEnhet = lagNavEnhet(enhetsnummer = "1234", navn = "Nav Eksisterende")
             navEnhetRepository.upsert(eksisterendeNavEnhet)
             val ikkeEksisterendeId = UUID.randomUUID()
 
