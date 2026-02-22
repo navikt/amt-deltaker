@@ -110,7 +110,12 @@ class DeltakerService(
             .oppdaterDeltaker(
                 deltaker = eksisterendeDeltaker,
                 getDeltakelsemengder = { deltakerId -> deltakerHistorikkService.getForDeltaker(deltakerId).toDeltakelsesmengder() },
-            ).getOrElse { return eksisterendeDeltaker }
+            ).getOrElse {
+                log.warn(
+                    "Deltaker ${eksisterendeDeltaker.id} med ${endring.javaClass.simpleName} ikke endret, request skulle ikke være sendt",
+                )
+                return eksisterendeDeltaker
+            }
 
         log.info("Endret deltaker ${eksisterendeDeltaker.id} med ${endring.javaClass.simpleName}")
 
@@ -120,7 +125,6 @@ class DeltakerService(
             nesteStatus = updateResult.nesteStatus,
             beforeUpsert = { deltaker ->
                 deltakerEndringService.upsertEndring(
-                    endring = endring,
                     endringRequest = endringRequest,
                     endringResultat = updateResult,
                 )
