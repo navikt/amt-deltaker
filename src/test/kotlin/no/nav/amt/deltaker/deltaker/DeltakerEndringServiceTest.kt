@@ -125,7 +125,7 @@ class DeltakerEndringServiceTest {
         val deltaker = lagDeltaker()
         val endretAv = lagNavAnsatt()
         val endretAvEnhet = lagNavEnhet()
-        val utfall = VellykketEndring(
+        val endringResultat = VellykketEndring(
             deltaker = deltaker,
         )
         TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
@@ -138,8 +138,7 @@ class DeltakerEndringServiceTest {
 
         Database.transaction {
             deltakerEndringService.upsertEndring(
-                endring = endringsrequest.toEndring(),
-                endringResultat = utfall,
+                endringResultat = endringResultat,
                 endringRequest = endringsrequest,
             )
         }
@@ -174,7 +173,6 @@ class DeltakerEndringServiceTest {
         Database.transaction {
             resultat = deltakerEndringService
                 .upsertEndring(
-                    endring = endringsrequest.toEndring(),
                     endringResultat = utfall,
                     endringRequest = endringsrequest,
                 ).endring
@@ -213,7 +211,6 @@ class DeltakerEndringServiceTest {
 
         Database.transaction {
             deltakerEndringService.upsertEndring(
-                endring = endringsrequest.toEndring(),
                 endringResultat = utfall,
                 endringRequest = endringsrequest,
             )
@@ -264,7 +261,6 @@ class DeltakerEndringServiceTest {
 
         Database.transaction {
             deltakerEndringService.upsertEndring(
-                endring = endringsrequest.toEndring(),
                 endringResultat = utfall,
                 endringRequest = endringsrequest,
             )
@@ -318,7 +314,6 @@ class DeltakerEndringServiceTest {
 
         Database.transaction {
             deltakerEndringService.upsertEndring(
-                endring = endringsrequest.toEndring(),
                 endringResultat = utfall,
                 endringRequest = endringsrequest,
             )

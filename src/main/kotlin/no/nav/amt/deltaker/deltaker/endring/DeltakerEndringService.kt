@@ -26,11 +26,7 @@ class DeltakerEndringService(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun upsertEndring(
-        endring: DeltakerEndring.Endring,
-        endringRequest: EndringRequest,
-        endringResultat: VellykketEndring,
-    ): DeltakerEndring {
+    fun upsertEndring(endringRequest: EndringRequest, endringResultat: VellykketEndring): DeltakerEndring {
         val ansatt = navAnsattRepository.getOrThrow(endringRequest.endretAv)
         val enhet = navEnhetRepository.getOrThrow(endringRequest.endretAvEnhet)
 
@@ -45,7 +41,7 @@ class DeltakerEndringService(
         val deltakerEndring = DeltakerEndring(
             id = UUID.randomUUID(),
             deltakerId = endringResultat.deltaker.id,
-            endring = endring,
+            endring = endringRequest.toEndring(),
             endretAv = ansatt.id,
             endretAvEnhet = enhet.id,
             endret = LocalDateTime.now(),

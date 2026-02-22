@@ -120,7 +120,6 @@ class DeltakerService(
             nesteStatus = updateResult.nesteStatus,
             beforeUpsert = { deltaker ->
                 deltakerEndringService.upsertEndring(
-                    endring = endring,
                     endringRequest = endringRequest,
                     endringResultat = updateResult,
                 )
