@@ -4,7 +4,6 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.result.shouldBeFailure
 import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.deltaker.endring.extensions.EndringTestUtils.mockDeltakelsesmengdeProvider
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestData.randomEnhetsnummer
@@ -21,7 +20,7 @@ import java.time.LocalDate
 
 class EndreAvslutningExtensionsTest {
     @Test
-    fun `oppdaterDeltaker - endre avslutning til fullfort`() = runTest {
+    fun `oppdaterDeltaker - endre avslutning til fullfort`() {
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.AVBRUTT),
             sluttdato = LocalDate.now().minusDays(3),
@@ -58,7 +57,7 @@ class EndreAvslutningExtensionsTest {
     }
 
     @Test
-    fun `oppdaterDeltaker - endre avslutning til avbrutt`() = runTest {
+    fun `oppdaterDeltaker - endre avslutning til avbrutt`() {
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.FULLFORT),
             sluttdato = LocalDate.now().minusDays(3),
@@ -96,7 +95,7 @@ class EndreAvslutningExtensionsTest {
     }
 
     @Test
-    fun `oppdaterDeltaker - endre avslutning ingen endring - gir erVellykket false`() = runTest {
+    fun `oppdaterDeltaker - endre avslutning ingen endring - gir erVellykket false`() {
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.FULLFORT),
             sluttdato = LocalDate.now().minusDays(3),

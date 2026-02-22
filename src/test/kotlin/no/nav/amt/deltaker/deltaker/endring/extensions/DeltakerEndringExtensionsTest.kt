@@ -4,7 +4,6 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.deltaker.endring.extensions.EndringTestUtils.mockDeltakelsesmengdeProvider
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestData.randomEnhetsnummer
@@ -15,7 +14,7 @@ import org.junit.jupiter.api.Test
 
 class DeltakerEndringExtensionsTest {
     @Test
-    fun `oppdaterDeltaker - reaktiver deltakelse lopende oppstart`() = runTest {
+    fun `oppdaterDeltaker - reaktiver deltakelse lopende oppstart`() {
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL),
             deltakerliste = TestData.lagDeltakerlisteMedDirekteVedtak(),
@@ -36,7 +35,7 @@ class DeltakerEndringExtensionsTest {
     }
 
     @Test
-    fun `oppdaterDeltaker - reaktiver deltakelse felles oppstart`() = runTest {
+    fun `oppdaterDeltaker - reaktiver deltakelse felles oppstart`() {
         val deltaker = TestData.lagDeltaker(
             status = TestData.lagDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL),
             deltakerliste = TestData.lagDeltakerlisteMedTrengerGodkjenning(),
