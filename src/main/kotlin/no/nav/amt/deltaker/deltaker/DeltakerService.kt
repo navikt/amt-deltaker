@@ -69,7 +69,7 @@ class DeltakerService(
         afterDeltakerUpsert = { deltaker ->
             val oppdatertDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
             deltakerProducerService.produce(oppdatertDeltaker, forcedUpdate = forceProduce)
-            log.info("Oppdatert deltaker med id ${deltaker.id}")
+            log.info("Oppdatert deltaker ${deltaker.id}")
 
             afterUpsert(oppdatertDeltaker)
             oppdatertDeltaker
@@ -111,6 +111,8 @@ class DeltakerService(
                 deltaker = eksisterendeDeltaker,
                 getDeltakelsemengder = { deltakerId -> deltakerHistorikkService.getForDeltaker(deltakerId).toDeltakelsesmengder() },
             ).getOrElse { return eksisterendeDeltaker }
+
+        log.info("Endret deltaker ${eksisterendeDeltaker.id} med ${endringRequest.toEndring().javaClass.simpleName}")
 
         return upsertAndProduceDeltaker(
             deltaker = updateResult.deltaker,
