@@ -112,7 +112,7 @@ class DeltakerService(
                 getDeltakelsemengder = { deltakerId -> deltakerHistorikkService.getForDeltaker(deltakerId).toDeltakelsesmengder() },
             ).getOrElse { return eksisterendeDeltaker }
 
-        log.info("Endret deltaker ${eksisterendeDeltaker.id} med ${endringRequest.toEndring().javaClass.simpleName}")
+        log.info("Endret deltaker ${eksisterendeDeltaker.id} med ${endring.javaClass.simpleName}")
 
         return upsertAndProduceDeltaker(
             deltaker = updateResult.deltaker,
