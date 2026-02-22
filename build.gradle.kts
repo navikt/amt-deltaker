@@ -18,7 +18,7 @@ repositories {
 }
 
 val ktorVersion = "3.4.0"
-val logbackVersion = "1.5.29"
+val logbackVersion = "1.5.31"
 val prometeusVersion = "1.16.3"
 val ktlintVersion = "1.6.0"
 val jacksonVersion = "2.21.0"
@@ -29,7 +29,7 @@ val kotestVersion = "6.1.3"
 val flywayVersion = "12.0.1"
 val hikariVersion = "7.0.2"
 val kotliqueryVersion = "1.9.1"
-val postgresVersion = "42.7.9"
+val postgresVersion = "42.7.10"
 val caffeineVersion = "3.2.3"
 val mockkVersion = "1.14.9"
 val nimbusVersion = "10.7"
