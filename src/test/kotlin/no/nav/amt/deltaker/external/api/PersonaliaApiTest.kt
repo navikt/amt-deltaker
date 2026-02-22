@@ -73,7 +73,7 @@ class PersonaliaApiTest : RouteTestBase() {
             etternavn = "Person",
             mellomnavn = null,
             enhetsnummer = "5678",
-            enhetsnavn = "NAV Fortrolig",
+            enhetsnavn = "Nav Fortrolig",
             erSkjermet = true,
             adressebeskyttelse = Adressebeskyttelse.STRENGT_FORTROLIG,
         )
@@ -113,8 +113,8 @@ class PersonaliaApiTest : RouteTestBase() {
 
     @Test
     fun `post deltaker personalia - flere deltakere - returnerer alle personalia`() {
-        val navEnhet1 = TestData.lagNavEnhet(enhetsnummer = "1111", navn = "NAV En")
-        val navEnhet2 = TestData.lagNavEnhet(enhetsnummer = "2222", navn = "NAV To")
+        val navEnhet1 = TestData.lagNavEnhet(enhetsnummer = "1111", navn = "Nav En")
+        val navEnhet2 = TestData.lagNavEnhet(enhetsnummer = "2222", navn = "Nav To")
 
         val deltaker1 = TestData.lagDeltaker(
             navBruker = TestData.lagNavBruker(
@@ -200,7 +200,7 @@ class PersonaliaApiTest : RouteTestBase() {
             etternavn: String,
             mellomnavn: String? = null,
             enhetsnummer: String = "1234",
-            enhetsnavn: String = "NAV Test",
+            enhetsnavn: String = "Nav Test",
             erSkjermet: Boolean = false,
             adressebeskyttelse: Adressebeskyttelse? = null,
             navEnhetId: UUID? = null,

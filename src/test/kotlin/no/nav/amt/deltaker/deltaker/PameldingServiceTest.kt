@@ -261,7 +261,7 @@ class PameldingServiceTest {
         }
 
         @Test
-        fun `upsertUtkast - deltaker med direkte vedtak, godkjent av NAV - oppdaterer deltaker og oppretter fattet vedtak`() {
+        fun `upsertUtkast - deltaker med direkte vedtak, godkjent av Nav - oppdaterer deltaker og oppretter fattet vedtak`() {
             val deltaker = lagDeltaker(
                 deltakerliste = lagDeltakerliste(
                     pameldingType = GjennomforingPameldingType.DIREKTE_VEDTAK,
@@ -304,7 +304,7 @@ class PameldingServiceTest {
         }
 
         @Test
-        fun `upsertUtkast - deltaker med trenger godkjenning, godkjent av NAV - oppdaterer deltaker`() {
+        fun `upsertUtkast - deltaker med trenger godkjenning, godkjent av Nav - oppdaterer deltaker`() {
             val deltaker = lagDeltaker(
                 deltakerliste = lagDeltakerliste(pameldingType = GjennomforingPameldingType.TRENGER_GODKJENNING),
                 status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
