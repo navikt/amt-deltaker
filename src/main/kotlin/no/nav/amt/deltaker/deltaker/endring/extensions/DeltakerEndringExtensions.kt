@@ -152,5 +152,6 @@ private inline fun <T : DeltakerEndring.Endring> T.handleEndring(
 ): VellykketEndring = if (this.hasChanges(deltaker)) {
     this.apply(deltaker)
 } else {
+    // denne blir fanget av runCatching og blir ikke kastet videre i klientkoden
     throw IllegalStateException("Ingen gyldig endring")
 }
