@@ -22,6 +22,7 @@ import no.nav.amt.deltaker.deltaker.extensions.tilVedtaksInformasjon
 import no.nav.amt.deltaker.deltaker.innsok.InnsokPaaFellesOppstartRepository
 import no.nav.amt.deltaker.deltaker.kafka.DeltakerProducerService
 import no.nav.amt.deltaker.deltaker.vurdering.VurderingRepository
+import no.nav.amt.deltaker.extensions.getDeltakerId
 import no.nav.amt.deltaker.hendelse.HendelseService
 import no.nav.amt.deltaker.navansatt.NavAnsattService
 import no.nav.amt.deltaker.navenhet.NavEnhetService
@@ -74,13 +75,15 @@ fun Routing.registerInternalApi(
             }
 
             request.deltakere.forEach { deltakerId ->
-                deltakerProducerService.produce(
-                    deltakerRepository.get(deltakerId).getOrThrow(),
-                    forcedUpdate = request.forcedUpdate,
-                    publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
-                    publiserTilDeltakerEksternV1 = request.publiserTilDeltakerEksternV1,
-                    publiserTilDeltakerV2 = request.publiserTilDeltakerV2,
-                )
+                Database.transaction {
+                    deltakerProducerService.produce(
+                        deltakerRepository.get(deltakerId).getOrThrow(),
+                        forcedUpdate = request.forcedUpdate,
+                        publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
+                        publiserTilDeltakerEksternV1 = request.publiserTilDeltakerEksternV1,
+                        publiserTilDeltakerV2 = request.publiserTilDeltakerV2,
+                    )
+                }
             }
             log.info("Ferdig med reprodusering av ${request.deltakere.size} deltakere på deltaker-v2")
         }
@@ -122,8 +125,7 @@ fun Routing.registerInternalApi(
 
     post("/internal/feilregistrer/{deltakerId}") {
         if (isInternal(call.request.local.remoteAddress)) {
-            val deltakerId = UUID.fromString(call.parameters["deltakerId"])
-            deltakerService.feilregistrerDeltaker(deltakerId)
+            deltakerService.feilregistrerDeltaker(call.getDeltakerId())
             call.respond(HttpStatusCode.OK)
         } else {
             throw AuthorizationException("Ikke tilgang til api")
@@ -132,7 +134,7 @@ fun Routing.registerInternalApi(
 
     post("/internal/relast/{deltakerId}") {
         if (isInternal(call.request.local.remoteAddress)) {
-            val deltakerId = UUID.fromString(call.parameters["deltakerId"])
+            val deltakerId = call.getDeltakerId()
             val request = call.receive<RepubliserRequest>()
             val deltaker = deltakerRepository.get(deltakerId)
             log.info("Relaster deltaker $deltakerId på deltaker-v2")
@@ -142,12 +144,14 @@ fun Routing.registerInternalApi(
             if (request.publiserTilDeltakerEksternV1) {
                 log.info("Relaster deltaker $deltakerId på deltaker-ekstern-v1")
             }
-            deltakerProducerService.produce(
-                deltaker.getOrThrow(),
-                forcedUpdate = request.forcedUpdate,
-                publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
-                publiserTilDeltakerEksternV1 = request.publiserTilDeltakerEksternV1,
-            )
+            Database.transaction {
+                deltakerProducerService.produce(
+                    deltaker.getOrThrow(),
+                    forcedUpdate = request.forcedUpdate,
+                    publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
+                    publiserTilDeltakerEksternV1 = request.publiserTilDeltakerEksternV1,
+                )
+            }
             log.info("Relastet deltaker $deltakerId på deltaker-v2")
             call.respond(HttpStatusCode.OK)
         } else {
@@ -164,13 +168,15 @@ fun Routing.registerInternalApi(
             val request = call.receive<RelastDeltakereRequest>()
             log.info("Republiser deltakere:${request.deltakere} deltakere med ny endretDato på deltaker-v1")
             request.deltakere.forEach { deltakerId ->
-                deltakerProducerService.produce(
-                    deltakerRepository.get(deltakerId).getOrThrow().copy(sistEndret = LocalDateTime.now()),
-                    forcedUpdate = request.forcedUpdate,
-                    publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
-                    publiserTilDeltakerEksternV1 = request.publiserTilDeltakerEksternV1,
-                    publiserTilDeltakerV2 = false,
-                )
+                Database.transaction {
+                    deltakerProducerService.produce(
+                        deltakerRepository.get(deltakerId).getOrThrow().copy(sistEndret = LocalDateTime.now()),
+                        forcedUpdate = request.forcedUpdate,
+                        publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
+                        publiserTilDeltakerEksternV1 = request.publiserTilDeltakerEksternV1,
+                        publiserTilDeltakerV2 = false,
+                    )
+                }
             }
 
             log.info("Republiserte ${request.deltakere.size} på deltaker-v1")
@@ -190,17 +196,106 @@ fun Routing.registerInternalApi(
             val request = call.receive<RepubliserRequest>()
 
             scope.launch {
-                log.info("Relaster deltakere for tiltakskode ${tiltakskode.name} på deltaker-v2")
+                if (request.publiserTilDeltakerV2) {
+                    log.info("Relaster alle deltakere for tiltakskode ${tiltakskode.name} komet er master for på deltaker-v2")
+                }
+                if (request.publiserTilDeltakerV1) {
+                    log.info("Relaster alle deltakere for tiltakskode ${tiltakskode.name} komet er master for på deltaker-v1")
+                }
+                if (request.publiserTilDeltakerEksternV1) {
+                    log.info("Relaster alle deltakere for tiltakskode ${tiltakskode.name} komet er master for på deltaker-ekstern-v1")
+                }
                 val deltakerIder = deltakerRepository.getDeltakerIderForTiltakskode(tiltakskode)
                 deltakerIder.forEach {
-                    deltakerProducerService.produce(
-                        deltakerRepository.get(it).getOrThrow(),
-                        forcedUpdate = request.forcedUpdate,
-                        publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
-                        publiserTilDeltakerEksternV1 = request.publiserTilDeltakerEksternV1,
+                    try {
+                        Database.transaction {
+                            deltakerProducerService.produce(
+                                deltakerRepository.get(it).getOrThrow(),
+                                forcedUpdate = request.forcedUpdate,
+                                publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
+                                publiserTilDeltakerV2 = request.publiserTilDeltakerV2,
+                                publiserTilDeltakerEksternV1 = request.publiserTilDeltakerEksternV1,
+                            )
+                        }
+                    } catch (e: Exception) {
+                        log.error("Feil ved relast av deltaker $it for tiltakskode ${tiltakskode.name}", e)
+                    }
+                }
+                if (request.publiserTilDeltakerV2) {
+                    log.info("Ferdig relastet alle deltakere for tiltakskode ${tiltakskode.name} komet er master for på deltaker-v2")
+                }
+                if (request.publiserTilDeltakerV1) {
+                    log.info("Ferdig relastet alle deltakere for tiltakskode ${tiltakskode.name} komet er master for på deltaker-v1")
+                }
+                if (request.publiserTilDeltakerEksternV1) {
+                    log.info(
+                        "Ferdig relastet alle deltakere for tiltakskode ${tiltakskode.name} komet er master for på deltaker-ekstern-v1",
                     )
                 }
-                log.info("Relastet deltakere for tiltakskode ${tiltakskode.name} på deltaker-v2")
+            }
+            call.respond(HttpStatusCode.OK)
+        } else {
+            throw AuthorizationException("Ikke tilgang til api")
+        }
+    }
+
+    post("/internal/relast/tiltakstyper") {
+        if (isInternal(call.request.local.remoteAddress)) {
+            val requestBody = call.receive<RepubliserTiltakskoderRequest>()
+
+            scope.launch {
+                if (requestBody.request.publiserTilDeltakerV2) {
+                    log.info(
+                        "Relaster alle deltakere for tiltakskoder ${requestBody.tiltakskoder.map { it.name }} " +
+                            "komet er master for på deltaker-v2",
+                    )
+                }
+                if (requestBody.request.publiserTilDeltakerV1) {
+                    log.info(
+                        "Relaster alle deltakere for tiltakskoder ${requestBody.tiltakskoder.map { it.name }} " +
+                            "komet er master for på deltaker-v1",
+                    )
+                }
+                if (requestBody.request.publiserTilDeltakerEksternV1) {
+                    log.info(
+                        "Relaster alle deltakere for tiltakskoder ${requestBody.tiltakskoder.map { it.name }} " +
+                            "komet er master for på deltaker-ekstern-v1",
+                    )
+                }
+
+                requestBody.tiltakskoder.forEach { tiltakskode ->
+                    val deltakerIder = deltakerRepository.getDeltakerIderForTiltakskode(tiltakskode)
+                    deltakerIder.forEach {
+                        Database.transaction {
+                            deltakerProducerService.produce(
+                                deltakerRepository.get(it).getOrThrow(),
+                                forcedUpdate = requestBody.request.forcedUpdate,
+                                publiserTilDeltakerV1 = requestBody.request.publiserTilDeltakerV1,
+                                publiserTilDeltakerV2 = requestBody.request.publiserTilDeltakerV2,
+                                publiserTilDeltakerEksternV1 = requestBody.request.publiserTilDeltakerEksternV1,
+                            )
+                        }
+                    }
+                }
+
+                if (requestBody.request.publiserTilDeltakerV2) {
+                    log.info(
+                        "Ferdig relastet alle deltakere for tiltakskoder ${requestBody.tiltakskoder.map { it.name }} " +
+                            "komet er master for på deltaker-v2",
+                    )
+                }
+                if (requestBody.request.publiserTilDeltakerV1) {
+                    log.info(
+                        "Ferdig relastet alle deltakere for tiltakskoder ${requestBody.tiltakskoder.map { it.name }} " +
+                            "komet er master for på deltaker-v1",
+                    )
+                }
+                if (requestBody.request.publiserTilDeltakerEksternV1) {
+                    log.info(
+                        "Ferdig relastet alle deltakere for tiltakskoder ${requestBody.tiltakskoder.map { it.name }} " +
+                            "komet er master for på deltaker-ekstern-v1",
+                    )
+                }
             }
             call.respond(HttpStatusCode.OK)
         } else {
@@ -227,13 +322,15 @@ fun Routing.registerInternalApi(
                     log.info("Gjør klar for relast av ${deltakerIder.size} deltakere på tiltakskode ${tiltakskode.name}.")
 
                     deltakerIder.forEach { deltakerId ->
-                        deltakerProducerService.produce(
-                            deltakerRepository.get(deltakerId).getOrThrow(),
-                            forcedUpdate = request.forcedUpdate,
-                            publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
-                            publiserTilDeltakerV2 = request.publiserTilDeltakerV2,
-                            publiserTilDeltakerEksternV1 = request.publiserTilDeltakerEksternV1,
-                        )
+                        Database.transaction {
+                            deltakerProducerService.produce(
+                                deltakerRepository.get(deltakerId).getOrThrow(),
+                                forcedUpdate = request.forcedUpdate,
+                                publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
+                                publiserTilDeltakerV2 = request.publiserTilDeltakerV2,
+                                publiserTilDeltakerEksternV1 = request.publiserTilDeltakerEksternV1,
+                            )
+                        }
                     }
 
                     log.info("Ferdig relastet av ${deltakerIder.size} deltakere på tiltakskode ${tiltakskode.name}.")
@@ -339,12 +436,14 @@ fun Routing.registerInternalApi(
                 val deltaker = deltakerRepository.get(endring.deltakerId).getOrThrow()
 
                 if (request.relastDeltaker) {
-                    deltakerProducerService.produce(
-                        deltaker,
-                        forcedUpdate = request.forcedUpdate,
-                        publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
-                        publiserTilDeltakerEksternV1 = request.publiserTilDeltakerEksternV1,
-                    )
+                    Database.transaction {
+                        deltakerProducerService.produce(
+                            deltaker,
+                            forcedUpdate = request.forcedUpdate,
+                            publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
+                            publiserTilDeltakerEksternV1 = request.publiserTilDeltakerEksternV1,
+                        )
+                    }
                     log.info("Ferdig relastet deltaker ${deltaker.id}")
                 }
 
@@ -451,6 +550,11 @@ data class RepubliserRequest(
     val publiserTilDeltakerV1: Boolean,
     val publiserTilDeltakerV2: Boolean,
     val publiserTilDeltakerEksternV1: Boolean,
+)
+
+data class RepubliserTiltakskoderRequest(
+    val tiltakskoder: List<Tiltakskode>,
+    val request: RepubliserRequest,
 )
 
 fun isInternal(remoteAdress: String): Boolean = remoteAdress == "127.0.0.1"

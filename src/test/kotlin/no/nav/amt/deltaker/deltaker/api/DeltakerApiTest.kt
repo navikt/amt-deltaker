@@ -7,11 +7,13 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.Runs
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.just
 import io.mockk.verify
 import no.nav.amt.deltaker.deltaker.api.DtoMappers.deltakerEndringResponseFromDeltaker
 import no.nav.amt.deltaker.deltaker.api.utils.postRequest
+import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.utils.RouteTestBase
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerEndring
@@ -27,6 +29,7 @@ import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.AvsluttDelta
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.BakgrunnsinformasjonRequest
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.DeltakelsesmengdeRequest
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.EndreAvslutningRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.EndringRequest
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.FjernOppstartsdatoRequest
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.ForlengDeltakelseRequest
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.IkkeAktuellRequest
@@ -46,464 +49,261 @@ class DeltakerApiTest : RouteTestBase() {
     @Test
     fun `skal teste autentisering - mangler token - returnerer 401`() {
         withTestApplicationContext { client ->
-            client.post("/deltaker/${UUID.randomUUID()}/bakgrunnsinformasjon") { setBody("foo") }.status shouldBe
-                HttpStatusCode.Unauthorized
-            client.post("/deltaker/${UUID.randomUUID()}/innhold") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
-            client.post("/deltaker/${UUID.randomUUID()}/endre-avslutning") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
-            client.post("/deltaker/${UUID.randomUUID()}/deltakelsesmengde") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
-            client.post("/deltaker/${UUID.randomUUID()}/startdato") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
-            client.post("/deltaker/${UUID.randomUUID()}/sluttdato") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
-            client.post("/deltaker/${UUID.randomUUID()}/sluttarsak") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
-            client.post("/deltaker/${UUID.randomUUID()}/forleng") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
-            client.post("/deltaker/${UUID.randomUUID()}/ikke-aktuell") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
-            client.post("/deltaker/${UUID.randomUUID()}/avslutt") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
-            client.post("/deltaker/${UUID.randomUUID()}/reaktiver") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
-            client.post("/deltaker/${UUID.randomUUID()}/fjern-oppstartsdato") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
+            client.post("/deltaker/${UUID.randomUUID()}/endre-deltaker") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
+            client.post("/deltaker/${UUID.randomUUID()}/sist-besokt") { setBody("foo") }.status shouldBe HttpStatusCode.Unauthorized
         }
     }
 
     @Test
-    fun `post bakgrunnsinformasjon - har tilgang - returnerer 200`() {
-        val endring = DeltakerEndring.Endring.EndreBakgrunnsinformasjon("bakgrunnsinformasjon")
-        val deltaker = lagDeltaker(bakgrunnsinformasjon = endring.bakgrunnsinformasjon)
-        val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = endring)))
+    fun `post bakgrunnsinformasjon til felles endepunkt for endringer - har tilgang - returnerer 200`() {
+        val bakgrunnsinformasjonRequest = BakgrunnsinformasjonRequest(
+            endretAv = randomIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
+            bakgrunnsinformasjon = "bakgrunnsinformasjon",
+        )
 
-        coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
-        every { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
+        val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = bakgrunnsinformasjonRequest.toEndring())))
+        val deltaker = lagDeltaker(bakgrunnsinformasjon = bakgrunnsinformasjonRequest.bakgrunnsinformasjon)
 
-        val expectedBody = objectMapper.writeValueAsString(deltakerEndringResponseFromDeltaker(deltaker, historikk))
-
-        withTestApplicationContext { client ->
-            val response = client.post("/deltaker/${UUID.randomUUID()}/bakgrunnsinformasjon") {
-                postRequest(
-                    BakgrunnsinformasjonRequest(
-                        randomIdent(),
-                        randomEnhetsnummer(),
-                        "bakgrunnsinformasjon",
-                    ),
-                )
-            }
-
-            response.status shouldBe HttpStatusCode.OK
-            response.bodyAsText() shouldBe expectedBody
-        }
+        runEndringTest(bakgrunnsinformasjonRequest, deltaker, historikk)
     }
 
     @Test
     fun `post innhold - har tilgang - returnerer 200`() {
-        val endring =
-            DeltakerEndring.Endring.EndreInnhold("ledetekst", listOf(Innhold("tekst", "kode", valgt = true, "beskrivelse")))
-
-        val deltaker = lagDeltaker(innhold = Deltakelsesinnhold("test", endring.innhold))
-        val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = endring)))
-
-        coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
-        every { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
-
-        val expectedBody = objectMapper.writeValueAsString(deltakerEndringResponseFromDeltaker(deltaker, historikk))
-
-        withTestApplicationContext { client ->
-            val response = client.post("/deltaker/${UUID.randomUUID()}/innhold") {
-                postRequest(
-                    InnholdRequest(
-                        randomIdent(),
-                        randomEnhetsnummer(),
-                        Deltakelsesinnhold(endring.ledetekst, endring.innhold),
+        val innholdRequest = InnholdRequest(
+            endretAv = randomIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
+            deltakelsesinnhold = Deltakelsesinnhold(
+                ledetekst = "ledetekst",
+                innhold = listOf(
+                    Innhold(
+                        tekst = "tekst",
+                        innholdskode = "kode",
+                        valgt = true,
+                        beskrivelse = "beskrivelse",
                     ),
-                )
-            }
+                ),
+            ),
+        )
 
-            response.status shouldBe HttpStatusCode.OK
-            response.bodyAsText() shouldBe expectedBody
-        }
+        val innholdEndring = innholdRequest.toEndring()
+        val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = innholdEndring)))
+        val deltaker = lagDeltaker(
+            innhold = Deltakelsesinnhold(
+                ledetekst = "test",
+                innhold = innholdEndring.innhold,
+            ),
+        )
+
+        runEndringTest(innholdRequest, deltaker, historikk)
     }
 
     @Test
     fun `post deltakelsesmengde - har tilgang - returnerer 200`() {
-        val endring = DeltakerEndring.Endring.EndreDeltakelsesmengde(50F, 2F, LocalDate.now(), "begrunnelse")
-
-        val deltaker = lagDeltaker(
-            deltakelsesprosent = endring.deltakelsesprosent,
-            dagerPerUke = endring.dagerPerUke,
+        val deltakelsesmengdeRequest = DeltakelsesmengdeRequest(
+            endretAv = randomIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
+            forslagId = null,
+            deltakelsesprosent = 50,
+            dagerPerUke = 2,
+            begrunnelse = "begrunnelse",
+            gyldigFra = LocalDate.now(),
         )
-        val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = endring)))
 
-        coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
-        every { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
+        val deltakelsesmengdeEndring = deltakelsesmengdeRequest.toEndring()
+        val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = deltakelsesmengdeEndring)))
+        val deltaker = lagDeltaker(
+            deltakelsesprosent = deltakelsesmengdeEndring.deltakelsesprosent,
+            dagerPerUke = deltakelsesmengdeEndring.dagerPerUke,
+        )
 
-        val expectedBody = objectMapper.writeValueAsString(deltakerEndringResponseFromDeltaker(deltaker, historikk))
-
-        withTestApplicationContext { client ->
-            val response = client.post("/deltaker/${UUID.randomUUID()}/deltakelsesmengde") {
-                postRequest(
-                    DeltakelsesmengdeRequest(
-                        randomIdent(),
-                        randomEnhetsnummer(),
-                        null,
-                        endring.deltakelsesprosent?.toInt(),
-                        endring.dagerPerUke?.toInt(),
-                        endring.begrunnelse,
-                        LocalDate.now(),
-                    ),
-                )
-            }
-
-            response.status shouldBe HttpStatusCode.OK
-            response.bodyAsText() shouldBe expectedBody
-        }
+        runEndringTest(deltakelsesmengdeRequest, deltaker, historikk)
     }
 
     @Test
     fun `post startdato - har tilgang - returnerer 200`() {
-        val endring =
-            DeltakerEndring.Endring.EndreStartdato(LocalDate.now().minusDays(2), LocalDate.now().plusMonths(2), "begrunnelse")
+        val startdatoRequest = StartdatoRequest(
+            endretAv = randomIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
+            forslagId = null,
+            startdato = LocalDate.now().minusDays(2),
+            sluttdato = LocalDate.now().plusMonths(2),
+            begrunnelse = "begrunnelse",
+        )
 
-        val deltaker = lagDeltaker(startdato = endring.startdato)
-        val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = endring)))
+        val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = startdatoRequest.toEndring())))
+        val deltaker = lagDeltaker(startdato = startdatoRequest.startdato)
 
-        coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
-        every { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
-
-        val expectedBody = objectMapper.writeValueAsString(deltakerEndringResponseFromDeltaker(deltaker, historikk))
-
-        withTestApplicationContext { client ->
-            val response = client.post("/deltaker/${UUID.randomUUID()}/startdato") {
-                postRequest(
-                    StartdatoRequest(
-                        randomIdent(),
-                        randomEnhetsnummer(),
-                        null,
-                        endring.startdato,
-                        endring.sluttdato,
-                        endring.begrunnelse,
-                    ),
-                )
-            }
-
-            response.status shouldBe HttpStatusCode.OK
-            response.bodyAsText() shouldBe expectedBody
-        }
+        runEndringTest(startdatoRequest, deltaker, historikk)
     }
 
     @Test
     fun `post sluttdato - har tilgang - returnerer 200`() {
-        val endring = DeltakerEndring.Endring.EndreSluttdato(LocalDate.now().minusDays(2), "begrunnelse")
-        val deltaker = lagDeltaker(sluttdato = endring.sluttdato)
-        val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = endring)))
-
-        coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
-        every { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
-
-        val expectedBody = objectMapper.writeValueAsString(
-            deltakerEndringResponseFromDeltaker(
-                deltaker,
-                historikk,
-            ),
+        val sluttdatoRequest = SluttdatoRequest(
+            endretAv = randomIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
+            forslagId = null,
+            sluttdato = LocalDate.now().minusDays(2),
+            begrunnelse = "begrunnelse",
         )
 
-        withTestApplicationContext { client ->
-            val response = client.post("/deltaker/${UUID.randomUUID()}/sluttdato") {
-                postRequest(
-                    SluttdatoRequest(
-                        randomIdent(),
-                        randomEnhetsnummer(),
-                        null,
-                        endring.sluttdato,
-                        endring.begrunnelse,
-                    ),
-                )
-            }
+        val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = sluttdatoRequest.toEndring())))
+        val deltaker = lagDeltaker(sluttdato = sluttdatoRequest.sluttdato)
 
-            response.status shouldBe HttpStatusCode.OK
-            response.bodyAsText() shouldBe expectedBody
-        }
+        runEndringTest(sluttdatoRequest, deltaker, historikk)
     }
 
     @Test
     fun `post sluttarsak - har tilgang - returnerer 200`() {
-        val endring =
-            DeltakerEndring.Endring.EndreSluttarsak(
-                DeltakerEndring.Aarsak(
-                    type = DeltakerEndring.Aarsak.Type.FATT_JOBB,
-                    null,
-                ),
-                null,
-            )
+        val sluttarsakRequest = SluttarsakRequest(
+            endretAv = randomIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
+            forslagId = null,
+            aarsak = DeltakerEndring.Aarsak(
+                type = DeltakerEndring.Aarsak.Type.ANNET,
+                beskrivelse = "beskrivelse",
+            ),
+            begrunnelse = "begrunnelse",
+        )
 
+        val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = sluttarsakRequest.toEndring())))
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(
                 statusType = DeltakerStatus.Type.HAR_SLUTTET,
-                aarsakType = DeltakerStatus.Aarsak.Type.valueOf(endring.aarsak.type.name),
-            ),
-        )
-        val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = endring)))
-
-        coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
-        every { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
-
-        val expectedBody = objectMapper.writeValueAsString(
-            deltakerEndringResponseFromDeltaker(
-                deltaker,
-                historikk,
+                aarsakType = DeltakerStatus.Aarsak.Type.FATT_JOBB,
             ),
         )
 
-        withTestApplicationContext { client ->
-            val response = client.post("/deltaker/${UUID.randomUUID()}/sluttarsak") {
-                postRequest(
-                    SluttarsakRequest(
-                        randomIdent(),
-                        randomEnhetsnummer(),
-                        null,
-                        endring.aarsak,
-                        endring.begrunnelse,
-                    ),
-                )
-            }
-
-            response.status shouldBe HttpStatusCode.OK
-            response.bodyAsText() shouldBe expectedBody
-        }
+        runEndringTest(sluttarsakRequest, deltaker, historikk)
     }
 
     @Test
     fun `post forleng - har tilgang - returnerer 200`() {
-        val endring = DeltakerEndring.Endring.ForlengDeltakelse(LocalDate.now().plusWeeks(2), "begrunnelse")
-
-        val deltaker = lagDeltaker(sluttdato = endring.sluttdato)
-        val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = endring)))
-
-        coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
-        every { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
-
-        val expectedBody = objectMapper.writeValueAsString(
-            deltakerEndringResponseFromDeltaker(
-                deltaker,
-                historikk,
-            ),
+        val forlengDeltakelseRequest = ForlengDeltakelseRequest(
+            endretAv = randomIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
+            forslagId = null,
+            sluttdato = LocalDate.now().plusWeeks(2),
+            begrunnelse = "begrunnelse",
         )
 
-        withTestApplicationContext { client ->
-            val response = client.post("/deltaker/${UUID.randomUUID()}/forleng") {
-                postRequest(
-                    ForlengDeltakelseRequest(
-                        randomIdent(),
-                        randomEnhetsnummer(),
-                        null,
-                        endring.sluttdato,
-                        endring.begrunnelse,
-                    ),
-                )
-            }
+        val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = forlengDeltakelseRequest.toEndring())))
+        val deltaker = lagDeltaker(sluttdato = forlengDeltakelseRequest.sluttdato)
 
-            response.status shouldBe HttpStatusCode.OK
-            response.bodyAsText() shouldBe expectedBody
-        }
+        runEndringTest(forlengDeltakelseRequest, deltaker, historikk)
     }
 
     @Test
     fun `post ikke aktuell - har tilgang - returnerer 200`() {
-        val endring = DeltakerEndring.Endring.IkkeAktuell(
-            DeltakerEndring.Aarsak(type = DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
-            "begrunnelse",
+        val ikkeAktuellRequest = IkkeAktuellRequest(
+            endretAv = randomIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
+            forslagId = null,
+            aarsak = DeltakerEndring.Aarsak(
+                type = DeltakerEndring.Aarsak.Type.IKKE_MOTT,
+                beskrivelse = null,
+            ),
+            begrunnelse = "begrunnelse",
         )
 
+        val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = ikkeAktuellRequest.toEndring())))
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(
                 statusType = DeltakerStatus.Type.IKKE_AKTUELL,
-                aarsakType = DeltakerStatus.Aarsak.Type.valueOf(endring.aarsak.type.name),
-            ),
-        )
-        val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = endring)))
-
-        coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
-        every { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
-
-        val expectedBody = objectMapper.writeValueAsString(
-            deltakerEndringResponseFromDeltaker(
-                deltaker,
-                historikk,
+                aarsakType = DeltakerStatus.Aarsak.Type.IKKE_MOTT,
             ),
         )
 
-        withTestApplicationContext { client ->
-            val response = client.post("/deltaker/${UUID.randomUUID()}/ikke-aktuell") {
-                postRequest(
-                    IkkeAktuellRequest(
-                        randomIdent(),
-                        randomEnhetsnummer(),
-                        null,
-                        endring.aarsak,
-                        endring.begrunnelse,
-                    ),
-                )
-            }
-
-            response.status shouldBe HttpStatusCode.OK
-            response.bodyAsText() shouldBe expectedBody
-        }
+        runEndringTest(ikkeAktuellRequest, deltaker, historikk)
     }
 
     @Test
     fun `post avslutt deltakelse - har tilgang - returnerer 200`() {
-        val endring = DeltakerEndring.Endring.AvsluttDeltakelse(
-            DeltakerEndring.Aarsak(type = DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
-            LocalDate.now(),
-            "begrunnelse",
+        val avsluttDeltakelseRequest = AvsluttDeltakelseRequest(
+            endretAv = randomIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
+            forslagId = null,
+            sluttdato = LocalDate.now(),
+            aarsak = DeltakerEndring.Aarsak(
+                type = DeltakerEndring.Aarsak.Type.FATT_JOBB,
+                beskrivelse = null,
+            ),
+            begrunnelse = "begrunnelse",
         )
 
+        val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = avsluttDeltakelseRequest.toEndring())))
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(
                 statusType = DeltakerStatus.Type.HAR_SLUTTET,
-                aarsakType = DeltakerStatus.Aarsak.Type.valueOf(endring.aarsak!!.type.name),
+                aarsakType = DeltakerStatus.Aarsak.Type.FATT_JOBB,
             ),
-            sluttdato = endring.sluttdato,
-        )
-        val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = endring)))
-
-        coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
-        every { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
-
-        val expectedBody = objectMapper.writeValueAsString(
-            deltakerEndringResponseFromDeltaker(
-                deltaker,
-                historikk,
-            ),
+            sluttdato = avsluttDeltakelseRequest.sluttdato,
         )
 
-        withTestApplicationContext { client ->
-            val response = client.post("/deltaker/${UUID.randomUUID()}/avslutt") {
-                postRequest(
-                    AvsluttDeltakelseRequest(
-                        randomIdent(),
-                        randomEnhetsnummer(),
-                        null,
-                        endring.sluttdato,
-                        endring.aarsak,
-                        endring.begrunnelse,
-                    ),
-                )
-            }
-
-            response.status shouldBe HttpStatusCode.OK
-            response.bodyAsText() shouldBe expectedBody
-        }
+        runEndringTest(avsluttDeltakelseRequest, deltaker, historikk)
     }
 
     @Test
     fun `post endre avslutning - har tilgang - returnerer 200`() {
-        val endring = DeltakerEndring.Endring.EndreAvslutning(
-            null,
-            true,
-            LocalDate.now(),
-            "begrunnelse",
+        val endreAvslutningRequest = EndreAvslutningRequest(
+            endretAv = randomIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
+            forslagId = null,
+            aarsak = DeltakerEndring.Aarsak(
+                type = DeltakerEndring.Aarsak.Type.UTDANNING,
+                beskrivelse = null,
+            ),
+            begrunnelse = "begrunnelse",
+            sluttdato = LocalDate.now(),
+            harFullfort = true,
         )
 
+        val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = endreAvslutningRequest.toEndring())))
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(
                 statusType = DeltakerStatus.Type.FULLFORT,
                 aarsakType = null,
             ),
         )
-        val historikk =
-            listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = endring)))
 
-        coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
-        every { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
-
-        val expectedBody = objectMapper.writeValueAsString(
-            deltakerEndringResponseFromDeltaker(deltaker, historikk),
-        )
-
-        withTestApplicationContext { client ->
-            val response = client.post("/deltaker/${UUID.randomUUID()}/endre-avslutning") {
-                postRequest(
-                    EndreAvslutningRequest(
-                        randomIdent(),
-                        randomEnhetsnummer(),
-                        null,
-                        endring.aarsak,
-                        endring.begrunnelse,
-                        endring.sluttdato,
-                        endring.harFullfort,
-                    ),
-                )
-            }
-
-            response.status shouldBe HttpStatusCode.OK
-            response.bodyAsText() shouldBe expectedBody
-        }
+        runEndringTest(endreAvslutningRequest, deltaker, historikk)
     }
 
     @Test
     fun `post reaktiver - har tilgang - returnerer 200`() {
-        val endring = DeltakerEndring.Endring.ReaktiverDeltakelse(LocalDate.now(), "begrunnelse")
+        val reaktiverDeltakelseRequest = ReaktiverDeltakelseRequest(
+            endretAv = randomIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
+            begrunnelse = "begrunnelse",
+        )
 
+        val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = reaktiverDeltakelseRequest.toEndring())))
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
             startdato = null,
             sluttdato = null,
         )
-        val historikk =
-            listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = endring)))
 
-        coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
-        every { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
-
-        val expectedBody = objectMapper.writeValueAsString(
-            deltakerEndringResponseFromDeltaker(deltaker, historikk),
-        )
-
-        withTestApplicationContext { client ->
-            val response = client.post("/deltaker/${UUID.randomUUID()}/reaktiver") {
-                postRequest(
-                    ReaktiverDeltakelseRequest(
-                        randomIdent(),
-                        randomEnhetsnummer(),
-                        endring.begrunnelse,
-                    ),
-                )
-            }
-
-            response.status shouldBe HttpStatusCode.OK
-            response.bodyAsText() shouldBe expectedBody
-        }
+        runEndringTest(reaktiverDeltakelseRequest, deltaker, historikk)
     }
 
     @Test
     fun `post fjern oppstartsdato - har tilgang - returnerer 200`() {
-        val endring = DeltakerEndring.Endring.FjernOppstartsdato("begrunnelse")
+        val fjernOppstartsdatoRequest = FjernOppstartsdatoRequest(
+            endretAv = randomIdent(),
+            endretAvEnhet = randomEnhetsnummer(),
+            forslagId = null,
+            begrunnelse = "begrunnelse",
+        )
 
+        val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = fjernOppstartsdatoRequest.toEndring())))
         val deltaker = lagDeltaker(
             status = lagDeltakerStatus(DeltakerStatus.Type.VENTER_PA_OPPSTART),
             startdato = null,
             sluttdato = null,
         )
-        val historikk =
-            listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = endring)))
 
-        coEvery { deltakerService.upsertEndretDeltaker(any(), any()) } returns deltaker
-        every { deltakerHistorikkService.getForDeltaker(any()) } returns historikk
-
-        val expectedBody = objectMapper.writeValueAsString(
-            deltakerEndringResponseFromDeltaker(deltaker, historikk),
-        )
-
-        withTestApplicationContext { client ->
-            val response = client.post("/deltaker/${UUID.randomUUID()}/fjern-oppstartsdato") {
-                postRequest(
-                    FjernOppstartsdatoRequest(
-                        randomIdent(),
-                        randomEnhetsnummer(),
-                        null,
-                        endring.begrunnelse,
-                    ),
-                )
-            }
-
-            response.status shouldBe HttpStatusCode.OK
-            response.bodyAsText() shouldBe expectedBody
-        }
+        runEndringTest(fjernOppstartsdatoRequest, deltaker, historikk)
     }
 
     @Test
@@ -532,5 +332,26 @@ class DeltakerApiTest : RouteTestBase() {
                 sistBesokt = sistBesoktInTest.withZoneSameInstant(ZoneOffset.UTC),
             )
         }
+    }
+
+    private fun runEndringTest(
+        request: EndringRequest,
+        deltaker: Deltaker,
+        historikk: List<DeltakerHistorikk.Endring>,
+    ) {
+        coEvery { deltakerService.upsertEndretDeltaker(deltaker.id, request) } returns deltaker
+        every { deltakerHistorikkService.getForDeltaker(deltaker.id) } returns historikk
+
+        withTestApplicationContext { client ->
+            val response = client.post("/deltaker/${deltaker.id}/endre-deltaker") {
+                postRequest(request)
+            }
+
+            response.status shouldBe HttpStatusCode.OK
+            response.bodyAsText() shouldBe
+                objectMapper.writeValueAsString(deltakerEndringResponseFromDeltaker(deltaker, historikk))
+        }
+
+        coVerify { deltakerService.upsertEndretDeltaker(deltaker.id, request) }
     }
 }

@@ -18,7 +18,7 @@ repositories {
 }
 
 val ktorVersion = "3.4.0"
-val logbackVersion = "1.5.29"
+val logbackVersion = "1.5.31"
 val prometeusVersion = "1.16.3"
 val ktlintVersion = "1.6.0"
 val jacksonVersion = "2.21.0"
@@ -26,15 +26,15 @@ val logstashEncoderVersion = "9.0"
 val commonVersion = "3.2025.10.10_08.21-bb7c7830d93c"
 val poaoTilgangVersion = "2025.11.03_14.33-9c5783f38a9a"
 val kotestVersion = "6.1.3"
-val flywayVersion = "11.20.3"
+val flywayVersion = "12.0.1"
 val hikariVersion = "7.0.2"
 val kotliqueryVersion = "1.9.1"
-val postgresVersion = "42.7.9"
+val postgresVersion = "42.7.10"
 val caffeineVersion = "3.2.3"
 val mockkVersion = "1.14.9"
 val nimbusVersion = "10.7"
 val unleashVersion = "12.1.1"
-val amtLibVersion = "1.2026.02.17_13.55-de9b1752e174"
+val amtLibVersion = "1.2026.02.20_17.26-67b9eb21a72f"
 
 // fjernes ved neste release av org.apache.kafka:kafka-clients
 configurations.configureEach {

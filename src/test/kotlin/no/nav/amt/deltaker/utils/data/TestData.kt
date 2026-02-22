@@ -68,7 +68,7 @@ object TestData {
     fun lagNavEnhet(
         id: UUID = UUID.randomUUID(),
         enhetsnummer: String = randomEnhetsnummer(),
-        navn: String = "NAV Testheim",
+        navn: String = "Nav Testheim",
     ) = NavEnhet(id, enhetsnummer, navn)
 
     fun lagAdresse(): Adresse = Adresse(
