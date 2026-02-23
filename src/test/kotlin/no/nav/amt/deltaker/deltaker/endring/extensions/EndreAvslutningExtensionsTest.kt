@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.deltaker.endring.extensions
 
+import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.result.shouldBeFailure
 import io.kotest.matchers.result.shouldBeSuccess
@@ -50,10 +51,10 @@ class EndreAvslutningExtensionsTest {
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()
 
-        val deltakerResult = resultat.deltaker
-
-        deltakerResult.status.type shouldBe DeltakerStatus.Type.FULLFORT
-        deltakerResult.status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
+        assertSoftly(resultat.deltaker) {
+            status.type shouldBe DeltakerStatus.Type.FULLFORT
+            status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
+        }
     }
 
     @Test
@@ -86,12 +87,13 @@ class EndreAvslutningExtensionsTest {
                 deltaker = deltaker,
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()
-        val deltakerResult = resultat.deltaker
 
-        deltakerResult.status.type shouldBe DeltakerStatus.Type.AVBRUTT
-        deltakerResult.status.aarsak
-            .shouldNotBeNull()
-            .type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
+        assertSoftly(resultat.deltaker) {
+            status.type shouldBe DeltakerStatus.Type.AVBRUTT
+            status.aarsak
+                .shouldNotBeNull()
+                .type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
+        }
     }
 
     @Test

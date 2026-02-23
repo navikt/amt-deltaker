@@ -193,6 +193,7 @@ class EndreStartdatoExtensionsTest {
                 oppstart = Oppstartstype.FELLES,
             ),
         )
+
         val endringsrequest = StartdatoRequest(
             endretAv = randomNavIdent(),
             endretAvEnhet = randomEnhetsnummer(),
@@ -209,8 +210,9 @@ class EndreStartdatoExtensionsTest {
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()
 
-        val oppdatertDeltaker = resultat.deltaker
-        oppdatertDeltaker.startdato shouldBe endringsrequest.startdato
-        oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.AVBRUTT
+        assertSoftly(resultat.deltaker) {
+            startdato shouldBe endringsrequest.startdato
+            status.type shouldBe DeltakerStatus.Type.AVBRUTT
+        }
     }
 }

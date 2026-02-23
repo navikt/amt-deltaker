@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.deltaker.endring.extensions
 
+import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
@@ -22,12 +23,12 @@ class EndreSluttarsakExtensionsTest {
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()
 
-        val oppdatertDeltaker = resultat.deltaker
-
-        oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
-        oppdatertDeltaker.status.aarsak
-            .shouldNotBeNull()
-            .type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
+        assertSoftly(resultat.deltaker) {
+            status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+            status.aarsak
+                .shouldNotBeNull()
+                .type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
+        }
     }
 
     @Test

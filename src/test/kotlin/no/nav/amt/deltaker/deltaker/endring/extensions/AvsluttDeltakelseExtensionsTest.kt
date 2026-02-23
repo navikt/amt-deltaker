@@ -35,9 +35,7 @@ class AvsluttDeltakelseExtensionsTest {
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()
 
-        val oppdatertDeltaker = resultat.deltaker
-
-        assertSoftly(oppdatertDeltaker) {
+        assertSoftly(resultat.deltaker) {
             status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
             status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
             sluttdato shouldBe endringsrequest.sluttdato

@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.deltaker.endring.extensions
 
+import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.deltaker.endring.extensions.EndringTestUtils.mockDeltakelsesmengdeProvider
@@ -30,9 +31,10 @@ class EndreSluttdatoExtensionsTest {
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()
 
-        val oppdatertDeltaker = resultat.deltaker
-        oppdatertDeltaker.sluttdato shouldBe endringsrequest.sluttdato
-        oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+        assertSoftly(resultat.deltaker) {
+            sluttdato shouldBe endringsrequest.sluttdato
+            status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+        }
     }
 
     @Test
@@ -53,9 +55,9 @@ class EndreSluttdatoExtensionsTest {
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()
 
-        val oppdatertDeltaker = resultat.deltaker
-
-        oppdatertDeltaker.sluttdato shouldBe endringsrequest.sluttdato
-        oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.DELTAR
+        assertSoftly(resultat.deltaker) {
+            sluttdato shouldBe endringsrequest.sluttdato
+            status.type shouldBe DeltakerStatus.Type.DELTAR
+        }
     }
 }
