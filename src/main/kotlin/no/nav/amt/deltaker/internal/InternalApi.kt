@@ -75,14 +75,18 @@ fun Routing.registerInternalApi(
             }
 
             request.deltakere.forEach { deltakerId ->
-                Database.transaction {
-                    deltakerProducerService.produce(
-                        deltakerRepository.get(deltakerId).getOrThrow(),
-                        forcedUpdate = request.forcedUpdate,
-                        publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
-                        publiserTilDeltakerEksternV1 = request.publiserTilDeltakerEksternV1,
-                        publiserTilDeltakerV2 = request.publiserTilDeltakerV2,
-                    )
+                try {
+                    Database.transaction {
+                        deltakerProducerService.produce(
+                            deltakerRepository.get(deltakerId).getOrThrow(),
+                            forcedUpdate = request.forcedUpdate,
+                            publiserTilDeltakerV1 = request.publiserTilDeltakerV1,
+                            publiserTilDeltakerEksternV1 = request.publiserTilDeltakerEksternV1,
+                            publiserTilDeltakerV2 = request.publiserTilDeltakerV2,
+                        )
+                    }
+                } catch (e: Exception) {
+                    log.error("Feil ved reprodusering av deltaker $deltakerId", e)
                 }
             }
             log.info("Ferdig med reprodusering av ${request.deltakere.size} deltakere på deltaker-v2")
