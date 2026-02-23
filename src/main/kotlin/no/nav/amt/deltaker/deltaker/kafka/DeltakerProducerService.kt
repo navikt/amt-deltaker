@@ -13,6 +13,8 @@ class DeltakerProducerService(
     private val deltakerEksternV1Producer: DeltakerEksternV1Producer,
     private val unleashToggle: CommonUnleashToggle,
 ) {
+    private val log = org.slf4j.LoggerFactory.getLogger(javaClass)
+
     fun produce(
         deltaker: Deltaker,
         forcedUpdate: Boolean? = false,
@@ -20,7 +22,10 @@ class DeltakerProducerService(
         publiserTilDeltakerEksternV1: Boolean = true,
         publiserTilDeltakerV2: Boolean = true,
     ) {
-        if (deltaker.status.type == DeltakerStatus.Type.KLADD) return
+        if (deltaker.status.type == DeltakerStatus.Type.KLADD) {
+            log.info("Skipper publisering deltaker ${deltaker.id} med status ${DeltakerStatus.Type.KLADD.name}")
+            return
+        }
 
         if (publiserTilDeltakerV1) {
             produceDeltakerV1Topic(deltaker)
