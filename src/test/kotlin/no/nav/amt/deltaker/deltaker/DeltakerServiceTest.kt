@@ -593,6 +593,7 @@ class DeltakerServiceTest {
                 aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
                 begrunnelse = null,
                 forslagId = null,
+                harFullfort = true,
             )
 
             val deltakerrespons = deltakerService.upsertEndretDeltaker(deltaker.id, endringsrequest)
@@ -645,6 +646,7 @@ class DeltakerServiceTest {
                 aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
                 begrunnelse = null,
                 forslagId = null,
+                harFullfort = true,
             )
 
             val deltakerRespons = deltakerService.upsertEndretDeltaker(deltaker.id, endringsrequest)
@@ -752,6 +754,7 @@ class DeltakerServiceTest {
                 aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
                 begrunnelse = null,
                 forslagId = null,
+                harFullfort = true,
             )
 
             val deltakerrespons = deltakerService.upsertEndretDeltaker(deltaker.id, endringsrequest)

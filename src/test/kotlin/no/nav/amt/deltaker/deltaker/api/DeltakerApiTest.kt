@@ -229,6 +229,7 @@ class DeltakerApiTest : RouteTestBase() {
                 beskrivelse = null,
             ),
             begrunnelse = "begrunnelse",
+            harFullfort = true,
         )
 
         val historikk = listOf(DeltakerHistorikk.Endring(lagDeltakerEndring(endring = avsluttDeltakelseRequest.toEndring())))
