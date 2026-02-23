@@ -593,6 +593,7 @@ class DeltakerServiceTest {
                 aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
                 begrunnelse = null,
                 forslagId = null,
+                harFullfort = null,
             )
 
             val deltakerrespons = deltakerService.upsertEndretDeltaker(deltaker.id, endringsrequest)
@@ -645,6 +646,7 @@ class DeltakerServiceTest {
                 aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
                 begrunnelse = null,
                 forslagId = null,
+                harFullfort = null,
             )
 
             val deltakerRespons = deltakerService.upsertEndretDeltaker(deltaker.id, endringsrequest)
@@ -752,6 +754,7 @@ class DeltakerServiceTest {
                 aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
                 begrunnelse = null,
                 forslagId = null,
+                harFullfort = null,
             )
 
             val deltakerrespons = deltakerService.upsertEndretDeltaker(deltaker.id, endringsrequest)
@@ -848,25 +851,25 @@ class DeltakerServiceTest {
             resultat.deltakelsesprosent shouldBe deltaker.deltakelsesprosent
             resultat.dagerPerUke shouldBe deltaker.dagerPerUke
 
-/*
-            val oppdatertDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
-            oppdatertDeltaker.deltakelsesprosent shouldBe deltaker.deltakelsesprosent
-            oppdatertDeltaker.dagerPerUke shouldBe deltaker.dagerPerUke
+            /*
+                        val oppdatertDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
+                        oppdatertDeltaker.deltakelsesprosent shouldBe deltaker.deltakelsesprosent
+                        oppdatertDeltaker.dagerPerUke shouldBe deltaker.dagerPerUke
 
-            val endring = deltakerEndringRepository.getForDeltaker(deltaker.id).first()
-            endring.endretAv shouldBe endretAv.id
-            endring.endretAvEnhet shouldBe endretAvEnhet.id
+                        val endring = deltakerEndringRepository.getForDeltaker(deltaker.id).first()
+                        endring.endretAv shouldBe endretAv.id
+                        endring.endretAvEnhet shouldBe endretAvEnhet.id
 
-            (endring.endring as DeltakerEndring.Endring.EndreDeltakelsesmengde)
-                .deltakelsesprosent shouldBe endringsrequest.deltakelsesprosent
-            (endring.endring as DeltakerEndring.Endring.EndreDeltakelsesmengde)
-                .dagerPerUke shouldBe endringsrequest.dagerPerUke
+                        (endring.endring as DeltakerEndring.Endring.EndreDeltakelsesmengde)
+                            .deltakelsesprosent shouldBe endringsrequest.deltakelsesprosent
+                        (endring.endring as DeltakerEndring.Endring.EndreDeltakelsesmengde)
+                            .dagerPerUke shouldBe endringsrequest.dagerPerUke
 
-            assertProducedHendelse(deltaker.id, HendelseType.EndreDeltakelsesmengde::class)
-            assertProduced(deltaker.id)
-            assertProducedDeltakerV1(deltaker.id)
-            assertProducedDeltakerEksternV1(deltaker.id)
-*/
+                        assertProducedHendelse(deltaker.id, HendelseType.EndreDeltakelsesmengde::class)
+                        assertProduced(deltaker.id)
+                        assertProducedDeltakerV1(deltaker.id)
+                        assertProducedDeltakerEksternV1(deltaker.id)
+             */
         }
 
         @Test

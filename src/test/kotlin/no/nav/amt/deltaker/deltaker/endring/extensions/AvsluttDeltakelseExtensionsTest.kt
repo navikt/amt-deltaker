@@ -26,6 +26,7 @@ class AvsluttDeltakelseExtensionsTest {
             aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
             begrunnelse = "begrunnelse",
             forslagId = UUID.randomUUID(),
+            harFullfort = null,
         )
 
         val resultat = endringsrequest
@@ -51,6 +52,7 @@ class AvsluttDeltakelseExtensionsTest {
             aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
             begrunnelse = null,
             forslagId = null,
+            harFullfort = null,
         )
 
         val resultat = endringsrequest
@@ -76,6 +78,7 @@ class AvsluttDeltakelseExtensionsTest {
             aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
             begrunnelse = null,
             forslagId = null,
+            harFullfort = null,
         )
 
         val resultat = endringsrequest
@@ -108,6 +111,7 @@ class AvsluttDeltakelseExtensionsTest {
             aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
             begrunnelse = null,
             forslagId = null,
+            harFullfort = null,
         )
 
         val resultat = endringsrequest
