@@ -112,7 +112,7 @@ class DeltakerService(
                 getDeltakelsemengder = { deltakerId -> deltakerHistorikkService.getForDeltaker(deltakerId).toDeltakelsesmengder() },
             ).getOrElse {
                 log.warn(
-                    "Deltaker ${eksisterendeDeltaker.id} med ${endring.javaClass.simpleName} ikke endret, request skulle ikke være sendt",
+                    "Deltaker ${eksisterendeDeltaker.id} med ${endring.javaClass.simpleName} ikke endret, request skulle ikke blitt sendt",
                 )
                 return eksisterendeDeltaker
             }
