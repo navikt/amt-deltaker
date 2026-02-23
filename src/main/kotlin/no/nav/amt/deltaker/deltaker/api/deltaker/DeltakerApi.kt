@@ -19,6 +19,7 @@ fun Routing.registerDeltakerApi(
     deltakerRepository: DeltakerRepository,
     deltakerService: DeltakerService,
     historikkService: DeltakerHistorikkService,
+    responseMapper: ResponseMapper,
 ) {
     authenticate("SYSTEM") {
         get("/deltaker/{deltakerId}") {
@@ -27,7 +28,7 @@ fun Routing.registerDeltakerApi(
                 .onFailure { call.respond(HttpStatusCode.NotFound) }
                 .getOrThrow()
 
-            call.respond(deltaker)
+            call.respond(responseMapper.toDeltakerResponse(deltaker))
         }
 
         post("/deltaker/{deltakerId}/endre-deltaker") {
