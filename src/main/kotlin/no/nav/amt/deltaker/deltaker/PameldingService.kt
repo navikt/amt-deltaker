@@ -60,15 +60,16 @@ class PameldingService(
     }
 
     suspend fun slettKladd(deltakerId: UUID) {
-        val opprinneligDeltaker = deltakerRepository.get(deltakerId).getOrThrow()
-        if (opprinneligDeltaker.status.type != DeltakerStatus.Type.KLADD) {
-            log.warn("Kan ikke slette deltaker med id $deltakerId som har status ${opprinneligDeltaker.status.type}")
-            throw IllegalArgumentException(
-                "Kan ikke slette deltaker med id ${opprinneligDeltaker.id} som har status ${opprinneligDeltaker.status.type}",
-            )
-        }
-        Database.transaction {
-            deltakerService.delete(deltakerId)
+        deltakerRepository.get(deltakerId).onSuccess { opprinneligDeltaker ->
+            if (opprinneligDeltaker.status.type != DeltakerStatus.Type.KLADD) {
+                log.warn("Kan ikke slette deltaker med id $deltakerId som har status ${opprinneligDeltaker.status.type}")
+                throw IllegalArgumentException(
+                    "Kan ikke slette deltaker med id ${opprinneligDeltaker.id} som har status ${opprinneligDeltaker.status.type}",
+                )
+            }
+            Database.transaction {
+                deltakerService.deleteDeltaker(deltakerId)
+            }
         }
     }
 

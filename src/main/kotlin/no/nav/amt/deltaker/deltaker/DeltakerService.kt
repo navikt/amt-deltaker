@@ -24,6 +24,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.EndringRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.ReaktiverDeltakelseRequest
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.models.person.NavAnsatt
@@ -76,7 +77,7 @@ class DeltakerService(
         },
     ).getOrThrow()
 
-    fun delete(deltakerId: UUID) {
+    fun deleteDeltaker(deltakerId: UUID) {
         importertFraArenaRepository.deleteForDeltaker(deltakerId)
         vedtakRepository.deleteForDeltaker(deltakerId)
         deltakerEndringRepository.deleteForDeltaker(deltakerId)
@@ -130,7 +131,20 @@ class DeltakerService(
                 )
                 deltaker
             },
+            afterUpsert = {
+                if (endringRequest is ReaktiverDeltakelseRequest) {
+                    slettKladdIfExists(updateResult.deltaker)
+                }
+            },
         )
+    }
+
+    private fun slettKladdIfExists(deltaker: Deltaker) {
+        deltakerRepository
+            .getKladdForDeltakerliste(
+                deltakerlisteId = deltaker.deltakerliste.id,
+                personident = deltaker.navBruker.personident,
+            ).onSuccess { deltaker -> deleteDeltaker(deltaker.id) }
     }
 
     suspend fun transactionalDeltakerUpsert(
