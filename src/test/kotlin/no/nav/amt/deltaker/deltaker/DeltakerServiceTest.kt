@@ -938,7 +938,7 @@ class DeltakerServiceTest {
         }
 
         @Test
-        fun `upsertEndretDeltaker - reaktoiver`() = runTest {
+        fun `upsertEndretDeltaker - reaktiver - kladd slettes`() = runTest {
             val deltaker = lagDeltaker(
                 status = lagDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL),
                 startdato = LocalDate.now().plusDays(3),
