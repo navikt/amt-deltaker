@@ -24,6 +24,29 @@ import java.util.UUID
 class DeltakerRepository {
     private val log = LoggerFactory.getLogger(javaClass)
 
+    fun getKladdForDeltakerliste(deltakerlisteId: UUID, personident: String): Result<Deltaker> = runCatching {
+        val sql = buildDeltakerSql(
+            "getKladdForDeltakerliste",
+            """
+            d.deltakerliste_id = :deltakerliste_id
+            AND nb.personident = :personident
+            AND ds.type = 'KLADD'
+            """.trimIndent(),
+        )
+
+        Database.query { session ->
+            session.run(
+                queryOf(
+                    sql,
+                    mapOf(
+                        "deltakerliste_id" to deltakerlisteId,
+                        "personident" to personident,
+                    ),
+                ).map(::deltakerRowMapper).asSingle,
+            ) ?: throw NoSuchElementException("Ingen deltaker med deltakerlisteId $deltakerlisteId og personident")
+        }
+    }
+
     fun getAntallDeltakereForDeltakerliste(deltakerlisteId: UUID): Int = Database.query { session ->
         session.run(
             queryOf(

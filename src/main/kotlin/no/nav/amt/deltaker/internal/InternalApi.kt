@@ -60,7 +60,7 @@ fun Routing.registerInternalApi(
     suspend fun slettDeltaker(deltakerId: UUID) = Database.transaction {
         innsokPaaFellesOppstartRepository.deleteForDeltaker(deltakerId)
         vurderingRepository.deleteForDeltaker(deltakerId)
-        deltakerService.delete(deltakerId)
+        deltakerService.deleteDeltaker(deltakerId)
     }
 
     suspend fun republiserDeltakere(deltakerIder: List<UUID>, request: RepubliserRequest) {
