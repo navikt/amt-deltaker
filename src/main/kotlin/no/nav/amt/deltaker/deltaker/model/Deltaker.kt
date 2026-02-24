@@ -1,5 +1,6 @@
 package no.nav.amt.deltaker.deltaker.model
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import no.nav.amt.deltaker.deltakerliste.Deltakerliste
 import no.nav.amt.deltaker.tiltakskoordinator.Deltakeroppdatering
 import no.nav.amt.lib.models.deltaker.Deltakelsesinnhold
@@ -74,17 +75,20 @@ data class Deltaker(
 
     // TODO: Avviker fra eksisterende harSluttet
     // Denne ser litt mistenkelig ut; kun fordi deltakerliste ikke har felles avslutning, så har deltaker sluttet?
+    @get:JsonIgnore
     val harSluttetNew: Boolean
         get() =
             status.type == DeltakerStatus.Type.DELTAR &&
                 !deltakerliste.harFellesAvslutning
 
+    @get:JsonIgnore
     val skalAvbrytesForAvbruttDeltakerliste: Boolean
         get() =
             status.type == DeltakerStatus.Type.DELTAR &&
                 deltakerliste.harFellesAvslutning &&
                 deltakerliste.erAvlystEllerAvbrutt()
 
+    @get:JsonIgnore
     val skalFullfores: Boolean
         get() =
             status.type == DeltakerStatus.Type.DELTAR &&
