@@ -18,7 +18,7 @@ repositories {
 }
 
 val ktorVersion = "3.4.0"
-val logbackVersion = "1.5.31"
+val logbackVersion = "1.5.32"
 val prometeusVersion = "1.16.3"
 val ktlintVersion = "1.6.0"
 val jacksonVersion = "2.21.0"
@@ -34,7 +34,7 @@ val caffeineVersion = "3.2.3"
 val mockkVersion = "1.14.9"
 val nimbusVersion = "10.7"
 val unleashVersion = "12.1.1"
-val amtLibVersion = "1.2026.02.20_17.26-67b9eb21a72f"
+val amtLibVersion = "1.2026.02.23_11.32-2482c3f13c63"
 
 // fjernes ved neste release av org.apache.kafka:kafka-clients
 configurations.configureEach {

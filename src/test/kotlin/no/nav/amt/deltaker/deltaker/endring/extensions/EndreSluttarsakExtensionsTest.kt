@@ -1,9 +1,9 @@
 package no.nav.amt.deltaker.deltaker.endring.extensions
 
+import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.deltaker.endring.extensions.EndringTestUtils.mockDeltakelsesmengdeProvider
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestData.randomEnhetsnummer
@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test
 
 class EndreSluttarsakExtensionsTest {
     @Test
-    fun `endret sluttarsak`() = runTest {
+    fun `endret sluttarsak`() {
         val resultat = endringsrequest
             .toEndring()
             .oppdaterDeltaker(
@@ -23,16 +23,16 @@ class EndreSluttarsakExtensionsTest {
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()
 
-        val oppdatertDeltaker = resultat.deltaker
-
-        oppdatertDeltaker.status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
-        oppdatertDeltaker.status.aarsak
-            .shouldNotBeNull()
-            .type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
+        assertSoftly(resultat.deltaker) {
+            status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
+            status.aarsak
+                .shouldNotBeNull()
+                .type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
+        }
     }
 
     @Test
-    fun `kaller sluttarsak direkte med extension-metode`() = runTest {
+    fun `kaller sluttarsak direkte med extension-metode`() {
         val resultat = endringsrequest.toEndring().endreSluttarsak(deltaker)
 
         val oppdatertDeltaker = resultat.deltaker

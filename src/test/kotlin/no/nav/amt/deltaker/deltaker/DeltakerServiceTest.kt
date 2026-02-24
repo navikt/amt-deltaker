@@ -5,8 +5,11 @@ import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.result.shouldBeFailure
+import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
@@ -53,6 +56,7 @@ import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerEndring
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
+import no.nav.amt.deltaker.utils.data.TestData.lagForslag
 import no.nav.amt.deltaker.utils.data.TestData.lagInnsoktPaaKurs
 import no.nav.amt.deltaker.utils.data.TestData.lagNavAnsatt
 import no.nav.amt.deltaker.utils.data.TestData.lagNavBruker
@@ -62,13 +66,14 @@ import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.utils.mockAmtArrangorClient
 import no.nav.amt.deltaker.utils.mockPersonServiceClient
+import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.AvsluttDeltakelseRequest
-import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.BakgrunnsinformasjonRequest
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.DeltakelsesmengdeRequest
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.ForlengDeltakelseRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.ReaktiverDeltakelseRequest
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.StartdatoRequest
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 import no.nav.amt.lib.models.hendelse.HendelseType
@@ -547,24 +552,45 @@ class DeltakerServiceTest {
 
     @Nested
     inner class UpsertEndretDeltakerTests {
+        val endretAvEnhet = lagNavEnhet()
+        val endretAv = lagNavAnsatt(navEnhetId = endretAvEnhet.id)
+
+        @BeforeEach
+        fun setUp() {
+            navEnhetRepository.upsert(endretAvEnhet)
+            navAnsattRepository.upsert(endretAv)
+        }
+
         @Test
-        fun `upsertEndretDeltaker - ingen endring - upserter ikke`() = runTest {
-            val deltaker = lagDeltaker(sistEndret = LocalDateTime.now().minusDays(2))
+        fun `upsertEndretDeltaker - ingen endring - upserter ikke, men godkjenner forslag`() = runTest {
+            val deltaker = lagDeltaker(
+                sluttdato = LocalDate.now().minusDays(2),
+                sistEndret = LocalDateTime.now().minusDays(2),
+            )
             val endretAv = lagNavAnsatt()
             val endretAvEnhet = lagNavEnhet()
+            val forslag = lagForslag(deltakerId = deltaker.id)
 
-            TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
+            TestRepository.insertAll(deltaker, endretAv, endretAvEnhet, forslag)
 
-            val endringsrequest = BakgrunnsinformasjonRequest(
+            val endringsrequest = AvsluttDeltakelseRequest(
                 endretAv = endretAv.navIdent,
                 endretAvEnhet = endretAvEnhet.enhetsnummer,
-                bakgrunnsinformasjon = deltaker.bakgrunnsinformasjon,
+                sluttdato = deltaker.sluttdato.shouldNotBeNull(),
+                aarsak = null,
+                begrunnelse = null,
+                forslagId = forslag.id,
+                harFullfort = null,
             )
 
             deltakerService.upsertEndretDeltaker(deltaker.id, endringsrequest)
 
             deltakerRepository.get(deltaker.id).getOrThrow().sistEndret shouldBeCloseTo deltaker.sistEndret
-            deltakerEndringRepository.getForDeltaker(deltaker.id).isEmpty() shouldBe true
+            deltakerEndringRepository.getForDeltaker(deltaker.id).shouldBeEmpty()
+
+            assertSoftly(forslagRepository.get(forslag.id).shouldBeSuccess()) {
+                it.status.shouldBeInstanceOf<Forslag.Status.Godkjent>()
+            }
         }
 
         @Test
@@ -573,10 +599,8 @@ class DeltakerServiceTest {
                 status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
                 sluttdato = LocalDate.now().plusMonths(1),
             )
-            val endretAv = lagNavAnsatt()
-            val endretAvEnhet = lagNavEnhet()
+            TestRepository.insert(deltaker)
 
-            TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
             val vedtak = lagVedtak(
                 deltakerId = deltaker.id,
                 deltakerVedVedtak = deltaker,
@@ -593,6 +617,7 @@ class DeltakerServiceTest {
                 aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
                 begrunnelse = null,
                 forslagId = null,
+                harFullfort = null,
             )
 
             val deltakerrespons = deltakerService.upsertEndretDeltaker(deltaker.id, endringsrequest)
@@ -625,8 +650,7 @@ class DeltakerServiceTest {
                     tiltakstype = lagTiltakstype(tiltakskode = Tiltakskode.GRUPPE_ARBEIDSMARKEDSOPPLAERING),
                 ),
             )
-            val endretAv = lagNavAnsatt()
-            val endretAvEnhet = lagNavEnhet()
+            TestRepository.insert(deltaker)
 
             TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
             val vedtak = lagVedtak(
@@ -645,6 +669,7 @@ class DeltakerServiceTest {
                 aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
                 begrunnelse = null,
                 forslagId = null,
+                harFullfort = null,
             )
 
             val deltakerRespons = deltakerService.upsertEndretDeltaker(deltaker.id, endringsrequest)
@@ -674,10 +699,8 @@ class DeltakerServiceTest {
                 status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
                 sluttdato = LocalDate.now().plusDays(2),
             )
-            val endretAv = lagNavAnsatt()
-            val endretAvEnhet = lagNavEnhet()
+            TestRepository.insert(deltaker)
 
-            TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
             val vedtak = lagVedtak(
                 deltakerId = deltaker.id,
                 deltakerVedVedtak = deltaker,
@@ -731,10 +754,7 @@ class DeltakerServiceTest {
                 status = lagDeltakerStatus(DeltakerStatus.Type.HAR_SLUTTET),
                 sluttdato = LocalDate.now().minusWeeks(1),
             )
-            val endretAv = lagNavAnsatt()
-            val endretAvEnhet = lagNavEnhet()
-
-            TestRepository.insertAll(deltaker, endretAv, endretAvEnhet)
+            TestRepository.insert(deltaker)
 
             val vedtak = lagVedtak(
                 deltakerId = deltaker.id,
@@ -752,6 +772,7 @@ class DeltakerServiceTest {
                 aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
                 begrunnelse = null,
                 forslagId = null,
+                harFullfort = null,
             )
 
             val deltakerrespons = deltakerService.upsertEndretDeltaker(deltaker.id, endringsrequest)
@@ -785,11 +806,9 @@ class DeltakerServiceTest {
         @Test
         fun `upsertEndretDeltaker - endret deltakelsesmengde - upserter endring`() = runTest {
             val deltaker = lagDeltaker()
-            val endretAv = lagNavAnsatt()
-            val endretAvEnhet = lagNavEnhet()
             val vedtak = lagVedtak(deltakerId = deltaker.id, opprettetAv = endretAv, opprettetAvEnhet = endretAvEnhet)
 
-            TestRepository.insertAll(deltaker, endretAv, endretAvEnhet, vedtak)
+            TestRepository.insertAll(deltaker, vedtak)
 
             val endringsrequest = DeltakelsesmengdeRequest(
                 endretAv = endretAv.navIdent,
@@ -828,11 +847,9 @@ class DeltakerServiceTest {
         @Test
         fun `upsertEndretDeltaker - fremtidig deltakelsesmengde - upserter endring, endrer ikke deltaker`() = runTest {
             val deltaker = lagDeltaker()
-            val endretAv = lagNavAnsatt()
-            val endretAvEnhet = lagNavEnhet()
             val vedtak = lagVedtak(deltakerId = deltaker.id, opprettetAv = endretAv, opprettetAvEnhet = endretAvEnhet)
 
-            TestRepository.insertAll(deltaker, endretAv, endretAvEnhet, vedtak)
+            TestRepository.insertAll(deltaker, vedtak)
 
             val endringsrequest = DeltakelsesmengdeRequest(
                 endretAv = endretAv.navIdent,
@@ -847,26 +864,6 @@ class DeltakerServiceTest {
             val resultat = deltakerService.upsertEndretDeltaker(deltaker.id, endringsrequest)
             resultat.deltakelsesprosent shouldBe deltaker.deltakelsesprosent
             resultat.dagerPerUke shouldBe deltaker.dagerPerUke
-
-/*
-            val oppdatertDeltaker = deltakerRepository.get(deltaker.id).getOrThrow()
-            oppdatertDeltaker.deltakelsesprosent shouldBe deltaker.deltakelsesprosent
-            oppdatertDeltaker.dagerPerUke shouldBe deltaker.dagerPerUke
-
-            val endring = deltakerEndringRepository.getForDeltaker(deltaker.id).first()
-            endring.endretAv shouldBe endretAv.id
-            endring.endretAvEnhet shouldBe endretAvEnhet.id
-
-            (endring.endring as DeltakerEndring.Endring.EndreDeltakelsesmengde)
-                .deltakelsesprosent shouldBe endringsrequest.deltakelsesprosent
-            (endring.endring as DeltakerEndring.Endring.EndreDeltakelsesmengde)
-                .dagerPerUke shouldBe endringsrequest.dagerPerUke
-
-            assertProducedHendelse(deltaker.id, HendelseType.EndreDeltakelsesmengde::class)
-            assertProduced(deltaker.id)
-            assertProducedDeltakerV1(deltaker.id)
-            assertProducedDeltakerEksternV1(deltaker.id)
-*/
         }
 
         @Test
@@ -875,11 +872,9 @@ class DeltakerServiceTest {
                 status = lagDeltakerStatus(DeltakerStatus.Type.DELTAR),
                 sluttdato = LocalDate.now().plusDays(1),
             )
-            val endretAv = lagNavAnsatt()
-            val endretAvEnhet = lagNavEnhet()
             val vedtak = lagVedtak(deltakerId = deltaker.id, opprettetAv = endretAv, opprettetAvEnhet = endretAvEnhet)
 
-            TestRepository.insertAll(deltaker, endretAv, endretAvEnhet, vedtak)
+            TestRepository.insertAll(deltaker, vedtak)
 
             val endringsrequest = StartdatoRequest(
                 endretAv = endretAv.navIdent,
@@ -923,10 +918,8 @@ class DeltakerServiceTest {
                 sluttdato = deltakersSluttdato,
             )
 
-            val endretAv = lagNavAnsatt()
-            val endretAvEnhet = lagNavEnhet()
             val vedtak = lagVedtak(deltakerId = deltaker.id, opprettetAv = endretAv, opprettetAvEnhet = endretAvEnhet)
-            TestRepository.insertAll(deltaker, endretAv, endretAvEnhet, vedtak)
+            TestRepository.insertAll(deltaker, vedtak)
 
             val endringsrequest = StartdatoRequest(
                 endretAv = endretAv.navIdent,
@@ -960,6 +953,34 @@ class DeltakerServiceTest {
             assertProduced(deltaker.id)
             assertProducedDeltakerV1(deltaker.id)
             assertProducedDeltakerEksternV1(deltaker.id)
+        }
+
+        @Test
+        fun `upsertEndretDeltaker - reaktiver - kladd slettes`() = runTest {
+            val deltaker = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.IKKE_AKTUELL),
+                startdato = LocalDate.now().plusDays(3),
+            )
+            val kladd = deltaker.copy(
+                id = UUID.randomUUID(),
+                status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
+            )
+
+            val vedtak = lagVedtak(deltakerId = deltaker.id, opprettetAv = endretAv, opprettetAvEnhet = endretAvEnhet)
+            TestRepository.insertAll(deltaker, kladd, vedtak)
+
+            val endringsrequest = ReaktiverDeltakelseRequest(
+                endretAv = endretAv.navIdent,
+                endretAvEnhet = endretAvEnhet.enhetsnummer,
+                begrunnelse = "~begrunnelse~",
+            )
+
+            val resultat = deltakerService.upsertEndretDeltaker(deltaker.id, endringsrequest)
+            assertSoftly(resultat.status) {
+                type shouldBe DeltakerStatus.Type.SOKT_INN
+            }
+
+            deltakerRepository.get(kladd.id).shouldBeFailure()
         }
     }
 

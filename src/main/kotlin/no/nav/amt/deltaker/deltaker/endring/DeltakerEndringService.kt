@@ -12,6 +12,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengde
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.EndringRequest
+import no.nav.amt.lib.utils.database.Database
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.util.UUID
@@ -25,6 +26,21 @@ class DeltakerEndringService(
     private val deltakerHistorikkService: DeltakerHistorikkService,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
+
+    suspend fun godkjennForslagForUendretDeltaker(endringRequest: EndringRequest) {
+        endringRequest.getForslagId()?.let { forslagId ->
+            val ansatt = navAnsattRepository.getOrThrow(endringRequest.endretAv)
+            val enhet = navEnhetRepository.getOrThrow(endringRequest.endretAvEnhet)
+
+            Database.transaction {
+                forslagService.godkjennForslag(
+                    forslagId = forslagId,
+                    godkjentAvAnsattId = ansatt.id,
+                    godkjentAvEnhetId = enhet.id,
+                )
+            }
+        }
+    }
 
     fun upsertEndring(endringRequest: EndringRequest, endringResultat: VellykketEndring): DeltakerEndring {
         val ansatt = navAnsattRepository.getOrThrow(endringRequest.endretAv)

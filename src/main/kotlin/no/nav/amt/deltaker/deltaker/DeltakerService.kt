@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.deltaker
 
 import no.nav.amt.deltaker.deltaker.DeltakerUtils.nyDeltakerStatus
 import no.nav.amt.deltaker.deltaker.DeltakerUtils.sjekkEndringUtfall
+import no.nav.amt.deltaker.deltaker.api.deltaker.getForslagId
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerStatusRepository
@@ -24,6 +25,7 @@ import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.Kilde
 import no.nav.amt.lib.models.deltaker.deltakelsesmengde.toDeltakelsesmengder
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.EndringRequest
+import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.ReaktiverDeltakelseRequest
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakstype
 import no.nav.amt.lib.models.hendelse.HendelseType
 import no.nav.amt.lib.models.person.NavAnsatt
@@ -76,7 +78,7 @@ class DeltakerService(
         },
     ).getOrThrow()
 
-    fun delete(deltakerId: UUID) {
+    fun deleteDeltaker(deltakerId: UUID) {
         importertFraArenaRepository.deleteForDeltaker(deltakerId)
         vedtakRepository.deleteForDeltaker(deltakerId)
         deltakerEndringRepository.deleteForDeltaker(deltakerId)
@@ -112,8 +114,14 @@ class DeltakerService(
                 getDeltakelsemengder = { deltakerId -> deltakerHistorikkService.getForDeltaker(deltakerId).toDeltakelsesmengder() },
             ).getOrElse {
                 log.warn(
-                    "Deltaker ${eksisterendeDeltaker.id} med ${endring.javaClass.simpleName} ikke endret, request skulle ikke være sendt",
+                    "Deltaker ${eksisterendeDeltaker.id} med ${endring.javaClass.simpleName} ikke endret, request skulle ikke blitt sendt",
                 )
+
+                // hvis forslag er godkjent og deltaker er uendret
+                endringRequest.getForslagId()?.let {
+                    deltakerEndringService.godkjennForslagForUendretDeltaker(endringRequest)
+                }
+
                 return eksisterendeDeltaker
             }
 
@@ -130,7 +138,20 @@ class DeltakerService(
                 )
                 deltaker
             },
+            afterUpsert = {
+                if (endringRequest is ReaktiverDeltakelseRequest) {
+                    slettKladdIfExists(updateResult.deltaker)
+                }
+            },
         )
+    }
+
+    private fun slettKladdIfExists(deltaker: Deltaker) {
+        deltakerRepository
+            .getKladdForDeltakerliste(
+                deltakerlisteId = deltaker.deltakerliste.id,
+                personident = deltaker.navBruker.personident,
+            ).onSuccess { deltaker -> deleteDeltaker(deltaker.id) }
     }
 
     suspend fun transactionalDeltakerUpsert(

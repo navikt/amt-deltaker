@@ -5,7 +5,6 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.test.runTest
 import no.nav.amt.deltaker.deltaker.endring.extensions.EndringTestUtils.mockDeltakelsesmengdeProvider
 import no.nav.amt.deltaker.utils.data.TestData
 import no.nav.amt.deltaker.utils.data.TestData.randomEnhetsnummer
@@ -19,7 +18,7 @@ import java.util.UUID
 
 class AvsluttDeltakelseExtensionsTest {
     @Test
-    fun `oppdaterDeltaker - avslutt deltakelse`() = runTest {
+    fun `oppdaterDeltaker - avslutt deltakelse`() {
         val endringsrequest = AvsluttDeltakelseRequest(
             endretAv = randomNavIdent(),
             endretAvEnhet = randomEnhetsnummer(),
@@ -27,6 +26,7 @@ class AvsluttDeltakelseExtensionsTest {
             aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
             begrunnelse = "begrunnelse",
             forslagId = UUID.randomUUID(),
+            harFullfort = null,
         )
 
         val resultat = endringsrequest
@@ -36,9 +36,7 @@ class AvsluttDeltakelseExtensionsTest {
                 getDeltakelsemengder = mockDeltakelsesmengdeProvider,
             ).shouldBeSuccess()
 
-        val oppdatertDeltaker = resultat.deltaker
-
-        assertSoftly(oppdatertDeltaker) {
+        assertSoftly(resultat.deltaker) {
             status.type shouldBe DeltakerStatus.Type.HAR_SLUTTET
             status.aarsak?.type shouldBe DeltakerStatus.Aarsak.Type.FATT_JOBB
             sluttdato shouldBe endringsrequest.sluttdato
@@ -46,7 +44,7 @@ class AvsluttDeltakelseExtensionsTest {
     }
 
     @Test
-    fun `oppdaterDeltaker - avslutt deltakelse i fremtiden - deltaker får ny sluttdato, fremtidig status`() = runTest {
+    fun `oppdaterDeltaker - avslutt deltakelse i fremtiden - deltaker får ny sluttdato, fremtidig status`() {
         val endringsrequest = AvsluttDeltakelseRequest(
             endretAv = randomNavIdent(),
             endretAvEnhet = randomEnhetsnummer(),
@@ -54,6 +52,7 @@ class AvsluttDeltakelseExtensionsTest {
             aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
             begrunnelse = null,
             forslagId = null,
+            harFullfort = null,
         )
 
         val resultat = endringsrequest
@@ -71,7 +70,7 @@ class AvsluttDeltakelseExtensionsTest {
     }
 
     @Test
-    fun `oppdaterDeltaker - har sluttet, avslutt deltakelse i fremtiden - ny sluttdato, fremtidig status`() = runTest {
+    fun `oppdaterDeltaker - har sluttet, avslutt deltakelse i fremtiden - ny sluttdato, fremtidig status`() {
         val endringsrequest = AvsluttDeltakelseRequest(
             endretAv = randomNavIdent(),
             endretAvEnhet = randomEnhetsnummer(),
@@ -79,6 +78,7 @@ class AvsluttDeltakelseExtensionsTest {
             aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
             begrunnelse = null,
             forslagId = null,
+            harFullfort = null,
         )
 
         val resultat = endringsrequest
@@ -103,7 +103,7 @@ class AvsluttDeltakelseExtensionsTest {
     }
 
     @Test
-    fun `oppdaterDeltaker - har sluttet, avslutt deltakelse i fortid - returnerer deltaker med ny sluttdato`() = runTest {
+    fun `oppdaterDeltaker - har sluttet, avslutt deltakelse i fortid - returnerer deltaker med ny sluttdato`() {
         val endringsrequest = AvsluttDeltakelseRequest(
             endretAv = randomNavIdent(),
             endretAvEnhet = randomEnhetsnummer(),
@@ -111,6 +111,7 @@ class AvsluttDeltakelseExtensionsTest {
             aarsak = DeltakerEndring.Aarsak(DeltakerEndring.Aarsak.Type.FATT_JOBB, null),
             begrunnelse = null,
             forslagId = null,
+            harFullfort = null,
         )
 
         val resultat = endringsrequest
