@@ -30,4 +30,8 @@ data class Deltakerliste(
 
     val erFellesOppstart get() = oppstart == Oppstartstype.FELLES
     val deltakelserMaaGodkjennes get() = pameldingstype == GjennomforingPameldingType.TRENGER_GODKJENNING
+
+    val avslutningstype get() = if (erFellesOppstart || tiltakstype.erOpplaeringstiltak) Avslutningstype.FELLES else Avslutningstype.LOPENDE
+
+    val harFellesAvslutning = avslutningstype == Avslutningstype.FELLES
 }
