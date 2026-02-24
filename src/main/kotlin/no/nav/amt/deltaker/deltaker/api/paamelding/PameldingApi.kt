@@ -69,6 +69,7 @@ fun Routing.registerPameldingApi(pameldingService: PameldingService, historikkSe
             call.respond(HttpStatusCode.OK)
         }
 
+        // skal fjernes
         delete("/pamelding/{deltakerId}") {
             pameldingService.slettKladd(call.getDeltakerId())
             call.respond(HttpStatusCode.OK)

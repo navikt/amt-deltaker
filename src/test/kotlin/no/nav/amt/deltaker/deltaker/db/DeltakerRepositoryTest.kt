@@ -4,6 +4,7 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.result.shouldBeFailure
 import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import no.nav.amt.deltaker.deltaker.model.Deltaker
@@ -25,6 +26,39 @@ import java.time.LocalDate
 
 class DeltakerRepositoryTest {
     private val deltakerRepository = DeltakerRepository()
+
+    @Nested
+    inner class GetDeltakereForDeltakerlisteTests {
+        val deltakerliste = lagDeltakerliste()
+
+        @Test
+        fun `skal returnere failure hvis ingen deltakere`() {
+            TestRepository.insert(deltakerliste)
+
+            val kladdResult = deltakerRepository.getKladdForDeltakerliste(
+                deltakerlisteId = deltakerliste.id,
+                personident = "~personident~",
+            )
+
+            kladdResult.shouldBeFailure()
+        }
+
+        @Test
+        fun `skal returnere success hvis kladd finnes`() {
+            val deltaker = lagDeltaker(
+                status = lagDeltakerStatus(DeltakerStatus.Type.KLADD),
+                deltakerliste = deltakerliste,
+            )
+            TestRepository.insert(deltaker)
+
+            val kladdResult = deltakerRepository.getKladdForDeltakerliste(
+                deltakerlisteId = deltakerliste.id,
+                personident = deltaker.navBruker.personident,
+            )
+
+            kladdResult.shouldBeSuccess()
+        }
+    }
 
     @Nested
     inner class GetDeltakereForAvsluttetDeltakerlisteTests {
