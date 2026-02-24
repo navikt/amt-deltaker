@@ -116,7 +116,7 @@ class DeltakerService(
                     "Deltaker ${eksisterendeDeltaker.id} med ${endring.javaClass.simpleName} ikke endret, request skulle ikke blitt sendt",
                 )
 
-                // hvis sluttbruker har godkjent forslag uten at det er foretatt andre endringer
+                // hvis forslag er godkjent og deltaker er uendret
                 endringRequest.getForslagId()?.let {
                     deltakerEndringService.godkjennForslagForUendretDeltaker(endringRequest)
                 }
