@@ -2,6 +2,7 @@ package no.nav.amt.deltaker.deltaker
 
 import no.nav.amt.deltaker.deltaker.DeltakerUtils.nyDeltakerStatus
 import no.nav.amt.deltaker.deltaker.DeltakerUtils.sjekkEndringUtfall
+import no.nav.amt.deltaker.deltaker.api.deltaker.getForslagId
 import no.nav.amt.deltaker.deltaker.db.DeltakerEndringRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerRepository
 import no.nav.amt.deltaker.deltaker.db.DeltakerStatusRepository
@@ -115,6 +116,12 @@ class DeltakerService(
                 log.warn(
                     "Deltaker ${eksisterendeDeltaker.id} med ${endring.javaClass.simpleName} ikke endret, request skulle ikke blitt sendt",
                 )
+
+                // hvis forslag er godkjent og deltaker er uendret
+                endringRequest.getForslagId()?.let {
+                    deltakerEndringService.godkjennForslagForUendretDeltaker(endringRequest)
+                }
+
                 return eksisterendeDeltaker
             }
 

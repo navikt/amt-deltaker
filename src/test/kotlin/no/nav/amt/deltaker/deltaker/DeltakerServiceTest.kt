@@ -6,8 +6,10 @@ import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.result.shouldBeFailure
+import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
@@ -54,6 +56,7 @@ import no.nav.amt.deltaker.utils.data.TestData.lagDeltaker
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerEndring
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerStatus
 import no.nav.amt.deltaker.utils.data.TestData.lagDeltakerliste
+import no.nav.amt.deltaker.utils.data.TestData.lagForslag
 import no.nav.amt.deltaker.utils.data.TestData.lagInnsoktPaaKurs
 import no.nav.amt.deltaker.utils.data.TestData.lagNavAnsatt
 import no.nav.amt.deltaker.utils.data.TestData.lagNavBruker
@@ -63,11 +66,11 @@ import no.nav.amt.deltaker.utils.data.TestData.lagVedtak
 import no.nav.amt.deltaker.utils.data.TestRepository
 import no.nav.amt.deltaker.utils.mockAmtArrangorClient
 import no.nav.amt.deltaker.utils.mockPersonServiceClient
+import no.nav.amt.lib.models.arrangor.melding.Forslag
 import no.nav.amt.lib.models.deltaker.DeltakerEndring
 import no.nav.amt.lib.models.deltaker.DeltakerHistorikk
 import no.nav.amt.lib.models.deltaker.DeltakerStatus
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.AvsluttDeltakelseRequest
-import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.BakgrunnsinformasjonRequest
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.DeltakelsesmengdeRequest
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.ForlengDeltakelseRequest
 import no.nav.amt.lib.models.deltaker.internalapis.deltaker.request.ReaktiverDeltakelseRequest
@@ -559,20 +562,35 @@ class DeltakerServiceTest {
         }
 
         @Test
-        fun `upsertEndretDeltaker - ingen endring - upserter ikke`() = runTest {
-            val deltaker = lagDeltaker(sistEndret = LocalDateTime.now().minusDays(2))
-            TestRepository.insert(deltaker)
+        fun `upsertEndretDeltaker - ingen endring - upserter ikke, men godkjenner forslag`() = runTest {
+            val deltaker = lagDeltaker(
+                sluttdato = LocalDate.now().minusDays(2),
+                sistEndret = LocalDateTime.now().minusDays(2),
+            )
+            val endretAv = lagNavAnsatt()
+            val endretAvEnhet = lagNavEnhet()
+            val forslag = lagForslag(deltakerId = deltaker.id)
 
-            val endringsrequest = BakgrunnsinformasjonRequest(
+            TestRepository.insertAll(deltaker, endretAv, endretAvEnhet, forslag)
+
+            val endringsrequest = AvsluttDeltakelseRequest(
                 endretAv = endretAv.navIdent,
                 endretAvEnhet = endretAvEnhet.enhetsnummer,
-                bakgrunnsinformasjon = deltaker.bakgrunnsinformasjon,
+                sluttdato = deltaker.sluttdato.shouldNotBeNull(),
+                aarsak = null,
+                begrunnelse = null,
+                forslagId = forslag.id,
+                harFullfort = null,
             )
 
             deltakerService.upsertEndretDeltaker(deltaker.id, endringsrequest)
 
             deltakerRepository.get(deltaker.id).getOrThrow().sistEndret shouldBeCloseTo deltaker.sistEndret
-            deltakerEndringRepository.getForDeltaker(deltaker.id).isEmpty() shouldBe true
+            deltakerEndringRepository.getForDeltaker(deltaker.id).shouldBeEmpty()
+
+            assertSoftly(forslagRepository.get(forslag.id).shouldBeSuccess()) {
+                it.status.shouldBeInstanceOf<Forslag.Status.Godkjent>()
+            }
         }
 
         @Test
