@@ -71,4 +71,23 @@ data class Deltaker(
         erManueltDeltMedArrangor = erManueltDeltMedArrangor,
         forcedUpdate = false,
     )
+
+    // TODO: Avviker fra eksisterende harSluttet
+    // Denne ser litt mistenkelig ut; kun fordi deltakerliste ikke har felles avslutning, så har deltaker sluttet?
+    val harSluttetNew: Boolean
+        get() =
+            status.type == DeltakerStatus.Type.DELTAR &&
+                !deltakerliste.harFellesAvslutning
+
+    val skalAvbrytesForAvbruttDeltakerliste: Boolean
+        get() =
+            status.type == DeltakerStatus.Type.DELTAR &&
+                deltakerliste.harFellesAvslutning &&
+                deltakerliste.erAvlystEllerAvbrutt()
+
+    val skalFullfores: Boolean
+        get() =
+            status.type == DeltakerStatus.Type.DELTAR &&
+                deltakerliste.harFellesAvslutning &&
+                !deltakerliste.erAvlystEllerAvbrutt()
 }
