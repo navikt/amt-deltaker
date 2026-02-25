@@ -1,4 +1,5 @@
 package no.nav.amt.deltaker.external.data
+
 import no.nav.amt.lib.models.deltakerliste.tiltakstype.Tiltakskode
 
 data class DeltakelserResponse(
