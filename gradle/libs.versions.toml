@@ -17,7 +17,7 @@ caffeine-version = "3.2.3"
 mockk-version = "1.14.9"
 nimbus-version = "10.7"
 unleash-version = "12.1.1"
-amt-lib-version = "1.2026.02.23_11.32-2482c3f13c63"
+amt-lib-version = "1.2026.02.25_21.37-43329f290d8a"
 
 [libraries]
 

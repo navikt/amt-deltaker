@@ -13,20 +13,6 @@ repositories {
     maven("https://github-package-registry-mirror.gc.nav.no/cached/maven-release")
 }
 
-configurations.configureEach {
-    resolutionStrategy {
-        capabilitiesResolution {
-            withCapability("org.lz4:lz4-java") {
-                select(
-                    candidates.first {
-                        (it.id as ModuleComponentIdentifier).group == "at.yawk.lz4"
-                    },
-                )
-            }
-        }
-    }
-}
-
 dependencies {
 
     // --- Ktor BOM ---
