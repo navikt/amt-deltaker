@@ -6,7 +6,6 @@ plugins {
     alias(libs.plugins.ktor)
     alias(libs.plugins.ktlint)
     application
-    distribution
 }
 
 repositories {
@@ -88,7 +87,7 @@ application {
 }
 
 ktlint {
-    version.set(libs.versions.ktlint.cli.version)
+    version = libs.versions.ktlint.cli.version
 }
 
 tasks.named<Test>("test") {
