@@ -51,6 +51,7 @@ spec:
         - application: amt-person-service
         - application: amt-arrangor
         - application: amt-tiltak
+        - application: amt-distribusjon
         - application: poao-tilgang
           namespace: poao
         - application: isoppfolgingstilfelle
