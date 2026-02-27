@@ -1,7 +1,9 @@
 package no.nav.amt.deltaker.deltaker.api.deltaker
 
+import no.nav.amt.deltaker.apiclients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.deltaker.arrangor.ArrangorService
-import no.nav.amt.deltaker.bff.apiclients.distribusjon.AmtDistribusjonClient
+import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
+import no.nav.amt.deltaker.deltaker.forslag.ForslagRepository
 import no.nav.amt.deltaker.deltaker.model.Deltaker
 import no.nav.amt.deltaker.deltaker.model.Vedtaksinformasjon
 import no.nav.amt.deltaker.navansatt.NavAnsattRepository
@@ -18,12 +20,15 @@ class ResponseBuilder(
     private val navAnsattRepository: NavAnsattRepository,
     private val navEnhetService: NavEnhetService,
     private val amtDistribusjonClient: AmtDistribusjonClient,
+    private val deltakerHistorikkService: DeltakerHistorikkService,
+    private val forslagRepository: ForslagRepository,
 ) {
     suspend fun buildDeltakerResponse(deltaker: Deltaker): DeltakerResponse {
         val arrangorNavn = arrangorService.getArrangorNavn(deltaker.deltakerliste.arrangor)
         // Flyttet as is fra deltaker-bff. Kan dette gjøres asynkront?
         val erDigital = amtDistribusjonClient.digitalBruker(deltaker.navBruker.personident)
-
+        val historikk = deltakerHistorikkService.getForDeltaker(deltaker.id)
+        val forslag = forslagRepository.getForDeltaker(deltaker.id)
         return DeltakerResponse(
             id = deltaker.id,
             navBruker = fromNavBruker(deltaker.navBruker, erDigital),
@@ -55,9 +60,9 @@ class ResponseBuilder(
             kilde = deltaker.kilde,
             erManueltDeltMedArrangor = deltaker.erManueltDeltMedArrangor,
             opprettet = deltaker.opprettet,
-            historikk = emptyList(), // TODO(),
+            historikk = historikk,
             erLaastForEndringer = true, // TODO(),
-            endringsforslagFraArrangor = emptyList(), // TODO(),
+            endringsforslagFraArrangor = forslag,
         )
     }
 

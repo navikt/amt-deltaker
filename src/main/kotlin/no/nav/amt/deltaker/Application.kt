@@ -19,6 +19,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.amt.deltaker.Environment.Companion.HTTP_CONNECT_TIMEOUT_MILLIS
 import no.nav.amt.deltaker.Environment.Companion.HTTP_REQUEST_TIMEOUT_MILLIS
 import no.nav.amt.deltaker.Environment.Companion.HTTP_SOCKET_TIMEOUT_MILLIS
+import no.nav.amt.deltaker.apiclients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.deltaker.apiclients.mulighetsrommet.MulighetsrommetApiClient
 import no.nav.amt.deltaker.apiclients.oppfolgingstilfelle.IsOppfolgingstilfelleClient
 import no.nav.amt.deltaker.application.plugins.configureAuthentication
@@ -30,7 +31,6 @@ import no.nav.amt.deltaker.arrangor.ArrangorConsumer
 import no.nav.amt.deltaker.arrangor.ArrangorRepository
 import no.nav.amt.deltaker.arrangor.ArrangorService
 import no.nav.amt.deltaker.auth.TilgangskontrollService
-import no.nav.amt.deltaker.bff.apiclients.distribusjon.AmtDistribusjonClient
 import no.nav.amt.deltaker.deltaker.DeltakerHistorikkService
 import no.nav.amt.deltaker.deltaker.DeltakerService
 import no.nav.amt.deltaker.deltaker.OpprettKladdRequestValidator
@@ -349,6 +349,8 @@ fun Application.module() {
         navAnsattRepository = navAnsattRepository,
         navEnhetService = navEnhetService,
         amtDistribusjonClient = amtDistribusjonClient,
+        deltakerHistorikkService = deltakerHistorikkService,
+        forslagRepository = forslagRepository,
     )
 
     val consumers = listOf(
