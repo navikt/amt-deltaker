@@ -1,3 +1,5 @@
+Flyttet til nytt monorepo: https://github.com/navikt/amt-deltakelser
+
 # amt-deltaker
 
 ## Utvikling
